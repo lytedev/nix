@@ -36,7 +36,7 @@
     };
   };
 
-  outputs = inputs: {
+  outputs = { self, ... }@inputs: {
     diskoConfigurations = {
       encryptedUefiBtrfs = import ./machines/thinker-disks.nix;
       normalUefiBtrfs = import ./machines/musicbox-disks.nix;
@@ -118,27 +118,12 @@
           system = "x86_64-linux";
         };
       };
-      musicbot = inputs.nixpkgs.lib.nixosSystem {
+      beefcake = inputs.nixpkgs.lib.nixosSystem {
         deployment = {
-          targetHost = "musicbox";
-          targetPort = 1234;
-          targetUser = "nixos";
+          targetHost = "beefcake";
+          targetUser = "daniel";
         };
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
-        modules =
-          [
-            inputs.disko.nixosModules.disko
-            ./machines/musicbox-disks.nix
-            { _module.args.disks = [ "/dev/sda" ]; }
-            ./machines/musicbox.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.daniel = import ./daniel.nix;
-            }
-          ];
+        modules = [ self.nixosConfigurations.beefcake ];
       };
     };
   };

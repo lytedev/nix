@@ -51,7 +51,7 @@ sudo nix-shell --packages git --run "
     --extra-experimental-features nix-command \
     --extra-experimental-features flakes \
     github:nix-community/disko -- \
-      --flake 'git+https://git.lyte.dev/lytedev/dotfiles?ref=main&dir=/os/linux/nix#diskoConfigOfChoice' \
+      --flake 'git+https://git.lyte.dev/lytedev/nix#diskoConfigOfChoice' \
       --mode disko \
       --arg disks '[ \"/dev/your_disk\" ]'
 "
@@ -63,7 +63,7 @@ And finally install NixOS as specified by this flake:
 nix-shell --packages git \
   --run "
     sudo nixos-install \
-      --flake 'git+https://git.lyte.dev/lytedev/dotfiles?ref=main&dir=/os/linux/nix#yourNixosConfig'
+      --flake 'git+https://git.lyte.dev/lytedev/nix#yourNixosConfig'
   "
 ```
 
