@@ -1,4 +1,4 @@
-{ pkgs, lib, inputs, ... }: {
+{ pkgs, lib, ... }: {
   # TODO: email access?
   # accounts.email.accounts = {
   #   google = {
@@ -14,7 +14,8 @@
   home.stateVersion = "23.05";
 
   home.packages = [
-    inputs.rtx.packages.rtx
+    pkgs.rtx
+    (pkgs.buildEnv { name = "my-scripts"; paths = [ ./scripts ]; })
   ];
 
   programs.password-store = {
