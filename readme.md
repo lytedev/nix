@@ -20,6 +20,14 @@ $ git push beefcake:~/.config/lytedev-dotfiles
 $ ssh -t beefcake 'cd ~/.config/lytedev-dotfiles/os/linux/nix && sudo nixos-rebuild switch --flake .# && echo DONE'
 ```
 
+# Install For Home Manager
+
+<!-- TODO: document nix+home manager installation for arch boxes -->
+
+```bash
+home-manager switch --flake .#daniel
+```
+
 # Install From NixOS Bootable Media
 
 Documented below is my process for standing up a new NixOS node configured and
