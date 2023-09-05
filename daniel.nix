@@ -15,6 +15,8 @@
 
   home.packages = [
     pkgs.rtx
+
+    # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
     (pkgs.buildEnv { name = "my-scripts"; paths = [ ./scripts ]; })
   ];
 
