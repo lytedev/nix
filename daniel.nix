@@ -6,9 +6,6 @@
   #   };
   # };
 
-  # TODO: copy all by binaries/scripts from dotfiles into ~/.local/bin or
-  # something?
-
   home.username = "daniel";
   home.homeDirectory = lib.mkDefault "/home/daniel/.home";
   home.stateVersion = "23.05";

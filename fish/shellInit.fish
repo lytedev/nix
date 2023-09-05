@@ -83,3 +83,6 @@ function has_command --wraps=command --description "Exits non-zero if the given 
 	command --quiet --search $argv[1]
 end
 
+if has_command rtx
+	rtx activate fish | source
+end
