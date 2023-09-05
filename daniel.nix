@@ -170,6 +170,8 @@
       set --export --universal SCROTS_PATH $NICE_HOME/img/scrots
       set --export --universal USER_LOGS_PATH $NICE_HOME/doc/logs
 
+      set --export --universal CDPATH $NICE_HOME
+
       for s in $ENV_PATH/*/config.d.fish
         source $s (dirname $s)
       end
@@ -480,6 +482,7 @@
   };
 
   programs.firefox = {
+    # TODO: enable dark theme by default
     enable = true;
 
     package = (pkgs.firefox.override { extraNativeMessagingHosts = [ pkgs.passff-host ]; });
@@ -503,20 +506,17 @@
         '';
 
         userChrome = ''
-          /* Remove close button */
-          .titlebar-buttonbox-container{ display:none }
-
           #webrtcIndicator {
-            display: none;
+          	display: none;
           }
 
           #main-window[tabsintitlebar="true"]:not([extradragspace="true"]) #TabsToolbar>.toolbar-items {
-            opacity: 0;
-            pointer-events: none;
+          	opacity: 0;
+          	pointer-events: none;
           }
 
           #main-window:not([tabsintitlebar="true"]) #TabsToolbar {
-            visibility: collapse !important;
+          	visibility: collapse !important;
           }
         '';
 
@@ -531,4 +531,5 @@
   #   enable = true;
   # }; # TODO: would be nice to have my sway config declared here instead of symlinked in by dotfiles scripts?
   # maybe we can share somehow so things for nix-y systems and non-nix-y systems alike
+  # am I going to _have_ non-nix systems anymore?
 }
