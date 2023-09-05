@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+d="$(date +%Y-%m-%d_%H-%M-%S)"
+f="${USER_LOGS_PATH}/${d}.tmux-buffer.log"
+mkdir -p "$(dirname "$f")"
+touch "$f"
+chmod 600 "$f"
+tmux capture-pane -pS -1000000000 > "$f"
+echo "$f"

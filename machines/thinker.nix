@@ -182,6 +182,7 @@ in
     git-lfs
     grim
     inputs.helix.packages."x86_64-linux".helix
+    inputs.rtx.packages."x86_64-linux".rtx
     hexyl
     htop
     inkscape

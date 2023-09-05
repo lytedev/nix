@@ -1,4 +1,4 @@
-{}: {
+{
   standard = { disks ? [ "/dev/vda" ], ... }: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
