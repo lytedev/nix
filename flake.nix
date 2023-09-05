@@ -1,46 +1,25 @@
-# Welcome to my nix config! I'm just getting started with flakes, so please
-# forgive the mess.
-
-# TODO: declarative disks with https://github.com/nix-community/disko
-# TODO: home-manager?
-
 {
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+  inputs =
+    let
+      followedInput = url: {
+        url = url;
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
+    in
+    {
+      nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
 
-    # TODO: this could be a release tarball? fully recompiling this on every change suuuucks
-    api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
+      # TODO: this could be a release tarball? fully recompiling this on every change suuuucks
+      api-lyte-dev = followedInput "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
 
-    home-manager = {
-      url = "github:nix-community/home-manager/release-23.05";
-
-      # use the version of nixpkgs we specified above rather than the one HM would ordinarily use
-      inputs.nixpkgs.follows = "nixpkgs";
+      home-manager = followedInput "github:nix-community/home-manager/release-23.05";
+      disko = followedInput "github:nix-community/disko/master"; # NOTE: lock update!
+      sops-nix = followedInput "github:Mic92/sops-nix";
+      helix = followedInput "github:helix-editor/helix";
     };
 
-    disko = {
-      url = "github:nix-community/disko/master"; # NOTE: lock update!
-
-      # use the version of nixpkgs we specified above rather than the one HM would ordinarily use
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    helix = {
-      url = "github:helix-editor/helix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-
-  outputs = inputs: {
-    diskoConfigurations = {
-      encryptedUefiBtrfs = import ./machines/thinker-disks.nix;
-      normalUefiBtrfs = import ./machines/musicbox-disks.nix;
-    };
+  outputs = { self, ... }@inputs: {
+    diskoConfigurations = import ./disko.nix;
     homeConfigurations =
       let
         system = "x86_64-linux";
