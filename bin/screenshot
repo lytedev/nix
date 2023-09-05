@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+SCROT_DIR="$NICE_HOME/img/scrots"
+mkdir -p "$SCROT_DIR/"
+FILENAME="$SCROT_DIR/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png"
+grim -t png "$@" "${FILENAME}" >/dev/null && echo "Saved screenshot to: ${FILENAME}"

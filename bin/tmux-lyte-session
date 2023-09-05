@@ -1,0 +1,11 @@
+#!/usr/bin/env fish
+
+set session_name $argv[1]
+set dir (set -q argv[2] && echo $argv[2] || pwd)
+
+if set -q TMUX
+	tmux switch -t $session_name
+else
+	tmux new-session -D -s "$session_name" -c "$dir" $argv[3..-1] &>/dev/null || \
+		tmux attach -t "$session_name" -c "$dir"
+end

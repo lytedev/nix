@@ -1,0 +1,2 @@
+#!/usr/bin/env fish
+tmux-lyte-session dotfiles $DOTFILES_PATH

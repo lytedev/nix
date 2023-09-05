@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: {
+{ pkgs, lib, inputs, ... }: {
   # TODO: email access?
   # accounts.email.accounts = {
   #   google = {
@@ -14,7 +14,7 @@
   home.stateVersion = "23.05";
 
   home.packages = [
-
+    inputs.rtx.packages.rtx
   ];
 
   programs.password-store = {
@@ -130,7 +130,7 @@
       };
 
       verbs = [
-        { invocation = "edit"; shortcut = "e"; execution = "$EDITOR +{line} {file}"; }
+        { invocation = "edit"; shortcut = "e"; execution = "$EDITOR {file}"; }
       ];
     };
   };

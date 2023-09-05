@@ -122,6 +122,21 @@
         "type": "github"
       }
     },
+    "flake-utils_3": {
+      "locked": {
+        "lastModified": 1678901627,
+        "narHash": "sha256-U02riOqrKKzwjsxc/400XnElV+UtPUQWpANPlyazjH0=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "93a2b84fc4b70d9e089d029deacc3583435c2ed6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "helix": {
       "inputs": {
         "crane": "crane",
@@ -221,7 +236,29 @@
         "helix": "helix",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_2",
+        "rtx": "rtx",
         "sops-nix": "sops-nix"
+      }
+    },
+    "rtx": {
+      "inputs": {
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1693923183,
+        "narHash": "sha256-TH2JC+Cjw+ed1O33QKGq+lonIKlu6pHuY1jtrZh/FMM=",
+        "owner": "jdx",
+        "repo": "rtx",
+        "rev": "f333ac5f8e8de399fcb3ce40576baeef0271081b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jdx",
+        "repo": "rtx",
+        "type": "github"
       }
     },
     "rust-overlay": {

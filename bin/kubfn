@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+has_command kubectl || {
+	echo "kubectl command not found"
+	exit 1
+}
+
+kubectl get namespaces --show-labels | \
+	uniq | \
+	sort | \
+	cut -d ' ' -f1 | \
+	sk | \
+	xargs -I{} kubectl config set-context --current --namespace='{}'

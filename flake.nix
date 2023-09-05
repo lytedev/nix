@@ -34,6 +34,11 @@
       url = "github:helix-editor/helix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    rtx = {
+      url = "github:jdx/rtx";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, ... }@inputs: {
@@ -42,6 +47,7 @@
       normalUefiBtrfs = import ./machines/musicbox-disks.nix;
     };
     homeConfigurations =
+      # TODO: per arch?
       let
         system = "x86_64-linux";
         pkgs = inputs.nixpkgs.legacyPackages.${system};

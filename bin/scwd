@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+addon=""; [ -n "$1" ] && addon="-${1}"
+echo "${PWD}" > "${DOTFILES_PATH}/.cwd${addon}.tmp"

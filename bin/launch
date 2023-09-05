@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+LAUNCHER_HISTORY_FILE="$HOME/.local/share/lytelaunch/launch.log"
+mkdir --parents "$(dirname "$LAUNCHER_HISTORY_FILE")"
+touch "$LAUNCHER_HISTORY_FILE"
+app="$(
+	< "$LAUNCHER_HISTORY_FILE" \
+		awk 'NF{NF--};1' | \
+		cat - <(dmenu_path) | \
+		sort | uniq -c | sort -nr | \
+		sd -fm '^\s+' '' | \
+		cut -d' ' -f2- | \
+		grep "\S" | \
+		sk
+	)"
+# if no app is selected, just exit
+test -z "$app" && exit 1
+echo "$app $(date +%s)" >> "$LAUNCHER_HISTORY_FILE"
+echo "$app"
