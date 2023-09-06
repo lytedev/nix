@@ -53,7 +53,7 @@
         modules =
           [
             inputs.disko.nixosModules.disko
-            ./machines/musicbox-disks.nix
+            self.diskoConfigurations.unencrypted
             { _module.args.disks = [ "/dev/sda" ]; }
             ./machines/musicbox.nix
             inputs.home-manager.nixosModules.home-manager
@@ -90,12 +90,16 @@
           system = "x86_64-linux";
         };
       };
-      beefcake = inputs.nixpkgs.lib.nixosSystem {
+      defaults = {
+        environment.etc."nixos/configuration.nix".text = ''
+          throw "sorry, no nixos-rebuild, use colmena"
+        '';
+      };
+      beefcake = {
         deployment = {
           targetHost = "beefcake";
           targetUser = "daniel";
         };
-        modules = self.nixosConfigurations.beefcake.modules;
       };
     };
   };

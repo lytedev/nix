@@ -117,6 +117,8 @@
     # packages = with pkgs; [];
   };
 
+  users.users.root.openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
+
   users.users.lytedev = {
     # for running my services and applications and stuff
     isNormalUser = true;
