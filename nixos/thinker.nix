@@ -1,7 +1,7 @@
 { modulesPath, lib, ... }: {
   imports =
     [
-      ../modules/intel.net
+      ../modules/intel.nix
       ../modules/desktop-usage.nix
       ../modules/podman.nix
       ../modules/wifi.nix

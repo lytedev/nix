@@ -33,6 +33,8 @@ in
 {
   imports = [ ./pipewire.nix ];
 
+  # services.xserver.libinput.enable = true;
+
   services.gnome.gnome-keyring.enable = true;
   programs.gnupg.agent = {
     enable = true;
@@ -57,7 +59,10 @@ in
 
   services.dbus.enable = true;
 
-  programs.thunar.enable = true;
+  programs.thunar = {
+    enable = true;
+    plugins = with pkgs.xfce; [ thunar-archive-plugin thunar-volman ];
+  };
 
   environment.systemPackages = with pkgs; [
     brightnessctl
@@ -90,10 +95,10 @@ in
     vlc
     vulkan-tools
     waybar
+    weechat
     wine
     wl-clipboard
     wofi
     zathura
   ];
-  # services.xserver.libinput.enable = true;
 }

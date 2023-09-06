@@ -19,13 +19,12 @@
       exa
       fd
       file
-      fwupd
-      git
-      git-lfs
       gnumake
+      gron
       hexyl
       htop
       iputils
+      jq
       killall
       kitty # TODO: I really just need the terminfo on servers, though, right?
       less
@@ -39,8 +38,7 @@
       rsync
       sd
       sops
-      tmux
-      traceroute
+      smartmontools
       unzip
       watchexec
       wget
@@ -98,6 +96,9 @@
       enable = true;
       useRoutingFeatures = lib.mkDefault "client";
     };
+
+    fwupd.enable = true;
+    smartd.enable = true;
   };
 
   console = {
@@ -149,12 +150,26 @@
     hostPlatform = lib.mkDefault "x86_64-linux";
   };
 
-  programs =
-    {
-      fish = {
+  programs = {
+    fish = {
+      enable = true;
+    };
+
+    tmux = {
+      enable = true;
+      clock24 = true;
+    };
+
+    traceroute.enable = true;
+
+    git = {
+      enable = true;
+
+      lfs = {
         enable = true;
       };
     };
+  };
 
   time = {
     timeZone = "America/Chicago";
