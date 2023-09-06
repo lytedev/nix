@@ -35,5 +35,5 @@ in
   rascal = nixosSystem [ ./nixos/rascal.nix ];
   musicbox = diskoNixosSystem self.diskoConfigurations.unencrypted [ "/dev/sda" ] [ ./nixos/musicbox.nix ];
   thinker = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/nvme0n1" ] [ ./nixos/thinker.nix ];
-  dragon = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/disk/by-uuid/asdf" ] [ ./machines/dragon.nix ];
+  # dragon = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/disk/by-uuid/asdf" ] [ ./nixos/dragon.nix ];
 }
