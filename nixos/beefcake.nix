@@ -2,11 +2,49 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 
-{ config, pkgs, inputs, ... }: rec {
+{ modulesPath, config, lib, pkgs, inputs, ... }: rec {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  imports = [
-    ./beefcake-hardware.nix
-  ];
+
+  boot.initrd.availableKernelModules = [ "ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.extraModulePackages = [ ];
+
+  fileSystems."/" =
+    {
+      device = "/dev/disk/by-uuid/0747dcba-f590-42e6-89c8-6cb2f9114d64";
+      fsType = "ext4";
+      options = [
+        "usrquota"
+      ];
+    };
+
+  fileSystems."/boot" =
+    {
+      device = "/dev/disk/by-uuid/7E3C-9018";
+      fsType = "vfat";
+    };
+
+  fileSystems."/storage" =
+    {
+      device = "/dev/disk/by-uuid/ea8258d7-54d1-430e-93b3-e15d33231063";
+      fsType = "btrfs";
+      options = [
+        "compress=zstd:5"
+        "space_cache=v2"
+      ];
+    };
+
+  swapDevices = [ ];
+
+  networking.useDHCP = lib.mkDefault true;
+
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+  imports =
+    [
+      (modulesPath + "/installer/scan/not-detected.nix")
+    ];
 
   services.api-lyte-dev = rec {
     enable = true;

@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running `nixos-help`).
 
-{ pkgs, inputs, ... }:
+{ modulesPath, pkgs, config, lib, inputs, ... }:
 
 let
   # this is unused because it's referenced by my sway config
@@ -38,9 +38,15 @@ in
 {
   imports =
     [
-      # Include the results of the hardware scan.
-      ./thinker-hardware.nix
+      (modulesPath + "/installer/scan/not-detected.nix")
     ];
+
+  boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ ];
+  boot.extraModulePackages = [ ];
+
+  networking.useDHCP = lib.mkDefault true;
 
   # TODO: hibernation? I've been using [deep] in /sys/power/mem_sleep alright
   # with this machine so it may not be necessary?
@@ -53,6 +59,10 @@ in
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
   nixpkgs.config = {
     allowUnfree = true;

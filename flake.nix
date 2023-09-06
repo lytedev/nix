@@ -11,24 +11,8 @@
 
   outputs = inputs @ { self, ... }: {
     diskoConfigurations = import ./disko.nix;
+    homeConfigurations = import ./home.nix;
 
-    homeConfigurations =
-      # TODO: per arch?
-      let
-        system = "x86_64-linux";
-        pkgs = inputs.nixpkgs.legacyPackages.${system};
-      in
-      {
-        daniel = inputs.home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          modules = [
-            (import
-              ./daniel.nix
-
-              pkgs)
-          ];
-        };
-      };
     nixosConfigurations = {
       beefcake = inputs.nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
