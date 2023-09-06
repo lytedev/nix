@@ -23,15 +23,12 @@
       "inputs": {
         "flake-compat": "flake-compat",
         "flake-utils": [
-          "helix",
           "flake-utils"
         ],
         "nixpkgs": [
-          "helix",
           "nixpkgs"
         ],
         "rust-overlay": [
-          "helix",
           "rust-overlay"
         ]
       },
@@ -132,27 +129,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "helix": {
-      "inputs": {
-        "crane": "crane",
-        "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs_3",
-        "rust-overlay": "rust-overlay"
-      },
-      "locked": {
-        "lastModified": 1692817399,
-        "narHash": "sha256-gbLru0aup6iI0JnDGMQd1jsb8H6IJUNr/Xln3/ouAZc=",
-        "owner": "helix-editor",
-        "repo": "helix",
-        "rev": "c9694f680f97823ac9b893239a78bf45bfee0403",
-        "type": "github"
-      },
-      "original": {
-        "owner": "helix-editor",
-        "repo": "helix",
         "type": "github"
       }
     },
@@ -307,7 +283,6 @@
       "inputs": {
         "api-lyte-dev": "api-lyte-dev",
         "disko": "disko",
-        "helix": "helix",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_5",
         "rtx": "rtx",
@@ -336,11 +311,9 @@
     "rust-overlay": {
       "inputs": {
         "flake-utils": [
-          "helix",
           "flake-utils"
         ],
         "nixpkgs": [
-          "helix",
           "nixpkgs"
         ]
       },

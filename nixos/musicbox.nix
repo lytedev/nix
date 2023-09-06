@@ -145,7 +145,6 @@ in
     git
     git-lfs
     grim
-    inputs.helix.packages."x86_64-linux".helix
     hexyl
     htop
     inkscape

@@ -2,13 +2,14 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 
-{ modulesPath, config, lib, pkgs, inputs, ... }: rec {
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+{ modulesPath, config, pkgs, ... }: rec {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    ../modules/intel.nix
+  ];
 
   boot.initrd.availableKernelModules = [ "ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
 
   fileSystems."/" =
     {
@@ -35,16 +36,10 @@
       ];
     };
 
-  swapDevices = [ ];
-
-  networking.useDHCP = lib.mkDefault true;
-
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
-  imports =
-    [
-      (modulesPath + "/installer/scan/not-detected.nix")
-    ];
+  services.nix-serve = {
+    enable = true;
+    secretKeyFile = "/var/cache-priv-key.pem";
+  };
 
   services.api-lyte-dev = rec {
     enable = true;
@@ -128,23 +123,10 @@
 
   networking.hostName = "beefcake";
 
-  time.timeZone = "America/Chicago";
-
-  i18n.defaultLocale = "en_US.UTF-8";
-  console = {
-    font = "Lat2-Terminus16";
-    keyMap = "us";
-  };
-
   users.groups.daniel.members = [ "daniel" ];
   users.groups.nixadmin.members = [ "daniel" ];
 
   users.users.daniel = {
-    isNormalUser = true;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
-    ];
-    group = "daniel";
     extraGroups = [
       "nixadmin" # write access to /etc/nixos/ files
       "wheel" # sudo access
@@ -152,27 +134,18 @@
       "users" # general users group
       "jellyfin" # write access to /storage/jellyfin
     ];
-    # packages = with pkgs; [];
   };
-
-  users.users.root.openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
 
   users.users.lytedev = {
     # for running my services and applications and stuff
     isNormalUser = true;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
-    ];
+    openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
     group = "lytedev";
-    extraGroups = [
-    ];
   };
 
   users.users.ben = {
     isNormalUser = true;
-    packages = with pkgs; [
-      vim
-    ];
+    packages = [ pkgs.vim ];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUfLZ+IX85p9355Po2zP1H2tAxiE0rE6IYb8Sf+eF9T ben@benhany.com"
     ];
@@ -180,9 +153,7 @@
 
   users.users.alan = {
     isNormalUser = true;
-    packages = with pkgs; [
-      vim
-    ];
+    packages = [ pkgs.vim ];
     openssh.authorizedKeys.keys = [
       ""
     ];
@@ -193,55 +164,17 @@
     isNormalUser = true;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbPqzKB09U+i4Kqu136yOjflLZ/J7pYsNulTAd4x903 root@chromebox.h.lyte.dev"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
-    ];
+    ] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
   };
 
   users.users.guest = {
+    # used for anonymous samba access
     isSystemUser = true;
-    group = "user";
+    group = "users";
     createHome = true;
   };
 
-  programs.fish.enable = true;
-  users.defaultUserShell = pkgs.fish;
-
-  environment.variables = {
-    EDITOR = "hx";
-  };
-
-  # TODO: right now, I use a flake for helix that gets the latest since my config uses newer features
-  # would be nice to get that declared here
-  # I think this was done with `nix profile install github:helix-editor/helix --priority 0`?
-
-  # search for packages: `nix search $PACKAGE_NAME`
-  environment.systemPackages = with pkgs; [
-    inputs.helix.packages."x86_64-linux".helix
-    zellij
-    mosh
-    btrfs-progs
-    iperf3
-    pv
-    linuxquota
-    traceroute
-    hexyl
-    restic
-    speedtest-cli
-    fish
-    restic
-    nil
-    nixpkgs-fmt
-    fd
-    ripgrep
-    exa
-    skim
-    git
-    wget
-    tmux
-    sqlite
-  ];
-
-  services.xserver.layout = "us";
+  environment.systemPackages = [ pkgs.linuxquota ];
 
   # TODO: make the client declarative? right now I think it's manually git
   # clone'd to /root
@@ -265,7 +198,6 @@
     };
   };
 
-  services.smartd.enable = true;
   services.caddy = {
     enable = true;
     adapter = "caddyfile";
@@ -276,25 +208,29 @@
       }
 
       bw.lyte.dev {
-        reverse_proxy :8222
+        reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}
       }
 
       api.lyte.dev {
-        reverse_proxy :5757
+        reverse_proxy :${toString config.services.api-lyte-dev.port}
       }
 
       a.lyte.dev {
-        reverse_proxy :8899
+        reverse_proxy :${toString config.services.plausible.server.port}
       }
 
       git.lyte.dev {
-        reverse_proxy :3088
+        reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
       }
 
       files.lyte.dev {
         file_server browse {
           root /storage/files.lyte.dev
         }
+      }
+
+      nix.h.lyte.dev {
+        reverse_proxy :${toString config.services.nix-serve.port}
       }
         
       # proxy everything else to chromebox
@@ -437,7 +373,6 @@
   };
 
   services.tailscale = {
-    enable = true;
     useRoutingFeatures = "server";
   };
 
@@ -467,10 +402,6 @@
   # };
 
   services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false;
-    };
     listenAddresses = [
       { addr = "0.0.0.0"; port = 64022; }
       { addr = "0.0.0.0"; port = 22; }
@@ -604,8 +535,6 @@
     };
   };
 
-  # TODO: https://nixos.wiki/wiki/Binary_Cache
-
   networking.firewall.allowedTCPPorts = [
     80 # http (caddy)
     443 # https (caddy)
@@ -631,16 +560,5 @@
     allowPing = true;
   };
 
-  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
-  boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = 1;
-
-  # TODO: should I upgrade this?
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "22.05"; # Did you read the comment?
+  system.stateVersion = "22.05";
 }

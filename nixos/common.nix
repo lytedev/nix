@@ -13,6 +13,7 @@
       bat
       bind
       bottom
+      btrfs-progs
       curl
       dog
       dua
@@ -32,6 +33,7 @@
       nmap
       openssl
       pciutils
+      pv
       rclone
       restic
       ripgrep
@@ -39,6 +41,7 @@
       sd
       sops
       smartmontools
+      sqlite
       unzip
       watchexec
       wget
@@ -58,7 +61,8 @@
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
       ];
-      extraGroups = [ "wheel" "video" ];
+      group = "daniel";
+      extraGroups = [ "users" "wheel" "video" ];
       packages = [ ];
     };
 
@@ -140,6 +144,15 @@
   nix = {
     settings = {
       experimental-features = lib.mkDefault [ "nix-command" "flakes" ];
+      substituters = [
+        "https://nix.h.lyte.dev"
+        "https://nix-community.cachix.org"
+        "https://cache.nixos.org/"
+      ];
+      trusted-public-keys = [
+        "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      ];
     };
   };
 
