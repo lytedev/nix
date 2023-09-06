@@ -57,5 +57,43 @@ in
 
   services.dbus.enable = true;
 
+  programs.thunar.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    brightnessctl
+    feh
+    gimp
+    grim
+    inkscape
+    krita
+    libinput
+    libinput-gestures
+    libnotify
+    lutris
+    mako
+    nil
+    nixpkgs-fmt
+    noto-fonts
+    pamixer
+    pavucontrol
+    pgcli
+    playerctl
+    pulseaudio
+    pulsemixer
+    rclone
+    restic
+    slurp
+    steam
+    swaybg
+    swayidle
+    swaylock
+    vlc
+    vulkan-tools
+    waybar
+    wine
+    wl-clipboard
+    wofi
+    zathura
+  ];
   # services.xserver.libinput.enable = true;
 }

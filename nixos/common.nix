@@ -1,4 +1,58 @@
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, inputs, ... }: {
+
+  environment = {
+    variables = {
+      EDITOR = "hx";
+      VISUAL = "hx";
+      PAGER = "less";
+      MANPAGER = "less";
+    };
+
+    systemPackages = with pkgs; [
+      age
+      bat
+      bind
+      bottom
+      curl
+      dog
+      dua
+      exa
+      fd
+      file
+      fwupd
+      git
+      git-lfs
+      gnumake
+      hexyl
+      htop
+      iputils
+      killall
+      kitty # TODO: I really just need the terminfo on servers, though, right?
+      less
+      mosh
+      nmap
+      openssl
+      pciutils
+      rclone
+      restic
+      ripgrep
+      rsync
+      sd
+      sops
+      tmux
+      traceroute
+      unzip
+      watchexec
+      wget
+      xh
+      zellij
+      zstd
+    ] ++ [
+      inputs.helix.packages."x86_64-linux".helix
+      inputs.rtx.packages."x86_64-linux".rtx
+    ];
+  };
+
   users.users = {
     daniel = {
       isNormalUser = true;
@@ -27,8 +81,22 @@
 
     openssh = {
       enable = true;
-      passwordAuthentication = false;
-      permitRootLogin = "no";
+
+      settings = {
+        PasswordAuthentication = false;
+      };
+
+      # tailscale handles this I think
+      openFirewall = lib.mkDefault false;
+
+      # listenAddresses = [
+      #   { addr = "0.0.0.0"; port = 22; }
+      # ];
+    };
+
+    tailscale = {
+      enable = true;
+      useRoutingFeatures = lib.mkDefault "client";
     };
   };
 
@@ -59,6 +127,13 @@
 
   networking = {
     useDHCP = lib.mkDefault true;
+
+    firewall = {
+      enable = lib.mkDefault true;
+      allowPing = lib.mkDefault true;
+      allowedTCPPorts = lib.mkDefault [ ];
+      allowedUDPPorts = lib.mkDefault [ ];
+    };
   };
 
   nix = {

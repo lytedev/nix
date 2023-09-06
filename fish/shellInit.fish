@@ -43,13 +43,6 @@ set --export --universal ERL_AFLAGS "-kernel shell_history enabled -kernel shell
 
 set --export --universal BROWSER firefox
 
-set --export --universal EDITOR hx
-set --export --universal VISUAL hx
-
-# TODO: helix ($EDITOR) as man/pager
-set --export --universal PAGER "less"
-set --export --universal MANPAGER "less"
-
 set --export --universal SOPS_AGE_KEY_FILE "$XDG_CONFIG_HOME/sops/age/keys.txt"
 
 set --export --universal SKIM_ALT_C_COMMAND "fd --hidden --type directory"
