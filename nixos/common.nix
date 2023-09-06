@@ -1,4 +1,5 @@
 { config, lib, pkgs, inputs, ... }: {
+  services.journald.extraConfig = "SystemMaxUse=1G";
 
   environment = {
     variables = {
