@@ -2,51 +2,27 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running `nixos-help`).
 
-{ modulesPath, pkgs, config, lib, inputs, ... }:
+{ modulesPath, pkgs, lib, inputs, ... }:
 
-let
-  # this is unused because it's referenced by my sway config
-  dbus-sway-environment = pkgs.writeTextFile {
-    name = "dbus-sway-environment";
-    destination = "/bin/dbus-sway-environment";
-    executable = true;
-
-    text = ''
-      dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
-      systemctl --user stop wireplumber xdg-desktop-portal xdg-desktop-portal-wlr
-      systemctl --user start wireplumber xdg-desktop-portal xdg-desktop-portal-wlr
-    '';
-  };
-
-  # this is unused because it's referenced by my sway config
-  configure-gtk = pkgs.writeTextFile {
-    name = "configure-gtk";
-    destination = "/bin/configure-gtk";
-    executable = true;
-    text =
-      let
-        schema = pkgs.gsettings-desktop-schemas;
-        datadir = "${schema}/share/gsettings-schemas/${schema.name}";
-      in
-      ''
-        export XDG_DATA_DIRS="${datadir}:$XDG_DATA_DIRS
-        gnome_schema = org.gnome.desktop.interface
-        gsettings set $gnome_schema gtk-theme 'Catppuccin-Mocha'
-      '';
-  };
-in
 {
   imports =
     [
+      ../modules/intel.net
+      ../modules/desktop-usage.nix
+
       (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+  # hardware
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.enable = true;
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
+  services.pcscd.enable = true; # why do I need this? SD card slot?
 
-  networking.useDHCP = lib.mkDefault true;
+  # wifi
+  networking.networkmanager.enable = true;
+
+  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
 
   # TODO: hibernation? I've been using [deep] in /sys/power/mem_sleep alright
   # with this machine so it may not be necessary?
@@ -54,120 +30,12 @@ in
 
   # TODO: fonts? right now, I'm just installing to ~/.local/share/fonts
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
-  nixpkgs.config = {
-    allowUnfree = true;
-    packageOverrides = pkgs: {
-      vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-    };
-  };
-
   hardware.bluetooth.enable = true;
-  hardware.opengl = {
-    enable = true;
-    driSupport32Bit = true;
-    driSupport = true;
 
-    extraPackages = with pkgs; [
-      intel-media-driver # LIBVA_DRIVER_NAME=iHD
-      vaapiIntel # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
-      vaapiVdpau
-      libvdpau-va-gl
-    ];
-  };
+  networking.hostName = "thinker";
 
-  xdg.portal = {
-    enable = true;
-    wlr.enable = true;
-
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-wlr
-      xdg-desktop-portal-gtk
-    ];
-  };
-
-  programs.sway = {
-    enable = true;
-    wrapperFeatures.gtk = true;
-  };
-
-  networking.hostName = "thinker"; # Define your hostname.
-  # Pick only one of the below networking options.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.networkmanager.enable = true;
-
-  security.polkit.enable = true;
-  security.rtkit.enable = true;
-
-  programs.fish.enable = true;
-  users.defaultUserShell = pkgs.fish;
-
-  services.pipewire = {
-    enable = true;
-    wireplumber.enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    # pulse.support32Bit = true;
-    jack.enable = true;
-  };
-
-  # Set your time zone.
-  time.timeZone = "America/Chicago";
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-  console = {
-    font = "Lat2-Terminus16";
-    useXkbConfig = true;
-  };
-
-  # Enable the X11 windowing system.
-  # services.xserver.enable = true;
-
-  # Configure keymap in X11
-  services.xserver.layout = "us";
-  services.xserver.xkbOptions = "ctrl:nocaps";
-
-  # Enable CUPS to print documents.
-  # services.printing.enable = true;
-
-  # Enable sound.
-  # sound.enable = true;
-  # hardware.pulseaudio.support32Bit = true;
-  hardware.pulseaudio.support32Bit = true;
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.daniel = {
-    isNormalUser = true;
-    home = "/home/daniel/.home";
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
-    ];
-    extraGroups = [ "wheel" "video" ];
-    packages = [ ];
-  };
-
-  services.dbus.enable = true;
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  # I own a printer in the year of our Lord 2023
+  services.printing.enable = true;
 
   environment.systemPackages = with pkgs; [
     age
@@ -250,15 +118,6 @@ in
     zellij
     zstd
   ];
-
-  services.pcscd.enable = true;
-  services.flatpak.enable = true;
-  services.gnome.gnome-keyring.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    pinentryFlavor = "gnome3";
-    enableSSHSupport = true;
-  };
 
   programs.thunar.enable = true;
 

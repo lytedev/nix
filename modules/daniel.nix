@@ -1,10 +1,4 @@
-{ config, pkgs, ... }:
-let
-	unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
-in {
-	fonts.fonts = with pkgs; [
-		# helvetica # needed by zoom
-	];
+{ config, pkgs, ... }: {
 	users.users.daniel = {
 		isNormalUser = true;
 		extraGroups = [ "wheel" "docker" ];
@@ -31,11 +25,14 @@ in {
 			postgresql # database
 			htop # almost as good as bottom (btm)
 			unzip # needed by a handful of other utilities
-			autoconf automake # autotools
+			autoconf
+			automake # autotools
 			weechat # irc
 			python39Full # python 3.9
 			jq # awk for json
-			xfce.thunar xfce.thunar-archive-plugin xfce.thunar-volman # gui file manager
+			xfce.thunar
+			xfce.thunar-archive-plugin
+			xfce.thunar-volman # gui file manager
 			mpd # music player daemon
 			ncmpcpp # ncurses music player client
 			vlc # video player

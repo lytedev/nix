@@ -1,19 +1,25 @@
-{ config, pkgs, ... }: {
-	services.xserver.videoDrivers = [ "intel" ];
-	nixpkgs.config = {
-		allowUnfree = true;
-		packageOverrides = pkgs: {
-			vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-		};
-	};
-	hardware = {
-		cpu.intel.updateMicrocode = true;
-		opengl = {
-			extraPackages = with pkgs; [
-				vaapiIntel
-				vaapiVdpau
-				libvdpau-va-gl
-			];
-		};
-	};
+{ lib, config, pkgs, ... }: {
+
+  nixpkgs.config = {
+    packageOverrides = pkgs: {
+      vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+    };
+  };
+
+  hardware = {
+    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+    opengl = {
+      enable = true;
+      driSupport32Bit = true;
+      driSupport = true;
+
+      extraPackages = with pkgs; [
+        intel-media-driver # LIBVA_DRIVER_NAME=iHD
+        vaapiIntel # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+        vaapiVdpau
+        libvdpau-va-gl
+      ];
+    };
+  };
 }
