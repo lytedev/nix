@@ -92,6 +92,6 @@ live media?
 
 # Other To Dos
 
-- Local Nix substitute/cache setup?
 - Port configuration (lytedev/dotfiles) to home manager where applicable?
+  - Sway, Kitty, and Helix, come to mind
 - Pre-commit checks with `nix flake check`?
