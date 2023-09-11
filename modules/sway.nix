@@ -64,6 +64,10 @@ in
     plugins = with pkgs.xfce; [ thunar-archive-plugin thunar-volman ];
   };
 
+  services.gvfs = {
+    enable = true;
+  };
+
   environment.systemPackages = with pkgs; [
     brightnessctl
     feh
