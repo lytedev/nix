@@ -11,7 +11,7 @@ in
   # };
 
   home = {
-    username = "daniel";
+    username = lib.mkDefault "daniel";
     homeDirectory = lib.mkDefault "/home/daniel/.home";
     stateVersion = "23.05";
 
@@ -20,8 +20,17 @@ in
       # kubectl, aws
       pkgs.rtx
 
+      # text editor
+      pkgs.helix
+
+      # I need gawk for my fish prompt
+      pkgs.gawk
+
+      pkgs.nil
+      pkgs.nixpkgs-fmt
+
       # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
-      (pkgs.buildEnv { name = "my-scripts"; paths = [ ./scripts ]; })
+      (pkgs.buildEnv { name = "my-scripts"; paths = [ ../scripts ]; })
     ];
 
     file = {
@@ -58,12 +67,6 @@ in
             )
         '';
       };
-    };
-
-    pointerCursor = {
-      name = "Catppuccin-Mocha-Sapphire-Cursors";
-      package = pkgs.catppuccin-cursors.mochaSapphire;
-      size = 64; # TODO: this doesn't seem to work -- at least in Sway
     };
   };
 
@@ -485,8 +488,8 @@ select = {
     fish = {
       enable = true;
       # I load long scripts from files for a better editing experience
-      shellInit = builtins.readFile ./fish/shellInit.fish;
-      interactiveShellInit = builtins.readFile ./fish/interactiveShellInit.fish;
+      shellInit = builtins.readFile ../fish/shellInit.fish;
+      interactiveShellInit = builtins.readFile ../fish/interactiveShellInit.fish;
       loginShellInit = "";
       functions = {
         # I think these should be loaded from fish files too for better editor experience
@@ -625,7 +628,6 @@ select = {
           # userContent = ''
           # '';
         };
-
       };
     };
   };

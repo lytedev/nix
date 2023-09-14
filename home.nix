@@ -1,15 +1,30 @@
-inputs @ { nixpkgs, home-manager, ... }:
+inputs:
 let
-  system = "x86_64-linux";
-  overlay = final: prev: {
+  overlay = system: final: prev: {
     helix = prev.helix // inputs.helix.packages.${system}.helix;
     rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
   };
-  pkgs = import nixpkgs { inherit system; overlays = [ overlay ]; };
+  # TODO: be functional - have a mkHome function?
 in {
-  # TODO: per arch?
-  daniel = home-manager.lib.homeManagerConfiguration {
+  daniel = let
+    system = "x86_64-linux";
+    pkgs = import inputs.nixpkgs { inherit system; overlays = [ (overlay system) ]; };
+  in inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
-    modules = [ import ./daniel.nix pkgs ];
+    modules = [
+      (import ./home/user.nix pkgs)
+      (import ./home/linux.nix pkgs)
+    ];
+  };
+
+  daniel-work = let
+    system = "aarch64-darwin";
+    pkgs = import inputs.nixpkgs { inherit system; overlays = [ (overlay system) ]; };
+  in inputs.home-manager.lib.homeManagerConfiguration {
+    inherit pkgs;
+    modules = [
+      (import ./home/user.nix pkgs)
+      (import ./home/work.nix pkgs)
+    ];
   };
 }
