@@ -2,11 +2,12 @@ inputs @ { self, ... }:
 let
   daniel = system: {
     home-manager.users.daniel = {
-    nixpkgs.overlays = [ (final: prev: {
-    helix = prev.helix // inputs.helix.packages.${system}.helix;
-    rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
-  })
-  ];
+      nixpkgs.overlays = [
+        (final: prev: {
+          helix = prev.helix // inputs.helix.packages.${system}.helix;
+          rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
+        })
+      ];
       imports = [ ./home/user.nix ./home/linux.nix ];
     };
   };
@@ -37,7 +38,7 @@ in
   ];
 
   rascal = nixosSystem [ ./nixos/rascal.nix ];
-    
+
   musicbox = diskoNixosSystem "x86_64-linux" self.diskoConfigurations.unencrypted [ "/dev/sda" ] [ ./nixos/musicbox.nix ];
   thinker = diskoNixosSystem "x86_64-linux" self.diskoConfigurations.standard [ "/dev/nvme0n1" ] [ ./nixos/thinker.nix ];
   # dragon = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/disk/by-uuid/asdf" ] [ ./nixos/dragon.nix ];
