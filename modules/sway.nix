@@ -68,41 +68,63 @@ in
     enable = true;
   };
 
-  environment.systemPackages = with pkgs; [
-    brightnessctl
-    feh
-    gimp
-    grim
-    inkscape
-    krita
-    libinput
-    libinput-gestures
-    libnotify
-    lutris
-    mako
-    nil
-    nixpkgs-fmt
-    noto-fonts
-    pamixer
-    pavucontrol
-    pgcli
-    playerctl
-    pulseaudio
-    pulsemixer
-    rclone
-    restic
-    slurp
-    steam
-    swaybg
-    swayidle
-    swaylock
-    vlc
-    vulkan-tools
-    waybar
-    weechat
-    wine
-    wl-clipboard
-    wofi
-    zathura
-  ];
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Catppuccin-Mocha-Compact-Sapphire-dark";
+      package = pkgs.catppuccin-gtk.override {
+        accents = [ "sapphire" ];
+        size = "compact";
+        tweaks = [ "rimless" "black" ];
+        variant = "mocha";
+      };
+    };
+  };
+
+  environment = {
+    variables = {
+      GTK_THEME = "hx";
+      VISUAL = "hx";
+      PAGER = "less";
+      MANPAGER = "less";
+    };
+
+    systemPackages = with pkgs; [
+      brightnessctl
+      feh
+      gimp
+      grim
+      inkscape
+      krita
+      libinput
+      libinput-gestures
+      libnotify
+      lutris
+      mako
+      nil
+      nixpkgs-fmt
+      noto-fonts
+      pamixer
+      pavucontrol
+      pgcli
+      playerctl
+      pulseaudio
+      pulsemixer
+      rclone
+      restic
+      slurp
+      steam
+      swaybg
+      swayidle
+      swaylock
+      vlc
+      vulkan-tools
+      waybar
+      weechat
+      wine
+      wl-clipboard
+      wofi
+      zathura
+    ];
+  };
 }
