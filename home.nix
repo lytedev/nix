@@ -1,17 +1,25 @@
 inputs:
-let
-  system = "x86_64-linux";
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
-in
 {
   # TODO: per arch?
-  daniel = inputs.home-manager.lib.homeManagerConfiguration {
+  daniel = let
+    system = "x86_64-linux";
+    pkgs = inputs.nixpkgs.legacyPackages.${system};
+  in inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
     modules = [
-      (import
-        ./daniel.nix
+      (import ./home/user.nix pkgs)
+      (import ./home/linux.nix pkgs)
+    ];
+  };
 
-        pkgs)
+  daniel-work = let
+    system = "aarch64-darwin";
+    pkgs = inputs.nixpkgs.legacyPackages.${system};
+  in inputs.home-manager.lib.homeManagerConfiguration {
+    inherit pkgs;
+    modules = [
+      (import ./home/user.nix pkgs)
+      (import ./home/work.nix pkgs)
     ];
   };
 }
