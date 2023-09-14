@@ -1,4 +1,11 @@
-{ config, lib, pkgs, inputs, ... }: {
+{ config, lib, inputs, system, ... }: 
+let 
+  overlay = final: prev: {
+    helix = prev.helix // inputs.helix.packages.${system}.helix;
+    rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
+  };
+  pkgs = inputs.nixpkgs.legacyPackages.${system}.extend overlay;
+in {
   services.journald.extraConfig = "SystemMaxUse=1G";
 
   environment = {
