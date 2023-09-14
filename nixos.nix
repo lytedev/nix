@@ -3,7 +3,7 @@ let
   daniel = {
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
-    home-manager.users.daniel = import ./daniel.nix;
+    home-manager.users.daniel = import ./home/user.nix;
   };
   hms = [
     inputs.home-manager.nixosModules.home-manager
