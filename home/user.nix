@@ -6,7 +6,7 @@
   #   };
   # };
 
-  home.username = "daniel";
+  home.username = lib.mkDefault "daniel";
   home.homeDirectory = lib.mkDefault "/home/daniel/.home";
   home.stateVersion = "23.05";
 
@@ -14,6 +14,15 @@
     pkgs.rtx
     # I use this for managing the following programs' versions instead of nix:
     # kubectl, aws
+
+    # text editor
+    pkgs.helix
+
+    # I need gawk for my fish prompt
+    pkgs.gawk
+
+    pkgs.nil
+    pkgs.nixpkgs-fmt
 
     # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
     (pkgs.buildEnv { name = "my-scripts"; paths = [ ../scripts ]; })

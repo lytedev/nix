@@ -7,11 +7,8 @@ inputs:
   in inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
     modules = [
-      (import
-        ./home/daniel.nix
-        ./home/linux.nix
-
-        pkgs)
+      (import ./home/user.nix pkgs)
+      (import ./home/linux.nix pkgs)
     ];
   };
 
@@ -21,10 +18,8 @@ inputs:
   in inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
     modules = [
-      (import
-        ./home/daniel.nix
-
-        pkgs)
+      (import ./home/user.nix pkgs)
+      (import ./home/work.nix pkgs)
     ];
   };
 }
