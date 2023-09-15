@@ -15,10 +15,10 @@ let
     inputs.home-manager.nixosModules.home-manager
     (daniel system)
   ];
-  disko = scheme: disks: [
+  disko = args @ { scheme, ... }: [
     inputs.disko.nixosModules.disko
-    scheme
-    { _module.args.disks = disks; }
+    self.diskoConfigurations.${scheme}
+    { _module.args = args; }
   ];
   nixosSystem = system: modules: (inputs.nixpkgs.lib.nixosSystem {
     specialArgs = { inherit inputs system; };
@@ -27,19 +27,30 @@ let
       ./nixos/common.nix
     ] ++ modules ++ hms system;
   });
-  diskoNixosSystem = system: scheme: disks: modules: (nixosSystem system ((disko scheme disks) ++ modules));
 in
 {
   # TODO: disko-fy rascal and beefcake?
 
-  beefcake = nixosSystem [
+  beefcake = nixosSystem "x86-64-linux" [
     ./nixos/beefcake.nix
     inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
   ];
 
-  rascal = nixosSystem [ ./nixos/rascal.nix ];
+  rascal = nixosSystem "x86_64-linux" [ ./nixos/rascal.nix ];
 
-  musicbox = diskoNixosSystem "x86_64-linux" self.diskoConfigurations.unencrypted [ "/dev/sda" ] [ ./nixos/musicbox.nix ];
-  thinker = diskoNixosSystem "x86_64-linux" self.diskoConfigurations.standard [ "/dev/nvme0n1" ] [ ./nixos/thinker.nix ];
+  musicbox = nixosSystem "x86_64-linux" (disko {
+      scheme = "unencrypted";
+      disks = ["/dev/sda"];
+    } ++ [
+    ./nixos/musicbox.nix
+  ]);
+
+  thinker = nixosSystem "x86_64-linux" (disko {
+      scheme = "standard";
+      disks = ["/dev/nvme0n1"];
+      name = "vdb";
+    } ++ [
+     ./nixos/thinker.nix
+  ]);
   # dragon = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/disk/by-uuid/asdf" ] [ ./nixos/dragon.nix ];
 }

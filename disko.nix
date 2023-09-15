@@ -1,10 +1,10 @@
 {
-  standard = { disks ? [ "/dev/vda" ], ... }: {
+  standard = { disks ? [ "/dev/vda" ], name ? "primary", ... }: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
     disko.devices = {
       disk = {
-        primary = {
+        ${builtins.trace name name} = {
           type = "disk";
           device = builtins.elemAt disks 0;
           content = {
