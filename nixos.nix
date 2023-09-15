@@ -38,19 +38,21 @@ in
 
   rascal = nixosSystem "x86_64-linux" [ ./nixos/rascal.nix ];
 
-  musicbox = nixosSystem "x86_64-linux" (disko {
+  musicbox = nixosSystem "x86_64-linux" (disko
+    {
       scheme = "unencrypted";
-      disks = ["/dev/sda"];
+      disks = [ "/dev/sda" ];
     } ++ [
     ./nixos/musicbox.nix
   ]);
 
-  thinker = nixosSystem "x86_64-linux" (disko {
+  thinker = nixosSystem "x86_64-linux" (disko
+    {
       scheme = "standard";
-      disks = ["/dev/nvme0n1"];
+      disks = [ "/dev/nvme0n1" ];
       name = "vdb";
     } ++ [
-     ./nixos/thinker.nix
+    ./nixos/thinker.nix
   ]);
   # dragon = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/disk/by-uuid/asdf" ] [ ./nixos/dragon.nix ];
 }
