@@ -21,19 +21,11 @@ set --export --universal XDG_PICTURES_DIR $NICE_HOME/img
 set --export --universal XDG_VIDEOS_DIR $NICE_HOME/video
 set --export --universal XDG_GAMES_DIR $NICE_HOME/games
 
-set --export --universal DOTFILES_PATH $XDG_CONFIG_HOME/lytedev-dotfiles
-set --export --universal ENV_PATH $XDG_CONFIG_HOME/lytedev-env
-set --export --universal FISH_PATH $XDG_CONFIG_HOME/fish
-
 set --export --universal NOTES_PATH $NICE_HOME/doc/notes
 set --export --universal SCROTS_PATH $NICE_HOME/img/scrots
 set --export --universal USER_LOGS_PATH $NICE_HOME/doc/logs
 
 set --export --universal CDPATH $NICE_HOME
-
-for s in $ENV_PATH/*/config.d.fish
-	source $s (dirname $s)
-end
 
 # vars
 set --export --universal LS_COLORS 'ow=01;36;40'
@@ -78,4 +70,8 @@ end
 
 if has_command rtx
 	rtx activate fish | source
+end
+
+for dir in $HOME/.cargo/bin
+	fish_add_path $dir
 end
