@@ -544,8 +544,6 @@ in
         lC = "lc --reverse";
         lD = "la --only-dirs";
         "cd.." = "d ..";
-        "cdd" = "d $DOTFILES_PATH";
-        "cde" = "d $XDG_CONFIG_HOME/lytedev-env";
         "cdc" = "d $XDG_CONFIG_HOME";
         "cdn" = "d $NOTES_PATH";
         "cdl" = "d $XDG_DOWNLOAD_DIR";

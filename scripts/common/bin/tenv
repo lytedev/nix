@@ -1,3 +1,0 @@
-#!/usr/bin/env sh
-d="$(command ls "$ENV_PATH" | sk)" && \
-	tmux-lyte-session "env-$d" "$ENV_PATH/$d"
