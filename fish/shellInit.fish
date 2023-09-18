@@ -72,6 +72,6 @@ if has_command rtx
 	rtx activate fish | source
 end
 
-for dir in $HOME/.cargo/bin
+for dir in $HOME/.cargo/bin /opt/homebrew/bin
 	fish_add_path $dir
 end
