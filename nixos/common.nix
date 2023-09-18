@@ -1,11 +1,12 @@
-{ config, lib, inputs, system, ... }: 
-let 
+{ config, lib, inputs, system, ... }:
+let
   overlay = final: prev: {
     helix = prev.helix // inputs.helix.packages.${system}.helix;
     rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
   };
   pkgs = inputs.nixpkgs.legacyPackages.${system}.extend overlay;
-in {
+in
+{
   services.journald.extraConfig = "SystemMaxUse=1G";
 
   environment = {
@@ -96,8 +97,8 @@ in {
         PasswordAuthentication = false;
       };
 
-      # tailscale handles this I think
-      openFirewall = lib.mkDefault false;
+      # TODO: tailscale can handle this I think...?
+      openFirewall = lib.mkDefault true;
 
       # listenAddresses = [
       #   { addr = "0.0.0.0"; port = 22; }

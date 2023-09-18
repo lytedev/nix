@@ -75,12 +75,14 @@ sudo nix-shell --packages git --run "nix run \
     --arg disks '[ \"/dev/your_disk\" ]'"
 ```
 
-And finally install NixOS as specified by this flake:
+And finally install NixOS (optionally using my cache) as specified by this flake:
 
 ```bash
 nix-shell --packages git \
   --run "sudo nixos-install \
-    --flake 'git+https://git.lyte.dev/lytedev/nix#yourNixosConfig'"
+    --flake 'git+https://git.lyte.dev/lytedev/nix#yourNixosConfig' \
+    --option substituters 'https://nix.h.lyte.dev' \
+    --option trusted-public-keys 'h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
 **NOTE**: This takes a while, mostly due to building Helix myself on each box. I
