@@ -161,10 +161,17 @@ in
           };
         };
 
+        language-server = {
+          next-ls = {
+            command = "next-ls";
+            args = [ "--stdout" ];
+          };
+        };
+
         language = [
           {
             name = "elixir";
-            language-servers = [ "elixir-ls" "lexical" ];
+            language-servers = [ "elixir-ls" "lexical" "next-ls" ];
             auto-format = true;
           }
           {

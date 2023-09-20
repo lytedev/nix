@@ -23,6 +23,7 @@ in
       bind
       bottom
       btrfs-progs
+      cue
       curl
       dog
       dua
