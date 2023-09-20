@@ -11,6 +11,12 @@ here is useful inspiration.
 
 You don't have even have to clone this crap yourself. How cool is that!
 
+But if you're gonna change stuff you had better setup the pre-commit hook:
+
+```shell_session
+ln -s $PWD/pre-commit.bash .git/hooks/pre-commit
+```
+
 ## NixOS
 
 ```shell_session
