@@ -72,6 +72,6 @@ if has_command rtx
 	rtx activate fish | source
 end
 
-for dir in $HOME/.cargo/bin
+for dir in ~/.cargo/bin ~/.nimble/bin
 	fish_add_path $dir
 end

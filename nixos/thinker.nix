@@ -28,6 +28,15 @@
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true; # I own a printer in the year of our Lord 2023
 
+  networking = {
+    firewall = {
+      enable = true;
+      allowPing = true;
+      allowedTCPPorts = [ 22 ];
+      allowedUDPPorts = [ ];
+    };
+  };
+
   system.stateVersion = "23.05";
 }
 

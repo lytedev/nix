@@ -31,7 +31,7 @@ in
       pkgs.nixpkgs-fmt
 
       # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
-      (pkgs.buildEnv { name = "my-scripts"; paths = [ ../scripts ]; })
+      (pkgs.buildEnv { name = "my-scripts-common"; paths = [ ../scripts/common ]; })
     ];
 
     file = {
@@ -588,6 +588,3 @@ in
   # maybe we can share somehow so things for nix-y systems and non-nix-y systems alike
   # am I going to _have_ non-nix systems anymore?
 }
-
-
-
