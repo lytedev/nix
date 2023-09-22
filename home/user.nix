@@ -159,12 +159,23 @@ in
             command = "lexical";
             args = [ "start" ];
           };
+
+          next-ls = {
+            command = "next-ls";
+            args = [ "--stdout" ];
+          };
+
+          deno = {
+            command = "deno";
+            args = [ "lsp" ];
+            config = { enable = true; lint = true; unstable = true; };
+          };
         };
 
         language = [
           {
             name = "elixir";
-            language-servers = [ "elixir-ls" "lexical" ];
+            language-servers = [ "elixir-ls" "lexical" "next-ls" ];
             auto-format = true;
           }
           {
@@ -187,20 +198,63 @@ in
               unit = "\t";
             };
           }
-          # TODO: deno:
-          #[[language]]
-          #name = "javascript"
-          #scope = "source.js"
-          #injection-regex = "^(js|javascript)$"
-          #file-types = [ "js", "jsx", "mjs" ]
-          #shebangs = [ "deno", "node" ]
-          #roots = [ "deno.jsonc", "deno.json", "package.json", "tsconfig.json" ]
-          #comment-token = "//"
-          # config = { enable = true, lint = true, unstable = true }
-          # language-server = { command = "typescript-language-server", args = ["--stdio"], language-id = "javascript" }
-          #indent = {
-          #tab-width = 2, unit = "\t" }
-          #auto-format = true
+
+          {
+            name = "javascript";
+            language-id = "javascript";
+            grammar = "javascript";
+            scope = "source.js";
+            injection-regex = "^(js|javascript)$";
+            file-types = [ "js" "mjs" ];
+            shebangs = [ "deno" ];
+            language-servers = [ "deno" ];
+            roots = [ "deno.jsonc" "deno.json" ];
+            formatter = {
+              command = "deno";
+              args = [ "fmt" ];
+            };
+            auto-format = true;
+            comment-token = "//";
+            indent = {
+              tab-width = 2;
+              unit = "\t";
+            };
+          }
+
+          {
+            name = "typescript";
+            language-id = "typescript";
+            grammar = "typescript";
+            scope = "source.ts";
+            injection-regex = "^(ts|typescript)$";
+            file-types = [ "ts" ];
+            shebangs = [ "deno" ];
+            language-servers = [ "deno" ];
+            roots = [ "deno.jsonc" "deno.json" ];
+            formatter = {
+              command = "deno";
+              args = [ "fmt" ];
+            };
+            auto-format = true;
+            comment-token = "//";
+            indent = {
+              tab-width = 2;
+              unit = "\t";
+            };
+          }
+
+          {
+            name = "jsonc";
+            language-id = "json";
+            grammar = "jsonc";
+            scope = "source.jsonc";
+            injection-regex = "^(jsonc)$";
+            roots = [ "deno.jsonc" "deno.json" ];
+            file-types = [ "jsonc" ];
+            language-servers = [ "deno" ];
+            indent = { tab-width = 2; unit = "  "; };
+            auto-format = true;
+          }
 
           # [[language]]
           # name = "jsx"
@@ -214,18 +268,6 @@ in
           # language-server = { command = "deno", args = ["lsp"], language-id = "javascriptreact" }
           # indent = { tab-width = 2, unit = "  " }
           # grammar = "javascript"
-          # auto-format = true
-
-          # [[language]]
-          # name = "typescript"
-          # scope = "source.ts"
-          # injection-regex = "^(ts|typescript)$"
-          # file-types = ["ts"]
-          # shebangs = ["deno", "node"]
-          # roots = ["deno.jsonc", "deno.json", "package.json", "tsconfig.json"]
-          # config = { enable = true, lint = true, unstable = true }
-          # language-server = { command = "deno", args = ["lsp"], language-id = "typescript" }
-          # indent = { tab-width = 2, unit = "  " }
           # auto-format = true
 
           # [[language]]

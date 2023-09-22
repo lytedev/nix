@@ -1,9 +1,15 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
     # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-channels/nixos-unstable";
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
-    home-manager.url = "github:nix-community/home-manager/release-23.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-23.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.utils.follows = "utils";
+    };
+
     disko.url = "github:nix-community/disko/master";
     sops-nix.url = "github:Mic92/sops-nix";
     helix.url = "github:helix-editor/helix";

@@ -23,6 +23,7 @@ in
       bind
       bottom
       btrfs-progs
+      cue
       curl
       dog
       dua
@@ -97,7 +98,7 @@ in
         PasswordAuthentication = false;
       };
 
-      # tailscale handles this I think
+      # TODO: tailscale can handle this I think...?
       openFirewall = lib.mkDefault true;
 
       # listenAddresses = [
@@ -119,24 +120,24 @@ in
     useXkbConfig = true;
     earlySetup = true;
 
-    # colors = [
-    #   "111111"
-    #   "f92672"
-    #   "a6e22e"
-    #   "f4bf75"
-    #   "66d9ef"
-    #   "ae81ff"
-    #   "a1efe4"
-    #   "f8f8f2"
-    #   "75715e"
-    #   "f92672"
-    #   "a6e22e"
-    #   "f4bf75"
-    #   "66d9ef"
-    #   "ae81ff"
-    #   "a1efe4"
-    #   "f9f8f5"
-    # ];
+    colors = [
+      "111111"
+      "f92672"
+      "a6e22e"
+      "f4bf75"
+      "66d9ef"
+      "ae81ff"
+      "a1efe4"
+      "f8f8f2"
+      "75715e"
+      "f92672"
+      "a6e22e"
+      "f4bf75"
+      "66d9ef"
+      "ae81ff"
+      "a1efe4"
+      "f9f8f5"
+    ];
   };
 
   networking = {

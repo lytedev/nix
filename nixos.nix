@@ -31,7 +31,7 @@ in
 {
   # TODO: disko-fy rascal and beefcake?
 
-  beefcake = nixosSystem "x86-64-linux" [
+  beefcake = nixosSystem "x86_64-linux" [
     ./nixos/beefcake.nix
     inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
   ];

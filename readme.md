@@ -11,6 +11,12 @@ here is useful inspiration.
 
 You don't have even have to clone this crap yourself. How cool is that!
 
+But if you're gonna change stuff you had better setup the pre-commit hook:
+
+```shell_session
+ln -s $PWD/pre-commit.bash .git/hooks/pre-commit
+```
+
 ## NixOS
 
 ```shell_session
@@ -62,8 +68,9 @@ nix-shell --packages git --run "sudo nix run \
 # install
 nix-shell --packages git \
   --run "sudo nixos-install \
-    --option substituters https://nix.h.lyte.dev
-    --flake 'git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}'"
+    --flake 'git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}' \
+    --option substituters 'https://nix.h.lyte.dev' \
+    --option trusted-public-keys 'h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
 # To Do
