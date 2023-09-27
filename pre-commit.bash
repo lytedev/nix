@@ -3,3 +3,4 @@
 set -eux
 
 nix flake check
+nixpkgs-fmt --check .

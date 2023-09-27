@@ -175,7 +175,7 @@ in
         language = [
           {
             name = "elixir";
-            language-servers = [ "elixir-ls" "lexical" "next-ls" ];
+            language-servers = [ "elixir-ls" ]; # "lexical" "next-ls" 
             auto-format = true;
           }
           {

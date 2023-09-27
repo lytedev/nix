@@ -41,9 +41,41 @@ nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#h
   switch --show-trace
 ```
 
-<!-- TODO: how to do this with rollbacks if I don't confirm things? -->
+### Safer Method
+
+```bash
+# initialize a delayed reboot by a process you can kill later if things look good
+# note that the amount of time you give it probably needs to be enough time to both complete the upgrade
+# _and_ perform whatever testing you need
+ssh root@host bash -c '
+  (sleep 300; reboot;) &
+  jobs -p
+'
+
+# build the system and start running it, but do NOT set the machine up to boot to that system yet
+# we will test things and make sure it works first
+# if it fails, the reboot we started previously will automatically kick in once the timeout is reached
+# and the machine will boot to the now-previous iteration
+nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#host' \
+  --target-host root@host --build-host root@host \
+  test --show-trace
+
+# however you like, verify the system is running as expected
+# if it is, run the same command with "switch" instead of "test"
+# otherwise, we will wait until the machine reboots back into the 
+# this is crude, but should be pretty foolproof
+# the main gotcha is that the system is already unbootable or non-workable, but
+# if you always use this method, that should be an impossible state to get into
+
+# if we still have ssh access and the machine fails testing, just rollback
+# instead of waiting for the reboot
+# TODO: this is not tested yet
+ssh root@beefcake nixos-rebuild --rollback switch
+```
 
 ## Provisioning New NixOS Hosts
+
+<!-- TODO: Installation from a live ISO does not fully work yet -->
 
 ```bash
 # establish network access
@@ -76,11 +108,10 @@ nix-shell --packages git \
 # To Do
 
 - Port configuration (lytedev/dotfiles) to home manager where applicable?
-  - Sway, Kitty, and Helix, come to mind
-- Installation from a live ISO does not fully work yet
+  - Sway and Kitty come to mind
+  - macOS options?
 - I don't understand Nix well enough to know why stuff is being compiled even when I have a binary cache
   - Maybe it detects different CPUs and will recompile certain packages for per-CPU optimizations?
     - How does this factor in with "pureness"?
 - Custom pre-configured live ISO
-- Unify standalone home manager module with NixOS home manager module
-- Pre-commit checks with stuff like `nix flake check` and formatting checkers
+- Unify standalone home manager module with NixOS home manager module?
