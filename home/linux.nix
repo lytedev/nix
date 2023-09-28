@@ -26,7 +26,7 @@
     # TODO: enable dark theme by default
     enable = true;
 
-    package = (pkgs.firefox.override { extraNativeMessagingHosts = [ pkgs.passff-host ]; });
+    package = (pkgs.firefox-wayland.override { extraNativeMessagingHosts = [ pkgs.passff-host ]; });
 
     # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
     #   ublock-origin

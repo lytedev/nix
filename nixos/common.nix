@@ -192,6 +192,9 @@ in
         enable = true;
       };
     };
+
+    # https://github.com/nix-community/home-manager/issues/3113
+    dconf.enable = true;
   };
 
   time = {

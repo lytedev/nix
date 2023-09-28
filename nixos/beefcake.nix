@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 
-{ modulesPath, config, pkgs, ... }: rec {
+{ modulesPath, config, pkgs, ... }: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     ../modules/intel.nix
@@ -45,7 +45,7 @@
     enable = true;
     port = 5757;
     stateDir = "/var/lib/api-lyte-dev";
-    configFile = sops.secrets."api.lyte.dev".path;
+    configFile = config.sops.secrets."api.lyte.dev".path;
     user = "api-lyte-dev";
     group = user;
   };
@@ -83,16 +83,32 @@
       # "myservice/my_subdir/my_secret" = { };
 
       "api.lyte.dev" = {
-        path = "${services.api-lyte-dev.stateDir}/secrets.json";
+        path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
         # TODO: would be cool to assert that it's correctly-formatted JSON?
         mode = "0440";
-        owner = services.api-lyte-dev.user;
-        group = services.api-lyte-dev.group;
+        owner = config.services.api-lyte-dev.user;
+        group = config.services.api-lyte-dev.group;
       };
 
-      plausible-admin-password = { };
-      plausible-erlang-cookie = { };
-      plausible-secret-key-base = { };
+      plausible-admin-password = {
+        # TODO: path = "${config.systemd.services.plausible.serviceConfig.WorkingDirectory}/plausible-admin-password.txt";
+        path = "/var/lib/plausible/plausible-admin-password";
+        mode = "0440";
+        owner = config.systemd.services.plausible.serviceConfig.User;
+        group = config.systemd.services.plausible.serviceConfig.Group;
+      };
+      plausible-erlang-cookie = {
+        path = "/var/lib/plausible/plausible-erlang-cookie";
+        mode = "0440";
+        owner = config.systemd.services.plausible.serviceConfig.User;
+        group = config.systemd.services.plausible.serviceConfig.Group;
+      };
+      plausible-secret-key-base = {
+        path = "/var/lib/plausible/plausible-secret-key-base";
+        mode = "0440";
+        owner = config.systemd.services.plausible.serviceConfig.User;
+        group = config.systemd.services.plausible.serviceConfig.Group;
+      };
     };
   };
 
@@ -123,6 +139,10 @@
 
   networking.hostName = "beefcake";
 
+  users.extraGroups = {
+    "plausible" = { };
+    "lytedev" = { };
+  };
   users.groups.daniel.members = [ "daniel" ];
   users.groups.nixadmin.members = [ "daniel" ];
 
@@ -174,6 +194,13 @@
     createHome = true;
   };
 
+  users.users.plausible = {
+    # used for anonymous samba access
+    isSystemUser = true;
+    createHome = false;
+    group = "plausible";
+  };
+
   environment.systemPackages = [ pkgs.linuxquota ];
 
   # TODO: make the client declarative? right now I think it's manually git
@@ -202,10 +229,28 @@
     enable = true;
     adapter = "caddyfile";
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+    # TODO: there are some hardcoded ports here!
+    # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
     configFile = pkgs.writeText "Caddyfile" ''
       video.lyte.dev {
         reverse_proxy :8096
       }
+
+      # lidarr.h.lyte.dev {
+        # reverse_proxy :8686
+      # }
+
+      # radarr.h.lyte.dev {
+        # reverse_proxy :7878
+      # }
+
+      # sonarr.h.lyte.dev {
+        # reverse_proxy :8989
+      # }
+
+      # bazarr.h.lyte.dev {
+        # reverse_proxy :${toString config.services.bazarr.listenPort}
+      # }
 
       bw.lyte.dev {
         reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}
@@ -295,8 +340,12 @@
   # TODO: ensure we're not doing the same dumb thing we were doing on the old host and eating storage
   services.clickhouse.enable = true;
 
+  systemd.services.plausible.serviceConfig.User = "plausible";
+  systemd.services.plausible.serviceConfig.Group = "plausible";
+
   services.plausible = {
-    enable = true;
+    # TODO: enable
+    enable = false;
     releaseCookiePath = config.sops.secrets.plausible-erlang-cookie.path;
     database = {
       clickhouse.setup = true;
@@ -408,6 +457,26 @@
     ];
   };
 
+  services.lidarr = {
+    enable = true;
+    dataDir = "/storage/lidarr";
+  };
+
+  services.radarr = {
+    enable = true;
+    dataDir = "/storage/radarr";
+  };
+
+  services.sonarr = {
+    enable = true;
+    dataDir = "/storage/sonarr";
+  };
+
+  services.bazarr = {
+    enable = true;
+    listenPort = 6767;
+  };
+
   services.samba-wsdd.enable = true;
 
   services.samba = {
@@ -502,6 +571,7 @@
         "/var/lib/bitwarden_rs" # does this need any sqlite preprocessing?
         # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
         # specifically, https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault#sqlite-database-files
+        # TODO: backup lidarr/radarr configs?
 
         "/storage/postgres-backups"
       ];

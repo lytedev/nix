@@ -47,10 +47,13 @@ nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#h
 # initialize a delayed reboot by a process you can kill later if things look good
 # note that the amount of time you give it probably needs to be enough time to both complete the upgrade
 # _and_ perform whatever testing you need
-ssh root@host bash -c '
+ssh -t root@host "bash -c '
+  set -m
   (sleep 300; reboot;) &
   jobs -p
-'
+  bg
+  disown
+'"
 
 # build the system and start running it, but do NOT set the machine up to boot to that system yet
 # we will test things and make sure it works first
