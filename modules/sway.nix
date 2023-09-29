@@ -77,6 +77,7 @@ in
     };
 
     systemPackages = with pkgs; [
+      # TODO: converge with home manager/sway stuff?
       brightnessctl
       feh
       gimp
@@ -87,7 +88,6 @@ in
       libinput-gestures
       libnotify
       lutris
-      mako
       nil
       nixpkgs-fmt
       noto-fonts

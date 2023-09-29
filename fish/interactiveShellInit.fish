@@ -91,15 +91,15 @@ function _maybe_git_summary
 end
 
 function _prompt_marker
-	printf "%b133;A%b" "\x1b\x5d" "\x1b\x5c"
+	# printf "%b133;A%b" "\x1b\x5d" "\x1b\x5c"
 end
 
 function _prompt_continuation_marker
-	printf "%b133;A;k=s%b" "\x1b\x5d" "\x1b\x5c"
+	# printf "%b133;A;k=s%b" "\x1b\x5d" "\x1b\x5c"
 end
 
 function cmd_marker --on-variable _
-	printf "%b133;C%b" "\x1b\x5d" "\x1b\x5c"
+	# printf "%b133;C%b" "\x1b\x5d" "\x1b\x5c"
 end
 
 function _prompt_prefix
