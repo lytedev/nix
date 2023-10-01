@@ -9,9 +9,46 @@
     mako = {
       enable = true;
     };
+
+    swayidle = {
+      enable = true;
+
+      events = [
+        { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock"; }
+      ];
+
+      timeouts = [
+        { timeout = 330; command = "notify-send \"Idling in 300 seconds\""; resumeCommand = "notify-send \"Idling cancelled.\""; }
+        { timeout = 540; command = "notify-send \"Idling in 90 seconds\""; }
+        { timeout = 570; command = "notify-send \"Idling in 60 seconds\""; }
+        { timeout = 600; command = "notify-send \"Idling in 30 seconds...\""; }
+        { timeout = 630; command = "swaylock -f"; }
+        { timeout = 660; command = "swaymsg \"output * dpms off\""; resumeCommand = "swaymsg \"output * dpms on\" & maybe-good-morning &"; }
+      ];
+    };
   };
 
   wayland.windowManager.sway = {
+    # TODO:
+    # + Super+r should rotate the selected group of windows.
+    # + Super+Control+{1-9} should control the size of the preselect space.
+    # + Super+Shift+b should balance the size of all selected nodes.
+    # set $tilers "(wezterm.*|kitty.*|firefox.*|slack.*|Slack.*|thunar.*|Alacritty.*|alacritty.*|Discord.*|discord.*)"
+    # for_window [title=".*"] floating enable
+    # for_window [app_id=$tilers] floating disable
+    # 
+    # # for_window [title=".*"] opacity $opacity
+    # 
+    # client.focused          #74c7ec #74c7ec #74c7ec #74c7ec #74c7ec
+    # client.focused_inactive #100814 #100814 #9b9ebf #100814 #100814
+    # client.unfocused        #100814 #100814 #9b9ebf #100814 #100814
+    # 
+    # # TODO: I forget why I needed this - could google it I expect?
+    # exec /usr/lib/polkit-kde-authentication-agent-1
+    # 
+    # # prevent all windows from stealing focus
+    # no_focus [class=".*"]
+
     enable = true;
 
     systemd = {
@@ -40,6 +77,7 @@
 
       window = {
         border = 2;
+        titlebar = false;
       };
 
       floating = {
@@ -49,8 +87,9 @@
 
       startup = [
         { command = "systemctl --user restart waybar"; always = true; }
-        { command = "firefox"; always = true; }
-        { command = "kitty --single-instance"; always = true; }
+        { command = "systemctl --user restart swayidle"; always = true; }
+        { command = "firefox"; }
+        { command = "kitty --single-instance"; }
       ];
 
       modes = {
@@ -222,12 +261,382 @@
   programs = {
     waybar = {
       enable = true;
-      # settings = { };
-      # style = ''
-      # '';
+      settings = {
+        mainBar = {
+          "layer" = "top";
+          "position" = "bottom";
+          "output" = [ "eDP-1" "DP-3" ];
+          "height" = 32;
+          "modules-left" = [ "clock" "sway/window" ];
+          "modules-center" = [ "sway/workspaces" ];
+          "modules-right" = [
+            "mpris"
+            "idle_inhibitor"
+            "bluetooth"
+            # "wireplumber",
+            "pulseaudio"
+            # "network",
+            "cpu"
+            "memory"
+            # "temperature",
+            "backlight"
+            "battery"
+            "tray"
+          ];
+          "bluetooth" = {
+            "format" = "<span</span>";
+            "format-connected" = "<span></span>";
+            "format-connected-battery" = "<span></span>";
+            # "format-device-preference" = [ "device1", "device2" ], # preference list deciding the displayed devic;
+            "tooltip-format" = "{controller_alias}@{controller_address} ({num_connections} connected)";
+            "tooltip-format-connected" = "{controller_alias}@{controller_address} ({num_connections} connected)\n{device_enumerate}";
+            "tooltip-format-enumerate-connected" = "{device_alias}@{device_address}";
+            "tooltip-format-enumerate-connected-battery" = "{device_alias}@{device_address} (󰁹 {device_battery_percentage}%)";
+          };
+          # "wireplumber" = ;
+          #     "format" = "{volume}% {icon}";
+          #     "format-muted" = "";
+          #     "on-click" = "helvum;
+          # },
+          "sway/workspaces" = {
+            "disable-scroll" = false;
+            "persistent_workspaces" = {
+              "1" = [ ];
+              "2" = [ ];
+              "3" = [ ];
+              "4" = [ ];
+              "5" = [ ];
+              "6" = [ ];
+              "7" = [ ];
+              "8" = [ ];
+              "9" = [ ];
+              # "10" = [;
+            };
+            "all-outputs" = true;
+            "format" = "{name}";
+          };
+          "idle_inhibitor" = {
+            "format" = "{icon}";
+            "format-icons" = {
+              "activated" = "󰈈";
+              "deactivated" = "󰈉";
+            };
+          };
+          "tray" = {
+            "icon-size" = 24;
+            "spacing" = 4;
+          };
+          "clock" = {
+            "interval" = 1;
+            "format" = "{:%a %b %d %H:%M:%S}";
+          };
+          "cpu" = {
+            "format" = "{usage} <span></span>";
+            "tooltip" = true;
+            "interval" = 3;
+          };
+          "memory" = {
+            "format" = "{} 󰍛";
+          };
+          "temperature" = {
+            # "thermal-zone" = 2;
+            # "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
+            "critical-threshold" = 80;
+            # "format-critical" = "{temperatureC}°C {icon}";
+            "format" = "{temperatureC}°C {icon}";
+            "format-icons" = [ "" "" "" ];
+          };
+          "backlight" = {
+            # "device" = "acpi_video1";
+            "format" = "{percent}% {icon}";
+            "format-icons" = [ "" "" ];
+          };
+          "battery" = {
+            "states" = {
+              # "good" = 95;
+              "warning" = 30;
+              "critical" = 1;
+            };
+            "format" = "{capacity}% {icon}";
+            "format-charging" = "{capacity}% 󱐋";
+            "format-plugged" = "{capacity}% 󰚥";
+            "format-alt" = "{time} {icon}";
+            "format-good" = ""; # An empty format will hide the modul;
+            "format-full" = "󰁹";
+            "format-icons" = [ "󰂎" "󰁻" "󰁽" "󰁿" "󰂂" ];
+          };
+          "network" = {
+            "format-wifi" = "{essid} ({signalStrength}%) ";
+            "format-ethernet" = "{ifname}: {ipaddr}/{cidr} ";
+            "format-linked" = "{ifname} (No IP) ";
+            "format-disconnected" = "Disconnected ⚠";
+            "format-alt" = "{ifname}: {ipaddr}/{cidr}";
+          };
+          "mpris" = {
+            "format" = "{title} by {artist}";
+          };
+          "pulseaudio" = {
+            # "scroll-step" = 1, # %, can be a floa;
+            "format" = "{volume} {icon} <span>{format_source}</span>";
+            #"format" = "{volume}% {icon} {format_source}";
+            #"format-bluetooth" = "{volume}% {icon} {format_source}";
+            #"format-bluetooth-muted" = " {icon} {format_source}";
+            #"format-muted" = " {format_source}";
+            "format-muted" = "󰝟  {format_source}";
+            "format-source" = "";
+            "format-source-muted" = "";
+            "format-icons" = {
+              "headphones" = "";
+              "handsfree" = "󱥋";
+              "headset" = "󰋎";
+              "phone" = "";
+              "portable" = "";
+              "car" = "";
+              "default" = [ "" "" "" ];
+            };
+            # TODO: toggle mute?
+            "on-click" = "pavucontrol";
+          };
+        };
+      };
+      style = ''
+        @define-color base   #1e1e2e;
+        @define-color mantle #181825;
+        @define-color crust  #11111b;
+
+        @define-color text     #cdd6f4;
+        @define-color subtext0 #a6adc8;
+        @define-color subtext1 #bac2de;
+
+        @define-color surface0 #313244;
+        @define-color surface1 #45475a;
+        @define-color surface2 #585b70;
+
+        @define-color overlay0 #6c7086;
+        @define-color overlay1 #7f849c;
+        @define-color overlay2 #9399b2;
+
+        @define-color blue      #89b4fa;
+        @define-color lavender  #b4befe;
+        @define-color sapphire  #74c7ec;
+        @define-color sky       #89dceb;
+        @define-color teal      #94e2d5;
+        @define-color green     #a6e3a1;
+        @define-color yellow    #f9e2af;
+        @define-color peach     #fab387;
+        @define-color maroon    #eba0ac;
+        @define-color red       #f38ba8;
+        @define-color mauve     #cba6f7;
+        @define-color pink      #f5c2e7;
+        @define-color flamingo  #f2cdcd;
+        @define-color rosewater #f5e0dc;
+
+        * {
+        	border-radius: 0;
+        	font-family: "IosevkaLyteTerm", "Symbols Nerd Font Mono", sans-serif;
+        	font-size: 16px;
+        }
+
+        window#waybar {
+        	min-height: 32px;
+        	background-color: @base;
+        	color: @crust;
+        	border-top: solid @sapphire 1px;
+        	transition: none;
+        }
+
+        window#waybar.hidden {
+        	/* opacity: 0.2; */
+        }
+
+        window#waybar.empty {
+        	/* opacity: 0.2; */
+        }
+
+        #workspaces button {
+        	padding: 0 0.75em;
+        	background-color: transparent;
+        	border-top: solid @sapphire 1px;
+        }
+
+        #workspaces button:hover {
+        	/*
+        	 * background: rgba(0, 0, 0, 0.2);
+        	 * box-shadow: inherit;
+        	 */
+        }
+
+        #workspaces button.visible {
+        	background-color: @base;
+        }
+
+        #workspaces button.focused {
+        	color: @base;
+        	background-color: @sapphire;
+        }
+
+        #workspaces button.persistent {
+        	color: @surface2;
+        }
+
+        #workspaces button.urgent {
+        	color: @base;
+        	background-color: @red;
+        	border-top: solid @red 1px;
+        }
+
+        #mode {
+        	background-color: transparent;
+        }
+
+        #clock,
+        #battery,
+        #cpu,
+        #memory,
+        #temperature,
+        #backlight,
+        #network,
+        #pulseaudio,
+        #custom-media,
+        #tray,
+        #mode,
+        #idle_inhibitor,
+        #mpris,
+        #window,
+        #mpd {
+        	margin-top: 1px;
+        	padding: 0 0.75em;
+        	background-color: inherit;
+        	color: @text;
+        }
+
+        #clock {}
+
+        #battery {
+        	/* background-color: #ffffff; */
+        	/* color: #000000; */
+        }
+
+        #battery.charging {
+        	/* color: #ffffff; */
+        	/* background-color: #26A65B; */
+        }
+
+        @keyframes blink {
+        	to {
+        		background-color: #ffffff;
+        		color: #000000;
+        	}
+        }
+
+        #battery.critical:not(.charging) {
+        	background-color: @red;
+        	animation-name: blink;
+        	animation-duration: 0.5s;
+        	animation-timing-function: linear;
+        	animation-iteration-count: infinite;
+        	animation-direction: alternate;
+        }
+
+        #bluetooth,
+        #bluetooth.connected-battery,
+        #bluetooth.connected.battery,
+        #bluetooth.connected {
+        	color: @text;
+        }
+
+        label:focus {
+        	/* background-color: #000000; */
+        }
+
+        #cpu {
+        	/* background-color: #2ecc71; */
+        	/* color: #000000; */
+        }
+
+        #memory {
+        	/* background-color: #9b59b6; */
+        }
+
+        #backlight {
+        	/* background-color: #90b1b1; */
+        }
+
+        #network {
+        	/* background-color: #2980b9; */
+        }
+
+        #network.disconnected {
+        	/* background-color: #f53c3c; */
+        }
+
+        #pulseaudio {
+        	color: @red;
+        	/* background-color: #f1c40f; */
+        	/* color: #000000; */
+        }
+
+        #pulseaudio.source-muted {
+        	/* background-color: #90b1b1; */
+        	color: @text;
+        }
+
+        #custom-media {
+        	/* background-color: #66cc99; */
+        	/* color: #2a5c45; */
+        	/* min-width: 100px; */
+        }
+
+        #custom-media.custom-spotify {
+        	/* background-color: #66cc99; */
+        }
+
+        #custom-media.custom-vlc {
+        	/* background-color: #ffa000; */
+        }
+
+        #temperature {
+        	/* background-color: #f0932b; */
+        }
+
+        #temperature.critical {
+        	/* background-color: #eb4d4b; */
+        }
+
+        #tray {
+        	/* background-color: #2980b9; */
+        }
+
+        #idle_inhibitor {
+        	/* background-color: #2d3436; */
+        }
+
+        #idle_inhibitor.activated {
+        	/* background-color: #ecf0f1; */
+        	/* color: #2d3436; */
+        }
+
+        #mpd {
+        	/* background-color: #66cc99; */
+        	/* color: #2a5c45; */
+        }
+
+        #mpd.disconnected {
+        	/* background-color: #f53c3c; */
+        }
+
+        #mpd.stopped {
+        	/* background-color: #90b1b1; */
+        }
+
+        #mpd.paused {
+        	/* background-color: #51a37a; */
+        }
+      '';
       systemd = {
         enable = true;
       };
+
     };
 
     firefox = {
@@ -249,10 +658,14 @@
           };
 
           extraConfig = ''
-            user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
-            // user_pref("full-screen-api.ignore-widgets", true);
-            user_pref("media.ffmpeg.vaapi.enabled", true);
-            user_pref("media.rdd-vpx.enabled", true);
+            user_pref("
+            toolkit.legacyUserProfileCustomizations.stylesheets ", true);
+            // user_pref("
+            full-screen-api.ignore-widgets ", true);
+            user_pref("
+            media.ffmpeg.vaapi.enabled ", true);
+            user_pref("
+            media.rdd-vpx.enabled ", true);
           '';
 
           userChrome = ''
@@ -264,12 +677,15 @@
               display: none;
             }
 
-            #main-window[tabsintitlebar="true"]:not([extradragspace="true"]) #TabsToolbar>.toolbar-items {
+            #main-window[tabsintitlebar="
+            true "]:not([extradragspace="
+            true "]) #TabsToolbar>.toolbar-items {
               opacity: 0;
               pointer-events: none;
             }
 
-            #main-window:not([tabsintitlebar="true"]) #TabsToolbar {
+            #main-window:not([tabsintitlebar="
+            true "]) #TabsToolbar {
               visibility: collapse !important;
             }
           '';
@@ -279,5 +695,37 @@
         };
       };
     };
+
+    swaylock = {
+      enable = true;
+      settings = {
+        color = "ffffffff";
+        image = "~/.wallpaper";
+        font = "IosevkaLyteTerm";
+        show-failed-attempts = true;
+        ignore-empty-password = true;
+
+        indicator-radius = "150";
+        indicator-thickness = "30";
+
+        inside-color = "11111100";
+        inside-clear-color = "11111100";
+        inside-ver-color = "11111100";
+        inside-wrong-color = "11111100";
+
+        key-hl-color = "a1efe4";
+        separator-color = "11111100";
+
+        line-color = "111111cc";
+        line-uses-ring = true;
+
+        ring-color = "111111cc";
+        ring-clear-color = "f4bf75";
+        ring-ver-color = "66d9ef";
+        ring-wrong-color = "f92672";
+      };
+    };
   };
 }
+
+

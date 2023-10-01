@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, lib, ... }:
 let
   email = "daniel@lyte.dev";
   name = "Daniel Flanagan";
@@ -97,13 +97,36 @@ in
         key = "daniel@lyte.dev";
       };
 
+      aliases = {
+        a = "add -A";
+        ac = "commit -a";
+        b = "rev-parse - -symbolic-full-name HEAD";
+        c = "commit";
+        cm = "commit - m";
+        cnv = "commit - -no-verify";
+        co = "checkoutd";
+        d = "diff";
+        ds = "diff - -staged";
+        dt = "difftool ";
+        f = "fetch";
+        l = "log - -graph - -abbrev-commit - -decorate - -oneline - -all";
+        plainlog = " log - -pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
+        ls = "ls-files";
+        mm = "merge master";
+        p = "push";
+        pf = "push --force-with-lease";
+        pl = "pull";
+        rim = "rebase -i master";
+        s = "status";
+      };
+
       extraConfig = {
         push = {
           autoSetupRemote = true;
         };
 
         branch = {
-          autoSeupMerge = true;
+          autoSetupMerge = true;
         };
 
         sendemail = {
@@ -114,34 +137,10 @@ in
         };
 
         url = {
+          # TODO: how to have per-machine not-in-git configuration?
           "git@git.hq.bill.com:" = {
             insteadOf = "https://git.hq.bill.com";
           };
-        };
-
-        aliases = {
-          a = "add";
-          A = "add - A";
-          ac = "commit - a";
-          b = "rev-parse - -symbolic-full-name HEAD";
-          c = "commit";
-          cm = "commit - m";
-          cnv = "commit - -no-verify";
-          co = "checkoutd";
-          d = "diff";
-          ds = "diff - -staged";
-          dt = "difftool ";
-          f = "fetch";
-          l = "log - -graph - -abbrev-commit - -decorate - -oneline - -all";
-          plainlog = " log - -pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
-          ls = "ls-files";
-          mm = "merge master";
-          p = "push";
-          pf = "push --force-with-lease";
-          pl = "pull";
-          rim = "rebase -i master";
-          s = "status";
-          sur = "submodule update --remote";
         };
       };
     };
@@ -455,7 +454,7 @@ in
 
         "tab_bar_align" = "center";
         "tab_bar_style" = "separator";
-        "tab_separator" = '''';
+        "tab_separator" = "";
         "tab_bar_edge" = "top";
         "tab_title_template" = ''{fmt.fg.tab}{fmt.bg.tab} {activity_symbol}{title}'';
         "active_tab_font_style" = "normal";
@@ -702,37 +701,37 @@ in
       interactiveShellInit = builtins.readFile ../fish/interactiveShellInit.fish;
       loginShellInit = "";
       functions = {
-        # I think these should be loaded from fish files too for better editor experience
+        # TODO: I think these should be loaded from fish files too for better editor experience?
         d = ''
           # --wraps=cd --description "Quickly jump to NICE_HOME (or given relative or absolute path) and list files."
           if count $argv > /dev/null
-          cd $argv
+            cd $argv
           else
-          cd $NICE_HOME
+            cd $NICE_HOME
           end
           la
         '';
 
         c = ''
           if count $argv > /dev/null
-          cd $NICE_HOME && d $argv
+            cd $NICE_HOME && d $argv
           else
-          d $NICE_HOME
+            d $NICE_HOME
           end
         '';
 
         g = ''
-          if count $argv > /dev/null
-          git $argv
+          if test (count $argv) -gt 0
+            git $argv
           else
-          git status
+            git status
           end
         '';
 
         ltl = ''
-            set d $argv[1] .
-            set -l l ""
-            for f in $d[1]/*
+          set d $argv[1] .
+          set -l l ""
+          for f in $d[1]/*
             if test -z $l; set l $f; continue; end
             if command test $f -nt $l; and test ! -d $f
               set l $f

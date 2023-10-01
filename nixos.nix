@@ -51,9 +51,9 @@ in
       name = "vdb";
     } ++ [ ./nixos/thinker.nix ]);
 
-  dragon = nixosSystem "x86_64-linux" (disko
-    {
-      scheme = "standard";
-      disks = [ "/dev/disk/by-uuid/asdf" ];
-    } ++ [ ./nixos/dragon.nix ]);
+  # dragon = nixosSystem "x86_64-linux" (disko
+  #   {
+  #     scheme = "standard";
+  #     disks = [ "/dev/disk/by-uuid/asdf" ];
+  #   } ++ [ ./nixos/dragon.nix ]);
 }
