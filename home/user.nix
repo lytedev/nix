@@ -14,7 +14,7 @@ in
   home = {
     username = lib.mkDefault "daniel";
     homeDirectory = lib.mkDefault "/home/daniel/.home";
-    stateVersion = "23.05";
+    stateVersion = "23.11";
 
     packages = [
       # I use rtx for managing the following programs' versions instead of nix:
@@ -97,13 +97,36 @@ in
         key = "daniel@lyte.dev";
       };
 
+      aliases = {
+        a = "add -A";
+        ac = "commit -a";
+        b = "rev-parse --symbolic-full-name HEAD";
+        c = "commit";
+        cm = "commit -m";
+        cnv = "commit --no-verify";
+        co = "checkout";
+        d = "diff";
+        ds = "diff --staged";
+        dt = "difftool";
+        f = "fetch";
+        l = "log --graph --abbrev-commit --decorate --oneline --all";
+        plainlog = " log --pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
+        ls = "ls-files";
+        mm = "merge master";
+        p = "push";
+        pf = "push --force-with-lease";
+        pl = "pull";
+        rim = "rebase -i master";
+        s = "status";
+      };
+
       extraConfig = {
         push = {
           autoSetupRemote = true;
         };
 
         branch = {
-          autoSeupMerge = true;
+          autoSetupMerge = true;
         };
 
         sendemail = {
@@ -114,34 +137,10 @@ in
         };
 
         url = {
+          # TODO: how to have per-machine not-in-git configuration?
           "git@git.hq.bill.com:" = {
             insteadOf = "https://git.hq.bill.com";
           };
-        };
-
-        aliases = {
-          a = "add";
-          A = "add - A";
-          ac = "commit - a";
-          b = "rev-parse - -symbolic-full-name HEAD";
-          c = "commit";
-          cm = "commit - m";
-          cnv = "commit - -no-verify";
-          co = "checkoutd";
-          d = "diff";
-          ds = "diff - -staged";
-          dt = "difftool ";
-          f = "fetch";
-          l = "log - -graph - -abbrev-commit - -decorate - -oneline - -all";
-          plainlog = " log - -pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
-          ls = "ls-files";
-          mm = "merge master";
-          p = "push";
-          pf = "push --force-with-lease";
-          pl = "pull";
-          rim = "rebase -i master";
-          s = "status";
-          sur = "submodule update --remote";
         };
       };
     };
@@ -406,6 +405,177 @@ in
       };
     };
 
+    kitty = {
+      enable = true;
+      darwinLaunchOptions = [ "--single-instance" ];
+      shellIntegration = {
+        enableFishIntegration = true;
+      };
+      settings = {
+        "font_family" = "IosevkaLyteTerm";
+        "bold_font" = "IosevkaLyteTerm Heavy";
+        "italic_font" = "IosevkaLyteTerm Italic";
+        "bold_italic_font" = "IosevkaLyteTerm Heavy Italic";
+        "font_size" = "12.5";
+        "inactive_text_alpha" = "0.5";
+        "copy_on_select" = true;
+
+        "scrollback_lines" = 500000;
+
+        "symbol_map" = "U+23FB-U+23FE,U+2665,U+26A1,U+2B58,U+E000-U+E00A,U+E0A0-U+E0A3,U+E0B0-U+E0D4,U+E200-U+E2A9,U+E300-U+E3E3,U+E5FA-U+E6AA,U+E700-U+E7C5,U+EA60-U+EBEB,U+F000-U+F2E0,U+F300-U+F32F,U+F400-U+F4A9,U+F500-U+F8FF,U+F0001-U+F1AF0 Symbols Nerd Font Mono";
+
+        # use `kitty + list-fonts --psnames` to get the font's PostScript name
+
+        "allow_remote_control" = true;
+        "listen_on" = "unix:/tmp/kitty";
+        "repaint_delay" = 3;
+        "input_delay" = 3;
+        "sync_to_monitor" = true;
+
+        "adjust_line_height" = 0;
+        "window_padding_width" = "10.0";
+        "window_margin_width" = "0.0";
+
+        "confirm_os_window_close" = 0;
+
+        "enabled_layouts" = "splits:split_axis=vertical,stack";
+
+        "shell_integration" = "disabled";
+
+        "enable_audio_bell" = true;
+        "visual_bell_duration" = "0.25";
+        "visual_bell_color" = "#333033";
+
+        "url_style" = "single";
+
+        "strip_trailing_spaces" = "smart";
+
+        # open_url_modifiers ctrl
+
+        "tab_bar_align" = "center";
+        "tab_bar_style" = "separator";
+        "tab_separator" = "";
+        "tab_bar_edge" = "top";
+        "tab_title_template" = ''{fmt.fg.tab}{fmt.bg.tab} {activity_symbol}{title}'';
+        "active_tab_font_style" = "normal";
+
+        ## name: Catppuccin Kitty Mocha
+        ## author: Catppuccin Org
+        ## license: MIT
+        ## upstream: https://github.com/catppuccin/kitty/blob/main/mocha.conf
+        ## blurb: Soothing pastel theme for the high-spirited!
+
+        # The basic colors
+        "foreground" = "#CDD6F4";
+        "background" = "#1E1E2E";
+        "selection_foreground" = "#1E1E2E";
+        "selection_background" = "#F5E0DC";
+
+        # Cursor colors
+        "cursor" = "#F5E0DC";
+        "cursor_text_color" = "#1E1E2E";
+
+        # URL underline color when hovering with mouse
+        "url_color" = "#F5E0DC";
+
+        # Kitty window border colors
+        "active_border_color" = "#74c7ec";
+        "inactive_border_color" = "#313244";
+        "bell_border_color" = "#F9E2AF";
+
+        # OS Window titlebar colors
+        "wayland_titlebar_color" = "system";
+        "macos_titlebar_color" = "system";
+
+        # Tab bar colors
+        "active_tab_foreground" = "#11111B";
+        "active_tab_background" = "#74c7ec";
+        "inactive_tab_foreground" = "#CDD6F4";
+        "inactive_tab_background" = "#181825";
+        "tab_bar_background" = "#11111B";
+
+        # Colors for marks (marked text in the terminal)
+        "mark1_foreground" = "#1E1E2E";
+        "mark1_background" = "#B4BEFE";
+        "mark2_foreground" = "#1E1E2E";
+        "mark2_background" = "#74c7ec";
+        "mark3_foreground" = "#1E1E2E";
+        "mark3_background" = "#74C7EC";
+
+        # The 16 terminal colors
+
+        # black
+        "color0" = "#45475A";
+        "color8" = "#585B70";
+
+        # red
+        "color1" = "#F38BA8";
+        "color9" = "#F38BA8";
+
+        # green
+        "color2" = "#A6E3A1";
+        "color10" = "#A6E3A1";
+
+        # yellow
+        "color3" = "#F9E2AF";
+        "color11" = "#F9E2AF";
+
+        # blue
+        "color4" = "#89B4FA";
+        "color12" = "#89B4FA";
+
+        # magenta
+        "color5" = "#F5C2E7";
+        "color13" = "#F5C2E7";
+
+        # cyan
+        "color6" = "#94E2D5";
+        "color14" = "#94E2D5";
+
+        # white
+        "color7" = "#BAC2DE";
+        "color15" = "#A6ADC8";
+      };
+      keybindings = {
+        "ctrl+shift+1" = "change_font_size all 12.5";
+        "ctrl+shift+2" = "change_font_size all 18.5";
+        "ctrl+shift+3" = "change_font_size all 26";
+        "ctrl+shift+4" = "change_font_size all 32";
+        "ctrl+shift+5" = "change_font_size all 48";
+        "ctrl+shift+o" = "launch --type=tab --stdin-source=@screen_scrollback $EDITOR";
+
+        "ctrl+shift+equal" = "change_font_size all +0.5";
+        "ctrl+shift+minus" = "change_font_size all -0.5";
+
+        "shift+insert" = "paste_from_clipboard";
+        "ctrl+shift+v" = "paste_from_selection";
+        "ctrl+shift+c" = "copy_to_clipboard";
+
+        # kill pane
+        "ctrl+shift+q" = "close_window";
+
+        # kill tab
+        "ctrl+alt+shift+q" = "close_tab";
+
+        "ctrl+shift+j" = "launch --location=hsplit --cwd=current";
+        "ctrl+shift+l" = "launch --location=vsplit --cwd=current";
+
+        "ctrl+alt+shift+k" = "move_window up";
+        "ctrl+alt+shift+h" = "move_window left";
+        "ctrl+alt+shift+l" = "move_window right";
+        "ctrl+alt+shift+j" = "move_window down";
+
+        "ctrl+h" = "neighboring_window left";
+        "ctrl+l" = "neighboring_window right";
+        "ctrl+k" = "neighboring_window up";
+        "ctrl+j" = "neighboring_window down";
+        "ctrl+shift+n" = "nth_window -1";
+        "ctrl+shift+space>u" = "kitten hints --type=url --program @";
+
+        "ctrl+shift+z" = "toggle_layout stack";
+      };
+    };
+
     zellij = {
       # TODO: enable after port config
       enable = false;
@@ -531,37 +701,37 @@ in
       interactiveShellInit = builtins.readFile ../fish/interactiveShellInit.fish;
       loginShellInit = "";
       functions = {
-        # I think these should be loaded from fish files too for better editor experience
+        # TODO: I think these should be loaded from fish files too for better editor experience?
         d = ''
           # --wraps=cd --description "Quickly jump to NICE_HOME (or given relative or absolute path) and list files."
           if count $argv > /dev/null
-          cd $argv
+            cd $argv
           else
-          cd $NICE_HOME
+            cd $NICE_HOME
           end
           la
         '';
 
         c = ''
           if count $argv > /dev/null
-          cd $NICE_HOME && d $argv
+            cd $NICE_HOME && d $argv
           else
-          d $NICE_HOME
+            d $NICE_HOME
           end
         '';
 
         g = ''
-          if count $argv > /dev/null
-          git $argv
+          if test (count $argv) -gt 0
+            git $argv
           else
-          git status
+            git status
           end
         '';
 
         ltl = ''
-            set d $argv[1] .
-            set -l l ""
-            for f in $d[1]/*
+          set d $argv[1] .
+          set -l l ""
+          for f in $d[1]/*
             if test -z $l; set l $f; continue; end
             if command test $f -nt $l; and test ! -d $f
               set l $f
@@ -575,12 +745,12 @@ in
       shellAbbrs = { };
       shellAliases = {
         l = "br";
-        ls = "exa --group-directories-first --classify";
-        la = "exa -la --group-directories-first --classify";
-        lA = "exa -la --all --group-directories-first --classify";
-        tree = "exa --tree --level=3";
-        lt = "exa -l --sort=modified";
-        lat = "exa -la --sort=modified";
+        ls = "eza --group-directories-first --classify";
+        la = "eza -la --group-directories-first --classify";
+        lA = "eza -la --all --group-directories-first --classify";
+        tree = "eza --tree --level=3";
+        lt = "eza -l --sort=modified";
+        lat = "eza -la --sort=modified";
         lc = "lt --sort=accessed";
         lT = "lt --reverse";
         lC = "lc --reverse";
@@ -609,7 +779,7 @@ in
       };
     };
 
-    exa = {
+    eza = {
       enable = true;
     };
 
@@ -624,9 +794,6 @@ in
     };
   };
 
-  # wayland.windowManager.sway = {
-  #   enable = true;
-  # }; # TODO: would be nice to have my sway config declared here instead of symlinked in by dotfiles scripts?
   # maybe we can share somehow so things for nix-y systems and non-nix-y systems alike
   # am I going to _have_ non-nix systems anymore?
 }

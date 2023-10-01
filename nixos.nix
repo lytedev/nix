@@ -42,17 +42,18 @@ in
     {
       scheme = "unencrypted";
       disks = [ "/dev/sda" ];
-    } ++ [
-    ./nixos/musicbox.nix
-  ]);
+    } ++ [ ./nixos/musicbox.nix ]);
 
   thinker = nixosSystem "x86_64-linux" (disko
     {
       scheme = "standard";
       disks = [ "/dev/nvme0n1" ];
       name = "vdb";
-    } ++ [
-    ./nixos/thinker.nix
-  ]);
-  # dragon = diskoNixosSystem self.diskoConfigurations.standard [ "/dev/disk/by-uuid/asdf" ] [ ./nixos/dragon.nix ];
+    } ++ [ ./nixos/thinker.nix ]);
+
+  # dragon = nixosSystem "x86_64-linux" (disko
+  #   {
+  #     scheme = "standard";
+  #     disks = [ "/dev/disk/by-uuid/asdf" ];
+  #   } ++ [ ./nixos/dragon.nix ]);
 }

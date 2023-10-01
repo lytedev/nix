@@ -27,7 +27,7 @@ in
       curl
       dog
       dua
-      exa
+      eza
       fd
       file
       gnumake
@@ -37,7 +37,6 @@ in
       iputils
       jq
       killall
-      kitty # TODO: I really just need the terminfo on servers, though, right?
       less
       mosh
       nmap
