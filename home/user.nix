@@ -454,9 +454,9 @@ in
 
         "tab_bar_align" = "center";
         "tab_bar_style" = "separator";
-        "tab_separator" = "";
+        "tab_separator" = ''""'';
         "tab_bar_edge" = "top";
-        "tab_title_template" = ''{fmt.fg.tab}{fmt.bg.tab} {activity_symbol}{title}'';
+        "tab_title_template" = ''"{fmt.fg.tab}{fmt.bg.tab} {activity_symbol}{title} "'';
         "active_tab_font_style" = "normal";
 
         ## name: Catppuccin Kitty Mocha
