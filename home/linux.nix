@@ -1,13 +1,15 @@
 { config, pkgs, ... }: {
   home.pointerCursor = {
-    name = "Catppuccin-Mocha-Sapphire-Cursors";
-    package = pkgs.catppuccin-cursors.mochaSapphire;
+    name = "Bibata-Modern-Classic";
+    package = pkgs.bibata-cursors;
     size = 64; # TODO: this doesn't seem to work -- at least in Sway
+    # some icons are also missing (hand2?)
   };
 
   services = {
     mako = {
       enable = true;
+      # TODO: config
     };
 
     swayidle = {
@@ -644,6 +646,7 @@
       # TODO: enable dark theme by default
       enable = true;
 
+      # TODO: uses nixpkgs.pass so pass otp doesn't work
       package = (pkgs.firefox.override { extraNativeMessagingHosts = [ pkgs.passff-host ]; });
 
       # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
