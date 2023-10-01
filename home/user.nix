@@ -100,17 +100,17 @@ in
       aliases = {
         a = "add -A";
         ac = "commit -a";
-        b = "rev-parse - -symbolic-full-name HEAD";
+        b = "rev-parse --symbolic-full-name HEAD";
         c = "commit";
-        cm = "commit - m";
-        cnv = "commit - -no-verify";
-        co = "checkoutd";
+        cm = "commit -m";
+        cnv = "commit --no-verify";
+        co = "checkout";
         d = "diff";
-        ds = "diff - -staged";
-        dt = "difftool ";
+        ds = "diff --staged";
+        dt = "difftool";
         f = "fetch";
-        l = "log - -graph - -abbrev-commit - -decorate - -oneline - -all";
-        plainlog = " log - -pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
+        l = "log --graph --abbrev-commit --decorate --oneline --all";
+        plainlog = " log --pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
         ls = "ls-files";
         mm = "merge master";
         p = "push";
