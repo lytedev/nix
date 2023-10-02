@@ -321,10 +321,10 @@
       },
       "locked": {
         "lastModified": 1696266788,
-        "narHash": "sha256-uafhEse84DXOyeN8j9igyhqVTWatnSznJ490PVg+H7k=",
+        "narHash": "sha256-TH2JC+Cjw+ed1O33QKGq+lonIKlu6pHuY1jtrZh/FMM=",
         "owner": "jdx",
         "repo": "rtx",
-        "rev": "b8f142fcf1e711de2684cdce2ddebde108f0427b",
+        "rev": "f333ac5f8e8de399fcb3ce40576baeef0271081b",
         "type": "github"
       },
       "original": {

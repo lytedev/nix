@@ -91,6 +91,9 @@ wpa_cli set_network 0 psk "MY_WIFI_PASSWORD"
 wpa_cli enable_network 0
 wpa_cli save_config
 
+# disk encryption key (if needed)
+echo -n "password" > /tmp/secret.key
+
 # partition disks
 nix-shell --packages git --run "sudo nix run \
   --extra-experimental-features nix-command \
@@ -104,8 +107,8 @@ nix-shell --packages git --run "sudo nix run \
 nix-shell --packages git \
   --run "sudo nixos-install \
     --flake 'git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}' \
-    --option substituters 'https://nix.h.lyte.dev' \
-    --option trusted-public-keys 'h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
+    --option substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
+    --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
 # To Do
