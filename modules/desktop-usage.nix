@@ -4,5 +4,13 @@
     ./sway.nix
     ./user-installed-applications.nix
   ];
+
+  hardware = {
+    opengl = {
+      enable = true;
+      driSupport32Bit = true;
+      driSupport = true;
+    };
+  };
 }
 
