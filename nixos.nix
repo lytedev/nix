@@ -2,11 +2,6 @@ inputs @ { self, ... }:
 let
   daniel = system: {
     home-manager.users.daniel = {
-      nixpkgs.overlays = [
-        (final: prev: {
-          helix = prev.helix // inputs.helix.packages.${system}.helix;
-        })
-      ];
       imports = [ ./home/user.nix ./home/linux.nix ];
     };
   };

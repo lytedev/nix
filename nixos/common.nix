@@ -1,9 +1,6 @@
 { config, lib, inputs, system, ... }:
 let
-  overlay = final: prev: {
-    helix = prev.helix // inputs.helix.packages.${system}.helix;
-  };
-  pkgs = inputs.nixpkgs.legacyPackages.${system}.extend overlay;
+  pkgs = inputs.nixpkgs.legacyPackages.${system};
 in
 {
   services.journald.extraConfig = "SystemMaxUse=1G";
@@ -31,6 +28,7 @@ in
       file
       gnumake
       gron
+      helix
       hexyl
       htop
       iputils
@@ -57,8 +55,6 @@ in
       xh
       zellij
       zstd
-    ] ++ [
-      inputs.helix.packages."x86_64-linux".helix
     ];
   };
 

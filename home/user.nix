@@ -151,7 +151,6 @@ in
 
     helix = {
       enable = true;
-      package = pkgs.helix;
       languages = {
         language-server = {
           lexical = {
