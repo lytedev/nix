@@ -2,7 +2,6 @@ inputs:
 let
   overlay = system: final: prev: {
     helix = prev.helix // inputs.helix.packages.${system}.helix;
-    rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
   };
   # TODO: be functional - have a mkHome function?
 in

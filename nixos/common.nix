@@ -2,7 +2,6 @@
 let
   overlay = final: prev: {
     helix = prev.helix // inputs.helix.packages.${system}.helix;
-    rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
   };
   pkgs = inputs.nixpkgs.legacyPackages.${system}.extend overlay;
 in
@@ -47,6 +46,7 @@ in
       restic
       ripgrep
       rsync
+      rtx
       sd
       sops
       smartmontools
@@ -59,7 +59,6 @@ in
       zstd
     ] ++ [
       inputs.helix.packages."x86_64-linux".helix
-      inputs.rtx.packages."x86_64-linux".rtx
     ];
   };
 

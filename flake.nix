@@ -13,7 +13,6 @@
     disko.url = "github:nix-community/disko/master";
     sops-nix.url = "github:Mic92/sops-nix";
     helix.url = "github:helix-editor/helix";
-    rtx.url = "github:jdx/rtx";
     # TODO: hyprland.url = "github:hyprwm/Hyprland";
   };
 

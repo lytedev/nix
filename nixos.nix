@@ -5,7 +5,6 @@ let
       nixpkgs.overlays = [
         (final: prev: {
           helix = prev.helix // inputs.helix.packages.${system}.helix;
-          rtx = prev.rtx // inputs.rtx.packages.${system}.rtx;
         })
       ];
       imports = [ ./home/user.nix ./home/linux.nix ];
