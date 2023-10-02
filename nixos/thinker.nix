@@ -14,8 +14,6 @@
   # need to measure percentage lost per day, but I think it's around 10%/day
   # it looks like I may have had hibernation working -- see ../old/third.nix
 
-  # TODO: fonts? right now, I'm just installing to ~/.local/share/fonts
-
   # hardware
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.enable = true;

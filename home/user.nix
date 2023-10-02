@@ -11,6 +11,14 @@ in
   #   };
   # };
 
+  # TODO: fonts? right now I do this:
+  # curl -o ~/Downloads/iosevkalyte.tar.zstd https://files.lyte.dev/iosevkalyte/rel/iosevkalyteterm-16.4.0.tar.zstd
+  # tar --zstd -xvf ~/Downloads/iosevka.tar.zstd
+  # mkdir -p ~/.local/share/fonts
+  # cp -r iosevkalyteterm/ttf/* ~/.local/share/fonts
+  # TODO: I bet I can declare an iosevka font build, too, instead
+  # TODO: wallpaper?
+
   home = {
     username = lib.mkDefault "daniel";
     homeDirectory = lib.mkDefault "/home/daniel/.home";

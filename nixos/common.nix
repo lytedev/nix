@@ -146,8 +146,8 @@ in
   };
 
   nix = {
-    trustedUsers = [ "root" "daniel" ];
     settings = {
+      trusted-users = [ "root" "daniel" ];
       experimental-features = lib.mkDefault [ "nix-command" "flakes" ];
       substituters = [
         "https://nix.h.lyte.dev"
