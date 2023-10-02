@@ -146,6 +146,7 @@ in
   };
 
   nix = {
+    trustedUsers = [ "root" "daniel" ];
     settings = {
       experimental-features = lib.mkDefault [ "nix-command" "flakes" ];
       substituters = [
