@@ -6,6 +6,7 @@
   ...
 }: let
   pkgs = inputs.nixpkgs.legacyPackages.${system};
+  unstable-pkgs = inputs.nixpkgs-unstable.legacyPackages.${system};
 in {
   services.journald.extraConfig = "SystemMaxUse=1G";
 
@@ -17,51 +18,54 @@ in {
       MANPAGER = "less";
     };
 
-    systemPackages = with pkgs; [
-      age
-      bat
-      bc
-      bind
-      bottom
-      btrfs-progs
-      cue
-      curl
-      dog
-      dua
-      eza
-      fd
-      file
-      gnumake
-      gron
-      helix
-      hexyl
-      htop
-      iputils
-      jq
-      killall
-      less
-      mosh
-      nmap
-      openssl
-      pciutils
-      pv
-      rclone
-      restic
-      ripgrep
-      rsync
-      rtx
-      sd
-      sops
-      smartmontools
-      sqlite
-      sysstat
-      unzip
-      watchexec
-      wget
-      xh
-      zellij
-      zstd
-    ];
+    systemPackages = with pkgs;
+      [
+        age
+        bat
+        bc
+        bind
+        bottom
+        btrfs-progs
+        cue
+        curl
+        dog
+        dua
+        fd
+        file
+        gnumake
+        gron
+        helix
+        hexyl
+        htop
+        iputils
+        jq
+        killall
+        less
+        mosh
+        nmap
+        openssl
+        pciutils
+        pv
+        rclone
+        restic
+        ripgrep
+        rsync
+        rtx
+        sd
+        sops
+        smartmontools
+        sqlite
+        sysstat
+        unzip
+        watchexec
+        wget
+        xh
+        zellij
+        zstd
+      ]
+      ++ (with unstable-pkgs; [
+        eza
+      ]);
   };
 
   users.users = {

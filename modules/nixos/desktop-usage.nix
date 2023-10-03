@@ -6,7 +6,8 @@
     ./user-installed-applications.nix
   ];
 
-  fonts.packages = with pkgs; [
+  # fonts.packages if unstable?
+  fonts.fonts = with pkgs; [
     (nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
     (iosevka.override {
       set = "lyteterm";

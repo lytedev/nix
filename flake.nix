@@ -15,7 +15,8 @@
     # TODO: do I really need this in the root of my flake if _only_ beefcake uses it?
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
 
-    # TODO: hardware.url = "github:nixos/nixos-hardware"; # might be useful for laptops
+    hardware.url = "github:nixos/nixos-hardware";
+
     # TODO: hyprland.url = "github:hyprwm/Hyprland";
     # TODO: nix-colors.url = "github:misterio77/nix-colors";
   };
@@ -23,6 +24,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-unstable,
     home-manager,
     ...
   } @ inputs: let
@@ -59,16 +61,28 @@
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
-    nixosConfigurations = {
-      dragon = nixpkgs.lib.nixosSystem {
-        specialArgs = {
-          inherit inputs outputs;
-          flake = self;
+    nixosConfigurations = let
+      mkNixosSystem = system: modules:
+        nixpkgs.lib.nixosSystem {
+          system = system;
+          specialArgs = {
+            inherit inputs outputs system;
+            flake = self;
+          };
+          modules = [self.nixosModules.common] ++ modules;
         };
-        modules = [
-          ./nixos/dragon
-        ];
-      };
+      # mkNixosUnstableSystem = system: modules:
+      #   nixpkgs-unstable.lib.nixosSystem {
+      #     system = system;
+      #     specialArgs = {
+      #       inherit inputs outputs system;
+      #       flake = self;
+      #     };
+      #     modules = [ self.nixosModules.common ] ++ modules;
+      #   };
+    in {
+      dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon];
+      thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker];
     };
 
     # Standalone home-manager configuration entrypoint
