@@ -1,4 +1,4 @@
-{ modulesPath, lib, ... }: {
+{ modulesPath, lib, pkgs, ... }: {
   imports =
     [
       ../modules/amd.nix
@@ -21,6 +21,13 @@
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true;
+
+  environment = {
+    systemPackages = with pkgs; [
+      radeontop
+    ];
+  };
+
 
   networking = {
     firewall = {

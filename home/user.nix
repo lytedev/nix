@@ -29,9 +29,6 @@ in
       # kubectl, aws
       pkgs.rtx
 
-      # text editor
-      pkgs.helix
-
       # I need gawk for my fish prompt
       pkgs.gawk
 
@@ -159,6 +156,7 @@ in
 
     helix = {
       enable = true;
+      package = pkgs.helix;
       languages = {
         language-server = {
           lexical = {

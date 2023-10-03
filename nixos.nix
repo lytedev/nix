@@ -25,18 +25,18 @@ in
 {
   # TODO: disko-fy rascal and beefcake?
 
-  # beefcake = nixosSystem "x86_64-linux" [
-  #   ./nixos/beefcake.nix
-  #   inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
-  # ];
+  beefcake = nixosSystem "x86_64-linux" [
+    ./nixos/beefcake.nix
+    inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
+  ];
 
-  # rascal = nixosSystem "x86_64-linux" [ ./nixos/rascal.nix ];
+  rascal = nixosSystem "x86_64-linux" [ ./nixos/rascal.nix ];
 
-  # musicbox = nixosSystem "x86_64-linux" (disko
-  #   {
-  #     scheme = "unencrypted";
-  #     disks = [ "/dev/sda" ];
-  #   } ++ [ ./nixos/musicbox.nix ]);
+  musicbox = nixosSystem "x86_64-linux" (disko
+    {
+      scheme = "unencrypted";
+      disks = [ "/dev/sda" ];
+    } ++ [ ./nixos/musicbox.nix ]);
 
   thinker = nixosSystem "x86_64-linux" (disko
     {
