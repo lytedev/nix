@@ -19,5 +19,7 @@
     diskoConfigurations = import ./disko.nix;
     homeConfigurations = import ./home.nix inputs;
     nixosConfigurations = import ./nixos.nix inputs;
+    # TODO: darwin for work?
+    # TODO: nixos ISO?
   };
 }

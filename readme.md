@@ -78,8 +78,6 @@ ssh root@beefcake nixos-rebuild --rollback switch
 
 ## Provisioning New NixOS Hosts
 
-<!-- TODO: Installation from a live ISO does not fully work yet -->
-
 ```bash
 # establish network access
 # plug in ethernet or do the wpa_cli song and dance for wifi
@@ -113,11 +111,6 @@ nix-shell --packages git \
 
 # To Do
 
-- Port configuration (lytedev/dotfiles) to home manager where applicable?
-  - Sway and Kitty come to mind
-  - macOS options?
 - I don't understand Nix well enough to know why stuff is being compiled even when I have a binary cache
   - Maybe it detects different CPUs and will recompile certain packages for per-CPU optimizations?
     - How does this factor in with "pureness"?
-- Custom pre-configured live ISO
-- Unify standalone home manager module with NixOS home manager module?
