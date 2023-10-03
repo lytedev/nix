@@ -2,23 +2,22 @@
   inputs = {
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-
     home-manager.url = "github:nix-community/home-manager/master";
-
-    # TODO: avoid my manual workaround of `nix profile install helix#helix --priority 4`
     helix.url = "github:helix-editor/helix/75c0a5ceb32d8a503915a93ccc1b64c8ad1cba8b";
-
     disko.url = "github:nix-community/disko/master";
     sops-nix.url = "github:Mic92/sops-nix";
+    hardware.url = "github:nixos/nixos-hardware";
+    hyprland.url = "github:hyprwm/Hyprland";
+    nix-colors.url = "github:misterio77/nix-colors";
+    ssbm.url = "github:djanatyn/ssbm-nix";
 
     # TODO: do I really need this in the root of my flake if _only_ beefcake uses it?
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
 
-    hardware.url = "github:nixos/nixos-hardware";
-
-    hyprland.url = "github:hyprwm/Hyprland";
-
-    nix-colors.url = "github:misterio77/nix-colors";
+    # track slippi-desktop version in my own flake instead of waiting for the upstream repo to update
+    slippi-desktop.url = "github:project-slippi/slippi-desktop-app";
+    slippi-desktop.flake = false;
+    ssbm.inputs.slippi-desktop.follows = "slippi-desktop";
   };
 
   outputs = {

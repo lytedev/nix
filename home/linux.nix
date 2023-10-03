@@ -11,7 +11,7 @@
   };
 
   services = {
-    mako = {
+    mako = with config.colorScheme.colors; {
       enable = true;
       borderSize = 1;
       maxVisible = 5;
@@ -19,14 +19,15 @@
       font = "Symbols Nerd Font 12,IosevkaLyteTerm 12";
       # TODO: config
 
-      backgroundColor = "#1e1e2e";
-      textColor = "#cdd6f4";
-      borderColor = "#89b4fa";
-      progressColor = "#313244";
+      backgroundColor = base01;
+      textColor = base05;
+      borderColor = base0C;
+      progressColor = base0A;
 
       extraConfig = ''
         [urgency=high]
-        border-color=#fab387
+        border-color=#${base0F}
+        background-color=#${base03}
       '';
     };
 
@@ -107,7 +108,7 @@
 
       # TODO: popup_during_fullscreen smart
       focus = {
-        wrapping = "yes";
+        wrapping = "no";
         followMouse = "no";
         mouseWarping = false;
       };

@@ -3,6 +3,7 @@
 {
   common = import ./common.nix;
   amd = import ./amd.nix;
+  melee = import ./melee.nix;
   desktop-usage = import ./desktop-usage.nix;
   intel = import ./intel.nix;
   pipewire = import ./pipewire.nix;
