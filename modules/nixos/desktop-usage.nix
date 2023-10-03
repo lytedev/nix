@@ -1,5 +1,6 @@
 {pkgs, ...}: {
   # TODO: add a DE and include either plasma or gnome as a fallback?
+
   imports = [
     ./sway.nix
     ./user-installed-applications.nix
@@ -136,14 +137,5 @@
       driSupport32Bit = true;
       driSupport = true;
     };
-  };
-
-  boot.binfmt.registrations.appimage = {
-    wrapInterpreterInShell = false;
-    interpreter = "${pkgs.appimage-run}/bin/appimage-run";
-    recognitionType = "magic";
-    offset = 0;
-    mask = ''\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff'';
-    magicOrExtension = ''\x7fELF....AI\x02'';
   };
 }

@@ -6,6 +6,7 @@
     home-manager.url = "github:nix-community/home-manager/release-23.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    # TODO: avoid my manual workaround of `nix profile install helix#helix --priority 4`
     helix.url = "github:helix-editor/helix/75c0a5ceb32d8a503915a93ccc1b64c8ad1cba8b";
 
     disko.url = "github:nix-community/disko/master";
@@ -60,7 +61,10 @@
     # Available through 'nixos-rebuild --flake .#your-hostname'
     nixosConfigurations = {
       dragon = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs outputs;};
+        specialArgs = {
+          inherit inputs outputs;
+          flake = self;
+        };
         modules = [
           ./nixos/dragon
         ];
@@ -73,13 +77,13 @@
       "daniel@lyte.dev" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = {inherit inputs outputs;};
-        modules = [./home-manager/home.nix];
+        modules = [./home];
       };
 
       "daniel.flanagan@hq.bill.com" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.aarch64-darwin;
         extraSpecialArgs = {inherit inputs outputs;};
-        modules = [./home-manager/home.nix];
+        modules = [./home];
       };
     };
 
@@ -87,6 +91,6 @@
     # TODO: nixos ISO?
 
     # Disk partition schemes and functions
-    diskoConfigurations = import ./disko.nix;
+    diskoConfigurations = import ./disko;
   };
 }
