@@ -14,10 +14,10 @@
     # TODO: do I really need this in the root of my flake if _only_ beefcake uses it?
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
 
-    # track slippi-desktop version in my own flake instead of waiting for the upstream repo to update
-    slippi-desktop.url = "github:project-slippi/slippi-desktop-app";
-    slippi-desktop.flake = false;
-    ssbm.inputs.slippi-desktop.follows = "slippi-desktop";
+    # need to bump ishiiruka upstream I think
+    # slippi-desktop.url = "github:project-slippi/slippi-desktop-app";
+    # slippi-desktop.flake = false;
+    # ssbm.inputs.slippi-desktop.follows = "slippi-desktop";
   };
 
   outputs = {

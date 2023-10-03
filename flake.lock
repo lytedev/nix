@@ -493,7 +493,6 @@
         "nix-colors": "nix-colors",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "slippi-desktop": "slippi-desktop",
         "sops-nix": "sops-nix",
         "ssbm": "ssbm"
       }
@@ -562,9 +561,7 @@
       "inputs": {
         "nix": "nix",
         "nixpkgs": "nixpkgs_8",
-        "slippi-desktop": [
-          "slippi-desktop"
-        ]
+        "slippi-desktop": "slippi-desktop"
       },
       "locked": {
         "lastModified": 1692992594,
