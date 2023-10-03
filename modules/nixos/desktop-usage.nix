@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{pkgs, inputs, system, ...}: {
   # TODO: add a DE and include either plasma or gnome as a fallback?
 
   imports = [
@@ -9,6 +9,7 @@
   # fonts.packages if unstable?
   fonts.fonts = with pkgs; [
     (nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
+  ] ++ (with inputs.nixpkgs-unstable.legacyPackages.${system}; [
     (iosevka.override {
       set = "lyteterm";
       privateBuildPlan = ''
@@ -130,7 +131,7 @@
         punctuation-dot = 'round'
       '';
     })
-  ];
+  ]);
 
   hardware = {
     opengl = {
