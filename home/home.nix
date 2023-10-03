@@ -1,9 +1,11 @@
-{ pkgs, lib, ... }:
-let
+{
+  pkgs,
+  lib,
+  ...
+}: let
   email = "daniel@lyte.dev";
   name = "Daniel Flanagan";
-in
-{
+in {
   # TODO: email access?
   # accounts.email.accounts = {
   #   google = {
@@ -36,7 +38,10 @@ in
       pkgs.nixpkgs-fmt
 
       # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
-      (pkgs.buildEnv { name = "my-scripts-common"; paths = [ ../scripts/common ]; })
+      (pkgs.buildEnv {
+        name = "my-scripts-common";
+        paths = [../scripts/common];
+      })
     ];
 
     file = {
@@ -79,7 +84,7 @@ in
   programs = {
     password-store = {
       enable = true;
-      package = (pkgs.pass.withExtensions (exts: [ exts.pass-otp ]));
+      package = pkgs.pass.withExtensions (exts: [exts.pass-otp]);
     };
 
     git = {
@@ -90,7 +95,7 @@ in
 
       delta = {
         enable = true;
-        options = { };
+        options = {};
       };
 
       lfs = {
@@ -161,25 +166,29 @@ in
         language-server = {
           lexical = {
             command = "lexical";
-            args = [ "start" ];
+            args = ["start"];
           };
 
           next-ls = {
             command = "next-ls";
-            args = [ "--stdout" ];
+            args = ["--stdout"];
           };
 
           deno = {
             command = "deno";
-            args = [ "lsp" ];
-            config = { enable = true; lint = true; unstable = true; };
+            args = ["lsp"];
+            config = {
+              enable = true;
+              lint = true;
+              unstable = true;
+            };
           };
         };
 
         language = [
           {
             name = "elixir";
-            language-servers = [ "elixir-ls" ]; # "lexical" "next-ls" 
+            language-servers = ["elixir-ls"]; # "lexical" "next-ls"
             auto-format = true;
           }
           {
@@ -191,7 +200,7 @@ in
             auto-format = true;
             formatter = {
               command = "nixpkgs-fmt";
-              args = [ ];
+              args = [];
             };
           }
           {
@@ -209,13 +218,13 @@ in
             grammar = "javascript";
             scope = "source.js";
             injection-regex = "^(js|javascript)$";
-            file-types = [ "js" "mjs" ];
-            shebangs = [ "deno" ];
-            language-servers = [ "deno" ];
-            roots = [ "deno.jsonc" "deno.json" ];
+            file-types = ["js" "mjs"];
+            shebangs = ["deno"];
+            language-servers = ["deno"];
+            roots = ["deno.jsonc" "deno.json"];
             formatter = {
               command = "deno";
-              args = [ "fmt" ];
+              args = ["fmt"];
             };
             auto-format = true;
             comment-token = "//";
@@ -231,13 +240,13 @@ in
             grammar = "typescript";
             scope = "source.ts";
             injection-regex = "^(ts|typescript)$";
-            file-types = [ "ts" ];
-            shebangs = [ "deno" ];
-            language-servers = [ "deno" ];
-            roots = [ "deno.jsonc" "deno.json" ];
+            file-types = ["ts"];
+            shebangs = ["deno"];
+            language-servers = ["deno"];
+            roots = ["deno.jsonc" "deno.json"];
             formatter = {
               command = "deno";
-              args = [ "fmt" ];
+              args = ["fmt"];
             };
             auto-format = true;
             comment-token = "//";
@@ -253,10 +262,13 @@ in
             grammar = "jsonc";
             scope = "source.jsonc";
             injection-regex = "^(jsonc)$";
-            roots = [ "deno.jsonc" "deno.json" ];
-            file-types = [ "jsonc" ];
-            language-servers = [ "deno" ];
-            indent = { tab-width = 2; unit = "  "; };
+            roots = ["deno.jsonc" "deno.json"];
+            file-types = ["jsonc"];
+            language-servers = ["deno"];
+            indent = {
+              tab-width = 2;
+              unit = "  ";
+            };
             auto-format = true;
           }
 
@@ -311,7 +323,7 @@ in
           color-modes = false;
           bufferline = "multiple";
           scrolloff = 8;
-          rulers = [ 80 120 ];
+          rulers = [80 120];
           cursorline = true;
 
           cursor-shape = {
@@ -331,16 +343,19 @@ in
             display-inlay-hints = true;
           };
           statusline = {
-            left = [ "mode" "spinner" "selections" "primary-selection-length" "position" "position-percentage" "diagnostics" "workspace-diagnostics" ];
-            center = [ "file-name" ];
-            right = [ "version-control" "total-line-numbers" "file-encoding" ];
+            left = ["mode" "spinner" "selections" "primary-selection-length" "position" "position-percentage" "diagnostics" "workspace-diagnostics"];
+            center = ["file-name"];
+            right = ["version-control" "total-line-numbers" "file-encoding"];
           };
-
         };
         keys = {
-
           insert = {
-            j = { k = "normal_mode"; j = "normal_mode"; K = "normal_mode"; J = "normal_mode"; };
+            j = {
+              k = "normal_mode";
+              j = "normal_mode";
+              K = "normal_mode";
+              J = "normal_mode";
+            };
           };
 
           normal = {
@@ -362,9 +377,11 @@ in
             };
           };
 
-
           select = {
-            space = { q = ":reflow 80"; Q = ":reflow 120"; };
+            space = {
+              q = ":reflow 80";
+              Q = ":reflow 120";
+            };
             "L" = "repeat_last_motion";
           };
         };
@@ -406,13 +423,14 @@ in
             repo = "bat";
             rev = "477622171ec0529505b0ca3cada68fc9433648c6";
             sha256 = "6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
-          } + "/Catppuccin-mocha.tmTheme");
+          }
+          + "/Catppuccin-mocha.tmTheme");
       };
     };
 
     kitty = {
       enable = true;
-      darwinLaunchOptions = [ "--single-instance" ];
+      darwinLaunchOptions = ["--single-instance"];
       shellIntegration = {
         enableFishIntegration = true;
       };
@@ -689,7 +707,11 @@ in
         };
 
         verbs = [
-          { invocation = "edit"; shortcut = "e"; execution = "$EDITOR {file}"; }
+          {
+            invocation = "edit";
+            shortcut = "e";
+            execution = "$EDITOR {file}";
+          }
         ];
       };
     };
@@ -747,7 +769,7 @@ in
 
         has_command = "command --quiet --search $argv[1]";
       };
-      shellAbbrs = { };
+      shellAbbrs = {};
       shellAliases = {
         l = "br";
         ls = "eza --group-directories-first --classify";

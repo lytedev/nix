@@ -3,4 +3,4 @@
 set -eux
 
 nix flake check
-nixpkgs-fmt --check .
+nix run nixpkgs#alejandra -- --check .

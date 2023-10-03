@@ -1,11 +1,15 @@
-{ config, modulesPath, ... }: {
+{
+  config,
+  modulesPath,
+  ...
+}: {
   imports = [
     ../modules/amd.nix
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "ehci_pci" "usbhid" "uas" "sd_mod" ];
-  boot.kernelModules = [ "kvm-amd" ];
+  boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "ehci_pci" "usbhid" "uas" "sd_mod"];
+  boot.kernelModules = ["kvm-amd"];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/2e2ad73a-6264-4a7b-8439-9c05295d903d";
@@ -25,11 +29,12 @@
   users.users.beefcake = {
     # used for restic backups
     isNormalUser = true;
-    openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys ++ [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
-    ];
+    openssh.authorizedKeys.keys =
+      config.users.users.daniel.openssh.authorizedKeys.keys
+      ++ [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
+      ];
   };
 
   system.stateVersion = "22.05";
 }
-

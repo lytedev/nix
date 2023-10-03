@@ -1,4 +1,8 @@
-{ config, pkgs, ... }: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   home.pointerCursor = {
     name = "Bibata-Modern-Classic";
     package = pkgs.bibata-cursors;
@@ -16,16 +20,39 @@
       enable = true;
 
       events = [
-        { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock"; }
+        {
+          event = "before-sleep";
+          command = "${pkgs.swaylock}/bin/swaylock";
+        }
       ];
 
       timeouts = [
-        { timeout = 330; command = "notify-send \"Idling in 300 seconds\""; resumeCommand = "notify-send \"Idling cancelled.\""; }
-        { timeout = 540; command = "notify-send \"Idling in 90 seconds\""; }
-        { timeout = 570; command = "notify-send \"Idling in 60 seconds\""; }
-        { timeout = 600; command = "notify-send \"Idling in 30 seconds...\""; }
-        { timeout = 630; command = "swaylock -f"; }
-        { timeout = 660; command = "swaymsg \"output * dpms off\""; resumeCommand = "swaymsg \"output * dpms on\" & maybe-good-morning &"; }
+        {
+          timeout = 330;
+          command = "notify-send \"Idling in 300 seconds\"";
+          resumeCommand = "notify-send \"Idling cancelled.\"";
+        }
+        {
+          timeout = 540;
+          command = "notify-send \"Idling in 90 seconds\"";
+        }
+        {
+          timeout = 570;
+          command = "notify-send \"Idling in 60 seconds\"";
+        }
+        {
+          timeout = 600;
+          command = "notify-send \"Idling in 30 seconds...\"";
+        }
+        {
+          timeout = 630;
+          command = "swaylock -f";
+        }
+        {
+          timeout = 660;
+          command = "swaymsg \"output * dpms off\"";
+          resumeCommand = "swaymsg \"output * dpms on\" & maybe-good-morning &";
+        }
       ];
     };
   };
@@ -38,16 +65,16 @@
     # set $tilers "(wezterm.*|kitty.*|firefox.*|slack.*|Slack.*|thunar.*|Alacritty.*|alacritty.*|Discord.*|discord.*)"
     # for_window [title=".*"] floating enable
     # for_window [app_id=$tilers] floating disable
-    # 
+    #
     # # for_window [title=".*"] opacity $opacity
-    # 
+    #
     # client.focused          #74c7ec #74c7ec #74c7ec #74c7ec #74c7ec
     # client.focused_inactive #100814 #100814 #9b9ebf #100814 #100814
     # client.unfocused        #100814 #100814 #9b9ebf #100814 #100814
-    # 
+    #
     # # TODO: I forget why I needed this - could google it I expect?
     # exec /usr/lib/polkit-kde-authentication-agent-1
-    # 
+    #
     # # prevent all windows from stealing focus
     # no_focus [class=".*"]
 
@@ -88,10 +115,16 @@
       };
 
       startup = [
-        { command = "systemctl --user restart waybar"; always = true; }
-        { command = "systemctl --user restart swayidle"; always = true; }
-        { command = "firefox"; }
-        { command = "kitty --single-instance"; }
+        {
+          command = "systemctl --user restart waybar";
+          always = true;
+        }
+        {
+          command = "systemctl --user restart swayidle";
+          always = true;
+        }
+        {command = "firefox";}
+        {command = "kitty --single-instance";}
       ];
 
       modes = {
@@ -128,11 +161,12 @@
           tap = "enabled";
           natural_scroll = "enabled";
           middle_emulation = "enabled";
-          # pointer_accel 
+          # pointer_accel
         };
-
       };
-      keybindings = let mod = config.wayland.windowManager.sway.config.modifier; in {
+      keybindings = let
+        mod = config.wayland.windowManager.sway.config.modifier;
+      in {
         # bindsym $mod+shift+space exec wofi --show drun
         "${mod}+control+space" = "exec makoctl dismiss";
         "${mod}+shift+space" = "exec makoctl invoke";
@@ -237,9 +271,9 @@
 
         "${mod}+shift+alt+f" = "for_window [class=$tilers] floating toggle";
       };
-      assigns = { };
-      bars = [ ];
-      colors = { };
+      assigns = {};
+      bars = [];
+      colors = {};
     };
   };
 
@@ -248,16 +282,19 @@
     theme = {
       name = "Catppuccin-Mocha-Compact-Sapphire-dark";
       package = pkgs.catppuccin-gtk.override {
-        accents = [ "sapphire" ];
+        accents = ["sapphire"];
         size = "compact";
-        tweaks = [ "rimless" "black" ];
+        tweaks = ["rimless" "black"];
         variant = "mocha";
       };
     };
   };
 
   home.packages = [
-    (pkgs.buildEnv { name = "my-linux-scripts"; paths = [ ../scripts/linux ]; })
+    (pkgs.buildEnv {
+      name = "my-linux-scripts";
+      paths = [../scripts/linux];
+    })
   ];
 
   programs = {
@@ -267,10 +304,10 @@
         mainBar = {
           "layer" = "top";
           "position" = "bottom";
-          "output" = [ "eDP-1" "DP-3" ];
+          "output" = ["eDP-1" "DP-3"];
           "height" = 32;
-          "modules-left" = [ "clock" "sway/window" ];
-          "modules-center" = [ "sway/workspaces" ];
+          "modules-left" = ["clock" "sway/window"];
+          "modules-center" = ["sway/workspaces"];
           "modules-right" = [
             "mpris"
             "idle_inhibitor"
@@ -303,15 +340,15 @@
           "sway/workspaces" = {
             "disable-scroll" = false;
             "persistent_workspaces" = {
-              "1" = [ ];
-              "2" = [ ];
-              "3" = [ ];
-              "4" = [ ];
-              "5" = [ ];
-              "6" = [ ];
-              "7" = [ ];
-              "8" = [ ];
-              "9" = [ ];
+              "1" = [];
+              "2" = [];
+              "3" = [];
+              "4" = [];
+              "5" = [];
+              "6" = [];
+              "7" = [];
+              "8" = [];
+              "9" = [];
               # "10" = [;
             };
             "all-outputs" = true;
@@ -346,12 +383,12 @@
             "critical-threshold" = 80;
             # "format-critical" = "{temperatureC}°C {icon}";
             "format" = "{temperatureC}°C {icon}";
-            "format-icons" = [ "" "" "" ];
+            "format-icons" = ["" "" ""];
           };
           "backlight" = {
             # "device" = "acpi_video1";
             "format" = "{percent}% {icon}";
-            "format-icons" = [ "" "" ];
+            "format-icons" = ["" ""];
           };
           "battery" = {
             "states" = {
@@ -365,7 +402,7 @@
             "format-alt" = "{time} {icon}";
             "format-good" = ""; # An empty format will hide the modul;
             "format-full" = "󰁹";
-            "format-icons" = [ "󰂎" "󰁻" "󰁽" "󰁿" "󰂂" ];
+            "format-icons" = ["󰂎" "󰁻" "󰁽" "󰁿" "󰂂"];
           };
           "network" = {
             "format-wifi" = "{essid} ({signalStrength}%) ";
@@ -394,7 +431,7 @@
               "phone" = "";
               "portable" = "";
               "car" = "";
-              "default" = [ "" "" "" ];
+              "default" = ["" "" ""];
             };
             # TODO: toggle mute?
             "on-click" = "pavucontrol";
@@ -638,7 +675,6 @@
       systemd = {
         enable = true;
       };
-
     };
 
     firefox = {
@@ -647,7 +683,7 @@
       enable = true;
 
       # TODO: uses nixpkgs.pass so pass otp doesn't work
-      package = (pkgs.firefox.override { extraNativeMessagingHosts = [ pkgs.passff-host ]; });
+      package = pkgs.firefox.override {extraNativeMessagingHosts = [pkgs.passff-host];};
 
       # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
       #   ublock-origin
@@ -726,5 +762,3 @@
     };
   };
 }
-
-

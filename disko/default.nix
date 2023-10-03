@@ -1,5 +1,5 @@
 {
-  standard = { disks ? [ "/dev/vda" ], ... }: {
+  standard = {disks ? ["/dev/vda"], ...}: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
     disko.devices = {
@@ -29,7 +29,7 @@
                 content = {
                   type = "luks";
                   name = "crypted";
-                  extraOpenArgs = [ "--allow-discards" ];
+                  extraOpenArgs = ["--allow-discards"];
                   # if you want to use the key for interactive login be sure there is no trailing newline
                   # for example use `echo -n "password" > /tmp/secret.key`
                   keyFile = "/tmp/secret.key"; # Interactive
@@ -37,19 +37,19 @@
                   # additionalKeyFiles = ["/tmp/additionalSecret.key"];
                   content = {
                     type = "btrfs";
-                    extraArgs = [ "-f" ];
+                    extraArgs = ["-f"];
                     subvolumes = {
                       "/root" = {
                         mountpoint = "/";
-                        mountOptions = [ "compress=zstd" "noatime" ];
+                        mountOptions = ["compress=zstd" "noatime"];
                       };
                       "/home" = {
                         mountpoint = "/home";
-                        mountOptions = [ "compress=zstd" "noatime" ];
+                        mountOptions = ["compress=zstd" "noatime"];
                       };
                       "/nix" = {
                         mountpoint = "/nix";
-                        mountOptions = [ "compress=zstd" "noatime" ];
+                        mountOptions = ["compress=zstd" "noatime"];
                       };
                     };
                   };
@@ -62,7 +62,7 @@
     };
   };
   # TODO: figure out what I can't have an optiona/default 'name' attribute here so I can DRY with "standard"
-  thinker = { disks ? [ "/dev/vda" ], ... }: {
+  thinker = {disks ? ["/dev/vda"], ...}: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
     disko.devices = {
@@ -92,7 +92,7 @@
                 content = {
                   type = "luks";
                   name = "crypted";
-                  extraOpenArgs = [ "--allow-discards" ];
+                  extraOpenArgs = ["--allow-discards"];
                   # if you want to use the key for interactive login be sure there is no trailing newline
                   # for example use `echo -n "password" > /tmp/secret.key`
                   keyFile = "/tmp/secret.key"; # Interactive
@@ -100,19 +100,19 @@
                   # additionalKeyFiles = ["/tmp/additionalSecret.key"];
                   content = {
                     type = "btrfs";
-                    extraArgs = [ "-f" ];
+                    extraArgs = ["-f"];
                     subvolumes = {
                       "/root" = {
                         mountpoint = "/";
-                        mountOptions = [ "compress=zstd" "noatime" ];
+                        mountOptions = ["compress=zstd" "noatime"];
                       };
                       "/home" = {
                         mountpoint = "/home";
-                        mountOptions = [ "compress=zstd" "noatime" ];
+                        mountOptions = ["compress=zstd" "noatime"];
                       };
                       "/nix" = {
                         mountpoint = "/nix";
-                        mountOptions = [ "compress=zstd" "noatime" ];
+                        mountOptions = ["compress=zstd" "noatime"];
                       };
                     };
                   };
@@ -124,7 +124,7 @@
       };
     };
   };
-  unencrypted = { disks ? [ "/dev/vda" ], ... }: {
+  unencrypted = {disks ? ["/dev/vda"], ...}: {
     disko.devices = {
       disk = {
         primary = {
@@ -151,19 +151,19 @@
                 size = "100%";
                 content = {
                   type = "btrfs";
-                  extraArgs = [ "-f" ];
+                  extraArgs = ["-f"];
                   subvolumes = {
                     "/root" = {
                       mountpoint = "/";
-                      mountOptions = [ ];
+                      mountOptions = [];
                     };
                     "/home" = {
                       mountpoint = "/home";
-                      mountOptions = [ "compress=zstd" ];
+                      mountOptions = ["compress=zstd"];
                     };
                     "/nix" = {
                       mountpoint = "/nix";
-                      mountOptions = [ "compress=zstd" "noatime" ];
+                      mountOptions = ["compress=zstd" "noatime"];
                     };
                   };
                 };

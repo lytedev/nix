@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-let
+{pkgs, ...}: let
   # this is unused because it's referenced by my sway config
   dbus-sway-environment = pkgs.writeTextFile {
     name = "dbus-sway-environment";
@@ -7,10 +6,10 @@ let
     executable = true;
 
     text = ''
-      			dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
-      			systemctl --user stop wireplumber xdg-desktop-portal xdg-desktop-portal-wlr
-      			systemctl --user start wireplumber xdg-desktop-portal xdg-desktop-portal-wlr
-      		'';
+      dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+      systemctl --user stop wireplumber xdg-desktop-portal xdg-desktop-portal-wlr
+      systemctl --user start wireplumber xdg-desktop-portal xdg-desktop-portal-wlr
+    '';
   };
 
   # this is unused because it's referenced by my sway config
@@ -18,20 +17,17 @@ let
     name = "configure-gtk";
     destination = "/bin/configure-gtk";
     executable = true;
-    text =
-      let
-        schema = pkgs.gsettings-desktop-schemas;
-        datadir = "${schema}/share/gsettings-schemas/${schema.name}";
-      in
-      ''
-        				export XDG_DATA_DIRS="${datadir}:$XDG_DATA_DIRS
-        				gnome_schema = org.gnome.desktop.interface
-        				gsettings set $gnome_schema gtk-theme 'Catppuccin-Mocha'
-        			'';
+    text = let
+      schema = pkgs.gsettings-desktop-schemas;
+      datadir = "${schema}/share/gsettings-schemas/${schema.name}";
+    in ''
+      export XDG_DATA_DIRS="${datadir}:$XDG_DATA_DIRS
+      gnome_schema = org.gnome.desktop.interface
+      gsettings set $gnome_schema gtk-theme 'Catppuccin-Mocha'
+    '';
   };
-in
-{
-  imports = [ ./pipewire.nix ];
+in {
+  imports = [./pipewire.nix];
 
   # services.xserver.libinput.enable = true;
 
@@ -61,7 +57,7 @@ in
 
   programs.thunar = {
     enable = true;
-    plugins = with pkgs.xfce; [ thunar-archive-plugin thunar-volman ];
+    plugins = with pkgs.xfce; [thunar-archive-plugin thunar-volman];
   };
 
   services.gvfs = {

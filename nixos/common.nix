@@ -1,8 +1,12 @@
-{ config, lib, inputs, system, ... }:
-let
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
-in
 {
+  config,
+  lib,
+  inputs,
+  system,
+  ...
+}: let
+  pkgs = inputs.nixpkgs.legacyPackages.${system};
+in {
   services.journald.extraConfig = "SystemMaxUse=1G";
 
   environment = {
@@ -68,8 +72,8 @@ in
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
       ];
       group = "daniel";
-      extraGroups = [ "users" "wheel" "video" ];
-      packages = [ ];
+      extraGroups = ["users" "wheel" "video"];
+      packages = [];
     };
 
     root = {
@@ -142,15 +146,15 @@ in
     firewall = {
       enable = lib.mkDefault true;
       allowPing = lib.mkDefault true;
-      allowedTCPPorts = lib.mkDefault [ 22 ];
-      allowedUDPPorts = lib.mkDefault [ ];
+      allowedTCPPorts = lib.mkDefault [22];
+      allowedUDPPorts = lib.mkDefault [];
     };
   };
 
   nix = {
     settings = {
-      trusted-users = [ "root" "daniel" ];
-      experimental-features = lib.mkDefault [ "nix-command" "flakes" ];
+      trusted-users = ["root" "daniel"];
+      experimental-features = lib.mkDefault ["nix-command" "flakes"];
       substituters = [
         "https://cache.nixos.org/"
         "https://helix.cachix.org"

@@ -1,10 +1,11 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running `nixos-help`).
-
-{ pkgs, inputs, ... }:
-
-let
+{
+  pkgs,
+  inputs,
+  ...
+}: let
   # this is unused because it's referenced by my sway config
   dbus-sway-environment = pkgs.writeTextFile {
     name = "dbus-sway-environment";
@@ -23,31 +24,28 @@ let
     name = "configure-gtk";
     destination = "/bin/configure-gtk";
     executable = true;
-    text =
-      let
-        schema = pkgs.gsettings-desktop-schemas;
-        datadir = "${schema}/share/gsettings-schemas/${schema.name}";
-      in
-      ''
-        export XDG_DATA_DIRS="${datadir}:$XDG_DATA_DIRS
-        gnome_schema = org.gnome.desktop.interface
-        gsettings set $gnome_schema gtk-theme 'Catppuccin-Mocha'
-      '';
+    text = let
+      schema = pkgs.gsettings-desktop-schemas;
+      datadir = "${schema}/share/gsettings-schemas/${schema.name}";
+    in ''
+      export XDG_DATA_DIRS="${datadir}:$XDG_DATA_DIRS
+      gnome_schema = org.gnome.desktop.interface
+      gsettings set $gnome_schema gtk-theme 'Catppuccin-Mocha'
+    '';
   };
-in
-{
+in {
   # TODO: fonts? right now, I'm just installing to ~/.local/share/fonts
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = ["nix-command" "flakes"];
 
-  boot.loader.grub.devices = [ "/dev/sda" ];
+  boot.loader.grub.devices = ["/dev/sda"];
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   nixpkgs.config = {
     allowUnfree = true;
     packageOverrides = pkgs: {
-      vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+      vaapiIntel = pkgs.vaapiIntel.override {enableHybridCodec = true;};
     };
   };
 
@@ -117,8 +115,8 @@ in
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
     ];
-    extraGroups = [ "wheel" "video" "docker" ];
-    packages = [ ];
+    extraGroups = ["wheel" "video" "docker"];
+    packages = [];
   };
 
   services.dbus.enable = true;
@@ -149,17 +147,19 @@ in
       PasswordAuthentication = false;
     };
     listenAddresses = [
-      { addr = "0.0.0.0"; port = 22; }
+      {
+        addr = "0.0.0.0";
+        port = 22;
+      }
     ];
   };
 
   networking.firewall = {
     enable = true;
     allowPing = true;
-    allowedTCPPorts = [ ];
-    allowedUDPPorts = [ ];
+    allowedTCPPorts = [];
+    allowedUDPPorts = [];
   };
 
   system.stateVersion = "23.05";
 }
-

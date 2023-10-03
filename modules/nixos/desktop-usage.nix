@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{pkgs, ...}: {
   # TODO: add a DE and include either plasma or gnome as a fallback?
   imports = [
     ./sway.nix
@@ -6,7 +6,7 @@
   ];
 
   fonts.packages = with pkgs; [
-    (nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
+    (nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
     (iosevka.override {
       set = "lyteterm";
       privateBuildPlan = ''
@@ -147,4 +147,3 @@
     magicOrExtension = ''\x7fELF....AI\x02'';
   };
 }
-

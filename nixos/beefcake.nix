@@ -1,40 +1,41 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
-
-{ modulesPath, config, pkgs, ... }: {
+{
+  modulesPath,
+  config,
+  pkgs,
+  ...
+}: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     ../modules/intel.nix
   ];
 
-  boot.initrd.availableKernelModules = [ "ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod" ];
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.initrd.availableKernelModules = ["ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod"];
+  boot.kernelModules = ["kvm-intel"];
 
-  fileSystems."/" =
-    {
-      device = "/dev/disk/by-uuid/0747dcba-f590-42e6-89c8-6cb2f9114d64";
-      fsType = "ext4";
-      options = [
-        "usrquota"
-      ];
-    };
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/0747dcba-f590-42e6-89c8-6cb2f9114d64";
+    fsType = "ext4";
+    options = [
+      "usrquota"
+    ];
+  };
 
-  fileSystems."/boot" =
-    {
-      device = "/dev/disk/by-uuid/7E3C-9018";
-      fsType = "vfat";
-    };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/7E3C-9018";
+    fsType = "vfat";
+  };
 
-  fileSystems."/storage" =
-    {
-      device = "/dev/disk/by-uuid/ea8258d7-54d1-430e-93b3-e15d33231063";
-      fsType = "btrfs";
-      options = [
-        "compress=zstd:5"
-        "space_cache=v2"
-      ];
-    };
+  fileSystems."/storage" = {
+    device = "/dev/disk/by-uuid/ea8258d7-54d1-430e-93b3-e15d33231063";
+    fsType = "btrfs";
+    options = [
+      "compress=zstd:5"
+      "space_cache=v2"
+    ];
+  };
 
   services.nix-serve = {
     enable = true;
@@ -55,7 +56,7 @@
   sops = {
     defaultSopsFile = ../secrets/beefcake/secrets.yml;
     age = {
-      sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+      sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
       keyFile = "/var/lib/sops-nix/key.txt";
       generateKey = true;
     };
@@ -140,11 +141,11 @@
   networking.hostName = "beefcake";
 
   users.extraGroups = {
-    "plausible" = { };
-    "lytedev" = { };
+    "plausible" = {};
+    "lytedev" = {};
   };
-  users.groups.daniel.members = [ "daniel" ];
-  users.groups.nixadmin.members = [ "daniel" ];
+  users.groups.daniel.members = ["daniel"];
+  users.groups.nixadmin.members = ["daniel"];
 
   users.users.daniel = {
     extraGroups = [
@@ -165,7 +166,7 @@
 
   users.users.ben = {
     isNormalUser = true;
-    packages = [ pkgs.vim ];
+    packages = [pkgs.vim];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUfLZ+IX85p9355Po2zP1H2tAxiE0rE6IYb8Sf+eF9T ben@benhany.com"
     ];
@@ -173,7 +174,7 @@
 
   users.users.alan = {
     isNormalUser = true;
-    packages = [ pkgs.vim ];
+    packages = [pkgs.vim];
     openssh.authorizedKeys.keys = [
       ""
     ];
@@ -182,9 +183,11 @@
   users.users.restic = {
     # used for other machines to backup to
     isNormalUser = true;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbPqzKB09U+i4Kqu136yOjflLZ/J7pYsNulTAd4x903 root@chromebox.h.lyte.dev"
-    ] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
+    openssh.authorizedKeys.keys =
+      [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbPqzKB09U+i4Kqu136yOjflLZ/J7pYsNulTAd4x903 root@chromebox.h.lyte.dev"
+      ]
+      ++ config.users.users.daniel.openssh.authorizedKeys.keys;
   };
 
   users.users.guest = {
@@ -201,13 +204,13 @@
     group = "plausible";
   };
 
-  environment.systemPackages = [ pkgs.linuxquota ];
+  environment.systemPackages = [pkgs.linuxquota];
 
   # TODO: make the client declarative? right now I think it's manually git
   # clone'd to /root
   systemd.services.deno-netlify-ddns-client = {
     serviceConfig.Type = "oneshot";
-    path = with pkgs; [ curl bash ];
+    path = with pkgs; [curl bash];
     environment = {
       NETLIFY_DDNS_RC_FILE = "/root/deno-netlify-ddns-client/.env";
     };
@@ -216,8 +219,8 @@
     '';
   };
   systemd.timers.deno-netlify-ddns-client = {
-    wantedBy = [ "timers.target" ];
-    partOf = [ "deno-netlify-ddns-client.service" ];
+    wantedBy = ["timers.target"];
+    partOf = ["deno-netlify-ddns-client.service"];
     timerConfig = {
       OnBootSec = "10sec";
       OnUnitActiveSec = "5min";
@@ -277,7 +280,7 @@
       nix.h.lyte.dev {
         reverse_proxy :${toString config.services.nix-serve.port}
       }
-        
+
       # proxy everything else to chromebox
       :80 {
         reverse_proxy 10.0.0.5:80
@@ -369,7 +372,7 @@
 
   services.postgresql = {
     enable = true;
-    ensureDatabases = [ "daniel" "plausible" ];
+    ensureDatabases = ["daniel" "plausible"];
     ensureUsers = [
       {
         name = "daniel";
@@ -391,9 +394,9 @@
 
     authentication = pkgs.lib.mkOverride 10 ''
       #type database  DBuser    auth-method
-      local all       postgres  peer map=superuser_map        
-      local all       daniel    peer map=superuser_map        
-      local sameuser  all       peer map=superuser_map        
+      local all       postgres  peer map=superuser_map
+      local all       daniel    peer map=superuser_map
+      local sameuser  all       peer map=superuser_map
       local plausible plausible peer map=superuser_map
 
       # lan ipv4
@@ -452,8 +455,14 @@
 
   services.openssh = {
     listenAddresses = [
-      { addr = "0.0.0.0"; port = 64022; }
-      { addr = "0.0.0.0"; port = 22; }
+      {
+        addr = "0.0.0.0";
+        port = 64022;
+      }
+      {
+        addr = "0.0.0.0";
+        port = 22;
+      }
     ];
   };
 
@@ -575,7 +584,7 @@
 
         "/storage/postgres-backups"
       ];
-      exclude = [ ];
+      exclude = [];
       repository = "/storage/backups/local";
     };
     rascal = {

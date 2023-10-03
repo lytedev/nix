@@ -1,13 +1,18 @@
-{ modulesPath, lib, ... }: {
-  imports =
-    [
-      ../modules/intel.nix
-      ../modules/desktop-usage.nix
-      ../modules/podman.nix
-      ../modules/wifi.nix
+{
+  modulesPath,
+  lib,
+  ...
+}: {
+  imports = [
+    ../modules/intel.nix
+    ../modules/desktop-usage.nix
+    ../modules/podman.nix
+    ../modules/wifi.nix
 
-      (modulesPath + "/installer/scan/not-detected.nix")
-    ];
+    (modulesPath + "/installer/scan/not-detected.nix")
+  ];
+
+  # TODO: https://github.com/NixOS/nixos-hardware/blob/master/lenovo/thinkpad/t480/default.nix
 
   # TODO: hibernation? I've been using [deep] in /sys/power/mem_sleep alright
   # with this machine so it may not be necessary?
@@ -17,7 +22,7 @@
   # hardware
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.enable = true;
-  boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
+  boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "usb_storage" "sd_mod"];
 
   networking.hostName = "thinker";
 
@@ -30,11 +35,10 @@
     firewall = {
       enable = true;
       allowPing = true;
-      allowedTCPPorts = [ 22 ];
-      allowedUDPPorts = [ ];
+      allowedTCPPorts = [22];
+      allowedUDPPorts = [];
     };
   };
 
   system.stateVersion = "23.11";
 }
-

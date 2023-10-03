@@ -1,8 +1,8 @@
-{ pkgs, ... }: {
+{pkgs, ...}: {
   # this is really just for development usage
   services.postgresql = {
     enable = true;
-    ensureDatabases = [ "daniel" ];
+    ensureDatabases = ["daniel"];
     ensureUsers = [
       {
         name = "daniel";
