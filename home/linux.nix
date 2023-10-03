@@ -13,7 +13,21 @@
   services = {
     mako = {
       enable = true;
+      borderSize = 1;
+      maxVisible = 5;
+      defaultTimeout = 15000;
+      font = "Symbols Nerd Font 12,IosevkaLyteTerm 12";
       # TODO: config
+
+      backgroundColor = "#1e1e2e";
+      textColor = "#cdd6f4";
+      borderColor = "#89b4fa";
+      progressColor = "#313244";
+
+      extraConfig = ''
+        [urgency=high]
+        border-color=#fab387
+      '';
     };
 
     swayidle = {
@@ -273,7 +287,44 @@
       };
       assigns = {};
       bars = [];
-      colors = {};
+      colors = with config.colorScheme.colors; {
+        background = "#1e1e2e";
+        focused = {
+          background = base03;
+          border = base0C;
+          childBorder = base0C;
+          indicator = base0C;
+          text = base05;
+        };
+        focusedInactive = {
+          background = base03;
+          border = base0D;
+          childBorder = base0D;
+          indicator = base0D;
+          text = base05;
+        };
+        placeholder = {
+          background = base03;
+          border = base0D;
+          childBorder = base0D;
+          indicator = base0D;
+          text = base05;
+        };
+        unfocused = {
+          background = base03;
+          border = base03;
+          childBorder = base03;
+          indicator = base03;
+          text = base05;
+        };
+        urgent = {
+          background = base03;
+          border = base0F;
+          childBorder = base0F;
+          indicator = base0F;
+          text = base05;
+        };
+      };
     };
   };
 
@@ -298,6 +349,10 @@
   ];
 
   programs = {
+    # TODO: hyprland = {
+    #   enable = true;
+    # };
+
     waybar = {
       enable = true;
       settings = {
@@ -496,6 +551,7 @@
         	padding: 0 0.75em;
         	background-color: transparent;
         	border-top: solid @sapphire 1px;
+          transition: none;
         }
 
         #workspaces button:hover {

@@ -2,6 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 {
+  outputs,
   modulesPath,
   config,
   pkgs,
@@ -9,7 +10,7 @@
 }: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    ../modules/intel.nix
+    outputs.nixosModules.intel
   ];
 
   boot.initrd.availableKernelModules = ["ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod"];
@@ -54,7 +55,7 @@
   systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
 
   sops = {
-    defaultSopsFile = ../secrets/beefcake/secrets.yml;
+    defaultSopsFile = ../../secrets/beefcake/secrets.yml;
     age = {
       sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
       keyFile = "/var/lib/sops-nix/key.txt";

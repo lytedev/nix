@@ -4,10 +4,13 @@
   system,
   ...
 }: {
-  # TODO: add a DE and include either plasma or gnome as a fallback?
+  # TODO: add a DE?
+  # and include either plasma or gnome as a fallback?
 
   imports = [
     ./sway.nix
+    ./hyprland.nix
+    ./plasma.nix
     ./user-installed-applications.nix
   ];
 

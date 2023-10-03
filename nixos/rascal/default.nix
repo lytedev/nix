@@ -1,10 +1,11 @@
 {
+  outputs,
   config,
   modulesPath,
   ...
 }: {
   imports = [
-    ../modules/amd.nix
+    outputs.nixosModules.amd
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 

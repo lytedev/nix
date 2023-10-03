@@ -14,13 +14,20 @@ You don't have even have to clone this crap yourself. How cool is that!
 But if you're gonna change stuff you had better setup the pre-commit hook:
 
 ```shell_session
-ln -s $PWD/pre-commit.bash .git/hooks/pre-commit
+$ ln -s $PWD/pre-commit.bash .git/hooks/pre-commit
+```
+
+If you're deploying anything secrets-related, you will need the proper keys:
+
+```shell_session
+$ mkdir -p ${XDG_CONFIG_HOME:-~/.config}/sops/age
+$ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
 ```
 
 ## NixOS
 
 ```shell_session
-nixos-rebuild switch --flake git+https://git.lyte.dev/lytedev/nix
+$ nixos-rebuild switch --flake git+https://git.lyte.dev/lytedev/nix
 ```
 
 ## Not NixOS

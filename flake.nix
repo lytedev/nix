@@ -16,8 +16,9 @@
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    # TODO: hyprland.url = "github:hyprwm/Hyprland";
-    # TODO: nix-colors.url = "github:misterio77/nix-colors";
+    hyprland.url = "github:hyprwm/Hyprland";
+
+    nix-colors.url = "github:misterio77/nix-colors";
   };
 
   outputs = {
@@ -25,6 +26,7 @@
     nixpkgs-stable,
     nixpkgs-unstable,
     home-manager,
+    nix-colors,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -61,27 +63,44 @@
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
     nixosConfigurations = let
-      # mkNixosSystem = system: modules:
-      #   nixpkgs-stable.lib.nixosSystem {
-      #     system = system;
-      #     specialArgs = {
-      #       inherit inputs outputs system;
-      #       flake = self;
-      #     };
-      #     modules = [self.nixosModules.common] ++ modules;
-      #   };
-      mkNixosUnstableSystem = system: modules:
-        nixpkgs-unstable.lib.nixosSystem {
+      mkNixosSystem = cb: system: modules:
+        cb {
           system = system;
           specialArgs = {
-            inherit inputs outputs system;
+            inherit inputs outputs system nix-colors;
             flake = self;
           };
-          modules = [ self.nixosModules.common ] ++ modules;
+          modules =
+            [
+              inputs.sops-nix.nixosModules.sops
+              self.nixosModules.common
+            ]
+            ++ modules
+            ++ [
+              # all nixos hosts should use our home manager config
+              # TODO: unify with the module list in outputs.homeConfigurations.daniel
+              inputs.home-manager.nixosModules.home-manager
+              {
+                home-manager = {
+                  extraSpecialArgs = {inherit inputs outputs system nix-colors;};
+                  users.daniel = {
+                    imports = [./home ./home/linux.nix];
+                  };
+                };
+              }
+            ];
         };
+      mkNixosStableSystem = mkNixosSystem nixpkgs-stable.lib.nixosSystem;
+      mkNixosUnstableSystem = mkNixosSystem nixpkgs-unstable.lib.nixosSystem;
     in {
       dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon];
       thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker];
+      beefcake = mkNixosStableSystem "x86_64-linux" [
+        inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
+        ./nixos/beefcake
+      ];
+      rascal = mkNixosStableSystem "x86_64-linux" [./nixos/rascal];
+      musicbox = mkNixosUnstableSystem "x86_64-linux" [./nixos/musicbox];
     };
 
     # Standalone home-manager configuration entrypoint
@@ -90,7 +109,7 @@
       mkHome = system: modules:
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs-unstable.legacyPackages.${system};
-          extraSpecialArgs = {inherit inputs outputs system;};
+          extraSpecialArgs = {inherit inputs outputs system nix-colors;};
           modules = modules;
         };
     in {
