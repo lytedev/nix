@@ -293,7 +293,7 @@
   home.packages = [
     (pkgs.buildEnv {
       name = "my-linux-scripts";
-      paths = [../scripts/linux];
+      paths = [./scripts/linux];
     })
   ];
 

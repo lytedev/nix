@@ -2,12 +2,19 @@
   config,
   lib,
   inputs,
+  # outputs,
   system,
   ...
 }: let
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
+  pkgs = inputs.nixpkgs-stable.legacyPackages.${system};
   unstable-pkgs = inputs.nixpkgs-unstable.legacyPackages.${system};
 in {
+  imports = [
+    inputs.home-manager.nixosModules.home-manager
+  ];
+
+  hardware.enableRedistributableFirmware = true;
+
   services.journald.extraConfig = "SystemMaxUse=1G";
 
   environment = {
@@ -18,7 +25,7 @@ in {
       MANPAGER = "less";
     };
 
-    systemPackages = with pkgs;
+    systemPackages = with unstable-pkgs;
       [
         age
         bat
@@ -30,11 +37,11 @@ in {
         curl
         dog
         dua
+        eza
         fd
         file
         gnumake
         gron
-        helix
         hexyl
         htop
         iputils
@@ -63,8 +70,11 @@ in {
         zellij
         zstd
       ]
-      ++ (with unstable-pkgs; [
-        eza
+      ++ (with inputs.home-manager.packages.${system}; [
+        home-manager
+      ])
+      ++ (with inputs.helix.packages.${system}; [
+        helix
       ]);
   };
 

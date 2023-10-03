@@ -1,10 +1,9 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    home-manager.url = "github:nix-community/home-manager/release-23.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager.url = "github:nix-community/home-manager/master";
 
     # TODO: avoid my manual workaround of `nix profile install helix#helix --priority 4`
     helix.url = "github:helix-editor/helix/75c0a5ceb32d8a503915a93ccc1b64c8ad1cba8b";
@@ -23,7 +22,7 @@
 
   outputs = {
     self,
-    nixpkgs,
+    nixpkgs-stable,
     nixpkgs-unstable,
     home-manager,
     ...
@@ -38,15 +37,15 @@
       "x86_64-darwin"
     ];
 
-    forAllSystems = nixpkgs.lib.genAttrs systems;
+    forAllSystems = nixpkgs-stable.lib.genAttrs systems;
   in {
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
+    packages = forAllSystems (system: import ./pkgs nixpkgs-stable.legacyPackages.${system});
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+    formatter = forAllSystems (system: nixpkgs-unstable.legacyPackages.${system}.alejandra);
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
@@ -62,43 +61,41 @@
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
     nixosConfigurations = let
-      mkNixosSystem = system: modules:
-        nixpkgs.lib.nixosSystem {
-          system = system;
-          specialArgs = {
-            inherit inputs outputs system;
-            flake = self;
-          };
-          modules = [self.nixosModules.common] ++ modules;
-        };
-      # mkNixosUnstableSystem = system: modules:
-      #   nixpkgs-unstable.lib.nixosSystem {
+      # mkNixosSystem = system: modules:
+      #   nixpkgs-stable.lib.nixosSystem {
       #     system = system;
       #     specialArgs = {
       #       inherit inputs outputs system;
       #       flake = self;
       #     };
-      #     modules = [ self.nixosModules.common ] ++ modules;
+      #     modules = [self.nixosModules.common] ++ modules;
       #   };
+      mkNixosUnstableSystem = system: modules:
+        nixpkgs-unstable.lib.nixosSystem {
+          system = system;
+          specialArgs = {
+            inherit inputs outputs system;
+            flake = self;
+          };
+          modules = [ self.nixosModules.common ] ++ modules;
+        };
     in {
-      dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon];
-      thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker];
+      dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon];
+      thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker];
     };
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
-    homeConfigurations = {
-      "daniel@lyte.dev" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [./home];
-      };
-
-      "daniel.flanagan@hq.bill.com" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [./home];
-      };
+    homeConfigurations = let
+      mkHome = system: modules:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs-unstable.legacyPackages.${system};
+          extraSpecialArgs = {inherit inputs outputs system;};
+          modules = modules;
+        };
+    in {
+      "daniel" = mkHome "x86_64-linux" [./home ./home/linux.nix];
+      "daniel.flanagan" = mkHome "aarch64-darwin" [./home];
     };
 
     # TODO: darwin for work?

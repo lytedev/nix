@@ -1,6 +1,8 @@
 {
   pkgs,
   lib,
+  system,
+  inputs,
   ...
 }: let
   email = "daniel@lyte.dev";
@@ -13,12 +15,7 @@ in {
   #   };
   # };
 
-  # TODO: fonts? right now I do this:
-  # curl -o ~/Downloads/iosevkalyte.tar.zstd https://files.lyte.dev/iosevkalyte/rel/iosevkalyteterm-16.4.0.tar.zstd
-  # tar --zstd -xvf ~/Downloads/iosevka.tar.zstd
-  # mkdir -p ~/.local/share/fonts
-  # cp -r iosevkalyteterm/ttf/* ~/.local/share/fonts
-  # TODO: I bet I can declare an iosevka font build, too, instead
+  # TODO: fonts? right now they are only handled at the nixos-level (desktop-usage module)
   # TODO: wallpaper?
 
   home = {
@@ -27,20 +24,18 @@ in {
     stateVersion = "23.11";
 
     packages = [
-      # I use rtx for managing the following programs' versions instead of nix:
-      # kubectl, aws
-      pkgs.rtx
-
-      # I need gawk for my fish prompt
+      # I use gawk for my fish prompt
       pkgs.gawk
 
+      inputs.helix.packages.${system}.helix
+
       pkgs.nil
-      pkgs.nixpkgs-fmt
+      pkgs.alejandra
 
       # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
       (pkgs.buildEnv {
         name = "my-scripts-common";
-        paths = [../scripts/common];
+        paths = [./scripts/common];
       })
     ];
 
@@ -161,7 +156,7 @@ in {
 
     helix = {
       enable = true;
-      package = pkgs.helix;
+      package = inputs.helix.packages.${system}.helix;
       languages = {
         language-server = {
           lexical = {
@@ -199,8 +194,8 @@ in {
             name = "nix";
             auto-format = true;
             formatter = {
-              command = "nixpkgs-fmt";
-              args = [];
+              command = "alejandra";
+              args = ["-"];
             };
           }
           {
@@ -724,8 +719,8 @@ in {
     fish = {
       enable = true;
       # I load long scripts from files for a better editing experience
-      shellInit = builtins.readFile ../fish/shellInit.fish;
-      interactiveShellInit = builtins.readFile ../fish/interactiveShellInit.fish;
+      shellInit = builtins.readFile ./fish/shellInit.fish;
+      interactiveShellInit = builtins.readFile ./fish/interactiveShellInit.fish;
       loginShellInit = "";
       functions = {
         # TODO: I think these should be loaded from fish files too for better editor experience?
@@ -808,6 +803,7 @@ in {
 
     eza = {
       enable = true;
+      package = inputs.nixpkgs-unstable.legacyPackages.${system}.eza;
     };
 
     skim = {

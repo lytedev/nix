@@ -20,7 +20,7 @@ ln -s $PWD/pre-commit.bash .git/hooks/pre-commit
 ## NixOS
 
 ```shell_session
-nixos-rebuild --flake git+https://git.lyte.dev/lytedev/nix switch
+nixos-rebuild switch --flake git+https://git.lyte.dev/lytedev/nix
 ```
 
 ## Not NixOS
@@ -36,8 +36,9 @@ $ home-manager switch --flake git+https://git.lyte.dev/lytedev/nix
 ## Push NixOS Config
 
 ```bash
-nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#host' \
-  --target-host root@host --build-host root@host \
+host=your_host
+nix run nixpkgs#nixos-rebuild -- --flake "git+https://git.lyte.dev/lytedev/nix#$host" \
+  --target-host "root@$host" --build-host "root@$host" \
   switch --show-trace
 ```
 
@@ -47,7 +48,8 @@ nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#h
 # initialize a delayed reboot by a process you can kill later if things look good
 # note that the amount of time you give it probably needs to be enough time to both complete the upgrade
 # _and_ perform whatever testing you need
-ssh -t root@host "bash -c '
+host=your_host
+ssh -t "root@$host" "bash -c '
   set -m
   (sleep 300; reboot;) &
   jobs -p
@@ -59,8 +61,8 @@ ssh -t root@host "bash -c '
 # we will test things and make sure it works first
 # if it fails, the reboot we started previously will automatically kick in once the timeout is reached
 # and the machine will boot to the now-previous iteration
-nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#host' \
-  --target-host root@host --build-host root@host \
+nix run nixpkgs#nixos-rebuild -- --flake "git+https://git.lyte.dev/lytedev/nix#$host" \
+  --target-host "root@$host" --build-host "root@$host" \
   test --show-trace
 
 # however you like, verify the system is running as expected
@@ -73,7 +75,7 @@ nix run nixpkgs#nixos-rebuild -- --flake 'git+https://git.lyte.dev/lytedev/nix#h
 # if we still have ssh access and the machine fails testing, just rollback
 # instead of waiting for the reboot
 # TODO: this is not tested yet
-ssh root@beefcake nixos-rebuild --rollback switch
+ssh "root@$host" nixos-rebuild --rollback switch
 ```
 
 ## Provisioning New NixOS Hosts

@@ -5,12 +5,14 @@
   lib,
   config,
   pkgs,
+  modulesPath,
   ...
 }: {
   networking.hostName = "dragon";
 
   imports =
     [
+      (modulesPath + "/installer/scan/not-detected.nix")
       inputs.disko.nixosModules.disko
       flake.diskoConfigurations.standard
     ]
@@ -76,7 +78,8 @@
   # hardware
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.enable = true;
-  boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "usb_storage" "sd_mod"];
+  boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
+  boot.kernelModules = ["kvm-amd"];
 
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
