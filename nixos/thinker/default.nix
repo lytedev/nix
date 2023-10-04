@@ -3,8 +3,8 @@
   inputs,
   outputs,
   lib,
-  config,
-  pkgs,
+  # config,
+  # pkgs,
   ...
 }: {
   networking.hostName = "thinker";
@@ -23,6 +23,7 @@
     ])
     ++ [
       inputs.hardware.nixosModules.lenovo-thinkpad-t480
+      inputs.hardware.nixosModules.common-pc-laptop-ssd
       # ./relative-module.nix
     ];
 
@@ -31,8 +32,14 @@
   # need to measure percentage lost per day, but I think it's around 10%/day
   # it looks like I may have had hibernation working -- see ../old/third.nix
 
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.enable = true;
+  boot = {
+    loader = {
+      efi.canTouchEfiVariables = true;
+      systemd-boot.enable = true;
+    };
+    kernelParams = ["boot.shell_on_fail"];
+    initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
+  };
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true; # I own a printer in the year of our Lord 2023

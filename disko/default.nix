@@ -63,11 +63,9 @@
   };
   # TODO: figure out what I can't have an optiona/default 'name' attribute here so I can DRY with "standard"
   thinker = {disks ? ["/dev/vda"], ...}: {
-    # this is my standard partitioning scheme for my machines: an LUKS-encrypted
-    # btrfs volume
     disko.devices = {
       disk = {
-        vda = {
+        vdb = {
           type = "disk";
           device = builtins.elemAt disks 0;
           content = {

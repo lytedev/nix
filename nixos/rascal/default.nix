@@ -1,11 +1,12 @@
 {
-  outputs,
+  inputs,
+  # outputs,
   config,
   modulesPath,
   ...
 }: {
   imports = [
-    outputs.nixosModules.amd
+    inputs.hardware.nixosModules.common-cpu-amd
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
