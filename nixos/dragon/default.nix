@@ -18,7 +18,7 @@
     ]
     ++ (with outputs.nixosModules; [
       # If you want to use modules your own flake exports (from modules/nixos):
-      melee
+      # melee
       amd
       desktop-usage
       podman

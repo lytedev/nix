@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }: {
   home.pointerCursor = {
@@ -19,57 +20,70 @@
       font = "Symbols Nerd Font 12,IosevkaLyteTerm 12";
       # TODO: config
 
-      backgroundColor = base01;
-      textColor = base05;
-      borderColor = base0C;
-      progressColor = base0A;
+      backgroundColor = "#${base01}";
+      textColor = "#${base05}";
+      borderColor = "#${base0C}";
+      progressColor = "#${base0A}";
 
       extraConfig = ''
         [urgency=high]
         border-color=#${base0F}
+        [urgency=high]
         background-color=#${base03}
       '';
     };
 
-    swayidle = {
-      enable = true;
+    # this doesn't work due to weird quoting bugs AFAICT
+    # swayidle = let
+    #   bins = rec {
+    #     swaylock = builtins.trace "${pkgs.swaylock}/bin/swaylock" "${pkgs.swaylock}/bin/swaylock";
+    #     swaymsg = "${pkgs.sway}/bin/swaymsg";
+    #     notify-send = "${swaymsg} exec -- ${pkgs.libnotify}/bin/notify-send";
+    #   };
+    # in (with bins; {
+    #   enable = true;
 
-      events = [
-        {
-          event = "before-sleep";
-          command = "${pkgs.swaylock}/bin/swaylock";
-        }
-      ];
+    #   events = [
+    #     {
+    #       event = "before-sleep";
+    #       command = swaylock;
+    #     }
+    #   ];
 
-      timeouts = [
-        {
-          timeout = 330;
-          command = "notify-send \"Idling in 300 seconds\"";
-          resumeCommand = "notify-send \"Idling cancelled.\"";
-        }
-        {
-          timeout = 540;
-          command = "notify-send \"Idling in 90 seconds\"";
-        }
-        {
-          timeout = 570;
-          command = "notify-send \"Idling in 60 seconds\"";
-        }
-        {
-          timeout = 600;
-          command = "notify-send \"Idling in 30 seconds...\"";
-        }
-        {
-          timeout = 630;
-          command = "swaylock -f";
-        }
-        {
-          timeout = 660;
-          command = "swaymsg \"output * dpms off\"";
-          resumeCommand = "swaymsg \"output * dpms on\" & maybe-good-morning &";
-        }
-      ];
-    };
+    #   timeouts = [
+    #     {
+    #       timeout = 5;
+    #       command = "${notify-send} \\\"Idling in 300 seconds\\\"";
+    #       resumeCommand = "${notify-send} \\\"Idling cancelled.\\\"";
+    #     }
+    #     {
+    #       # timeout = 540;
+    #       timeout = 6;
+    #       command = "${notify-send} 'Idling in 90 seconds'";
+    #     }
+    #     {
+    #       # timeout = 570;
+    #       timeout = 7;
+    #       command = "${notify-send} 'Idling in 60 seconds'";
+    #     }
+    #     {
+    #       # timeout = 600;
+    #       timeout = 8;
+    #       command = "${notify-send} 'Idling in 30 seconds...'";
+    #     }
+    #     {
+    #       # timeout = 630;
+    #       timeout = 9;
+    #       command = "${swaylock} -f";
+    #     }
+    #     {
+    #       # timeout = 660;
+    #       timeout = 10;
+    #       command = "${swaymsg} 'output * dpms off'";
+    #       resumeCommand = "${swaymsg} 'output * dpms on' & ${swaymsg} exec -- maybe-good-morning &";
+    #     }
+    #   ];
+    # });
   };
 
   wayland.windowManager.sway = {
@@ -135,8 +149,29 @@
           always = true;
         }
         {
-          command = "systemctl --user restart swayidle";
-          always = true;
+          command = lib.concatStringsSep " " [
+            "swayidle -w"
+            "timeout 300 'notify-send \"Idling in 300 seconds\"'"
+            "resume      'notify-send \"Idling cancelled.\"'"
+            "timeout 480 'notify-send \"Idling in 120 seconds\"'"
+            "timeout 510 'notify-send \"Idling in 90 seconds\"'"
+            "timeout 540 'notify-send \"Idling in 60 seconds!\"'"
+            "timeout 570 'notify-send \"Idling in 30 seconds!\"'"
+            "timeout 590 'notify-send \"Idling in 10 seconds!\"'"
+            "timeout 591 'notify-send \"Idling in 9 seconds!\"'"
+            "timeout 592 'notify-send \"Idling in 8 seconds!\"'"
+            "timeout 593 'notify-send \"Idling in 7 seconds!\"'"
+            "timeout 594 'notify-send \"Idling in 6 seconds!\"'"
+            "timeout 595 'notify-send \"Idling in 5 seconds!\"'"
+            "timeout 596 'notify-send \"Idling in 4 seconds!\"'"
+            "timeout 597 'notify-send \"Idling in 3 seconds!\"'"
+            "timeout 598 'notify-send \"Idling in 2 seconds!\"'"
+            "timeout 599 'notify-send \"Idling in 1 second!\"'"
+            "timeout 600 'swaylock -f'"
+            "timeout 600 'swaymsg \"output * dpms off\"'"
+            "resume       'swaymsg \"output * dpms on\" & maybe-good-morning &'"
+            "before-sleep 'swaylock'"
+          ];
         }
         {command = "firefox";}
         {command = "kitty --single-instance";}

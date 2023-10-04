@@ -9,10 +9,10 @@
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
     nix-colors.url = "github:misterio77/nix-colors";
-    ssbm.url = "github:djanatyn/ssbm-nix";
 
-    # TODO: do I really need this in the root of my flake if _only_ beefcake uses it?
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
+
+    # TODO: ssbm.url = "github:djanatyn/ssbm-nix";
 
     # need to bump ishiiruka upstream I think
     # slippi-desktop.url = "github:project-slippi/slippi-desktop-app";
