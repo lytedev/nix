@@ -98,7 +98,7 @@
         inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
         ./nixos/beefcake
       ];
-      rascal = mkNixosStableSystem "x86_64-linux" [./nixos/rascal];
+      rascal = mkNixosUnstableSystem "x86_64-linux" [./nixos/rascal];
       musicbox = mkNixosUnstableSystem "x86_64-linux" [./nixos/musicbox];
     };
 
