@@ -89,12 +89,12 @@
               }
             ];
         };
-      mkNixosStableSystem = mkNixosSystem nixpkgs-stable.lib.nixosSystem;
+      # mkNixosStableSystem = mkNixosSystem nixpkgs-stable.lib.nixosSystem;
       mkNixosUnstableSystem = mkNixosSystem nixpkgs-unstable.lib.nixosSystem;
     in {
       dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon];
       thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker];
-      beefcake = mkNixosStableSystem "x86_64-linux" [
+      beefcake = mkNixosUnstableSystem "x86_64-linux" [
         inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
         ./nixos/beefcake
       ];
