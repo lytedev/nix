@@ -495,7 +495,7 @@ in {
         "ui.linenr.selected" = {fg = fg2;};
 
         "ui.statusline" = {
-          fg = fg2;
+          fg = fgdim;
           bg = bg2;
         };
         "ui.statusline.inactive" = {
