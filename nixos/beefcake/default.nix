@@ -116,6 +116,7 @@
 
   # TODO: non-root processes and services that access secrets need to be part of
   # the 'keys' group
+  # maybe this will fix plausible?
 
   # systemd.services.some-service = {
   #   serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
@@ -231,10 +232,12 @@
 
   services.caddy = {
     enable = true;
+    email = "daniel@lyte.dev";
     adapter = "caddyfile";
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
     # TODO: there are some hardcoded ports here!
     # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
+    # TODO: customize the files.lyte.dev template?
     configFile = pkgs.writeText "Caddyfile" ''
       video.lyte.dev {
         reverse_proxy :8096
@@ -274,6 +277,8 @@
 
       files.lyte.dev {
         file_server browse {
+          # browse template
+          # hide .*
           root /storage/files.lyte.dev
         }
       }
@@ -431,7 +436,7 @@
 
   services.jellyfin = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     # uses port 8096 by default, configurable from admin UI
   };
 
