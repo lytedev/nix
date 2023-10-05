@@ -45,7 +45,6 @@
     };
 
     systemPackages = with pkgs; [
-      # TODO: converge with home manager/sway stuff?
       brightnessctl
       feh
       gimp

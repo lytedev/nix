@@ -86,7 +86,7 @@
 
       "api.lyte.dev" = {
         path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
-        # TODO: would be cool to assert that it's correctly-formatted JSON?
+        # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
         mode = "0440";
         owner = config.services.api-lyte-dev.user;
         group = config.services.api-lyte-dev.group;

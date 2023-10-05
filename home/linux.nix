@@ -434,6 +434,12 @@
         "*" = {
           background = "$HOME/.wallpaper fill";
         };
+
+        "Dell Inc. DELL U2720Q D3TM623" = {
+          # desktop left vertical monitor
+          transform = "90";
+          scale = "1.5";
+        };
       };
 
       # TODO: popup_during_fullscreen smart

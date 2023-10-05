@@ -2,6 +2,7 @@
   config,
   lib,
   inputs,
+  colors,
   # outputs,
   system,
   ...
@@ -112,8 +113,7 @@ in {
         PasswordAuthentication = false;
       };
 
-      # TODO: tailscale can handle this I think...?
-      openFirewall = lib.mkDefault true;
+      openFirewall = lib.mkDefault false;
 
       # listenAddresses = [
       #   { addr = "0.0.0.0"; port = 22; }
@@ -134,23 +134,23 @@ in {
     useXkbConfig = true;
     earlySetup = true;
 
-    colors = [
-      "111111"
-      "f92672"
-      "a6e22e"
-      "f4bf75"
-      "66d9ef"
-      "ae81ff"
-      "a1efe4"
-      "f8f8f2"
-      "75715e"
-      "f92672"
-      "a6e22e"
-      "f4bf75"
-      "66d9ef"
-      "ae81ff"
-      "a1efe4"
-      "f9f8f5"
+    colors = with colors; [
+      bg
+      red
+      green
+      orange
+      blue
+      purple
+      yellow
+      fg3
+      fgdim
+      red
+      green
+      orange
+      blue
+      purple
+      yellow
+      fg
     ];
   };
 
@@ -160,7 +160,7 @@ in {
     firewall = {
       enable = lib.mkDefault true;
       allowPing = lib.mkDefault true;
-      allowedTCPPorts = lib.mkDefault [22];
+      allowedTCPPorts = lib.mkDefault [];
       allowedUDPPorts = lib.mkDefault [];
     };
   };

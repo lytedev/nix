@@ -81,7 +81,6 @@ nix run nixpkgs#nixos-rebuild -- --flake "git+https://git.lyte.dev/lytedev/nix#$
 
 # if we still have ssh access and the machine fails testing, just rollback
 # instead of waiting for the reboot
-# TODO: this is not tested yet
 ssh "root@$host" nixos-rebuild --rollback switch
 ```
 
@@ -119,6 +118,16 @@ nix-shell --packages git \
 ```
 
 # To Do
+
+## Short Term
+
+- Fix Helix UI (picker borders gone)
+- Remove all work-specific config and stick that in its own flake that uses my main flake as input
+- Fonts installed by home manager instead of nixos module
+- Zellij config
+- Broot theme
+
+## Long Term
 
 - I don't understand Nix well enough to know why stuff is being compiled even when I have a binary cache
   - Maybe it detects different CPUs and will recompile certain packages for per-CPU optimizations?

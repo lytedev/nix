@@ -10,15 +10,6 @@
   email = "daniel@lyte.dev";
   name = "Daniel Flanagan";
 in {
-  # TODO: email access?
-  /*
-  accounts.email.accounts = {
-    google = {
-      address = "wraithx2@gmail.com";
-    };
-  };
-  */
-
   # TODO: fonts? right now they are only handled at the nixos-level (desktop-usage module)
   # TODO: wallpaper?
 
@@ -35,12 +26,13 @@ in {
       # I use gawk for my fish prompt
       pkgs.gawk
 
+      # text editor
       inputs.helix.packages.${system}.helix
 
+      # tools I use when editing nix code
       pkgs.nil
       pkgs.alejandra
 
-      # TODO: os-specific scripts? macOS versus Linux (arch or nixos? do I need to distinguish at that point?)
       (pkgs.buildEnv {
         name = "my-scripts-common";
         paths = [./scripts/common];
@@ -391,17 +383,17 @@ in {
 
     themes = with colors.withHashPrefix; {
       custom = {
-        "type" = yellow;
+        "type" = orange;
 
         "constructor" = blue;
 
-        "constant" = yellow;
-        "constant.builtin" = yellow;
-        "constant.character" = teal;
-        "constant.character.escape" = yellow;
+        "constant" = orange;
+        "constant.builtin" = orange;
+        "constant.character" = yellow;
+        "constant.character.escape" = orange;
 
         "string" = green;
-        "string.regexp" = yellow;
+        "string.regexp" = orange;
         "string.special" = blue;
 
         "comment" = {
@@ -423,7 +415,7 @@ in {
         "punctuation.special" = blue;
 
         "keyword" = purple;
-        "keyword.storage.modifier.ref" = teal;
+        "keyword.storage.modifier.ref" = yellow;
         "keyword.control.conditional" = {
           fg = purple;
           modifiers = ["italic"];
@@ -445,13 +437,13 @@ in {
         "special" = blue;
 
         "markup.heading.marker" = {
-          fg = yellow;
+          fg = orange;
           modifiers = ["bold"];
         };
         "markup.heading.1" = blue;
-        "markup.heading.2" = teal;
+        "markup.heading.2" = yellow;
         "markup.heading.3" = green;
-        "markup.heading.4" = yellow;
+        "markup.heading.4" = orange;
         "markup.heading.5" = red;
         "markup.heading.6" = fg3;
         "markup.list" = purple;
@@ -500,7 +492,7 @@ in {
           fg = text;
           bg = bg2;
         };
-        "ui.window" = {fg = fg3;};
+        "ui.window" = {fg = fgdim;};
         "ui.help" = {
           fg = fg2;
           bg = bg2;
@@ -514,8 +506,8 @@ in {
 
         "ui.text" = text;
         "ui.text.focus" = {
-          fg = "text";
-          bg = "surface0";
+          fg = text;
+          bg = bg3;
           modifiers = ["bold"];
         };
         "ui.text.inactive" = {fg = fg2;};
@@ -528,7 +520,7 @@ in {
           bg = bg;
         };
 
-        "ui.selection" = {bg = bg5;};
+        "ui.selection" = {bg = bg3;};
 
         "ui.cursor" = {
           fg = bg;
@@ -539,7 +531,7 @@ in {
           bg = red;
         };
         "ui.cursor.match" = {
-          fg = yellow;
+          fg = orange;
           modifiers = ["bold"];
         };
 
@@ -572,7 +564,8 @@ in {
         "ui.cursorline.primary" = {bg = bg3;};
 
         "ui.highlight" = {
-          bg = fg2;
+          bg = primary;
+          fg = bg;
           modifiers = ["bold"];
         };
 
@@ -582,7 +575,7 @@ in {
         };
         "ui.menu.selected" = {
           fg = text;
-          bg = bg4;
+          bg = bg3;
           modifiers = ["bold"];
         };
 
@@ -594,7 +587,7 @@ in {
         };
         "diagnostic.warning" = {
           underline = {
-            color = yellow;
+            color = orange;
             style = "curl";
           };
         };
@@ -612,10 +605,13 @@ in {
         };
 
         error = red;
-        warning = yellow;
+        warning = orange;
         info = blue;
-        hint = teal;
-        "ui.background" = bg;
+        hint = yellow;
+        "ui.background" = {
+          bg = bg;
+          fg = fgdim;
+        };
 
         # "ui.cursorline.primary" = { bg = "default" }
         # "ui.cursorline.secondary" = { bg = "default" }
@@ -957,6 +953,7 @@ in {
     enable = false;
     enableFishIntegration = true;
     settings = {
+      pane_frames = false;
       # TODO: port config
     };
   };

@@ -51,12 +51,11 @@
         # pink,
         purple,
         red,
-        # orange,
+        orange,
         yellow,
         green,
-        teal,
+        # teal,
         blue,
-        ...
       }: let
         base =
           {
@@ -73,14 +72,14 @@
             "9" = red;
             "2" = green;
             "10" = green;
-            "3" = yellow;
-            "11" = yellow;
+            "3" = orange;
+            "11" = orange;
             "4" = blue;
             "12" = blue;
             "5" = purple;
             "13" = purple;
-            "6" = teal;
-            "14" = teal;
+            "6" = yellow;
+            "14" = yellow;
 
             # whites
             "7" = fg2;
@@ -111,8 +110,8 @@
         yellow = "f4bf75";
         blue = "66d9ef";
         purple = "ae81ff";
-        teal = "a1efe4";
-        # orange = "fab387";
+        # teal = "a1efe4";
+        orange = "fab387";
       };
       catppuccin-mocha-sapphire = mkColorScheme {
         scheme-name = "catppuccin-mocha-sapphire";
@@ -130,11 +129,10 @@
         # pink = "f5e0dc";
         purple = "cba6f7";
         red = "f38ba8";
-        # orange = "fab387";
-        # yellow = "f9e2af";
-        yellow = "fab387";
+        orange = "fab387";
+        yellow = "f9e2af";
         green = "a6e3a1";
-        teal = "94e2d5";
+        # teal = "94e2d5";
         blue = "74c7ec";
       };
     };
