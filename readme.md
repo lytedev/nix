@@ -121,7 +121,7 @@ nix-shell --packages git \
 
 ## Short Term
 
-- Fix Helix UI (picker borders gone)
+- Modularize the home manager stuff into modules
 - Remove all work-specific config and stick that in its own flake that uses my main flake as input
 - Fonts installed by home manager instead of nixos module
 - Zellij config

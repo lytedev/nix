@@ -28,7 +28,7 @@
   } @ inputs: let
     inherit (self) outputs;
 
-    systems = [
+    forAllSystems = nixpkgs-stable.lib.genAttrs [
       "aarch64-linux"
       # "i686-linux"
       "x86_64-linux"
@@ -36,121 +36,18 @@
       "x86_64-darwin"
     ];
 
-    color-schemes = let
-      mkColorScheme = scheme @ {
-        scheme-name,
-        bg,
-        bg2,
-        bg3,
-        bg4,
-        bg5,
-        fg,
-        fg2,
-        fg3,
-        fgdim,
-        # pink,
-        purple,
-        red,
-        orange,
-        yellow,
-        green,
-        # teal,
-        blue,
-      }: let
-        base =
-          {
-            # aliases?
-            text = fg;
-            primary = blue;
-            urgent = red;
-
-            # blacks
-            "0" = bg4;
-            "8" = bg5;
-
-            "1" = red;
-            "9" = red;
-            "2" = green;
-            "10" = green;
-            "3" = orange;
-            "11" = orange;
-            "4" = blue;
-            "12" = blue;
-            "5" = purple;
-            "13" = purple;
-            "6" = yellow;
-            "14" = yellow;
-
-            # whites
-            "7" = fg2;
-            "15" = fg3;
-          }
-          // scheme;
-      in
-        {
-          withHashPrefix = inputs.nixpkgs-unstable.lib.mapAttrs (_: value: "#${value}") base;
-        }
-        // base;
-    in {
-      donokai = mkColorScheme {
-        scheme-name = "donokai";
-        bg = "111111";
-        bg2 = "181818";
-        bg3 = "222222";
-        bg4 = "292929";
-        bg5 = "333333";
-
-        fg = "f8f8f8";
-        fg2 = "d8d8d8";
-        fg3 = "c8c8c8";
-        fgdim = "666666";
-
-        red = "f92672";
-        green = "a6e22e";
-        yellow = "f4bf75";
-        blue = "66d9ef";
-        purple = "ae81ff";
-        # teal = "a1efe4";
-        orange = "fab387";
-      };
-      catppuccin-mocha-sapphire = mkColorScheme {
-        scheme-name = "catppuccin-mocha-sapphire";
-        bg = "1e1e2e";
-        bg2 = "181825";
-        bg3 = "313244";
-        bg4 = "45475a";
-        bg5 = "585b70";
-
-        fg = "cdd6f4";
-        fg2 = "bac2de";
-        fg3 = "a6adc8";
-        fgdim = "6c7086";
-
-        # pink = "f5e0dc";
-        purple = "cba6f7";
-        red = "f38ba8";
-        orange = "fab387";
-        yellow = "f9e2af";
-        green = "a6e3a1";
-        # teal = "94e2d5";
-        blue = "74c7ec";
-      };
-    };
-
+    color-schemes = (import ./lib/colors.nix inputs).schemes;
     colors = color-schemes.catppuccin-mocha-sapphire;
+    # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
     font = {
       name = "IosevkaLyteTerm";
       size = 12;
     };
-
-    linuxHomeManagerModules = [./home ./home/linux.nix];
-
-    forAllSystems = nixpkgs-stable.lib.genAttrs systems;
   in {
     # TODO: nix-color integration?
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system: import ./pkgs nixpkgs-stable.legacyPackages.${system});
+    packages = forAllSystems (system: import ./pkgs nixpkgs-unstable.legacyPackages.${system});
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
@@ -170,7 +67,7 @@
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
     nixosConfigurations = let
-      mkNixosSystem = cb: system: modules:
+      mkNixosSystem = cb: system: modules: homeManagerModules:
         cb {
           system = system;
           specialArgs = {
@@ -189,7 +86,7 @@
                 home-manager = {
                   extraSpecialArgs = {inherit inputs outputs system colors font;};
                   users.daniel = {
-                    imports = linuxHomeManagerModules;
+                    imports = homeManagerModules;
                   };
                 };
               }
@@ -198,31 +95,42 @@
       # mkNixosStableSystem = mkNixosSystem nixpkgs-stable.lib.nixosSystem;
       mkNixosUnstableSystem = mkNixosSystem nixpkgs-unstable.lib.nixosSystem;
     in {
-      dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon];
-      thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker];
-      beefcake = mkNixosUnstableSystem "x86_64-linux" [
-        inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
-        ./nixos/beefcake
-      ];
-      rascal = mkNixosUnstableSystem "x86_64-linux" [./nixos/rascal];
-      musicbox = mkNixosUnstableSystem "x86_64-linux" [./nixos/musicbox];
+      dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
+        sway
+      ]);
+      thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
+        sway
+      ]);
+      beefcake =
+        mkNixosUnstableSystem "x86_64-linux" [
+          inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
+          ./nixos/beefcake
+        ] (with outputs.homeManagerModules; [
+          linux
+        ]);
+      rascal = mkNixosUnstableSystem "x86_64-linux" [./nixos/rascal] (with outputs.homeManagerModules; [
+        linux
+      ]);
+      musicbox = mkNixosUnstableSystem "x86_64-linux" [./nixos/musicbox] (with outputs.homeManagerModules; [
+        sway
+      ]);
     };
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
-    homeConfigurations = let
-      mkHome = system: modules:
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs-unstable.legacyPackages.${system};
-          extraSpecialArgs = {inherit inputs outputs system colors font;};
-          modules = modules;
-        };
-    in {
-      "daniel" = mkHome "x86_64-linux" linuxHomeManagerModules;
-      "daniel.flanagan" = mkHome "aarch64-darwin" [./home];
+    homeConfigurations = {
+      /*
+      daniel = home-manager.lib.homeManagerConfiguration rec {
+        system = "x86_64-linux";
+        pkgs = nixpkgs-unstable.legacyPackages.${system};
+        extraSpecialArgs = {inherit inputs outputs system colors font;};
+        modules = with outputs.homeManagerModules; [linux];
+      };
+      */
     };
 
-    # TODO: darwin for work?
+    # TODO: nix-on-droid for phone terminal usage?
+    # TODO: nix-darwin for work?
     # TODO: nixos ISO?
 
     # Disk partition schemes and functions
