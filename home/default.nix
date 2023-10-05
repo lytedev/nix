@@ -26,28 +26,6 @@ in {
     # nix-colors.homeManagerModules.default
   ];
 
-  # copied here for easy lookups:
-  # https://github.com/tinted-theming/base16-schemes/blob/main/catppuccin-mocha.yaml
-
-  /*
-  base00: "1e1e2e" # base
-  base01: "181825" # mantle
-  base02: "313244" # surface0
-  base03: "45475a" # surface1
-  base04: "585b70" # surface2
-  base05: "cdd6f4" # text
-  base06: "f5e0dc" # rosewater
-  base07: "b4befe" # lavender
-  base08: "f38ba8" # red
-  base09: "fab387" # peach
-  base0A: "f9e2af" # yellow
-  base0B: "a6e3a1" # green
-  base0C: "94e2d5" # teal
-  base0D: "89b4fa" # blue
-  base0E: "cba6f7" # mauve
-  base0F: "f2cdcd" # flamingo
-  */
-
   home = {
     username = lib.mkDefault "daniel";
     homeDirectory = lib.mkDefault "/home/daniel/.home";
@@ -543,7 +521,7 @@ in {
         "ui.text.inactive" = {fg = fg2;};
 
         "ui.virtual" = fg2;
-        "ui.virtual.ruler" = {bg = bg2;};
+        "ui.virtual.ruler" = {bg = bg3;};
         "ui.virtual.indent-guide" = bg3;
         "ui.virtual.inlay-hint" = {
           fg = bg3;
@@ -641,9 +619,8 @@ in {
 
         # "ui.cursorline.primary" = { bg = "default" }
         # "ui.cursorline.secondary" = { bg = "default" }
-        # "ui.cursorcolumn.primary" = { bg = "default" }
-        # "ui.cursorcolumn.secondary" = { bg = "default" }
-        # "ui.virtual.ruler" = { bg = "default" }
+        "ui.cursorcolumn.primary" = {bg = bg3;};
+        "ui.cursorcolumn.secondary" = {bg = bg3;};
 
         "ui.bufferline.active" = {
           fg = primary;

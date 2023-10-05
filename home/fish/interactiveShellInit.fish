@@ -151,3 +151,7 @@ bind -M insert \ca beginning-of-line
 
 bind -M insert \cv edit_command_buffer
 bind -M default \cv edit_command_buffer
+
+test $PWD = $HOME && begin
+	cd $NICE_HOME || cd
+end
