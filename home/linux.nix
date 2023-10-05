@@ -2,6 +2,8 @@
   config,
   pkgs,
   lib,
+  colors,
+  font,
   ...
 }: {
   home.pointerCursor = {
@@ -11,101 +13,415 @@
     # some icons are also missing (hand2?)
   };
 
-  services = {
-    mako = with config.colorScheme.colors; {
-      enable = true;
-      borderSize = 1;
-      maxVisible = 5;
-      defaultTimeout = 15000;
-      font = "Symbols Nerd Font 12,IosevkaLyteTerm 12";
-      # TODO: config
+  programs.foot = {
+    enable = true;
+  };
 
-      backgroundColor = "#${base01}";
-      textColor = "#${base05}";
-      borderColor = "#${base0C}";
-      progressColor = "#${base0A}";
+  # programs.eww = {
+  #   enable = true;
+  # };
 
-      extraConfig = ''
-        [urgency=high]
-        border-color=#${base0F}
-        [urgency=high]
-        background-color=#${base03}
-      '';
+  /*
+  home.file.".config/eww/eww.yuck" = {
+    enable = true;
+    text = ''
+      (defwidget bar []
+        (centerbox :orientation "h"
+          (sidestuff)
+          (box)
+          (music)))
+
+      (defwindow bar
+        :monitor 0
+        :stacking "fg"
+        :exclusive true
+        :geometry
+        (geometry
+          :x "0%"
+          :y "0%"
+          :width "100%"
+          :height "31px"
+          :anchor "bottom center")
+        (bar))
+
+      (defwidget sidestuff []
+        (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :spacing 20
+          time
+          ; TODO: idle inhibitor?
+          ; TODO: get these to align properly?
+          (box :class "mic" (
+            box :class {micMuted == "false" ? "live" : "muted"} {micMuted == "false" ? " " : " "}
+            ) {micVolume + "%"}
+          )
+          (box :class "vol" (
+            box :class {muted == "false" ? "live" : "muted"} {muted == "false" ? "󰕾 " : "󰖁 "}
+            ) {volume + "%"}
+          )
+          {" " + round(EWW_CPU["avg"], 0) + "%"}
+          {" " + round(EWW_RAM["used_mem_perc"], 0) + "%"}
+          {isDesktop == "true" ? "" : " " + brightness + "%"}
+          {isDesktop == "true" ? "" : "󱊣 " + EWW_BATTERY["BAT0"]["capacity"] + "%/" + EWW_BATTERY["BAT1"]["capacity"] + "%"}
+        ))
+
+      (defwidget music []
+        (box :class "music"
+             :orientation "h"
+             :halign "end"
+             :space-evenly false
+          {music != "" ? "''${music}" : ""}))
+
+      (deflisten music :initial ""
+        "playerctl --follow metadata --format '{{ title }} by {{ artist }}' || true")
+
+      (deflisten volume :initial "0"
+        "pamixer --get-volume; pactl subscribe | grep sink --line-buffered | while read i; do pamixer --get-volume; done")
+
+      (deflisten muted :initial "false"
+        "pamixer --get-mute; pactl subscribe | grep sink --line-buffered | while read i; do pamixer --get-mute; done")
+
+      (deflisten micVolume :initial "0"
+        "pamixer --default-source --get-volume; pactl subscribe | grep source --line-buffered | while read i; do pamixer --default-source --get-volume; done")
+
+      (deflisten micMuted :initial "false"
+        "pamixer --default-source --get-mute; pactl subscribe | grep source --line-buffered | while read i; do pamixer --default-source --get-mute; done")
+
+      (defpoll time :interval "1s"
+        "date '+%a %b %d %H:%M:%S'")
+
+      (defpoll isDesktop :interval "24h"
+        "if [ -d \"$HOME/.config/lytedev-env/host-desktop\" ]; then echo true; else echo false; fi")
+
+      (defpoll brightness :interval "10s"
+        "echo $(((100 * $(brightnessctl get)) / $(brightnessctl max)))")
+    '';
+  };
+  */
+
+  programs.fish = {
+    shellAliases = {
+      sctl = "sudo systemctl";
+      sctlu = "systemctl --user";
     };
+  };
 
-    # this doesn't work due to weird quoting bugs AFAICT
-    # swayidle = let
-    #   bins = rec {
-    #     swaylock = builtins.trace "${pkgs.swaylock}/bin/swaylock" "${pkgs.swaylock}/bin/swaylock";
-    #     swaymsg = "${pkgs.sway}/bin/swaymsg";
-    #     notify-send = "${swaymsg} exec -- ${pkgs.libnotify}/bin/notify-send";
-    #   };
-    # in (with bins; {
-    #   enable = true;
+  services.mako = with colors.withHashPrefix; {
+    enable = true;
+    borderSize = 1;
+    maxVisible = 5;
+    defaultTimeout = 15000;
+    font = "Symbols Nerd Font ${toString font.size},${font.name} ${toString font.size}";
+    # TODO: config
 
-    #   events = [
-    #     {
-    #       event = "before-sleep";
-    #       command = swaylock;
-    #     }
-    #   ];
+    backgroundColor = bg;
+    textColor = text;
+    borderColor = primary;
+    progressColor = primary;
 
-    #   timeouts = [
-    #     {
-    #       timeout = 5;
-    #       command = "${notify-send} \\\"Idling in 300 seconds\\\"";
-    #       resumeCommand = "${notify-send} \\\"Idling cancelled.\\\"";
-    #     }
-    #     {
-    #       # timeout = 540;
-    #       timeout = 6;
-    #       command = "${notify-send} 'Idling in 90 seconds'";
-    #     }
-    #     {
-    #       # timeout = 570;
-    #       timeout = 7;
-    #       command = "${notify-send} 'Idling in 60 seconds'";
-    #     }
-    #     {
-    #       # timeout = 600;
-    #       timeout = 8;
-    #       command = "${notify-send} 'Idling in 30 seconds...'";
-    #     }
-    #     {
-    #       # timeout = 630;
-    #       timeout = 9;
-    #       command = "${swaylock} -f";
-    #     }
-    #     {
-    #       # timeout = 660;
-    #       timeout = 10;
-    #       command = "${swaymsg} 'output * dpms off'";
-    #       resumeCommand = "${swaymsg} 'output * dpms on' & ${swaymsg} exec -- maybe-good-morning &";
-    #     }
-    #   ];
-    # });
+    extraConfig = ''
+      [urgency=high]
+      border-color=${urgent}
+      [urgency=high]
+      background-color=${urgent}
+    '';
+  };
+
+  # this doesn't work due to weird quoting bugs AFAICT
+  /*
+  services.swayidle = let
+    bins = rec {
+      swaylock = builtins.trace "${pkgs.swaylock}/bin/swaylock" "${pkgs.swaylock}/bin/swaylock";
+      swaymsg = "${pkgs.sway}/bin/swaymsg";
+      notify-send = "${swaymsg} exec -- ${pkgs.libnotify}/bin/notify-send";
+    };
+  in (with bins; {
+    enable = true;
+
+    events = [
+      {
+        event = "before-sleep";
+        command = swaylock;
+      }
+    ];
+
+    timeouts = [
+      {
+        timeout = 5;
+        command = "${notify-send} \\\"Idling in 300 seconds\\\"";
+        resumeCommand = "${notify-send} \\\"Idling cancelled.\\\"";
+      }
+      {
+        # timeout = 540;
+        timeout = 6;
+        command = "${notify-send} 'Idling in 90 seconds'";
+      }
+      {
+        # timeout = 570;
+        timeout = 7;
+        command = "${notify-send} 'Idling in 60 seconds'";
+      }
+      {
+        # timeout = 600;
+        timeout = 8;
+        command = "${notify-send} 'Idling in 30 seconds...'";
+      }
+      {
+        # timeout = 630;
+        timeout = 9;
+        command = "${swaylock} -f";
+      }
+      {
+        # timeout = 660;
+        timeout = 10;
+        command = "${swaymsg} 'output * dpms off'";
+        resumeCommand = "${swaymsg} 'output * dpms on' & ${swaymsg} exec -- maybe-good-morning &";
+      }
+    ];
+  });
+  */
+
+  wayland.windowManager.hyprland = {
+    enable = true;
+    extraConfig = ''
+      # See https://wiki.hyprland.org/Configuring/Monitors/
+      monitor=,preferred,auto,auto
+      monitor=desc:LG Display 0x0521,preferred,auto,1
+
+      # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+
+      # Execute your favorite apps at launch
+      exec-once = firefox & kitty --single-instance & hyprpaper & mako & /usr/lib/polkit-kde-authentication-agent-1
+      exec-once = swayidle -w timeout 600 'notify-send "Locking in 30 seconds..."' timeout 630 'swaylock -f' timeout 660 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on && maybe-good-morning' before-sleep 'swaylock -f'
+      exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+
+      env = XCURSOR_SIZE,24
+
+      input {
+        kb_layout = us
+        kb_options = ctrl:nocaps
+        touchpad {
+            natural_scroll = yes
+        }
+        # kb_variant =
+        # kb_model =
+        # kb_rules =
+
+        follow_mouse = 2
+
+      	repeat_delay = 200
+      	repeat_rate = 60
+
+        touchpad {
+          natural_scroll = yes
+          tap-to-click = true
+          middle_button_emulation = true
+        }
+
+        force_no_accel = true
+        sensitivity = 1 # -1.0 - 1.0, 0 means no modification.
+      }
+
+      misc {
+        disable_hyprland_logo = true
+        disable_splash_rendering = true
+      }
+
+      binds {
+        allow_workspace_cycles = true
+      }
+
+      general {
+        # See https://wiki.hyprland.org/Configuring/Variables/ for more
+
+        gaps_in = 3
+        gaps_out = 6
+        border_size = 1
+        no_cursor_warps = true
+        resize_on_border = true
+
+        col.active_border = rgba(74c7ecff) 45deg
+        col.inactive_border = rgba(59595988)
+
+        layout = dwindle
+      }
+
+      decoration {
+        # See https://wiki.hyprland.org/Configuring/Variables/ for more
+
+        rounding = 3
+        # blur = yes
+        # blur_size = 3
+        # blur_passes = 1
+        # blur_new_optimizations = on
+
+        drop_shadow = yes
+        shadow_range = 4
+        shadow_render_power = 3
+        col.shadow = rgba(1a1a1aee)
+
+        dim_inactive = 0.5
+      }
+
+      animations {
+        enabled = yes
+
+        # Some default animations, see https://wiki.hyprland.org/Configuring/Animations/ for more
+
+        bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+        bezier=overshot,0.05,0.9,0.1,1.1
+
+        animation = windows, 1, 2, default
+        animation = windowsOut, 1, 2, default, popin 80%
+        animation = border, 1, 2, default
+        animation = borderangle, 1, 2, default
+        animation = fade, 1, 2, default
+        animation = workspaces, 1, 2, default
+      }
+
+      dwindle {
+        # See https://wiki.hyprland.org/Configuring/Dwindle-Layout/ for more
+        # master switch for pseudotiling. Enabling is bound to mainMod + P in the keybinds section below
+        pseudotile = yes
+        preserve_split = 1
+        no_gaps_when_only = true
+      }
+
+      master {
+        # See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
+        new_is_master = true
+      }
+
+      gestures {
+        # See https://wiki.hyprland.org/Configuring/Variables/ for more
+        workspace_swipe = on
+      }
+
+      # Example per-device config
+      # See https://wiki.hyprland.org/Configuring/Keywords/#executing for more
+      # device:epic-mouse-v1 {
+      #     sensitivity = -0.5
+      # }
+
+      # Example windowrule v1
+      # windowrule = float, ^(kitty)$
+      # Example windowrule v2
+      # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
+      # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
+
+      # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+      $mainMod = SUPER
+
+      # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
+      bind = $mainMod, return, exec, kitty --single-instance
+      bind = $mainMod SHIFT, return, exec, kitty
+      bind = $mainMod, U, exec, firefox
+      bind = $mainMod, space, exec, wofi --show drun
+      bind = $mainMod, C, killactive,
+      bind = $mainMod, M, exit,
+      bind = $mainMod, E, exec, dolphin
+      bind = $mainMod, F, togglefloating,
+      bind = $mainMod SHIFT, F, fullscreen,
+      bind = $mainMod, R, exec, anyrun
+      bind = $mainMod, S, pseudo, # dwindle
+      bind = $mainMod, P, togglesplit, # dwindle
+
+      # Move focus with mainMod + arrow keys
+      bind = $mainMod, left, movefocus, l
+      bind = $mainMod, right, movefocus, r
+      bind = $mainMod, up, movefocus, u
+      bind = $mainMod, down, movefocus, d
+      bind = $mainMod, h, movefocus, l
+      bind = $mainMod, l, movefocus, r
+      bind = $mainMod, k, movefocus, u
+      bind = $mainMod, j, movefocus, d
+
+      bind = $mainMod SHIFT, H, swapwindow, l
+      bind = $mainMod SHIFT, L, swapwindow, r
+      bind = $mainMod SHIFT, K, swapwindow, u
+      bind = $mainMod SHIFT, J, swapwindow, d
+
+      bind = $mainMod SHIFT, V, exec, pamixer --default-source --toggle-mute
+      bind = , XF86AudioMicMute, exec, pamixer --default-source --toggle-mute
+      bind = , XF86AudioMute, exec, pamixer --toggle-mute
+      bind = , XF86AudioRaiseVolume, exec, pamixer --increase 5
+      bind = , XF86AudioLowerVolume, exec, pamixer --decrease 5
+      bind = CTRL, XF86AudioRaiseVolume, exec, pamixer --increase 1
+      bind = CTRL, XF86AudioLowerVolume, exec, pamixer --decrease 1
+
+      bind = , XF86AudioPlay, exec, playerctl play-pause
+      bind = , XF86AudioNext, exec, playerctl next
+      bind = , XF86AudioPrev, exec, playerctl previous
+
+      bind = $mainMod, tab, workspace, previous
+
+      # Switch workspaces with mainMod + [0-9]
+      bind = $mainMod, 1, workspace, 1
+      bind = $mainMod, 2, workspace, 2
+      bind = $mainMod, 3, workspace, 3
+      bind = $mainMod, 4, workspace, 4
+      bind = $mainMod, 5, workspace, 5
+      bind = $mainMod, 6, workspace, 6
+      bind = $mainMod, 7, workspace, 7
+      bind = $mainMod, 8, workspace, 8
+      bind = $mainMod, 9, workspace, 9
+      bind = $mainMod, 0, workspace, 10
+
+      # Move active window to a workspace with mainMod + SHIFT + [0-9]
+      bind = $mainMod SHIFT, 1, movetoworkspace, 1
+      bind = $mainMod SHIFT, 2, movetoworkspace, 2
+      bind = $mainMod SHIFT, 3, movetoworkspace, 3
+      bind = $mainMod SHIFT, 4, movetoworkspace, 4
+      bind = $mainMod SHIFT, 5, movetoworkspace, 5
+      bind = $mainMod SHIFT, 6, movetoworkspace, 6
+      bind = $mainMod SHIFT, 7, movetoworkspace, 7
+      bind = $mainMod SHIFT, 8, movetoworkspace, 8
+      bind = $mainMod SHIFT, 9, movetoworkspace, 9
+      bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+      bind = , XF86MonBrightnessDown, exec, brightnessctl set 10%-
+      bind = , XF86MonBrightnessUp, exec, brightnessctl set +10%
+      bind = SHIFT, XF86MonBrightnessDown, exec, brightnessctl set 1%
+      bind = SHIFT, XF86MonBrightnessUp, exec, brightnessctl set 100%
+      bind = CTRL, XF86MonBrightnessDown, exec, brightnessctl set 1%-
+      bind = CTRL, XF86MonBrightnessUp, exec, brightnessctl set +1%
+
+      bind = $mainMod SHIFT, S, exec, clipshot
+
+      # Scroll through existing workspaces with mainMod + scroll
+      bind = $mainMod, mouse_down, workspace, e+1
+      bind = $mainMod, mouse_up, workspace, e-1
+
+      bind = CTRL SHIFT $mainMod, L, exec, swaylock
+
+      # Move/resize windows with mainMod + LMB/RMB and dragging
+      bindm = $mainMod, mouse:272, movewindow
+      bindm = $mainMod, mouse:273, resizewindow
+
+      bind = $mainMod CTRL, space, exec, makoctl dismiss
+      bind = $mainMod SHIFT CTRL, space, exec, makoctl restore
+      bind = $mainMod SHIFT, space, exec, makoctl invoke
+
+      bind = $mainMod, E, exec, thunar
+    '';
   };
 
   wayland.windowManager.sway = {
-    # TODO:
-    # + Super+r should rotate the selected group of windows.
-    # + Super+Control+{1-9} should control the size of the preselect space.
-    # + Super+Shift+b should balance the size of all selected nodes.
-    # set $tilers "(wezterm.*|kitty.*|firefox.*|slack.*|Slack.*|thunar.*|Alacritty.*|alacritty.*|Discord.*|discord.*)"
-    # for_window [title=".*"] floating enable
-    # for_window [app_id=$tilers] floating disable
-    #
-    # # for_window [title=".*"] opacity $opacity
-    #
-    # client.focused          #74c7ec #74c7ec #74c7ec #74c7ec #74c7ec
-    # client.focused_inactive #100814 #100814 #9b9ebf #100814 #100814
-    # client.unfocused        #100814 #100814 #9b9ebf #100814 #100814
-    #
-    # # TODO: I forget why I needed this - could google it I expect?
-    # exec /usr/lib/polkit-kde-authentication-agent-1
-    #
-    # # prevent all windows from stealing focus
-    # no_focus [class=".*"]
+    /*
+       TODO:
+    + Super+r should rotate the selected group of windows.
+    + Super+Control+{1-9} should control the size of the preselect space.
+    + Super+Shift+b should balance the size of all selected nodes.
+    set $tilers "(wezterm.*|kitty.*|firefox.*|slack.*|Slack.*|thunar.*|Alacritty.*|alacritty.*|Discord.*|discord.*)"
+    for_window [title=".*"] floating enable
+    for_window [app_id=$tilers] floating disable
+
+    # for_window [title=".*"] opacity $opacity
+
+    # TODO: I forget why I needed this - could google it I expect?
+    exec /usr/lib/polkit-kde-authentication-agent-1
+
+    # prevent all windows from stealing focus
+    no_focus [class=".*"]
+    */
 
     enable = true;
 
@@ -323,42 +639,42 @@
       };
       assigns = {};
       bars = [];
-      colors = with config.colorScheme.colors; {
-        background = "#1e1e2e";
+      colors = with colors; {
+        background = bg;
         focused = {
-          background = base03;
-          border = base0C;
-          childBorder = base0C;
-          indicator = base0C;
-          text = base05;
+          background = bg;
+          border = primary;
+          childBorder = primary;
+          indicator = primary;
+          text = bg;
         };
         focusedInactive = {
-          background = base03;
-          border = base0D;
-          childBorder = base0D;
-          indicator = base0D;
-          text = base05;
+          background = bg;
+          border = primary;
+          childBorder = primary;
+          indicator = primary;
+          text = bg;
         };
         placeholder = {
-          background = base03;
-          border = base0D;
-          childBorder = base0D;
-          indicator = base0D;
-          text = base05;
+          background = bg;
+          border = primary;
+          childBorder = primary;
+          indicator = primary;
+          text = text;
         };
         unfocused = {
-          background = base03;
-          border = base03;
-          childBorder = base03;
-          indicator = base03;
-          text = base05;
+          background = bg;
+          border = bg;
+          childBorder = bg;
+          indicator = bg;
+          text = text;
         };
         urgent = {
-          background = base03;
-          border = base0F;
-          childBorder = base0F;
-          indicator = base0F;
-          text = base05;
+          background = urgent;
+          border = urgent;
+          childBorder = urgent;
+          indicator = urgent;
+          text = bg;
         };
       };
     };
@@ -384,473 +700,436 @@
     })
   ];
 
-  programs = {
-    # TODO: hyprland = {
-    #   enable = true;
-    # };
-
-    waybar = {
-      enable = true;
-      settings = {
-        mainBar = {
-          "layer" = "top";
-          "position" = "bottom";
-          "output" = ["eDP-1" "DP-3"];
-          "height" = 32;
-          "modules-left" = ["clock" "sway/window"];
-          "modules-center" = ["sway/workspaces"];
-          "modules-right" = [
-            "mpris"
-            "idle_inhibitor"
-            "bluetooth"
-            # "wireplumber",
-            "pulseaudio"
-            # "network",
-            "cpu"
-            "memory"
-            # "temperature",
-            "backlight"
-            "battery"
-            "tray"
-          ];
-          "bluetooth" = {
-            "format" = "<span</span>";
-            "format-connected" = "<span></span>";
-            "format-connected-battery" = "<span></span>";
-            # "format-device-preference" = [ "device1", "device2" ], # preference list deciding the displayed devic;
-            "tooltip-format" = "{controller_alias}@{controller_address} ({num_connections} connected)";
-            "tooltip-format-connected" = "{controller_alias}@{controller_address} ({num_connections} connected)\n{device_enumerate}";
-            "tooltip-format-enumerate-connected" = "{device_alias}@{device_address}";
-            "tooltip-format-enumerate-connected-battery" = "{device_alias}@{device_address} (󰁹 {device_battery_percentage}%)";
+  programs.waybar = {
+    enable = true;
+    settings = {
+      mainBar = {
+        "layer" = "top";
+        "position" = "bottom";
+        "output" = ["eDP-1" "DP-3"];
+        "height" = 32;
+        "modules-left" = ["clock" "sway/window"];
+        "modules-center" = ["sway/workspaces"];
+        "modules-right" = [
+          "mpris"
+          "idle_inhibitor"
+          "bluetooth"
+          # "wireplumber",
+          "pulseaudio"
+          # "network",
+          "cpu"
+          "memory"
+          # "temperature",
+          "backlight"
+          "battery"
+          "tray"
+        ];
+        "bluetooth" = {
+          "format" = "<span</span>";
+          "format-connected" = "<span></span>";
+          "format-connected-battery" = "<span></span>";
+          # "format-device-preference" = [ "device1", "device2" ], # preference list deciding the displayed devic;
+          "tooltip-format" = "{controller_alias}@{controller_address} ({num_connections} connected)";
+          "tooltip-format-connected" = "{controller_alias}@{controller_address} ({num_connections} connected)\n{device_enumerate}";
+          "tooltip-format-enumerate-connected" = "{device_alias}@{device_address}";
+          "tooltip-format-enumerate-connected-battery" = "{device_alias}@{device_address} (󰁹 {device_battery_percentage}%)";
+        };
+        # "wireplumber" = ;
+        #     "format" = "{volume}% {icon}";
+        #     "format-muted" = "";
+        #     "on-click" = "helvum;
+        # },
+        "sway/workspaces" = {
+          "disable-scroll" = false;
+          "persistent_workspaces" = {
+            "1" = [];
+            "2" = [];
+            "3" = [];
+            "4" = [];
+            "5" = [];
+            "6" = [];
+            "7" = [];
+            "8" = [];
+            "9" = [];
+            # "10" = [;
           };
-          # "wireplumber" = ;
-          #     "format" = "{volume}% {icon}";
-          #     "format-muted" = "";
-          #     "on-click" = "helvum;
-          # },
-          "sway/workspaces" = {
-            "disable-scroll" = false;
-            "persistent_workspaces" = {
-              "1" = [];
-              "2" = [];
-              "3" = [];
-              "4" = [];
-              "5" = [];
-              "6" = [];
-              "7" = [];
-              "8" = [];
-              "9" = [];
-              # "10" = [;
-            };
-            "all-outputs" = true;
-            "format" = "{name}";
-          };
-          "idle_inhibitor" = {
-            "format" = "{icon}";
-            "format-icons" = {
-              "activated" = "󰈈";
-              "deactivated" = "󰈉";
-            };
-          };
-          "tray" = {
-            "icon-size" = 24;
-            "spacing" = 4;
-          };
-          "clock" = {
-            "interval" = 1;
-            "format" = "{:%a %b %d %H:%M:%S}";
-          };
-          "cpu" = {
-            "format" = "{usage} <span></span>";
-            "tooltip" = true;
-            "interval" = 3;
-          };
-          "memory" = {
-            "format" = "{} 󰍛";
-          };
-          "temperature" = {
-            # "thermal-zone" = 2;
-            # "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
-            "critical-threshold" = 80;
-            # "format-critical" = "{temperatureC}°C {icon}";
-            "format" = "{temperatureC}°C {icon}";
-            "format-icons" = ["" "" ""];
-          };
-          "backlight" = {
-            # "device" = "acpi_video1";
-            "format" = "{percent}% {icon}";
-            "format-icons" = ["" ""];
-          };
-          "battery" = {
-            "states" = {
-              # "good" = 95;
-              "warning" = 30;
-              "critical" = 1;
-            };
-            "format" = "{capacity}% {icon}";
-            "format-charging" = "{capacity}% 󱐋";
-            "format-plugged" = "{capacity}% 󰚥";
-            "format-alt" = "{time} {icon}";
-            "format-good" = ""; # An empty format will hide the modul;
-            "format-full" = "󰁹";
-            "format-icons" = ["󰂎" "󰁻" "󰁽" "󰁿" "󰂂"];
-          };
-          "network" = {
-            "format-wifi" = "{essid} ({signalStrength}%) ";
-            "format-ethernet" = "{ifname}: {ipaddr}/{cidr} ";
-            "format-linked" = "{ifname} (No IP) ";
-            "format-disconnected" = "Disconnected ⚠";
-            "format-alt" = "{ifname}: {ipaddr}/{cidr}";
-          };
-          "mpris" = {
-            "format" = "{title} by {artist}";
-          };
-          "pulseaudio" = {
-            # "scroll-step" = 1, # %, can be a floa;
-            "format" = "{volume} {icon} <span>{format_source}</span>";
-            #"format" = "{volume}% {icon} {format_source}";
-            #"format-bluetooth" = "{volume}% {icon} {format_source}";
-            #"format-bluetooth-muted" = " {icon} {format_source}";
-            #"format-muted" = " {format_source}";
-            "format-muted" = "󰝟  {format_source}";
-            "format-source" = "";
-            "format-source-muted" = "";
-            "format-icons" = {
-              "headphones" = "";
-              "handsfree" = "󱥋";
-              "headset" = "󰋎";
-              "phone" = "";
-              "portable" = "";
-              "car" = "";
-              "default" = ["" "" ""];
-            };
-            # TODO: toggle mute?
-            "on-click" = "pavucontrol";
+          "all-outputs" = true;
+          "format" = "{name}";
+        };
+        "idle_inhibitor" = {
+          "format" = "{icon}";
+          "format-icons" = {
+            "activated" = "󰈈";
+            "deactivated" = "󰈉";
           };
         };
-      };
-      style = ''
-        @define-color base   #1e1e2e;
-        @define-color mantle #181825;
-        @define-color crust  #11111b;
-
-        @define-color text     #cdd6f4;
-        @define-color subtext0 #a6adc8;
-        @define-color subtext1 #bac2de;
-
-        @define-color surface0 #313244;
-        @define-color surface1 #45475a;
-        @define-color surface2 #585b70;
-
-        @define-color overlay0 #6c7086;
-        @define-color overlay1 #7f849c;
-        @define-color overlay2 #9399b2;
-
-        @define-color blue      #89b4fa;
-        @define-color lavender  #b4befe;
-        @define-color sapphire  #74c7ec;
-        @define-color sky       #89dceb;
-        @define-color teal      #94e2d5;
-        @define-color green     #a6e3a1;
-        @define-color yellow    #f9e2af;
-        @define-color peach     #fab387;
-        @define-color maroon    #eba0ac;
-        @define-color red       #f38ba8;
-        @define-color mauve     #cba6f7;
-        @define-color pink      #f5c2e7;
-        @define-color flamingo  #f2cdcd;
-        @define-color rosewater #f5e0dc;
-
-        * {
-        	border-radius: 0;
-        	font-family: "IosevkaLyteTerm", "Symbols Nerd Font Mono", sans-serif;
-        	font-size: 16px;
-        }
-
-        window#waybar {
-        	min-height: 32px;
-        	background-color: @base;
-        	color: @crust;
-        	border-top: solid @sapphire 1px;
-        	transition: none;
-        }
-
-        window#waybar.hidden {
-        	/* opacity: 0.2; */
-        }
-
-        window#waybar.empty {
-        	/* opacity: 0.2; */
-        }
-
-        #workspaces button {
-        	padding: 0 0.75em;
-        	background-color: transparent;
-        	border-top: solid @sapphire 1px;
-          transition: none;
-        }
-
-        #workspaces button:hover {
-        	/*
-        	 * background: rgba(0, 0, 0, 0.2);
-        	 * box-shadow: inherit;
-        	 */
-        }
-
-        #workspaces button.visible {
-        	background-color: @base;
-        }
-
-        #workspaces button.focused {
-        	color: @base;
-        	background-color: @sapphire;
-        }
-
-        #workspaces button.persistent {
-        	color: @surface2;
-        }
-
-        #workspaces button.urgent {
-        	color: @base;
-        	background-color: @red;
-        	border-top: solid @red 1px;
-        }
-
-        #mode {
-        	background-color: transparent;
-        }
-
-        #clock,
-        #battery,
-        #cpu,
-        #memory,
-        #temperature,
-        #backlight,
-        #network,
-        #pulseaudio,
-        #custom-media,
-        #tray,
-        #mode,
-        #idle_inhibitor,
-        #mpris,
-        #window,
-        #mpd {
-        	margin-top: 1px;
-        	padding: 0 0.75em;
-        	background-color: inherit;
-        	color: @text;
-        }
-
-        #clock {}
-
-        #battery {
-        	/* background-color: #ffffff; */
-        	/* color: #000000; */
-        }
-
-        #battery.charging {
-        	/* color: #ffffff; */
-        	/* background-color: #26A65B; */
-        }
-
-        @keyframes blink {
-        	to {
-        		background-color: #ffffff;
-        		color: #000000;
-        	}
-        }
-
-        #battery.critical:not(.charging) {
-        	background-color: @red;
-        	animation-name: blink;
-        	animation-duration: 0.5s;
-        	animation-timing-function: linear;
-        	animation-iteration-count: infinite;
-        	animation-direction: alternate;
-        }
-
-        #bluetooth,
-        #bluetooth.connected-battery,
-        #bluetooth.connected.battery,
-        #bluetooth.connected {
-        	color: @text;
-        }
-
-        label:focus {
-        	/* background-color: #000000; */
-        }
-
-        #cpu {
-        	/* background-color: #2ecc71; */
-        	/* color: #000000; */
-        }
-
-        #memory {
-        	/* background-color: #9b59b6; */
-        }
-
-        #backlight {
-        	/* background-color: #90b1b1; */
-        }
-
-        #network {
-        	/* background-color: #2980b9; */
-        }
-
-        #network.disconnected {
-        	/* background-color: #f53c3c; */
-        }
-
-        #pulseaudio {
-        	color: @red;
-        	/* background-color: #f1c40f; */
-        	/* color: #000000; */
-        }
-
-        #pulseaudio.source-muted {
-        	/* background-color: #90b1b1; */
-        	color: @text;
-        }
-
-        #custom-media {
-        	/* background-color: #66cc99; */
-        	/* color: #2a5c45; */
-        	/* min-width: 100px; */
-        }
-
-        #custom-media.custom-spotify {
-        	/* background-color: #66cc99; */
-        }
-
-        #custom-media.custom-vlc {
-        	/* background-color: #ffa000; */
-        }
-
-        #temperature {
-        	/* background-color: #f0932b; */
-        }
-
-        #temperature.critical {
-        	/* background-color: #eb4d4b; */
-        }
-
-        #tray {
-        	/* background-color: #2980b9; */
-        }
-
-        #idle_inhibitor {
-        	/* background-color: #2d3436; */
-        }
-
-        #idle_inhibitor.activated {
-        	/* background-color: #ecf0f1; */
-        	/* color: #2d3436; */
-        }
-
-        #mpd {
-        	/* background-color: #66cc99; */
-        	/* color: #2a5c45; */
-        }
-
-        #mpd.disconnected {
-        	/* background-color: #f53c3c; */
-        }
-
-        #mpd.stopped {
-        	/* background-color: #90b1b1; */
-        }
-
-        #mpd.paused {
-        	/* background-color: #51a37a; */
-        }
-      '';
-      systemd = {
-        enable = true;
-      };
-    };
-
-    firefox = {
-      # TODO: this should be able to work on macos, no?
-      # TODO: enable dark theme by default
-      enable = true;
-
-      # TODO: uses nixpkgs.pass so pass otp doesn't work
-      package = pkgs.firefox.override {extraNativeMessagingHosts = [pkgs.passff-host];};
-
-      # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-      #   ublock-origin
-      # ]; # TODO: would be nice to have _all_ my firefox stuff managed here instead of Firefox Sync maybe?
-
-      profiles = {
-        daniel = {
-          id = 0;
-          settings = {
-            "general.smoothScroll" = true;
+        "tray" = {
+          "icon-size" = 24;
+          "spacing" = 4;
+        };
+        "clock" = {
+          "interval" = 1;
+          "format" = "{:%a %b %d %H:%M:%S}";
+        };
+        "cpu" = {
+          "format" = "{usage} <span></span>";
+          "tooltip" = true;
+          "interval" = 3;
+        };
+        "memory" = {
+          "format" = "{} 󰍛";
+        };
+        "temperature" = {
+          # "thermal-zone" = 2;
+          # "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
+          "critical-threshold" = 80;
+          # "format-critical" = "{temperatureC}°C {icon}";
+          "format" = "{temperatureC}°C {icon}";
+          "format-icons" = ["" "" ""];
+        };
+        "backlight" = {
+          # "device" = "acpi_video1";
+          "format" = "{percent}% {icon}";
+          "format-icons" = ["" ""];
+        };
+        "battery" = {
+          "states" = {
+            # "good" = 95;
+            "warning" = 30;
+            "critical" = 1;
           };
-
-          extraConfig = ''
-            user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
-            // user_pref("full-screen-api.ignore-widgets", true);
-            user_pref("media.ffmpeg.vaapi.enabled", true);
-            user_pref("media.rdd-vpx.enabled", true);
-          '';
-
-          userChrome = ''
-            #TabsToolbar {
-              visibility: collapse;
-            }
-
-            #webrtcIndicator {
-              display: none;
-            }
-
-            #main-window[tabsintitlebar="
-            true "]:not([extradragspace="
-            true "]) #TabsToolbar>.toolbar-items {
-              opacity: 0;
-              pointer-events: none;
-            }
-
-            #main-window:not([tabsintitlebar="
-            true "]) #TabsToolbar {
-              visibility: collapse !important;
-            }
-          '';
-
-          # userContent = ''
-          # '';
+          "format" = "{capacity}% {icon}";
+          "format-charging" = "{capacity}% 󱐋";
+          "format-plugged" = "{capacity}% 󰚥";
+          "format-alt" = "{time} {icon}";
+          "format-good" = ""; # An empty format will hide the modul;
+          "format-full" = "󰁹";
+          "format-icons" = ["󰂎" "󰁻" "󰁽" "󰁿" "󰂂"];
+        };
+        "network" = {
+          "format-wifi" = "{essid} ({signalStrength}%) ";
+          "format-ethernet" = "{ifname}: {ipaddr}/{cidr} ";
+          "format-linked" = "{ifname} (No IP) ";
+          "format-disconnected" = "Disconnected ⚠";
+          "format-alt" = "{ifname}: {ipaddr}/{cidr}";
+        };
+        "mpris" = {
+          "format" = "{title} by {artist}";
+        };
+        "pulseaudio" = {
+          # "scroll-step" = 1, # %, can be a floa;
+          "format" = "{volume} {icon} <span>{format_source}</span>";
+          #"format" = "{volume}% {icon} {format_source}";
+          #"format-bluetooth" = "{volume}% {icon} {format_source}";
+          #"format-bluetooth-muted" = " {icon} {format_source}";
+          #"format-muted" = " {format_source}";
+          "format-muted" = "󰝟  {format_source}";
+          "format-source" = "";
+          "format-source-muted" = "";
+          "format-icons" = {
+            "headphones" = "";
+            "handsfree" = "󱥋";
+            "headset" = "󰋎";
+            "phone" = "";
+            "portable" = "";
+            "car" = "";
+            "default" = ["" "" ""];
+          };
+          # TODO: toggle mute?
+          "on-click" = "pavucontrol";
         };
       };
     };
+    style = with colors.withHashPrefix; ''
+      * {
+      	border-radius: 0;
+      	font-family: "${font.name}", "Symbols Nerd Font Mono", sans-serif;
+      	font-size: 16px;
+      }
 
-    swaylock = {
+      window#waybar {
+      	min-height: 32px;
+      	background-color: ${bg};
+      	color: ${text};
+      	border-top: solid ${blue} 1px;
+      	transition: none;
+      }
+
+      window#waybar.hidden {
+      	/* opacity: 0.2; */
+      }
+
+      window#waybar.empty {
+      	/* opacity: 0.2; */
+      }
+
+      #workspaces button {
+      	padding: 0 0.75em;
+      	background-color: transparent;
+      	border-top: solid ${primary} 1px;
+        transition: none;
+      }
+
+      #workspaces button:hover {
+      	/*
+      	 * background: rgba(0, 0, 0, 0.2);
+      	 * box-shadow: inherit;
+      	 */
+      }
+
+      #workspaces button.visible {
+      	background-color: ${bg};
+      }
+
+      #workspaces button.focused {
+      	color: ${bg};
+      	background-color: ${blue};
+      }
+
+      #workspaces button.persistent {
+      	color: ${text};
+      }
+
+      #workspaces button.urgent {
+      	background-color: ${urgent};
+      	color: ${bg};
+      	border-top: solid ${urgent} 1px;
+      }
+
+      #mode {
+      	background-color: transparent;
+      }
+
+      #clock,
+      #battery,
+      #cpu,
+      #memory,
+      #temperature,
+      #backlight,
+      #network,
+      #pulseaudio,
+      #custom-media,
+      #tray,
+      #mode,
+      #idle_inhibitor,
+      #mpris,
+      #window,
+      #mpd {
+      	margin-top: 1px;
+      	padding: 0 0.75em;
+      	background-color: inherit;
+      	color: ${text};
+      }
+
+      #clock {}
+
+      #battery {
+      	/* background-color: #ffffff; */
+      	/* color: #000000; */
+      }
+
+      #battery.charging {
+      	/* color: #ffffff; */
+      	/* background-color: #26A65B; */
+      }
+
+      @keyframes blink {
+      	to {
+      		background-color: #ffffff;
+      		color: #000000;
+      	}
+      }
+
+      #battery.critical:not(.charging) {
+      	background-color: ${red};
+      	animation-name: blink;
+      	animation-duration: 0.5s;
+      	animation-timing-function: linear;
+      	animation-iteration-count: infinite;
+      	animation-direction: alternate;
+      }
+
+      #bluetooth,
+      #bluetooth.connected-battery,
+      #bluetooth.connected.battery,
+      #bluetooth.connected {
+      	color: ${text};
+      }
+
+      label:focus {
+      	/* background-color: #000000; */
+      }
+
+      #cpu {
+      	/* background-color: #2ecc71; */
+      	/* color: #000000; */
+      }
+
+      #memory {
+      	/* background-color: #9b59b6; */
+      }
+
+      #backlight {
+      	/* background-color: #90b1b1; */
+      }
+
+      #network {
+      	/* background-color: #2980b9; */
+      }
+
+      #network.disconnected {
+      	/* background-color: #f53c3c; */
+      }
+
+      #pulseaudio {
+      	color: ${red};
+      	/* background-color: #f1c40f; */
+      	/* color: #000000; */
+      }
+
+      #pulseaudio.source-muted {
+      	/* background-color: #90b1b1; */
+      	color: ${text};
+      }
+
+      #custom-media {
+      	/* background-color: #66cc99; */
+      	/* color: #2a5c45; */
+      	/* min-width: 100px; */
+      }
+
+      #custom-media.custom-spotify {
+      	/* background-color: #66cc99; */
+      }
+
+      #custom-media.custom-vlc {
+      	/* background-color: #ffa000; */
+      }
+
+      #temperature {
+      	/* background-color: #f0932b; */
+      }
+
+      #temperature.critical {
+      	/* background-color: #eb4d4b; */
+      }
+
+      #tray {
+      	/* background-color: #2980b9; */
+      }
+
+      #idle_inhibitor {
+      	/* background-color: #2d3436; */
+      }
+
+      #idle_inhibitor.activated {
+      	/* background-color: #ecf0f1; */
+      	/* color: #2d3436; */
+      }
+
+      #mpd {
+      	/* background-color: #66cc99; */
+      	/* color: #2a5c45; */
+      }
+
+      #mpd.disconnected {
+      	/* background-color: #f53c3c; */
+      }
+
+      #mpd.stopped {
+      	/* background-color: #90b1b1; */
+      }
+
+      #mpd.paused {
+      	/* background-color: #51a37a; */
+      }
+    '';
+    systemd = {
       enable = true;
-      settings = {
-        color = "ffffffff";
-        image = "~/.wallpaper";
-        font = "IosevkaLyteTerm";
-        show-failed-attempts = true;
-        ignore-empty-password = true;
+    };
+  };
 
-        indicator-radius = "150";
-        indicator-thickness = "30";
+  programs.firefox = {
+    # TODO: this should be able to work on macos, no?
+    # TODO: enable dark theme by default
+    enable = true;
 
-        inside-color = "11111100";
-        inside-clear-color = "11111100";
-        inside-ver-color = "11111100";
-        inside-wrong-color = "11111100";
+    # TODO: uses nixpkgs.pass so pass otp doesn't work
+    package = pkgs.firefox.override {extraNativeMessagingHosts = [pkgs.passff-host];};
 
-        key-hl-color = "a1efe4";
-        separator-color = "11111100";
+    # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+    #   ublock-origin
+    # ]; # TODO: would be nice to have _all_ my firefox stuff managed here instead of Firefox Sync maybe?
 
-        line-color = "111111cc";
-        line-uses-ring = true;
+    profiles = {
+      daniel = {
+        id = 0;
+        settings = {
+          "general.smoothScroll" = true;
+        };
 
-        ring-color = "111111cc";
-        ring-clear-color = "f4bf75";
-        ring-ver-color = "66d9ef";
-        ring-wrong-color = "f92672";
+        extraConfig = ''
+          user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+          // user_pref("full-screen-api.ignore-widgets", true);
+          user_pref("media.ffmpeg.vaapi.enabled", true);
+          user_pref("media.rdd-vpx.enabled", true);
+        '';
+
+        userChrome = ''
+          #TabsToolbar {
+            visibility: collapse;
+          }
+
+          #webrtcIndicator {
+            display: none;
+          }
+
+          #main-window[tabsintitlebar="
+          true "]:not([extradragspace="
+          true "]) #TabsToolbar>.toolbar-items {
+            opacity: 0;
+            pointer-events: none;
+          }
+
+          #main-window:not([tabsintitlebar="
+          true "]) #TabsToolbar {
+            visibility: collapse !important;
+          }
+        '';
+
+        # userContent = ''
+        # '';
       };
+    };
+  };
+
+  programs.swaylock = {
+    enable = true;
+    settings = {
+      color = "ffffffff";
+      image = "~/.wallpaper";
+      font = font.name;
+      show-failed-attempts = true;
+      ignore-empty-password = true;
+
+      indicator-radius = "150";
+      indicator-thickness = "30";
+
+      inside-color = "11111100";
+      inside-clear-color = "11111100";
+      inside-ver-color = "11111100";
+      inside-wrong-color = "11111100";
+
+      key-hl-color = "a1efe4";
+      separator-color = "11111100";
+
+      line-color = "111111cc";
+      line-uses-ring = true;
+
+      ring-color = "111111cc";
+      ring-clear-color = "f4bf75";
+      ring-ver-color = "66d9ef";
+      ring-wrong-color = "f92672";
     };
   };
 }
