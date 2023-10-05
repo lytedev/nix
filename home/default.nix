@@ -520,7 +520,7 @@ in {
           bg = bg;
         };
 
-        "ui.selection" = {bg = bg3;};
+        "ui.selection" = {bg = bg5;};
 
         "ui.cursor" = {
           fg = bg;
@@ -824,7 +824,7 @@ in {
 
       # open_url_modifiers ctrl
 
-      "tab_bar_align" = "center";
+      "tab_bar_align" = "left";
       "tab_bar_style" = "separator";
       "tab_separator" = ''""'';
       "tab_bar_edge" = "top";
