@@ -8,10 +8,6 @@
     firefox
   ];
 
-  programs.foot = {
-    enable = true;
-  };
-
   gtk = {
     enable = true;
     theme = {

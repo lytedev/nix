@@ -22,6 +22,10 @@
     # some icons are also missing (hand2?)
   };
 
+  programs.foot = {
+    enable = true;
+  };
+
   wayland.windowManager.sway = {
     /*
        TODO:
