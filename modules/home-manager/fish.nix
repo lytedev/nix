@@ -25,14 +25,6 @@
         end
       '';
 
-      g = ''
-        if test (count $argv) -gt 0
-          git $argv
-        else
-          git status
-        end
-      '';
-
       ltl = ''
         set d $argv[1] .
         set -l l ""
