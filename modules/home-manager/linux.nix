@@ -10,6 +10,7 @@
   programs.fish = {
     shellAliases = {
       sctl = "sudo systemctl";
+      bt = "bluetoothctl";
       sctlu = "systemctl --user";
     };
   };
