@@ -122,18 +122,22 @@
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
       # TODO: non-system-specific home configurations?
-      "base-x86_64-linux" = home-manager.lib.homeManagerConfiguration rec {
+      "base-x86_64-linux" = let
         system = "x86_64-linux";
-        pkgs = nixpkgs-unstable.legacyPackages.${system};
-        extraSpecialArgs = {inherit inputs outputs system colors font;};
-        modules = with outputs.homeManagerModules; [linux];
-      };
-      "base-aarch64-darwin" = home-manager.lib.homeManagerConfiguration rec {
+      in
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs-unstable.legacyPackages.${system};
+          extraSpecialArgs = {inherit inputs outputs system colors font;};
+          modules = with outputs.homeManagerModules; [linux];
+        };
+      "base-aarch64-darwin" = let
         system = "aarch64-darwin";
-        pkgs = nixpkgs-unstable.legacyPackages.${system};
-        extraSpecialArgs = {inherit inputs outputs system colors font;};
-        modules = with outputs.homeManagerModules; [macos];
-      };
+      in
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs-unstable.legacyPackages.${system};
+          extraSpecialArgs = {inherit inputs outputs system colors font;};
+          modules = with outputs.homeManagerModules; [macos];
+        };
     };
 
     # TODO: nix-on-droid for phone terminal usage?
