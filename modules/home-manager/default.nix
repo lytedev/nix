@@ -21,4 +21,7 @@
   swaylock = import ./swaylock.nix;
   desktop = import ./desktop.nix;
   sway = import ./sway.nix;
+
+  dragon = import ./dragon.nix;
+  thinker = import ./thinker.nix;
 }

@@ -28,13 +28,15 @@
   } @ inputs: let
     inherit (self) outputs;
 
-    forAllSystems = nixpkgs-stable.lib.genAttrs [
+    systems = [
       "aarch64-linux"
       # "i686-linux"
       "x86_64-linux"
       "aarch64-darwin"
       "x86_64-darwin"
     ];
+
+    forAllSystems = nixpkgs-stable.lib.genAttrs systems;
 
     color-schemes = (import ./lib/colors.nix inputs).schemes;
     colors = color-schemes.catppuccin-mocha-sapphire;
@@ -96,10 +98,10 @@
       mkNixosUnstableSystem = mkNixosSystem nixpkgs-unstable.lib.nixosSystem;
     in {
       dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
-        sway
+        dragon
       ]);
       thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
-        sway
+        thinker
       ]);
       beefcake =
         mkNixosUnstableSystem "x86_64-linux" [
@@ -119,14 +121,19 @@
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
-      /*
-      daniel = home-manager.lib.homeManagerConfiguration rec {
+      # TODO: non-system-specific home configurations?
+      "base-x86_64-linux" = home-manager.lib.homeManagerConfiguration rec {
         system = "x86_64-linux";
         pkgs = nixpkgs-unstable.legacyPackages.${system};
         extraSpecialArgs = {inherit inputs outputs system colors font;};
         modules = with outputs.homeManagerModules; [linux];
       };
-      */
+      "base-aarch64-darwin" = home-manager.lib.homeManagerConfiguration rec {
+        system = "aarch64-darwin";
+        pkgs = nixpkgs-unstable.legacyPackages.${system};
+        extraSpecialArgs = {inherit inputs outputs system colors font;};
+        modules = with outputs.homeManagerModules; [macos];
+      };
     };
 
     # TODO: nix-on-droid for phone terminal usage?

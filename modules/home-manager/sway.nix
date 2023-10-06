@@ -47,22 +47,31 @@
       enable = true;
     };
 
+    extraConfig = ''
+      exec --no-startup-id {
+        swaymsg "workspace 1"
+      }
+    '';
     config = {
+      defaultWorkspace = "1";
+
+      workspaceOutputAssign = [
+        /*
+        {
+          output = "eDP";
+          workspace = "1";
+        */
+      ];
+
       output = {
         "*" = {
           background = "$HOME/.wallpaper fill";
-        };
-
-        "Dell Inc. DELL U2720Q D3TM623" = {
-          # desktop left vertical monitor
-          transform = "90";
-          scale = "1.5";
         };
       };
 
       # TODO: popup_during_fullscreen smart
       focus = {
-        wrapping = "no";
+        wrapping = "no"; # maybe workspace?
         followMouse = "no";
         mouseWarping = false;
       };
