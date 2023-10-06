@@ -29,6 +29,13 @@
     homeDirectory = lib.mkDefault "/home/daniel/.home";
     stateVersion = lib.mkDefault "23.11";
 
+    sessionVariables = {
+      EDITOR = "hx";
+      VISUAL = "hx";
+      PAGER = "less";
+      MANPAGER = "less";
+    };
+
     packages = [
       # I use gawk for my fish prompt
       pkgs.gawk
