@@ -46,6 +46,9 @@
       size = 12;
     };
   in {
+    colors = colors;
+    font = font;
+
     # TODO: nix-color integration?
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
