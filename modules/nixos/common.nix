@@ -5,11 +5,9 @@
   colors,
   # outputs,
   system,
+  pkgs,
   ...
-}: let
-  pkgs = inputs.nixpkgs-stable.legacyPackages.${system};
-  unstable-pkgs = inputs.nixpkgs-unstable.legacyPackages.${system};
-in {
+}: {
   imports = [
     inputs.home-manager.nixosModules.home-manager
   ];
@@ -26,7 +24,7 @@ in {
       MANPAGER = "less";
     };
 
-    systemPackages = with unstable-pkgs;
+    systemPackages = with pkgs;
       [
         age
         bat

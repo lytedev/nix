@@ -12,7 +12,7 @@
     waybar
     mako
     swaylock
-    desktop
+    linux-desktop
   ];
 
   home.pointerCursor = {

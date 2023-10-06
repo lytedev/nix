@@ -20,6 +20,7 @@
   waybar = import ./waybar.nix;
   swaylock = import ./swaylock.nix;
   desktop = import ./desktop.nix;
+  linux-desktop = import ./linux-desktop.nix;
   sway = import ./sway.nix;
 
   dragon = import ./dragon.nix;
