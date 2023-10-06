@@ -11,6 +11,7 @@
     shellAliases = {
       sctl = "sudo systemctl";
       bt = "bluetoothctl";
+      pa = "pulsemixer";
       sctlu = "systemctl --user";
     };
   };
