@@ -49,7 +49,6 @@
     colors = colors;
     font = font;
 
-    # TODO: nix-color integration?
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (system: import ./pkgs nixpkgs-unstable.legacyPackages.${system});

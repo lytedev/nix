@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-yay -Syu --nodiffmenu --nocleanmenu --noeditmenu
-
-# TODO: update kernel with a flag?
-# yes | pacman -Syu && kexec -l --initrd=/boot/initramfs-linux.img /boot/vmlinuz-linux && kexec -e

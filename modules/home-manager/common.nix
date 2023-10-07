@@ -9,12 +9,14 @@
   # TODO: fonts? right now they are only handled at the nixos-level (desktop-usage module)
   # TODO: wallpaper?
 
-  imports = [
+  imports = with outputs.homeManagerModules; [
     # nix-colors.homeManagerModules.default
-    outputs.homeManagerModules.fish
-    outputs.homeManagerModules.helix
-    outputs.homeManagerModules.git
-    outputs.homeManagerModules.iex
+    fish
+    helix
+    git
+    iex
+    zellij
+    broot
   ];
 
   # TODO: specify an email?
