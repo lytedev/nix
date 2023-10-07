@@ -35,6 +35,8 @@
       # ./users.nix
     ];
 
+  # TODO: https://nixos.wiki/wiki/Remote_LUKS_Unlocking
+
   nixpkgs = {
     # You can add overlays here
     overlays = [
