@@ -129,6 +129,8 @@ nix-shell --packages git \
 
 ## Long Term
 
+- nix-darwin for work profile(s)
+  - https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
 - I don't understand Nix well enough to know why stuff is being compiled even when I have a binary cache
   - Maybe it detects different CPUs and will recompile certain packages for per-CPU optimizations?
     - How does this factor in with "pureness"?

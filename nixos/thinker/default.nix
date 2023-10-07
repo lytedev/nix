@@ -53,5 +53,9 @@
     };
   };
 
+  # networking.networkmanager.enable = false;
+  # systemd.services.NetworkManager-wait-online.enable = lib.mkDefault false;
+  # networking.wireless.iwd.enable = true;
+
   system.stateVersion = "23.11";
 }

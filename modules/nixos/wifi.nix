@@ -1,7 +1,7 @@
-{...}: {
-  # TODO: would like to move away from network manager to iwd
-  networking.networkmanager.enable = true;
-  systemd.services.NetworkManager-wait-online.enable = false;
+{lib, ...}: {
+  networking.networkmanager.enable = lib.mkDefault true;
+  systemd.services.NetworkManager-wait-online.enable = lib.mkDefault false;
+  # TODO: networking.networkmanager.wifi.backend = "iwd"; ?
 
   # TODO: powersave?
 

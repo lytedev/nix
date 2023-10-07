@@ -34,7 +34,7 @@
         btrfs-progs
         cue
         curl
-        dog
+        dogdns
         dua
         eza
         fd
