@@ -5,18 +5,11 @@
   # lib,
   # config,
   # pkgs,
-  system,
+  # system,
   # modulesPath,
   ...
 }: {
   imports = [inputs.ssbm.nixosModule];
-
-  environment = {
-    systemPackages = with inputs.ssbm.packages.${system}; [
-      slippi-netplay
-      slippi-playback
-    ];
-  };
 
   ssbm = {
     cache.enable = true;

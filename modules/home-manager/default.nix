@@ -4,6 +4,7 @@
   # List your module files here
   # my-module = import ./my-module.nix;
   common = import ./common.nix;
+  melee = import ./melee.nix;
   linux = import ./linux.nix;
   macos = import ./macos.nix;
   iex = import ./iex.nix;

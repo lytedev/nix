@@ -1,9 +1,11 @@
 {
+  config,
   lib,
   outputs,
   ...
 }: {
   imports = with outputs.homeManagerModules; [
+    melee
     sway
   ];
 
@@ -39,6 +41,12 @@
           })
           (lib.range 8 9)
         );
+    };
+  };
+
+  ssbm = {
+    slippi-launcher = {
+      isoPath = "${config.home.homeDirectory}/../games/roms/dolphin/melee.iso";
     };
   };
 }

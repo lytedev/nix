@@ -180,6 +180,18 @@
         "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
       ];
     };
+
+    registry = {
+      self.flake = inputs.self;
+
+      nixpkgs = {
+        from = {
+          id = "nixpkgs";
+          type = "indirect";
+        };
+        flake = inputs.nixpkgs-unstable;
+      };
+    };
   };
 
   nixpkgs = {

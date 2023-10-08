@@ -17,10 +17,11 @@
       flake.diskoConfigurations.standard
       inputs.hardware.nixosModules.common-cpu-amd
       inputs.hardware.nixosModules.common-pc-ssd
+      outputs.nixosModules.pipewire-low-latency
     ]
     ++ (with outputs.nixosModules; [
       # If you want to use modules your own flake exports (from modules/nixos):
-      # melee
+      melee
       desktop-usage
       podman
       postgres

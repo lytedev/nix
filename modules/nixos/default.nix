@@ -6,6 +6,7 @@
   desktop-usage = import ./desktop-usage.nix;
   intel = import ./intel.nix;
   pipewire = import ./pipewire.nix;
+  pipewire-low-latency = import ./pipewire-low-latency.nix;
   podman = import ./podman.nix;
   postgres = import ./postgres.nix;
   sway = import ./sway.nix;
