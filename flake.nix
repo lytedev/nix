@@ -149,4 +149,22 @@
     # Disk partition schemes and functions
     diskoConfigurations = import ./disko;
   };
+
+  nixConfig = {
+    extra-experimental-features = ["nix-command" "flakes"];
+
+    extra-substituters = [
+      "https://cache.nixos.org/"
+      "https://helix.cachix.org"
+      "https://nix-community.cachix.org"
+      "https://nix.h.lyte.dev"
+    ];
+
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+    ];
+  };
 }
