@@ -121,16 +121,14 @@ nix-shell --packages git \
 
 ## Short Term
 
-- Modularize the home manager stuff into modules
-- Remove all work-specific config and stick that in its own flake that uses my main flake as input
+- a.lyte.dev for web analytics
+- grafana and stuff for monitoring
+- alerts?
 - Fonts installed by home manager instead of nixos module
-- Zellij config
-- Broot theme
+- Zellij config?
+- Broot config?
 
 ## Long Term
 
 - nix-darwin for work profile(s)
   - https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
-- I don't understand Nix well enough to know why stuff is being compiled even when I have a binary cache
-  - Maybe it detects different CPUs and will recompile certain packages for per-CPU optimizations?
-    - How does this factor in with "pureness"?

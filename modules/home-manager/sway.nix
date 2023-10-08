@@ -55,6 +55,10 @@
       exec --no-startup-id {
         swaymsg "workspace 1"
       }
+
+      set $tilers "(wezterm.*|kitty.*|firefox.*|slack.*|Slack.*|thunar.*|Alacritty.*|alacritty.*|Discord.*|discord.*)"
+      for_window [title=".*"] floating enable
+      for_window [app_id=$tilers] floating disable
     '';
     config = {
       defaultWorkspace = "1";
