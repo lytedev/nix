@@ -23,7 +23,9 @@
   desktop = import ./desktop.nix;
   linux-desktop = import ./linux-desktop.nix;
   sway = import ./sway.nix;
+  sway-laptop = import ./sway-laptop.nix;
 
   dragon = import ./dragon.nix;
   thinker = import ./thinker.nix;
+  foxtrot = import ./foxtrot.nix;
 }

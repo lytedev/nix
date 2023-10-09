@@ -105,6 +105,9 @@
       thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
         thinker
       ]);
+      foxtrot = mkNixosUnstableSystem "x86_64-linux" [./nixos/foxtrot] (with outputs.homeManagerModules; [
+        foxtrot
+      ]);
       beefcake =
         mkNixosUnstableSystem "x86_64-linux" [
           inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
