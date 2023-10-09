@@ -20,7 +20,6 @@
       outputs.nixosModules.pipewire-low-latency
     ]
     ++ (with outputs.nixosModules; [
-      # If you want to use modules your own flake exports (from modules/nixos):
       melee
       desktop-usage
       podman

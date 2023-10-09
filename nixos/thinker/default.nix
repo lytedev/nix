@@ -15,7 +15,6 @@
       flake.diskoConfigurations.thinker
     ]
     ++ (with outputs.nixosModules; [
-      # If you want to use modules your own flake exports (from modules/nixos):
       desktop-usage
       podman
       postgres
