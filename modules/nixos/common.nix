@@ -161,6 +161,11 @@
       allowedTCPPorts = lib.mkDefault [];
       allowedUDPPorts = lib.mkDefault [];
     };
+
+    extraHosts = ''
+      ::1 host.docker.internal
+      127.0.0.1 host.docker.internal
+    '';
   };
 
   nix = {
