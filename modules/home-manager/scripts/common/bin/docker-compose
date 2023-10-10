@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# a shim implemented this way so that other scripts looking for an executable
+# docker-compose file in my path think I have it installed 😈
+podman-compose "$@"
