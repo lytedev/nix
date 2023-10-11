@@ -121,6 +121,7 @@ nix-shell --packages git \
 
 ## Short Term
 
+- router https://github.com/breakds/nixos-routers/blob/main/machines/welderhelper/router.nix
 - a.lyte.dev for web analytics
 - grafana and stuff for monitoring
 - alerts?
