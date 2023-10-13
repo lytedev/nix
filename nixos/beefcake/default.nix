@@ -1,6 +1,12 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running 'nixos-help').
+/*
+if ur fans get loud:
+
+# enable manual fan control
+sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
+
+# set fan speed to last byte as decimal
+sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
+*/
 {
   outputs,
   modulesPath,
