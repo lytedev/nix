@@ -150,6 +150,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
   users.extraGroups = {
     "plausible" = {};
+    "nextcloud" = {};
     "lytedev" = {};
   };
   users.groups.daniel.members = ["daniel"];
@@ -210,6 +211,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     isSystemUser = true;
     createHome = false;
     group = "plausible";
+  };
+
+  users.users.nextcloud = {
+    # used for anonymous samba access
+    isSystemUser = true;
+    createHome = false;
+    group = "nextcloud";
   };
 
   environment.systemPackages = [pkgs.linuxquota];
@@ -275,6 +283,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       a.lyte.dev {
         reverse_proxy :${toString config.services.plausible.server.port}
+      }
+
+      nextcloud.lyte.dev {
+        reverse_proxy :${toString 9999}
       }
 
       git.lyte.dev {
@@ -384,7 +396,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
   services.postgresql = {
     enable = true;
-    ensureDatabases = ["daniel" "plausible"];
+    ensureDatabases = ["daniel" "plausible" "nextcloud"];
     ensureUsers = [
       {
         name = "daniel";
@@ -396,6 +408,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         name = "plausible";
         ensurePermissions = {
           "DATABASE plausible" = "ALL PRIVILEGES";
+        };
+      }
+      {
+        name = "nextcloud";
+        ensurePermissions = {
+          "DATABASE nextcloud" = "ALL PRIVILEGES";
         };
       }
     ];
@@ -410,6 +428,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       local all       daniel    peer map=superuser_map
       local sameuser  all       peer map=superuser_map
       local plausible plausible peer map=superuser_map
+      local nextcloud nextcloud peer map=superuser_map
 
       # lan ipv4
       host  all       all     10.0.0.0/24   trust
@@ -575,6 +594,27 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         "create mode" = 0700;
       };
     };
+  };
+
+  services.redis = {
+    servers = {
+      nextcloud = {
+        enable = true;
+        user = config.systemd.services.nextcloud.serviceConfig.User;
+        # group = config.systemd.services.nextcloud.serviceConfig.Group;
+      };
+    };
+  };
+
+  services.nextcloud = {
+    enable = true;
+    package = pkgs.nextcloud27;
+
+    config = {
+      dbtype = "pgsql";
+    };
+
+    hostName = "nextcloud.lyte.dev";
   };
 
   # paths:

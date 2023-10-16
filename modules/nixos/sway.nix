@@ -38,7 +38,7 @@
 
   environment = {
     variables = {
-      GTK_THEME = "hx";
+      GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
       VISUAL = "hx";
       PAGER = "less";
       MANPAGER = "less";
@@ -77,7 +77,6 @@
       weechat
       wine
       wl-clipboard
-      wofi
       zathura
     ];
   };

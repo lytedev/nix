@@ -15,6 +15,12 @@
     linux-desktop
   ];
 
+  programs.wofi = {
+    enable = true;
+    # settings = {};
+    # style = '' '';
+  };
+
   home.pointerCursor = {
     name = "Bibata-Modern-Classic";
     package = pkgs.bibata-cursors;

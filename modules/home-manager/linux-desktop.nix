@@ -12,11 +12,11 @@
   gtk = {
     enable = true;
     theme = {
-      name = "Catppuccin-Mocha-Compact-Sapphire-dark";
+      name = "Catppuccin-Mocha-Compact-Sapphire-Dark";
       package = pkgs.catppuccin-gtk.override {
         accents = ["sapphire"];
         size = "compact";
-        tweaks = ["rimless" "black"];
+        tweaks = ["rimless"];
         variant = "mocha";
       };
     };
