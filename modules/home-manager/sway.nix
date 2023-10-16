@@ -17,8 +17,28 @@
 
   programs.wofi = {
     enable = true;
-    # settings = {};
-    # style = '' '';
+    settings = {
+      width = "640";
+      height = "360";
+    };
+    style = ''
+      * {
+        border-radius: 0;
+      }
+
+      window {
+        margin: 0px;
+        padding: 8px;
+      }
+
+      #outer-box {
+        margin: 8px;
+      }
+
+      #outer-box, #inner-box {
+        margin-top: 8px;
+      }
+    '';
   };
 
   home.pointerCursor = {
@@ -297,9 +317,9 @@
         };
         focusedInactive = {
           background = bg;
-          border = primary;
-          childBorder = primary;
-          indicator = primary;
+          border = bg;
+          childBorder = bg;
+          indicator = bg;
           text = bg;
         };
         placeholder = {
