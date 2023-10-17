@@ -21,6 +21,8 @@
       border-color=${urgent}
       [urgency=high]
       background-color=${urgent}
+      border-color=${urgent}
+      text-color=${bg}
     '';
   };
 }
