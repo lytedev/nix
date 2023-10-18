@@ -22,6 +22,7 @@
     ])
     ++ [
       inputs.hardware.nixosModules.common-cpu-amd
+      inputs.hardware.nixosModules.common-cpu-amd-pstate
       inputs.hardware.nixosModules.common-pc-laptop-ssd
     ];
 
@@ -36,7 +37,8 @@
       systemd-boot.enable = true;
     };
     # kernelParams = ["boot.shell_on_fail"];
-    initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
+    initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
+    kernelModules = ["kvm-amd"];
   };
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
