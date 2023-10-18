@@ -1,6 +1,5 @@
 {
   inputs = {
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/master";
     helix.url = "github:helix-editor/helix/75c0a5ceb32d8a503915a93ccc1b64c8ad1cba8b";
@@ -21,7 +20,6 @@
 
   outputs = {
     self,
-    nixpkgs-stable,
     nixpkgs-unstable,
     home-manager,
     ...
@@ -36,7 +34,7 @@
       "x86_64-darwin"
     ];
 
-    forAllSystems = nixpkgs-stable.lib.genAttrs systems;
+    forAllSystems = nixpkgs-unstable.lib.genAttrs systems;
 
     color-schemes = (import ./lib/colors.nix inputs).schemes;
     colors = color-schemes.catppuccin-mocha-sapphire;

@@ -25,6 +25,8 @@
       inputs.hardware.nixosModules.common-pc-laptop-ssd
     ];
 
+  nixpkgs.overlays = [outputs.overlays.modifications];
+
   # TODO: hibernation? does sleep suffice?
   # TODO: perform a hardware scan
 
@@ -34,12 +36,27 @@
       systemd-boot.enable = true;
     };
     # kernelParams = ["boot.shell_on_fail"];
-    kernelPackages = pkgs.linuxPackages_latest;
     initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
   };
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true;
+
+  boot.supportedFilesystems =
+    pkgs.lib.mkForce ["btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs"];
+
+  boot.kernelPackages = pkgs.linuxPackagesFor (
+    pkgs.linux_6_5.override {
+      argsOverride = {
+        src = pkgs.fetchurl {
+          url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.5.7.tar.xz";
+          sha256 = "sha256-DQnqRIAFyc/lOD5Mcqhys5GIuSj4xE4UawOxt4Ufu4w=";
+        };
+        version = "6.5.7";
+        modDirVersion = "6.5.7";
+      };
+    }
+  );
 
   networking = {
     firewall = {
