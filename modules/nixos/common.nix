@@ -77,6 +77,8 @@
       ]);
   };
 
+  users.groups.daniel = {};
+
   users.users = {
     daniel = {
       isNormalUser = true;
@@ -194,7 +196,7 @@
           id = "nixpkgs";
           type = "indirect";
         };
-        flake = inputs.nixpkgs-unstable;
+        flake = inputs.nixpkgs;
       };
     };
   };

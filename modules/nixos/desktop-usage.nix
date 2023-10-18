@@ -1,6 +1,7 @@
 {
   pkgs,
   inputs,
+  outputs,
   system,
   ...
 }: {
@@ -12,12 +13,14 @@
     ./user-installed-applications.nix
   ];
 
+  nixpkgs.overlays = [outputs.overlays.modifications];
+
   # fonts.packages if unstable?
   fonts.packages = with pkgs;
     [
       (nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
     ]
-    ++ (with inputs.nixpkgs-unstable.legacyPackages.${system}; [
+    ++ (with inputs.nixpkgs.legacyPackages.${system}; [
       (iosevka.override {
         set = "lyteterm";
         privateBuildPlan = ''
@@ -114,7 +117,8 @@
           two = 'curly-neck'
           three = 'two-arcs'
           four = 'semi-open-non-crossing'
-          five = 'vertical-upper-left-bar'
+          # five = 'vertical-upper-left-bar'
+          five = 'upright-flat'
           six = 'straight-bar'
           seven = 'curly-serifed-crossbar'
           eight = 'two-circles'

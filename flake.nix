@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/master";
     helix.url = "github:helix-editor/helix/75c0a5ceb32d8a503915a93ccc1b64c8ad1cba8b";
     disko.url = "github:nix-community/disko/master";
@@ -20,7 +20,7 @@
 
   outputs = {
     self,
-    nixpkgs-unstable,
+    nixpkgs,
     home-manager,
     ...
   } @ inputs: let
@@ -34,7 +34,7 @@
       "x86_64-darwin"
     ];
 
-    forAllSystems = nixpkgs-unstable.lib.genAttrs systems;
+    forAllSystems = nixpkgs.lib.genAttrs systems;
 
     color-schemes = (import ./lib/colors.nix inputs).schemes;
     colors = color-schemes.catppuccin-mocha-sapphire;
@@ -49,11 +49,11 @@
 
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system: import ./pkgs nixpkgs-unstable.legacyPackages.${system});
+    packages = forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
-    formatter = forAllSystems (system: nixpkgs-unstable.legacyPackages.${system}.alejandra);
+    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
@@ -69,8 +69,8 @@
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
     nixosConfigurations = let
-      mkNixosSystem = cb: system: modules: homeManagerModules:
-        cb {
+      mkNixosSystem = system: modules: homeManagerModules:
+        nixpkgs.lib.nixosSystem {
           system = system;
           specialArgs = {
             inherit inputs outputs system colors font;
@@ -94,29 +94,27 @@
               }
             ];
         };
-      # mkNixosStableSystem = mkNixosSystem nixpkgs-stable.lib.nixosSystem;
-      mkNixosUnstableSystem = mkNixosSystem nixpkgs-unstable.lib.nixosSystem;
     in {
-      dragon = mkNixosUnstableSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
+      dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
         dragon
       ]);
-      thinker = mkNixosUnstableSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
+      thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
         thinker
       ]);
-      foxtrot = mkNixosUnstableSystem "x86_64-linux" [./nixos/foxtrot] (with outputs.homeManagerModules; [
+      foxtrot = mkNixosSystem "x86_64-linux" [./nixos/foxtrot] (with outputs.homeManagerModules; [
         foxtrot
       ]);
       beefcake =
-        mkNixosUnstableSystem "x86_64-linux" [
+        mkNixosSystem "x86_64-linux" [
           inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
           ./nixos/beefcake
         ] (with outputs.homeManagerModules; [
           linux
         ]);
-      rascal = mkNixosUnstableSystem "x86_64-linux" [./nixos/rascal] (with outputs.homeManagerModules; [
+      rascal = mkNixosSystem "x86_64-linux" [./nixos/rascal] (with outputs.homeManagerModules; [
         linux
       ]);
-      musicbox = mkNixosUnstableSystem "x86_64-linux" [./nixos/musicbox] (with outputs.homeManagerModules; [
+      musicbox = mkNixosSystem "x86_64-linux" [./nixos/musicbox] (with outputs.homeManagerModules; [
         sway
       ]);
     };
@@ -129,7 +127,7 @@
         system = "x86_64-linux";
       in
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs-unstable.legacyPackages.${system};
+          pkgs = nixpkgs.legacyPackages.${system};
           extraSpecialArgs = {inherit inputs outputs system colors font;};
           modules = with outputs.homeManagerModules; [linux];
         };
@@ -137,7 +135,7 @@
         system = "aarch64-darwin";
       in
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs-unstable.legacyPackages.${system};
+          pkgs = nixpkgs.legacyPackages.${system};
           extraSpecialArgs = {inherit inputs outputs system colors font;};
           modules = with outputs.homeManagerModules; [macos];
         };

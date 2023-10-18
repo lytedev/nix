@@ -72,7 +72,7 @@
 
   programs.eza = {
     enable = true;
-    package = inputs.nixpkgs-unstable.legacyPackages.${system}.eza;
+    package = inputs.nixpkgs.legacyPackages.${system}.eza;
   };
 
   programs.skim = {
