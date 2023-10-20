@@ -9,6 +9,10 @@ here is useful inspiration.
 
 # Quick Start
 
+```shell_session
+$ nixos-rebuild switch --flake git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}
+```
+
 You don't have even have to clone this crap yourself. How cool is that!
 
 But if you're gonna change stuff you had better setup the pre-commit hook:
@@ -27,7 +31,7 @@ $ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
 ## NixOS
 
 ```shell_session
-$ nixos-rebuild switch --flake git+https://git.lyte.dev/lytedev/nix
+$ nixos-rebuild switch --flake .
 ```
 
 ## Not NixOS
@@ -44,7 +48,7 @@ $ home-manager switch --flake git+https://git.lyte.dev/lytedev/nix
 
 ```bash
 host=your_host
-nix run nixpkgs#nixos-rebuild -- --flake "git+https://git.lyte.dev/lytedev/nix#$host" \
+nix run nixpkgs#nixos-rebuild -- --flake ".#$host" \
   --target-host "root@$host" --build-host "root@$host" \
   switch --show-trace
 ```
@@ -68,7 +72,7 @@ ssh -t "root@$host" "bash -c '
 # we will test things and make sure it works first
 # if it fails, the reboot we started previously will automatically kick in once the timeout is reached
 # and the machine will boot to the now-previous iteration
-nix run nixpkgs#nixos-rebuild -- --flake "git+https://git.lyte.dev/lytedev/nix#$host" \
+nix run nixpkgs#nixos-rebuild -- --flake ".#$host" \
   --target-host "root@$host" --build-host "root@$host" \
   test --show-trace
 
@@ -113,7 +117,7 @@ nix-shell --packages git --run "sudo nix run \
 nix-shell --packages git \
   --run "sudo nixos-install \
     --flake 'git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}' \
-    --option substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
+    --option trusted-substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
     --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
