@@ -223,40 +223,6 @@
         "type": "github"
       }
     },
-    "lowdown-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1598695561,
-        "narHash": "sha256-gyH/5j+h/nWw0W8AcR2WKvNBUsiQ7QuxqSJNXAwV+8E=",
-        "owner": "kristapsdz",
-        "repo": "lowdown",
-        "rev": "1705b4a26fbf065d9574dce47a94e8c7c79e052f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "kristapsdz",
-        "repo": "lowdown",
-        "type": "github"
-      }
-    },
-    "nix": {
-      "inputs": {
-        "lowdown-src": "lowdown-src",
-        "nixpkgs": "nixpkgs_8"
-      },
-      "locked": {
-        "lastModified": 1609520816,
-        "narHash": "sha256-IGO7tfJXsv9u2wpW76VCzOsHYapRZqH9pHGVsoffPrI=",
-        "owner": "NixOS",
-        "repo": "nix",
-        "rev": "8a2ce0f455da32bc20978e68c0aad9efb4560abc",
-        "type": "github"
-      },
-      "original": {
-        "id": "nix",
-        "type": "indirect"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1697456312,
@@ -387,21 +353,6 @@
     },
     "nixpkgs_8": {
       "locked": {
-        "lastModified": 1602702596,
-        "narHash": "sha256-fqJ4UgOb4ZUnCDIapDb4gCrtAah5Rnr2/At3IzMitig=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "ad0d20345219790533ebe06571f82ed6b034db31",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-20.09-small",
-        "type": "indirect"
-      }
-    },
-    "nixpkgs_9": {
-      "locked": {
         "lastModified": 1692447944,
         "narHash": "sha256-fkJGNjEmTPvqBs215EQU4r9ivecV5Qge5cF/QDLVn3U=",
         "owner": "NixOS",
@@ -491,20 +442,19 @@
     },
     "ssbm": {
       "inputs": {
-        "nix": "nix",
-        "nixpkgs": "nixpkgs_9",
+        "nixpkgs": "nixpkgs_8",
         "slippi-desktop": "slippi-desktop"
       },
       "locked": {
-        "lastModified": 1696638790,
-        "narHash": "sha256-fmpFkchuAyQfaSOWqEMnw4wRxWFkD7LqBwjKcVog8xQ=",
-        "owner": "djanatyn",
+        "lastModified": 1697581527,
+        "narHash": "sha256-sw4K8A9Wy6V4y54TlNjpsY4l11fxrEFHXrYq3NXoZcc=",
+        "owner": "lytedev",
         "repo": "ssbm-nix",
-        "rev": "cfeb1874b437e5883272c522234d1d15cb3d3ebd",
+        "rev": "abc984d77bb41b6358f84a78b29694445d77d1d2",
         "type": "github"
       },
       "original": {
-        "owner": "djanatyn",
+        "owner": "lytedev",
         "repo": "ssbm-nix",
         "type": "github"
       }

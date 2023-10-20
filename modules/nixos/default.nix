@@ -12,4 +12,5 @@
   sway = import ./sway.nix;
   user-installed-applications = import ./user-installed-applications.nix;
   wifi = import ./wifi.nix;
+  kde-connect = import ./kde-connect.nix;
 }
