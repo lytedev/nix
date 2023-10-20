@@ -11,6 +11,7 @@
     # ./plasma.nix
     # ./gnome.nix
     ./user-installed-applications.nix
+    ./kde-connect.nix
   ];
 
   nixpkgs.overlays = [outputs.overlays.modifications];

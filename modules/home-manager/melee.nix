@@ -19,6 +19,7 @@
   ssbm = {
     slippi-launcher = {
       enable = true;
+      launchMeleeOnPlay = false;
     };
   };
 }
