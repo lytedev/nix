@@ -36,7 +36,7 @@
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
-    # kernelParams = ["boot.shell_on_fail"];
+    kernelParams = ["amdgpu.sg_display=0"];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
   };
