@@ -117,6 +117,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         owner = config.systemd.services.plausible.serviceConfig.User;
         group = config.systemd.services.plausible.serviceConfig.Group;
       };
+      nextcloud-admin-password = {
+        path = "/var/lib/nextcloud/admin-password";
+        mode = "0440";
+        # owner = config.services.nextcloud.serviceConfig.User;
+        # group = config.services.nextcloud.serviceConfig.Group;
+      };
     };
   };
 
@@ -157,6 +163,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   users.groups.nixadmin.members = ["daniel"];
 
   users.users.daniel = {
+    packages = [pkgs.weechat];
     extraGroups = [
       "nixadmin" # write access to /etc/nixos/ files
       "wheel" # sudo access
@@ -594,27 +601,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         "create mode" = 0700;
       };
     };
-  };
-
-  services.redis = {
-    servers = {
-      nextcloud = {
-        enable = true;
-        user = config.systemd.services.nextcloud.serviceConfig.User;
-        # group = config.systemd.services.nextcloud.serviceConfig.Group;
-      };
-    };
-  };
-
-  services.nextcloud = {
-    enable = true;
-    package = pkgs.nextcloud27;
-
-    config = {
-      dbtype = "pgsql";
-    };
-
-    hostName = "nextcloud.lyte.dev";
   };
 
   # paths:
