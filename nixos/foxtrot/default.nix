@@ -51,11 +51,11 @@
     pkgs.linux_6_5.override {
       argsOverride = {
         src = pkgs.fetchurl {
-          url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.5.7.tar.xz";
-          sha256 = "sha256-DQnqRIAFyc/lOD5Mcqhys5GIuSj4xE4UawOxt4Ufu4w=";
+          url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.5.8.tar.xz";
+          sha256 = "sha256-KZzKiX2Q3qoXbuvsQvCoDut1Fq/tMwpFwU2p3ghs9xc=";
         };
-        version = "6.5.7";
-        modDirVersion = "6.5.7";
+        version = "6.5.8";
+        modDirVersion = "6.5.8";
       };
     }
   );
