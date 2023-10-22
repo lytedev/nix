@@ -6,10 +6,6 @@
   # You can change versions, add patches, set compilation flags, anything really.
   # https://nixos.wiki/wiki/Overlays
   modifications = final: prev: {
-    linux_6_5 = prev.linux_6_5.override {
-      patches = [];
-      kernelPatches = [];
-    };
   };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will
