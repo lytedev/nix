@@ -26,8 +26,6 @@
       inputs.hardware.nixosModules.common-pc-laptop-ssd
     ];
 
-  nixpkgs.overlays = [outputs.overlays.modifications];
-
   # TODO: hibernation? does sleep suffice?
   # TODO: perform a hardware scan
 
@@ -36,6 +34,7 @@
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
+    kernelPackages = pkgs.linuxPackages_6_5;
     kernelParams = ["amdgpu.sg_display=0"];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
@@ -43,22 +42,23 @@
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true;
+  services.power-profiles-daemon.enable = false;
+  services.tlp = {
+    enable = true;
+    settings = {
+      CPU_SCALING_GOVERNOR_ON_AC = "performance";
+      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
 
-  boot.supportedFilesystems =
-    pkgs.lib.mkForce ["btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs"];
+      CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+      CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
 
-  boot.kernelPackages = pkgs.linuxPackagesFor (
-    pkgs.linux_6_5.override {
-      argsOverride = {
-        src = pkgs.fetchurl {
-          url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.5.7.tar.xz";
-          sha256 = "sha256-DQnqRIAFyc/lOD5Mcqhys5GIuSj4xE4UawOxt4Ufu4w=";
-        };
-        version = "6.5.7";
-        modDirVersion = "6.5.7";
-      };
-    }
-  );
+      CPU_MIN_PERF_ON_AC = 0;
+      CPU_MAX_PERF_ON_AC = 100;
+      CPU_MIN_PERF_ON_BAT = 0;
+      CPU_MAX_PERF_ON_BAT = 20;
+    };
+  };
+  powerManagement.powertop.enable = true;
 
   networking = {
     firewall = {
