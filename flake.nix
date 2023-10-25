@@ -10,7 +10,7 @@
 
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
 
-    ssbm.url = "github:lytedev/ssbm-nix";
+    ssbm.url = "github:lytedev/ssbm-nix/my-nixpkgs";
 
     # need to bump ishiiruka upstream I think
     # slippi-desktop.url = "github:project-slippi/slippi-desktop-app";

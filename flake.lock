@@ -446,15 +446,16 @@
         "slippi-desktop": "slippi-desktop"
       },
       "locked": {
-        "lastModified": 1697581527,
-        "narHash": "sha256-sw4K8A9Wy6V4y54TlNjpsY4l11fxrEFHXrYq3NXoZcc=",
+        "lastModified": 1698158961,
+        "narHash": "sha256-A5YMOQEckHL85Ja23YKh7mVf5M5conwIsP9HNilUuFs=",
         "owner": "lytedev",
         "repo": "ssbm-nix",
-        "rev": "abc984d77bb41b6358f84a78b29694445d77d1d2",
+        "rev": "c363e7f901838ed10e8236ec908d321fb25e59d3",
         "type": "github"
       },
       "original": {
         "owner": "lytedev",
+        "ref": "my-nixpkgs",
         "repo": "ssbm-nix",
         "type": "github"
       }

@@ -1,16 +1,13 @@
-{
-  # colors,
-  ...
-}: {
+{colors, ...}: {
   programs.broot = {
     enable = true;
     enableFishIntegration = true;
     settings = {
       modal = true;
-      skin = {
+      skin = with colors.withHashPrefix; {
         # this is a crappy copy of broot's catppuccin mocha theme
-        input = "rgb(205, 214, 244) none";
-        selected_line = "none rgb(88, 91, 112)";
+        input = "ansi(1) none";
+        selected_line = "${bg} ansi(4)";
         default = "rgb(205, 214, 244) none";
         tree = "rgb(108, 112, 134) none";
         parent = "rgb(116, 199, 236) none";
