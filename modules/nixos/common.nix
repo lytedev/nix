@@ -63,6 +63,7 @@
         sqlite
         sysstat
         unzip
+        usbutils
         watchexec
         wget
         xh
@@ -87,7 +88,7 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
       ];
       group = "daniel";
-      extraGroups = ["users" "wheel" "video"];
+      extraGroups = ["users" "wheel" "video" "dialout"];
       packages = [];
     };
 
