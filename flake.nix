@@ -2,7 +2,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/master";
-    helix.url = "github:helix-editor/helix/75c0a5ceb32d8a503915a93ccc1b64c8ad1cba8b";
+    helix.url = "github:helix-editor/helix/23.10";
     disko.url = "github:nix-community/disko/master";
     sops-nix.url = "github:Mic92/sops-nix";
     hardware.url = "github:nixos/nixos-hardware";

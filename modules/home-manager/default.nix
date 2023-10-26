@@ -6,6 +6,7 @@
   common = import ./common.nix;
   melee = import ./melee.nix;
   linux = import ./linux.nix;
+  cargo = import ./cargo.nix;
   macos = import ./macos.nix;
   iex = import ./iex.nix;
   mako = import ./mako.nix;

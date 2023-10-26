@@ -17,6 +17,7 @@
     iex
     zellij
     broot
+    cargo
   ];
 
   # TODO: specify an email?

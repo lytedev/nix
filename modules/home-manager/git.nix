@@ -70,12 +70,15 @@ in {
   };
 
   programs.fish.functions = {
-    g = ''
-      if test (count $argv) -gt 0
-        git $argv
-      else
-        git status
-      end
-    '';
+    g = {
+      wraps = "git";
+      body = ''
+        if test (count $argv) -gt 0
+          git $argv
+        else
+          git status
+        end
+      '';
+    };
   };
 }

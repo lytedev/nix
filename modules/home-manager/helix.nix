@@ -164,7 +164,7 @@
 
       editor = {
         soft-wrap.enable = true;
-        auto-pairs = false;
+        auto-pairs = true;
         auto-save = false;
         completion-trigger-len = 1;
         color-modes = false;
