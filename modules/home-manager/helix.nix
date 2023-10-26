@@ -9,113 +9,113 @@
     package = inputs.helix.packages.${system}.helix;
     languages = {
       language-server = {
-        lexical = {
-          command = "lexical";
-          args = ["start"];
-        };
+        # lexical = {
+        #   command = "lexical";
+        #   args = ["start"];
+        # };
 
-        next-ls = {
-          command = "next-ls";
-          args = ["--stdout"];
-        };
+        # next-ls = {
+        #   command = "next-ls";
+        #   args = ["--stdout"];
+        # };
 
-        deno = {
-          command = "deno";
-          args = ["lsp"];
-          config = {
-            enable = true;
-            lint = true;
-            unstable = true;
-          };
-        };
+        # deno = {
+        #   command = "deno";
+        #   args = ["lsp"];
+        #   config = {
+        #     enable = true;
+        #     lint = true;
+        #     unstable = true;
+        #   };
+        # };
       };
 
       language = [
-        {
-          name = "elixir";
-          language-servers = ["elixir-ls"]; # "lexical" "next-ls"
-          auto-format = true;
-        }
-        {
-          name = "html";
-          auto-format = false;
-        }
-        {
-          name = "nix";
-          auto-format = true;
-          formatter = {
-            command = "alejandra";
-            args = ["-"];
-          };
-        }
-        {
-          name = "fish";
-          auto-format = true;
-          indent = {
-            tab-width = 2;
-            unit = "\t";
-          };
-        }
+        # {
+        #   name = "elixir";
+        #   language-servers = ["elixir-ls"]; # "lexical" "next-ls"
+        #   auto-format = true;
+        # }
+        # {
+        #   name = "html";
+        #   auto-format = false;
+        # }
+        # {
+        #   name = "nix";
+        #   auto-format = true;
+        #   formatter = {
+        #     command = "alejandra";
+        #     args = ["-"];
+        #   };
+        # }
+        # {
+        #   name = "fish";
+        #   auto-format = true;
+        #   indent = {
+        #     tab-width = 2;
+        #     unit = "\t";
+        #   };
+        # }
 
-        {
-          name = "javascript";
-          language-id = "javascript";
-          grammar = "javascript";
-          scope = "source.js";
-          injection-regex = "^(js|javascript)$";
-          file-types = ["js" "mjs"];
-          shebangs = ["deno"];
-          language-servers = ["deno"];
-          roots = ["deno.jsonc" "deno.json"];
-          formatter = {
-            command = "deno";
-            args = ["fmt"];
-          };
-          auto-format = true;
-          comment-token = "//";
-          indent = {
-            tab-width = 2;
-            unit = "\t";
-          };
-        }
+        # {
+        #   name = "javascript";
+        #   language-id = "javascript";
+        #   grammar = "javascript";
+        #   scope = "source.js";
+        #   injection-regex = "^(js|javascript)$";
+        #   file-types = ["js" "mjs"];
+        #   shebangs = ["deno"];
+        #   language-servers = ["deno"];
+        #   roots = ["deno.jsonc" "deno.json"];
+        #   formatter = {
+        #     command = "deno";
+        #     args = ["fmt"];
+        #   };
+        #   auto-format = true;
+        #   comment-token = "//";
+        #   indent = {
+        #     tab-width = 2;
+        #     unit = "\t";
+        #   };
+        # }
 
-        {
-          name = "typescript";
-          language-id = "typescript";
-          grammar = "typescript";
-          scope = "source.ts";
-          injection-regex = "^(ts|typescript)$";
-          file-types = ["ts"];
-          shebangs = ["deno"];
-          language-servers = ["deno"];
-          roots = ["deno.jsonc" "deno.json"];
-          formatter = {
-            command = "deno";
-            args = ["fmt"];
-          };
-          auto-format = true;
-          comment-token = "//";
-          indent = {
-            tab-width = 2;
-            unit = "\t";
-          };
-        }
+        # {
+        #   name = "typescript";
+        #   language-id = "typescript";
+        #   grammar = "typescript";
+        #   scope = "source.ts";
+        #   injection-regex = "^(ts|typescript)$";
+        #   file-types = ["ts"];
+        #   shebangs = ["deno"];
+        #   language-servers = ["deno"];
+        #   roots = ["deno.jsonc" "deno.json"];
+        #   formatter = {
+        #     command = "deno";
+        #     args = ["fmt"];
+        #   };
+        #   auto-format = true;
+        #   comment-token = "//";
+        #   indent = {
+        #     tab-width = 2;
+        #     unit = "\t";
+        #   };
+        # }
 
-        {
-          name = "jsonc";
-          language-id = "json";
-          grammar = "jsonc";
-          scope = "source.jsonc";
-          injection-regex = "^(jsonc)$";
-          roots = ["deno.jsonc" "deno.json"];
-          file-types = ["jsonc"];
-          language-servers = ["deno"];
-          indent = {
-            tab-width = 2;
-            unit = "  ";
-          };
-          auto-format = true;
-        }
+        # {
+        #   name = "jsonc";
+        #   language-id = "json";
+        #   grammar = "jsonc";
+        #   scope = "source.jsonc";
+        #   injection-regex = "^(jsonc)$";
+        #   roots = ["deno.jsonc" "deno.json"];
+        #   file-types = ["jsonc"];
+        #   language-servers = ["deno"];
+        #   indent = {
+        #     tab-width = 2;
+        #     unit = "  ";
+        #   };
+        #   auto-format = true;
+        # }
 
         /*
         [[language]]
@@ -164,12 +164,12 @@
 
       editor = {
         soft-wrap.enable = true;
-        auto-pairs = true;
-        auto-save = false;
-        completion-trigger-len = 1;
-        color-modes = false;
+        # auto-pairs = true;
+        # auto-save = false;
+        # completion-trigger-len = 1;
+        # color-modes = false;
         bufferline = "multiple";
-        scrolloff = 8;
+        # scrolloff = 8;
         rulers = [80 120];
         cursorline = true;
 
@@ -179,21 +179,21 @@
           select = "underline";
         };
 
-        file-picker.hidden = false;
+        # file-picker.hidden = false;
         indent-guides = {
           render = true;
           character = "▏";
         };
 
-        lsp = {
-          display-messages = true;
-          display-inlay-hints = true;
-        };
-        statusline = {
-          left = ["mode" "spinner" "selections" "primary-selection-length" "position" "position-percentage" "diagnostics" "workspace-diagnostics"];
-          center = ["file-name"];
-          right = ["version-control" "total-line-numbers" "file-encoding"];
-        };
+        # lsp = {
+        #   display-messages = true;
+        #   display-inlay-hints = true;
+        # };
+        # statusline = {
+        #   left = ["mode" "spinner" "selections" "primary-selection-length" "position" "position-percentage" "diagnostics" "workspace-diagnostics"];
+        #   center = ["file-name"];
+        #   right = ["version-control" "total-line-numbers" "file-encoding"];
+        # };
       };
       keys = {
         insert = {
@@ -206,18 +206,15 @@
         };
 
         normal = {
-          D = "kill_to_line_end";
-          "^" = "goto_line_start";
           "C-k" = "jump_view_up";
           "C-j" = "jump_view_down";
           "C-h" = "jump_view_left";
           "C-l" = "jump_view_right";
           "C-q" = ":quit-all!";
-          "L" = "repeat_last_motion";
+          # "L" = "repeat_last_motion";
           space = {
             q = ":reflow 80";
             Q = ":reflow 120";
-            v = ":run-shell-command fish -c 'env > /tmp/env'";
             C = ":bc!";
             h = ":toggle lsp.display-inlay-hints";
             # O = ["select_textobject_inner WORD", ":pipe-to xargs xdg-open"];
@@ -229,7 +226,7 @@
             q = ":reflow 80";
             Q = ":reflow 120";
           };
-          "L" = "repeat_last_motion";
+          # "L" = "repeat_last_motion";
         };
       };
     };
