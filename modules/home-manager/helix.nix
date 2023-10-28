@@ -9,10 +9,10 @@
     package = inputs.helix.packages.${system}.helix;
     languages = {
       language-server = {
-        # lexical = {
-        #   command = "lexical";
-        #   args = ["start"];
-        # };
+        lexical = {
+          command = "lexical";
+          args = ["start"];
+        };
 
         # next-ls = {
         #   command = "next-ls";
@@ -31,31 +31,31 @@
       };
 
       language = [
-        # {
-        #   name = "elixir";
-        #   language-servers = ["elixir-ls"]; # "lexical" "next-ls"
-        #   auto-format = true;
-        # }
-        # {
-        #   name = "html";
-        #   auto-format = false;
-        # }
-        # {
-        #   name = "nix";
-        #   auto-format = true;
-        #   formatter = {
-        #     command = "alejandra";
-        #     args = ["-"];
-        #   };
-        # }
-        # {
-        #   name = "fish";
-        #   auto-format = true;
-        #   indent = {
-        #     tab-width = 2;
-        #     unit = "\t";
-        #   };
-        # }
+        {
+          name = "elixir";
+          language-servers = ["lexical"]; # "lexical" "next-ls" ?
+          auto-format = true;
+        }
+        {
+          name = "html";
+          auto-format = false;
+        }
+        {
+          name = "nix";
+          auto-format = true;
+          formatter = {
+            command = "alejandra";
+            args = ["-"];
+          };
+        }
+        {
+          name = "fish";
+          auto-format = true;
+          indent = {
+            tab-width = 2;
+            unit = "\t";
+          };
+        }
 
         # {
         #   name = "javascript";
@@ -116,46 +116,6 @@
         #   };
         #   auto-format = true;
         # }
-
-        /*
-        [[language]]
-        name = "jsx"
-        scope = "source.jsx"
-        injection-regex = "jsx"
-        file-types = ["jsx"]
-        shebangs = ["deno", "node"]
-        roots = ["deno.jsonc", "deno.json", "package.json", "tsconfig.json"]
-        comment-token = "//"
-        config = { enable = true, lint = true, unstable = true }
-        language-server = { command = "deno", args = ["lsp"], language-id = "javascriptreact" }
-        indent = { tab-width = 2, unit = "  " }
-        grammar = "javascript"
-        auto-format = true
-
-        [[language]]
-        name = "tsx"
-        scope = "source.tsx"
-        injection-regex = "^(tsx)$" # |typescript
-        file-types = ["tsx"]
-        shebangs = ["deno", "node"]
-        roots = ["deno.jsonc", "deno.json", "package.json", "tsconfig.json"]
-        config = { enable = true, lint = true, unstable = true }
-        language-server = { command = "deno", args = ["lsp"], language-id = "typescriptreact" }
-        indent = { tab-width = 2, unit = "  " }
-        auto-format = true
-
-        [[language]]
-        name = "jsonc"
-        scope = "source.jsonc"
-        injection-regex = "^(jsonc)$"
-        file-types = ["jsonc"]
-        shebangs = ["deno", "node"]
-        roots = ["deno.jsonc", "deno.json", "package.json", "tsconfig.json"]
-        config = { enable = true, lint = true, unstable = true }
-        language-server = { command = "deno", args = ["lsp"], language-id = "jsonc" }
-        indent = { tab-width = 2, unit = "  " }
-        auto-format = true
-        */
       ];
     };
 
@@ -185,10 +145,10 @@
           character = "▏";
         };
 
-        # lsp = {
-        #   display-messages = true;
-        #   display-inlay-hints = true;
-        # };
+        lsp = {
+          display-messages = true;
+          # display-inlay-hints = true;
+        };
         # statusline = {
         #   left = ["mode" "spinner" "selections" "primary-selection-length" "position" "position-percentage" "diagnostics" "workspace-diagnostics"];
         #   center = ["file-name"];
