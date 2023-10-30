@@ -11,7 +11,8 @@
         inspect: [
           pretty: true,
           printable_limit: :infinity,
-          limit: :infinity
+          limit: :infinity,
+          charlists: :as_lists
         ],
         default_prompt:
           [
