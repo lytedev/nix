@@ -88,7 +88,7 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
       ];
       group = "daniel";
-      extraGroups = ["users" "wheel" "video" "dialout"];
+      extraGroups = ["users" "wheel" "video" "dialout" "uucp"];
       packages = [];
     };
 
@@ -240,4 +240,10 @@
   users = {
     defaultUserShell = pkgs.fish;
   };
+
+  services.udev.extraRules = ''
+    # https://betaflight.com/docs/wiki/archive/Installing-Betaflight#step-1
+    # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="2e3c", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"
+    # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"'
+  '';
 }
