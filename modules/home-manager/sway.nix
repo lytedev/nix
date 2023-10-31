@@ -128,8 +128,7 @@
 
       startup = [
         {
-          command = "systemctl --user restart waybar";
-          always = true;
+          command = "waybar";
         }
         {
           command = lib.concatStringsSep " " [
@@ -317,8 +316,8 @@
         };
         focusedInactive = {
           background = bg;
-          border = bg;
-          childBorder = bg;
+          border = bg3;
+          childBorder = bg3;
           indicator = bg;
           text = bg;
         };
@@ -331,8 +330,8 @@
         };
         unfocused = {
           background = bg;
-          border = bg;
-          childBorder = bg;
+          border = bg3;
+          childBorder = bg3;
           indicator = bg;
           text = text;
         };

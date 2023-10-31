@@ -346,8 +346,5 @@
         	/* background-color: #51a37a; */
         }
       '';
-    systemd = {
-      enable = true;
-    };
   };
 }

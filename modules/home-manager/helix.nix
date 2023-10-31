@@ -374,7 +374,7 @@
         "ui.cursorline.primary" = {bg = bg3;};
 
         "ui.highlight" = {
-          bg = primary;
+          bg = bg3;
           fg = bg;
           modifiers = ["bold"];
         };
