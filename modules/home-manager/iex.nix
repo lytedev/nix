@@ -14,23 +14,22 @@
           limit: :infinity,
           charlists: :as_lists
         ],
-        default_prompt:
-          [
-            # ANSI CHA, move cursor to column 1
-            "\e[G",
-            :magenta,
-            # IEx prompt variable
-            "%prefix",
-            "#",
-        # IEx prompt variable
-        "%counter",
-        # plain string
-        ">",
-        :reset
+        default_prompt: [
+          # ANSI CHA, move cursor to column 1
+          # "\e[G",
+          :magenta,
+          # IEx prompt variable
+          "%prefix",
+          "#",
+          # IEx prompt variable
+          "%counter",
+          # plain string
+          ">",
+          :reset
         ]
         |> IO.ANSI.format()
         |> IO.chardata_to_string()
-        )
+      )
     '';
   };
 }
