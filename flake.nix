@@ -117,6 +117,9 @@
       musicbox = mkNixosSystem "x86_64-linux" [./nixos/musicbox] (with outputs.homeManagerModules; [
         sway
       ]);
+      router = mkNixosSystem "x86_64-linux" [./nixos/router] (with outputs.homeManagerModules; [
+        common
+      ]);
     };
 
     # Standalone home-manager configuration entrypoint

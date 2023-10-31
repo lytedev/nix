@@ -27,7 +27,6 @@
     ];
 
   # TODO: hibernation? does sleep suffice?
-  # TODO: perform a hardware scan
 
   boot = {
     loader = {
