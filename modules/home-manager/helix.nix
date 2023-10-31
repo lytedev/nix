@@ -139,7 +139,7 @@
           select = "underline";
         };
 
-        # file-picker.hidden = false;
+        file-picker.hidden = false;
         indent-guides = {
           render = true;
           character = "▏";
