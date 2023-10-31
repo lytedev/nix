@@ -42,7 +42,7 @@
 
       "enable_audio_bell" = true;
       "visual_bell_duration" = "0.25";
-      "visual_bell_color" = yellow;
+      "visual_bell_color" = bg3;
 
       "url_style" = "single";
 
