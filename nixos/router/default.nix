@@ -20,7 +20,7 @@
     dragon = {
       identifier = "dragon";
       host = "dragon";
-      ip = "192.168.0.1";
+      ip = "192.168.0.10";
     };
   };
 in {
