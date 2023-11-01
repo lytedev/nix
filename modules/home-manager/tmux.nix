@@ -1,0 +1,123 @@
+{
+  # colors,
+  # font,
+  ...
+}: {
+  programs.tmux = {
+    enable = true;
+    baseIndex = 1;
+    clock24 = true;
+    extraConfig = ''
+      unbind C-b
+      set -g prefix C-s
+
+      set -g update-environment "WAYLAND_DISPLAY DISPLAY"
+
+      bind R source-file "$HOME/.tmux.conf" \; display-message "Reloaded $HOME/.tmux.conf"
+      bind o display-message "Saved pane output to #(tmux-save-buffer '#S')"
+      bind O run "tmux-edit-buffer"
+
+      bind D attach-session -t . -c '#{pane_current_path}' \; display-message "Set session path to #{pane_current_path}"
+
+      bind H set -s status # toggle status bar
+
+      bind v split-window -h -c "#{pane_current_path}"
+      bind b split-window -c "#{pane_current_path}"
+      bind h split-window -c "#{pane_current_path}"
+
+      bind -n C-l select-pane -R
+      bind -n C-k select-pane -U
+
+      bind -n C-j select-pane -D
+      # enabling a ^J hotkey causes breakage when pasting anything that start with a newline, since it triggers the hotkey and some weird interaction with bracketed paste causes the pane to enter a broken state
+
+      bind -n C-h select-pane -L
+
+      bind -n C-M-l split-window -h -c "#{pane_current_path}"
+      bind -n C-M-j split-window -v -c "#{pane_current_path}"
+
+      # tab creation
+      bind -n C-t new-window
+
+      # tab nav is the default p and n binds
+      # window switcher is the default w bind
+
+      bind s run "tmux split-window -l 12 'tmuxswitcher'" # session switcher
+
+      set -g mouse on
+      set -g escape-time 0
+
+      set -g monitor-activity on
+      set -g visual-bell off
+      set -g bell-action other
+      set -g activity-action none
+
+      set -g mode-keys vi
+      set -g history-limit 1000000
+
+      set -g status on
+      set -g status-position bottom
+      set -g status-style "fg=colour8 bg=default"
+      set -g status-interval 5
+      set -g status-left-length 50
+      set -g window-status-style "fg=colour8 bg=default"
+      set -g window-status-format "#W"
+      set -g window-status-separator " "
+      set -g window-status-activity-style "fg=colour7 bg=default"
+      set -g window-status-bell-style "fg=colour1 bg=default"
+      set -g window-status-current-style "fg=colour4 bg=default"
+      set -g window-status-current-format " #W "
+      set -g status-left "#{client_user}@#h:#S "
+      set -g status-right "#(kubeline && printf ' ')"
+      set -g status-left-length 1000
+
+      set -g message-style "fg=colour7 bg=default"
+      set -g pane-active-border-style fg=blue
+      set -g pane-border-style fg=colour0
+      set -g clock-mode-colour colour8
+      set -g base-index 1
+      set -g pane-base-index 1
+
+      set -g window-status-current-format "#W"
+
+      # present a menu of urls to open from the visible pane
+      # TODO: fuzzy search this
+      # bind u capture-pane \;\
+      	# save-buffer /tmp/tmux-buffer \;\
+      	# split-window -l 10 "urlscan /tmp/tmux-buffer"
+
+      bind -T copy-mode-vi "y" send-keys -X copy-pipe-no-clear 'clip' \; display-message 'Copied to clipboard!'
+      bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-no-clear 'clip' \; display-message 'Copied to clipboard!'
+
+      bind K kill-pane
+      bind C-S-k kill-window
+
+      # Activate OFF mode
+      bind -n M-o \
+          set prefix None \;\
+          set key-table off \;\
+      	set -ag status-right " OFF"
+
+      # Disable OFF mode
+      bind -T off M-O \
+          set -u prefix \;\
+          set -u key-table \;\
+      	source-file "$HOME/.tmux.conf"
+
+      source-file "$ENV_PATH/*/tmux.d.conf"
+
+      # set -g @plugin 'tmux-plugins/tpm'
+      # set -g @plugin 'tmux-plugins/tmux-resurrect'
+      # set -g @plugin 'tmux-plugins/tmux-continuum'
+
+      # set -g @resurrect-capture-pane-contents 'on'
+      # set -g @resurrect-processes 'helix hx vi vim nvim emacs man less more tail top htop btm irssi weechat mutt "git log" iex mix deno watchexec mosh-client ssh'
+
+      # bind A run-shell "#{@resurrect-save-script-path}"
+      # bind L run-shell "#{@resurrect-restore-script-path}"
+
+      # set -g @continuum-restore 'on'
+      # set -g @continuum-save-interval '120'
+    '';
+  };
+}

@@ -14,6 +14,7 @@
       output = {
         "GIGA-BYTE TECHNOLOGY CO., LTD. AORUS FO48U 23070B000307" = {
           mode = "3840x2160@120Hz";
+          position = "0,0";
         };
 
         "Dell Inc. DELL U2720Q D3TM623" = {
@@ -21,6 +22,7 @@
           mode = "3840x2160@60Hz";
           transform = "90";
           scale = "1.5";
+          position = "3840,0";
         };
       };
 
