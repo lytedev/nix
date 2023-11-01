@@ -18,6 +18,7 @@
     zellij
     broot
     cargo
+    tmux
   ];
 
   # TODO: specify an email?

@@ -27,16 +27,10 @@ in {
   networking.hostName = "router";
   networking.domain = "h.lyte.dev";
 
-  imports =
-    [
-      inputs.disko.nixosModules.disko
-      flake.diskoConfigurations.unencrypted
-    ]
-    ++ [
-      # inputs.hardware.nixosModules.common-cpu-amd
-      # inputs.hardware.nixosModules.common-cpu-amd-pstate
-      # inputs.hardware.nixosModules.common-pc-laptop-ssd
-    ];
+  imports = [
+    inputs.disko.nixosModules.disko
+    flake.diskoConfigurations.unencrypted
+  ];
 
   # TODO: perform a hardware scan
 

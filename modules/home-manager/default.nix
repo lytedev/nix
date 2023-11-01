@@ -25,6 +25,7 @@
   linux-desktop = import ./linux-desktop.nix;
   sway = import ./sway.nix;
   sway-laptop = import ./sway-laptop.nix;
+  tmux = import ./tmux.nix;
 
   dragon = import ./dragon.nix;
   thinker = import ./thinker.nix;

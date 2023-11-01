@@ -102,9 +102,7 @@
       bind -T off M-O \
           set -u prefix \;\
           set -u key-table \;\
-      	source-file "$HOME/.tmux.conf"
-
-      source-file "$ENV_PATH/*/tmux.d.conf"
+      	source-file "$HOME/.config/tmux/tmux.conf"
 
       # set -g @plugin 'tmux-plugins/tpm'
       # set -g @plugin 'tmux-plugins/tmux-resurrect'
