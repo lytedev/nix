@@ -607,49 +607,50 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   # TODO: move previous backups over and put here
   # clickhouse and plausible analytics once they're up and running?
 
-  services.restic.backups = rec {
-    local = {
-      initialize = true;
+  services.restic.backups = let
+    defaults = {
       passwordFile = "/root/restic-localbackup-password";
       paths = [
         "/storage/files.lyte.dev"
         "/storage/daniel"
         "/storage/gitea" # TODO: should maybe use configuration.nix's services.gitea.dump ?
-        "/var/lib/bitwarden_rs" # does this need any sqlite preprocessing?
+        "/storage/postgres-backups"
+
         # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
         # specifically, https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault#sqlite-database-files
-        # TODO: backup lidarr/radarr configs?
+        "/var/lib/bitwarden_rs" # does this need any sqlite preprocessing?
 
-        "/storage/postgres-backups"
+        # TODO: backup *arr configs?
       ];
+      initialize = true;
       exclude = [];
-      repository = "/storage/backups/local";
-    };
-    rascal = {
-      initialize = true;
-      extraOptions = [
-        "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
-      ];
-      passwordFile = local.passwordFile;
-      paths = local.paths;
-      repository = "sftp://beefcake@rascal://storage/backups/beefcake";
       timerConfig = {
         OnCalendar = "04:45";
       };
     };
+  in {
+    local =
+      defaults
+      // {
+        repository = "/storage/backups/local";
+      };
+    rascal =
+      defaults
+      // {
+        extraOptions = [
+          "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
+        ];
+        repository = "sftp://beefcake@rascal://storage/backups/beefcake";
+      };
     # TODO: add ruby?
-    benland = {
-      initialize = true;
-      extraOptions = [
-        "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
-      ];
-      passwordFile = local.passwordFile;
-      paths = local.paths;
-      repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
-      timerConfig = {
-        OnCalendar = "04:45";
+    benland =
+      defaults
+      // {
+        extraOptions = [
+          "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
+        ];
+        repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
       };
-    };
   };
 
   networking.firewall.allowedTCPPorts = [
