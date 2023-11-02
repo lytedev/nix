@@ -184,6 +184,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       "caddy" # write access to /storage/files.lyte.dev
       "users" # general users group
       "jellyfin" # write access to /storage/jellyfin
+      "jland"
     ];
   };
 
@@ -234,8 +235,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     group = "plausible";
   };
 
-  users.groups.jland = {};
+  users.groups.jland = {
+    gid = 982;
+  };
   users.users.jland = {
+    uid = 986;
     # used for running the jland minecraft server
     isSystemUser = true;
     createHome = false;
@@ -688,22 +692,33 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     minecraft-jland = {
       # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
       image = "docker.io/itzg/minecraft-server";
-      user = "jland";
+      user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
       extraOptions = [
         "--tty"
         "--interactive"
       ];
       environment = {
         EULA = "true";
-        # UID = toString config.users.users.jland.uid;
-        # GID = toString config.users.groups.jland.gid;
+        UID = toString config.users.users.jland.uid;
+        GID = toString config.users.groups.jland.gid;
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
-        TYPE = "AUTO_CURSEFORGE";
         VERSION = "1.19.2";
-        MAX_MEMORY = "8G";
-        CF_SLUG = "all-the-mods-8"; # monumental-experience
-        CF_FILE_ID = "4826863"; # 2.2.53
+        MEMORY = "8G";
+        MAX_MEMORY = "16G";
+        TYPE = "FORGE";
+        FORGE_VERSION = "43.3.2";
+
+        MODPACK = "/data/origination-files/Monumental+Experience-2.2.53.zip";
+
+        # TYPE = "AUTO_CURSEFORGE";
+        # CF_SLUG = "monumental-experience";
+        # CF_FILE_ID = "4826863"; # 2.2.53
+
+        # due to
+        # Nov 02 13:45:22 beefcake minecraft-jland[2738672]: me.itzg.helpers.errors.GenericException: The modpack authors have indicated this file is not allowed for project distribution. Please download the client zip file from https://www.curseforge.com/minecraft/modpacks/monumental-experience and pass via CF_MODPACK_ZIP environment variable or place indownloads repo directory.
+        # we must upload manually
+        # CF_MODPACK_ZIP = "/data/origination-files/Monumental+Experience-2.2.53.zip";
 
         # ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
         # May also have mod/loader incompatibilities?
@@ -712,7 +727,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       environmentFiles = [
         config.sops.secrets."jland.env".path
       ];
-      ports = ["127.0.0.1:25565:25565"];
+      ports = ["25565:25565"];
       volumes = [
         "/storage/jland/data:/data"
         "/storage/jland/worlds:/worlds"
