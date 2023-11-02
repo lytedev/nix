@@ -104,6 +104,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         group = config.services.api-lyte-dev.group;
       };
 
+      "jland.env" = {
+        path = "/var/lib/jland/jland.env";
+        # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
+        mode = "0440";
+        owner = config.users.users.jland.name;
+        group = config.users.groups.jland.name;
+      };
+
       plausible-admin-password = {
         # TODO: path = "${config.systemd.services.plausible.serviceConfig.WorkingDirectory}/plausible-admin-password.txt";
         path = "/var/lib/plausible/plausible-admin-password";
@@ -675,8 +683,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   #   # $ nix run nixpkgs#packwiz curseforge import Monumental+Experience-2.2.53.zip
   # };
 
-  config.virtualisation.backend = "podman";
-  config.virtualisation.oci-containers.containers = {
+  virtualisation.oci-containers.backend = "podman";
+  virtualisation.oci-containers.containers = {
     minecraft-jland = {
       # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
       image = "docker.io/itzg/minecraft-server";
@@ -687,8 +695,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       ];
       environment = {
         EULA = "true";
-        UID = toString config.users.jland.uid;
-        GID = toString config.users.jland.gid;
+        # UID = toString config.users.users.jland.uid;
+        # GID = toString config.users.groups.jland.gid;
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
         TYPE = "AUTO_CURSEFORGE";
