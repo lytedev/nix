@@ -8,6 +8,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
+  # inputs,
   outputs,
   modulesPath,
   config,
@@ -17,6 +18,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     outputs.nixosModules.intel
+    # inputs.nix-minecraft.nixosModules.minecraft-servers
+  ];
+
+  nixpkgs.overlays = [
+    # inputs.nix-minecraft.overlay
   ];
 
   boot.initrd.availableKernelModules = ["ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod"];
@@ -218,6 +224,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     isSystemUser = true;
     createHome = false;
     group = "plausible";
+  };
+
+  users.groups.jland = {};
+  users.users.jland = {
+    # used for running the jland minecraft server
+    isSystemUser = true;
+    createHome = false;
+    group = "jland";
   };
 
   users.users.nextcloud = {
@@ -504,25 +518,25 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     ];
   };
 
-  services.lidarr = {
-    enable = true;
-    dataDir = "/storage/lidarr";
-  };
+  # services.lidarr = {
+  #   enable = true;
+  #   dataDir = "/storage/lidarr";
+  # };
 
-  services.radarr = {
-    enable = true;
-    dataDir = "/storage/radarr";
-  };
+  # services.radarr = {
+  #   enable = true;
+  #   dataDir = "/storage/radarr";
+  # };
 
-  services.sonarr = {
-    enable = true;
-    dataDir = "/storage/sonarr";
-  };
+  # services.sonarr = {
+  #   enable = true;
+  #   dataDir = "/storage/sonarr";
+  # };
 
-  services.bazarr = {
-    enable = true;
-    listenPort = 6767;
-  };
+  # services.bazarr = {
+  #   enable = true;
+  #   listenPort = 6767;
+  # };
 
   services.samba-wsdd.enable = true;
 
@@ -651,6 +665,51 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         ];
         repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
       };
+  };
+
+  # services.minecraft-servers.servers.jland = {
+  #   enable = true;
+  #   package = pkgs.fabricServers.fabric-1_19_2.override {loaderVersion = "0.14.9";};
+  #   # Monumental Experience, modpack version 2.2.53, minecraft version 1.19.2
+  #   # https://www.curseforge.com/minecraft/modpacks/monumental-experience/files/4826863
+  #   # $ nix run nixpkgs#packwiz curseforge import Monumental+Experience-2.2.53.zip
+  # };
+
+  config.virtualisation.backend = "podman";
+  config.virtualisation.oci-containers.containers = {
+    minecraft-jland = {
+      # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+      image = "docker.io/itzg/minecraft-server";
+      user = "jland";
+      extraOptions = [
+        "--tty"
+        "--interactive"
+      ];
+      environment = {
+        EULA = "true";
+        UID = toString config.users.jland.uid;
+        GID = toString config.users.jland.gid;
+        STOP_SERVER_ANNOUNCE_DELAY = "20";
+        TZ = "America/Chicago";
+        TYPE = "AUTO_CURSEFORGE";
+        VERSION = "1.19.2";
+        MAX_MEMORY = "8G";
+        CF_SLUG = "all-the-mods-8"; # monumental-experience
+        CF_FILE_ID = "4826863"; # 2.2.53
+
+        # ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
+        # May also have mod/loader incompatibilities?
+        # https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
+      };
+      environmentFiles = [
+        config.sops.secrets."jland.env".path
+      ];
+      ports = ["127.0.0.1:25565:25565"];
+      volumes = [
+        "/storage/jland/data:/data"
+        "/storage/jland/worlds:/worlds"
+      ];
+    };
   };
 
   networking.firewall.allowedTCPPorts = [

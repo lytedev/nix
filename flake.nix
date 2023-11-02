@@ -12,6 +12,9 @@
 
     ssbm.url = "github:lytedev/ssbm-nix/my-nixpkgs";
 
+    # doesn't support the forge mod loader yet
+    # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
+
     # need to bump ishiiruka upstream I think
     # slippi-desktop.url = "github:project-slippi/slippi-desktop-app";
     # slippi-desktop.flake = false;
