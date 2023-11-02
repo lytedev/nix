@@ -53,7 +53,7 @@ in {
   services.fail2ban.enable = true;
   services.radvd = {
     enable = true;
-    # TODO: this config is just the default arch linux config I think and may
+    # NOTE: this config is just the default arch linux config I think and may
     # need tweaking? this is what I had on the arch linux router, though :shrug:
     config = ''
       interface lo
@@ -100,76 +100,11 @@ in {
     '';
   };
 
-  # TODO: lan0 and wan0 systemd.network.link ?
-
-  networking.extraHosts = ''
-    127.0.0.1 localhost
-    127.0.1.1 router.h.lyte.dev router
-
-    ::1 localhost ip6-localhost ip6-loopback
-    ff02::1 ip6-allnodes
-    ff02::2 ip6-allrouters
-
-    192.168.0.9 git.lyte.dev
-    192.168.0.9 video.lyte.dev
-    192.168.0.9 files.lyte.dev
-    192.168.0.9 bw.lyte.dev
-    192.168.0.9 vpn.h.lyte.dev
-  '';
-
   services.resolved = {
     enable = true;
     extraConfig = ''
       [Resolve]
       DNSStubListener=no
-    '';
-  };
-
-  networking.firewall = {
-    # TODO: port router firewall config
-    enable = true;
-    package = pkgs.nftables;
-    allowPing = true;
-    allowedTCPPorts = [22];
-    allowedUDPPorts = [];
-  };
-
-  networking.dhcpcd = {
-    enable = true;
-    extraConfig = ''
-      duid
-
-      # No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
-      # issues caused by guests with oneplus devices
-      noarp
-      persistent
-      vendorclassid
-
-      option domain_name_servers, domain_name, domain_search
-      option classless_static_routes
-      option interface_mtu
-      option host_name
-      #option ntp_servers
-
-      require dhcp_server_identifier
-      slaac private
-      noipv4ll
-      noipv6rs
-
-      static domain_name_servers=${ip}
-
-      interface ${wan_if}
-      	gateway
-      	ipv6rs
-      	iaid 1
-      	# option rapid_commit
-      	# ia_na 1
-      	ia_pd 1 ${lan_if}
-
-      interface ${lan_if}
-      	static ip_address=${cidr}
-      	static routers=${ip}
-      	static domain_name_servers=${ip}
     '';
   };
 
@@ -230,6 +165,115 @@ in {
       server=1.1.1.1
       server=1.0.0.1
     '';
+  };
+
+  networking.extraHosts = ''
+    127.0.0.1 localhost
+    127.0.1.1 router.h.lyte.dev router
+
+    ::1 localhost ip6-localhost ip6-loopback
+    ff02::1 ip6-allnodes
+    ff02::2 ip6-allrouters
+
+    192.168.0.9 git.lyte.dev
+    192.168.0.9 video.lyte.dev
+    192.168.0.9 files.lyte.dev
+    192.168.0.9 bw.lyte.dev
+    192.168.0.9 vpn.h.lyte.dev
+  '';
+
+  networking.nftables = {
+    enable = true;
+    flushRuleset = true;
+  };
+
+  networking.firewall = {
+    # TODO: allow users to ssh to git.lyte.dev
+    # TODO: allow remote backuppers to ssh to beefcake
+    # TODO: allow DNS internally
+    # TODO: allow 67 for DHCP
+    # TODO: allow 2201 for router ssh access?
+    # TODO: allow 25565 to bald for minecraft
+    # TODO: allow all icmp stuff and dhcp stuff (including dhcpv6-client)
+
+    # filterForward = true;
+
+    extraInputRules = ''
+    '';
+    extraForwardRules = ''
+    '';
+
+    enable = true;
+
+    package = pkgs.nftables;
+    allowPing = true;
+    allowedTCPPorts = [22];
+    allowedUDPPorts = [];
+    # allowedTCPPortRanges = [{from = 1; to = 10;}];
+    # allowedUDPPortRanges = [{from = 1; to = 10;}];
+  };
+
+  networking.dhcpcd = {
+    enable = true;
+    extraConfig = ''
+      duid
+
+      # No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
+      # issues caused by guests with oneplus devices
+      noarp
+      persistent
+      vendorclassid
+
+      option domain_name_servers, domain_name, domain_search
+      option classless_static_routes
+      option interface_mtu
+      option host_name
+      #option ntp_servers
+
+      require dhcp_server_identifier
+      slaac private
+      noipv4ll
+      noipv6rs
+
+      static domain_name_servers=${ip}
+
+      interface ${wan_if}
+      	gateway
+      	ipv6rs
+      	iaid 1
+      	# option rapid_commit
+      	# ia_na 1
+      	ia_pd 1 ${lan_if}
+
+      interface ${lan_if}
+      	static ip_address=${cidr}
+      	static routers=${ip}
+      	static domain_name_servers=${ip}
+    '';
+  };
+
+  systemd.network = {
+    enable = true;
+    links = {
+      "${wan_if}" = {
+        enable = true;
+        matchConfig = {
+          MACAddress = "00:01:2e:82:73:59";
+        };
+        linkConfig = {
+          Name = wan_if;
+        };
+      };
+      "${lan_if}" = {
+        enable = true;
+        matchConfig = {
+          MACAddress = "00:01:2e:82:73:5a";
+        };
+        linkConfig = {
+          Name = lan_if;
+        };
+      };
+    };
   };
 
   system.stateVersion = "23.11";
