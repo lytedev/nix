@@ -189,7 +189,7 @@ in {
 
   '';
 
-  networking.nat.enable = true;
+  networking.nat.enable = true; # TODO: maybe replace some of the nftables stuff with this?
   networking.firewall.enable = false;
   networking.nftables = {
     enable = true;
