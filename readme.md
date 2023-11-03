@@ -121,6 +121,10 @@ nix-shell --packages git \
     --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
+# Internal Usage
+
+Just for me, see [[lib/internal.md]]
+
 # To Do
 
 ## Short Term

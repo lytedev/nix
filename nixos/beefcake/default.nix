@@ -255,15 +255,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
   environment.systemPackages = [pkgs.linuxquota];
 
-  systemd.services.weechat-in-tmux = {
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs.tmux}/bin/tmux -2 new-session -d -s weechat ${pkgs.weechat}/bin/weechat";
-      ExecStop = "${pkgs.tmux}/bin/tmux kill-session -t weechat";
-    };
-  };
-
   # TODO: make the client declarative? right now I think it's manually git
   # clone'd to /root
   systemd.services.deno-netlify-ddns-client = {

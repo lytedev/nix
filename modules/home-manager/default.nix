@@ -27,6 +27,9 @@
   sway-laptop = import ./sway-laptop.nix;
   tmux = import ./tmux.nix;
 
+  tmux-master-service = import ./tmux-master-service.nix;
+  weechat-in-tmux-service = import ./weechat-in-tmux-service.nix;
+
   dragon = import ./dragon.nix;
   thinker = import ./thinker.nix;
   foxtrot = import ./foxtrot.nix;

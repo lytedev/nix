@@ -118,4 +118,7 @@
       # set -g @continuum-save-interval '120'
     '';
   };
+  home.shellAliases = {
+    t = "tmux";
+  };
 }

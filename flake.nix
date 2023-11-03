@@ -113,6 +113,7 @@
           ./nixos/beefcake
         ] (with outputs.homeManagerModules; [
           linux
+          weechat-in-tmux-service
         ]);
       rascal = mkNixosSystem "x86_64-linux" [./nixos/rascal] (with outputs.homeManagerModules; [
         linux
