@@ -708,6 +708,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         MAX_MEMORY = "16G";
         TYPE = "FORGE";
         FORGE_VERSION = "43.3.2";
+        ALLOW_FLIGHT = "true";
 
         MODPACK = "/data/origination-files/Monumental+Experience-2.2.53.zip";
 
