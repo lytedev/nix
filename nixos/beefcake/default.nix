@@ -709,6 +709,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         TYPE = "FORGE";
         FORGE_VERSION = "43.3.2";
         ALLOW_FLIGHT = "true";
+        ENABLE_QUERY = "true";
 
         MODPACK = "/data/origination-files/Monumental+Experience-2.2.53.zip";
 
@@ -728,7 +729,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       environmentFiles = [
         config.sops.secrets."jland.env".path
       ];
-      ports = ["25565:25565"];
+      ports = ["26965:25565"];
       volumes = [
         "/storage/jland/data:/data"
         "/storage/jland/worlds:/worlds"

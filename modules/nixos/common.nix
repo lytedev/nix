@@ -49,6 +49,7 @@
         less
         mosh
         nmap
+        nettools
         openssl
         pciutils
         pv
