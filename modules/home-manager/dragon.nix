@@ -9,6 +9,15 @@
     sway
   ];
 
+  wayland.windowManager.hyprland = {
+    settings = {
+      # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+      monitor = [
+        "DP-3,3840x2160@120,0x0,1"
+      ];
+    };
+  };
+
   wayland.windowManager.sway = {
     config = {
       output = {

@@ -703,15 +703,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         GID = toString config.users.groups.jland.gid;
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
-        VERSION = "1.19.2";
+        VERSION = "1.20.1";
         MEMORY = "8G";
         MAX_MEMORY = "16G";
         TYPE = "FORGE";
-        FORGE_VERSION = "43.3.2";
+        FORGE_VERSION = "47.1.3";
         ALLOW_FLIGHT = "true";
         ENABLE_QUERY = "true";
 
-        MODPACK = "/data/origination-files/Monumental+Experience-2.2.53.zip";
+        MODPACK = "/data/origination-files/Server-Files-0.2.14.zip";
 
         # TYPE = "AUTO_CURSEFORGE";
         # CF_SLUG = "monumental-experience";

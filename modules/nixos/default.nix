@@ -3,6 +3,7 @@
 {
   common = import ./common.nix;
   melee = import ./melee.nix;
+  ewwbar = import ./ewwbar.nix;
   desktop-usage = import ./desktop-usage.nix;
   intel = import ./intel.nix;
   pipewire = import ./pipewire.nix;
@@ -10,6 +11,7 @@
   podman = import ./podman.nix;
   postgres = import ./postgres.nix;
   sway = import ./sway.nix;
+  hyprland = import ./hyprland.nix;
   user-installed-applications = import ./user-installed-applications.nix;
   wifi = import ./wifi.nix;
   kde-connect = import ./kde-connect.nix;

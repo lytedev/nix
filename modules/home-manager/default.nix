@@ -24,6 +24,8 @@
   desktop = import ./desktop.nix;
   linux-desktop = import ./linux-desktop.nix;
   sway = import ./sway.nix;
+  hyprland = import ./hyprland.nix;
+  ewwbar = import ./ewwbar.nix;
   sway-laptop = import ./sway-laptop.nix;
   tmux = import ./tmux.nix;
 

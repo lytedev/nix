@@ -25,6 +25,8 @@
       podman
       postgres
       wifi
+      hyprland
+      ewwbar
     ])
     ++ [
       # Or modules from other flakes (such as nixos-hardware):

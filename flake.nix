@@ -1,16 +1,31 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
     home-manager.url = "github:nix-community/home-manager/master";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
     helix.url = "github:helix-editor/helix/23.10";
+    helix.inputs.nixpkgs.follows = "nixpkgs";
+
     disko.url = "github:nix-community/disko/master";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
     sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
+
     hardware.url = "github:nixos/nixos-hardware";
+    # hardware.inputs.nixpkgs.follows = "nixpkgs";
+
     hyprland.url = "github:hyprwm/Hyprland";
+    hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
+    api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
 
     ssbm.url = "github:lytedev/ssbm-nix/my-nixpkgs";
+    ssbm.inputs.nixpkgs.follows = "nixpkgs";
 
     # doesn't support the forge mod loader yet
     # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
@@ -100,6 +115,7 @@
     in {
       dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
         dragon
+        hyprland
       ]);
       thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
         thinker
