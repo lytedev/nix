@@ -36,46 +36,82 @@
       -- config.window_frame.font = config.font
       -- config.window_frame.font_size = font_size
 
+      function tab_title(tab_info)
+        local title = tab_info.tab_title
+        if title and #title > 0 then
+          return title
+        end
+        return tab_info.active_pane.title
+      end
+
+      wezterm.on('format-tab-title', function (tab, tabs, panes, config, hover, max_width)
+        local title = tab_title(tab)
+        return ' ' .. string.sub(title, 0, max_width - 2) .. ' '
+      end)
+
       config.colors = {
         foreground = '${fg}',
-        background = '${primary}',
+        background = '${bg}',
         cursor_bg = '${text}',
         cursor_fg = '${bg}',
-        -- Specifies the border color of the cursor when the cursor style is set to Block,
-        -- or the color of the vertical or horizontal bar when the cursor style is set to
-        -- Bar or Underline.
-        cursor_border = '#52ad70',
+        cursor_border = '${text}',
 
-        -- the foreground color of selected text
-        selection_fg = 'black',
-        -- the background color of selected text
-        selection_bg = '#fffacd',
+        selection_fg = '${bg}',
+        selection_bg = '${yellow}',
 
-        -- The color of the scrollbar "thumb"; the portion that represents the current viewport
-        scrollbar_thumb = '#222222',
+        scrollbar_thumb = '${bg2}',
 
-        -- The color of the split lines between panes
-        split = '#444444',
+        split = '${bg5}',
 
         ansi = {
-          'black',
-          'maroon',
-          'green',
-          'olive',
-          'navy',
-          'purple',
-          'teal',
-          'silver',
+          '${colors.withHashPrefix."0"}',
+          '${colors.withHashPrefix."1"}',
+          '${colors.withHashPrefix."2"}',
+          '${colors.withHashPrefix."3"}',
+          '${colors.withHashPrefix."4"}',
+          '${colors.withHashPrefix."5"}',
+          '${colors.withHashPrefix."6"}',
+          '${colors.withHashPrefix."7"}',
         },
         brights = {
-          'grey',
-          'red',
-          'lime',
-          'yellow',
-          'blue',
-          'fuchsia',
-          'aqua',
-          'white',
+          '${colors.withHashPrefix."8"}',
+          '${colors.withHashPrefix."9"}',
+          '${colors.withHashPrefix."10"}',
+          '${colors.withHashPrefix."11"}',
+          '${colors.withHashPrefix."12"}',
+          '${colors.withHashPrefix."13"}',
+          '${colors.withHashPrefix."14"}',
+          '${colors.withHashPrefix."15"}',
+        },
+
+        tab_bar = {
+          background = '${bg3}',
+
+          active_tab = {
+            bg_color = '${primary}',
+            fg_color = '${bg}',
+            italic = false,
+          },
+          inactive_tab = {
+            bg_color = '${bg2}',
+            fg_color = '${fgdim}',
+            italic = false,
+          },
+          inactive_tab_hover = {
+            bg_color = '${bg3}',
+            fg_color = '${primary}',
+            italic = false,
+          },
+          new_tab = {
+            bg_color = '${bg2}',
+            fg_color = '${fgdim}',
+            italic = false,
+          },
+          new_tab_hover = {
+            bg_color = '${bg3}',
+            fg_color = '${primary}',
+            italic = false,
+          },
         },
 
         -- Arbitrary colors of the palette in the range from 16 to 255

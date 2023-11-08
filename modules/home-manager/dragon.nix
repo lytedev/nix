@@ -12,10 +12,17 @@
 
   wayland.windowManager.hyprland = {
     settings = {
+      env = [
+        "EWW_BAR_MON,1"
+      ];
       # See https://wiki.hyprland.org/Configuring/Keywords/ for more
       monitor = [
         "DP-3,3840x2160@120,0x0,1"
       ];
+      input = {
+        force_no_accel = true;
+        sensitivity = 1; # -1.0 - 1.0, 0 means no modification.
+      };
     };
   };
 

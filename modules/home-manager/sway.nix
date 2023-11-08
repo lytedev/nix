@@ -202,7 +202,7 @@
         # bindsym $mod+shift+space exec wofi --show drun
         "${mod}+control+space" = "exec makoctl dismiss";
         "${mod}+shift+space" = "exec makoctl invoke";
-        "${mod}+return" = "exec kitty --single-instance";
+        "${mod}+return" = "exec wezterm";
         "${mod}+shift+return" = "exec floating-term";
         "${mod}+shift+alt+return" = "exec kitty";
         "${mod}+c" = "kill";

@@ -29,6 +29,8 @@ $rosewater: #f5e0dc;
   all: unset;
 }
 
+.bar0,
+.bar1,
 .bar {
   background-color: $base;
   color: $text;
@@ -64,6 +66,8 @@ $rosewater: #f5e0dc;
   border-radius: 10px;
 }
 
+.bar0>*,
+.bar1>*,
 .bar>* {
   padding-left: 10px;
   padding-right: 10px;

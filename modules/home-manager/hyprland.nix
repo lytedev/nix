@@ -2,6 +2,7 @@
   outputs,
   colors,
   config,
+  lib,
   # font,
   ...
 }: {
@@ -30,14 +31,39 @@
         "hyprpaper"
         "mako"
         "/usr/lib/polkit-kde-authentication-agent-1"
-        "eww daemon && eww open bar"
-        "firefox & kitty --single-instance &"
+        "eww daemon && eww open bar$EWW_BAR_MON"
+        "firefox & wezterm &"
+        (lib.concatStringsSep " " [
+          "swayidle -w"
+          "timeout 300 'notify-send \"Idling in 300 seconds\"'"
+          "resume      'notify-send \"Idling cancelled.\"'"
+          "timeout 480 'notify-send -u critical \"Idling in 120 seconds\"'"
+          "timeout 510 'notify-send -u critical \"Idling in 90 seconds\"'"
+          "timeout 540 'notify-send -u critical \"Idling in 60 seconds!\"'"
+          "timeout 570 'notify-send -u critical \"Idling in 30 seconds!\"'"
+          "timeout 590 'notify-send -u critical \"Idling in 10 seconds!\"'"
+          "timeout 591 'notify-send -u critical \"Idling in 9 seconds!\"'"
+          "timeout 592 'notify-send -u critical \"Idling in 8 seconds!\"'"
+          "timeout 593 'notify-send -u critical \"Idling in 7 seconds!\"'"
+          "timeout 594 'notify-send -u critical \"Idling in 6 seconds!\"'"
+          "timeout 595 'notify-send -u critical \"Idling in 5 seconds!\"'"
+          "timeout 596 'notify-send -u critical \"Idling in 4 seconds!\"'"
+          "timeout 597 'notify-send -u critical \"Idling in 3 seconds!\"'"
+          "timeout 598 'notify-send -u critical \"Idling in 2 seconds!\"'"
+          "timeout 599 'notify-send -u critical \"Idling in 1 second!\"'"
+          "timeout 600 'swaylock -f'"
+          "timeout 600 'hyprctl dispatch dpms off'"
+          "resume      'hyprctl dispatch dpms on'"
+          # "resume       'maybe-good-morning'"
+          "before-sleep 'swaylock -f'"
+        ])
         ''swayidle -w timeout 600 'notify-send "Locking in 30 seconds..."' timeout 630 'swaylock -f' timeout 660 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on && maybe-good-morning' before-sleep 'swaylock -f'"''
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       ];
 
       env = [
         "XCURSOR_SIZE,24"
+        "EWW_BAR_MON,0"
       ];
 
       input = {
@@ -100,7 +126,7 @@
       "$mainMod" = "SUPER";
       bind = [
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
-        "$mainMod, return, exec, kitty --single-instance"
+        "$mainMod, return, exec, wezterm"
         "$mainMod SHIFT, return, exec, kitty"
         "$mainMod, U, exec, firefox"
         "$mainMod, space, exec, wofi --show drun"
@@ -223,9 +249,9 @@
       # }
 
       # Example windowrule v1
-      # windowrule = float, ^(kitty)$
+      # windowrule = float, ^(kitty|firefox)$
       # Example windowrule v2
-      # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
+      windowrulev2 = float,class:^.*(kitty|firefox|org.wezfurlong.wezterm).*$
       # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
     '';
   };
