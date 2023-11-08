@@ -566,7 +566,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       #use sendfile = yes
       #max protocol = smb2
       # note: localhost is the ipv6 localhost ::1
-      hosts allow = 10. 192.168.0. 127.0.0.1 localhost
+      hosts allow = 192.168.0.0/16 127.0.0.1 localhost
       hosts deny = 0.0.0.0/0
       guest account = nobody
       map to guest = bad user
@@ -742,6 +742,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     443 # https (caddy)
     # 5357 # ???
     22 # ssh
+    6667 # soju irc bouncer
     64022 # ssh (for ben?)
   ];
   networking.firewall.allowedUDPPorts = [
@@ -760,6 +761,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   networking.firewall = {
     enable = true;
     allowPing = true;
+  };
+
+  services.soju = {
+    enable = true;
+    listen = ["irc+insecure://:6667"];
   };
 
   system.stateVersion = "22.05";

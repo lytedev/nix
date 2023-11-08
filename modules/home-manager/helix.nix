@@ -130,7 +130,7 @@
         # color-modes = false;
         bufferline = "multiple";
         # scrolloff = 8;
-        rulers = [80 120];
+        rulers = [81 121];
         cursorline = true;
 
         cursor-shape = {

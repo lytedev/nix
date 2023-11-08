@@ -2,7 +2,17 @@
   imports = with outputs.homeManagerModules; [
     sway
     sway-laptop
+    hyprland
   ];
+
+  wayland.windowManager.hyprland = {
+    settings = {
+      # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+      monitor = [
+        "eDP-1,2256x1504@60,0x0,1.5"
+      ];
+    };
+  };
 
   wayland.windowManager.sway = {
     config = {

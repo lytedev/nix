@@ -7,6 +7,7 @@
   imports = with outputs.homeManagerModules; [
     melee
     sway
+    hyprland
   ];
 
   wayland.windowManager.hyprland = {

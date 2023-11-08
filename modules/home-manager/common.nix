@@ -12,12 +12,14 @@
   imports = with outputs.homeManagerModules; [
     # nix-colors.homeManagerModules.default
     fish
+    bat
     helix
     git
     iex
     zellij
     broot
     cargo
+    senpai
     tmux
   ];
 

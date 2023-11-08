@@ -27,7 +27,11 @@
       ];
 
       exec-once = [
-        "firefox & kitty --single-instance & hyprpaper & mako & /usr/lib/polkit-kde-authentication-agent-1"
+        "hyprpaper"
+        "mako"
+        "/usr/lib/polkit-kde-authentication-agent-1"
+        "eww daemon && eww open bar"
+        "firefox & kitty --single-instance &"
         ''swayidle -w timeout 600 'notify-send "Locking in 30 seconds..."' timeout 630 'swaylock -f' timeout 660 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on && maybe-good-morning' before-sleep 'swaylock -f'"''
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       ];
@@ -53,9 +57,6 @@
           tap-to-click = true;
           middle_button_emulation = true;
         };
-
-        force_no_accel = true;
-        sensitivity = 1; # -1.0 - 1.0, 0 means no modification.
       };
 
       misc = {
@@ -83,7 +84,7 @@
 
       decoration = {
         rounding = 3;
-        blur = "no";
+        # blur = "no";
         # blur_size = 3
         # blur_passes = 1
         # blur_new_optimizations = on

@@ -115,7 +115,6 @@
     in {
       dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
         dragon
-        hyprland
       ]);
       thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
         thinker
@@ -129,7 +128,6 @@
           ./nixos/beefcake
         ] (with outputs.homeManagerModules; [
           linux
-          weechat-in-tmux-service
         ]);
       rascal = mkNixosSystem "x86_64-linux" [./nixos/rascal] (with outputs.homeManagerModules; [
         linux
