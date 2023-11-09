@@ -153,11 +153,6 @@
 
       config.keys = {
         {
-          key = 'j',
-          mods = 'CTRL',
-          action = wezterm.action.ActivatePaneDirection'Down'
-        },
-        {
           key = 'Insert',
           mods = 'SHIFT',
           action = wezterm.action.PasteFrom'Clipboard'
@@ -172,40 +167,40 @@
           mods = 'CTRL|SHIFT',
           action = wezterm.action.SpawnTab'CurrentPaneDomain'
         },
-        {
-          key = 'h',
-          mods = 'CTRL',
-          action = wezterm.action.ActivatePaneDirection'Left'
-        },
-        {
-          key = 'l',
-          mods = 'CTRL',
-          action = wezterm.action.ActivatePaneDirection'Right'
-        },
-        {
-          key = 'k',
-          mods = 'CTRL',
-          action = wezterm.action.ActivatePaneDirection'Up'
-        },
-        {
-          key = 'j',
-          mods = 'CTRL',
-          action = wezterm.action.ActivatePaneDirection'Down'
-        },
+        -- {
+        --   key = 'h',
+        --   mods = 'CTRL',
+        --   action = wezterm.action.ActivatePaneDirection'Left'
+        -- },
+        -- {
+        --   key = 'l',
+        --   mods = 'CTRL',
+        --   action = wezterm.action.ActivatePaneDirection'Right'
+        -- },
+        -- {
+        --   key = 'k',
+        --   mods = 'CTRL',
+        --   action = wezterm.action.ActivatePaneDirection'Up'
+        -- },
+        -- {
+        --   key = 'j',
+        --   mods = 'CTRL',
+        --   action = wezterm.action.ActivatePaneDirection'Down'
+        -- },
+        -- {
+        --   key = 'j',
+        --   mods = 'CTRL|SHIFT',
+        --   action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
+        -- },
+        -- {
+        --   key = 'l',
+        --   mods = 'CTRL|SHIFT',
+        --   action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
+        -- },
         {
           key = 'p',
           mods = 'CTRL|SHIFT',
-          action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
-        },
-        {
-          key = 'j',
-          mods = 'CTRL|SHIFT',
-          action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
-        },
-        {
-          key = 'l',
-          mods = 'CTRL|SHIFT',
-          action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
+          action = wezterm.action.ActivateCommandPalette
         },
         {
           key = 'l',

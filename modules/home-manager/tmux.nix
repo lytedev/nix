@@ -11,6 +11,7 @@
       unbind C-b
       set -g prefix C-s
 
+      # enable tmux to support helix colors
       set -g default-terminal "tmux-256color"
       set -g terminal-overrides ",xterm-256color:RGB"
 
@@ -43,9 +44,7 @@
       bind -n C-t new-window
 
       # tab nav is the default p and n binds
-      # window switcher is the default w bind
-
-      bind s run "tmux split-window -l 12 'tmuxswitcher'" # session switcher
+      # window and session switcher is the default w bind
 
       set -g mouse on
       set -g escape-time 0

@@ -90,9 +90,9 @@
     # using good ol' fzf until skim sucks less out of the box I guess
     enable = true;
     enableFishIntegration = true;
-    defaultCommand = "fd --type f";
-    defaultOptions = ["--height 40%"];
-    fileWidgetOptions = ["--preview 'head {}'"];
+    # defaultCommand = "fd --type f";
+    # defaultOptions = ["--height 40%"];
+    # fileWidgetOptions = ["--preview 'head {}'"];
   };
 
   programs.nix-index = {
