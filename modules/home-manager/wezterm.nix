@@ -180,16 +180,17 @@
           mods = 'CTRL',
           action = wezterm.action.ActivatePaneDirection'Up'
         },
-        {
-          key = 'j',
-          mods = 'CTRL|SHIFT',
-          action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
-        },
-        {
-          key = 'l',
-          mods = 'CTRL|SHIFT',
-          action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
-        },
+        -- use zellij for panes
+        -- {
+        --   key = 'j',
+        --   mods = 'CTRL|SHIFT',
+        --   action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
+        -- },
+        -- {
+        --   key = 'l',
+        --   mods = 'CTRL|SHIFT',
+        --   action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
+        -- },
         {
           key = 'l',
           mods = 'CTRL|SHIFT|ALT',

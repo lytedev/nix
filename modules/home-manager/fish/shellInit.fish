@@ -37,8 +37,10 @@ set --export --universal BROWSER firefox
 
 set --export --universal SOPS_AGE_KEY_FILE "$XDG_CONFIG_HOME/sops/age/keys.txt"
 
-set --export --universal SKIM_ALT_C_COMMAND "fd --hidden --type directory"
-set --export --universal SKIM_CTRL_T_COMMAND "fd --hidden"
+if has_command skim
+	set --export --universal SKIM_ALT_C_COMMAND "fd --hidden --type directory"
+	set --export --universal SKIM_CTRL_T_COMMAND "fd --hidden"
+end
 
 # colors
 set -U fish_color_normal normal # default color

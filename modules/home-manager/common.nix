@@ -80,9 +80,19 @@
   };
 
   programs.skim = {
+    # https://github.com/lotabout/skim/issues/494
+    enable = false;
+    enableFishIntegration = true;
+    defaultOptions = ["--no-clear-start" "--color=16"];
+  };
+
+  programs.fzf = {
+    # using good ol' fzf until skim sucks less out of the box I guess
     enable = true;
     enableFishIntegration = true;
-    defaultOptions = ["--color=16"];
+    defaultCommand = "fd --type f";
+    defaultOptions = ["--height 40%"];
+    fileWidgetOptions = ["--preview 'head {}'"];
   };
 
   programs.nix-index = {

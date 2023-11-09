@@ -142,7 +142,9 @@ bind --mode insert --sets-mode default jJ repaint
 bind --mode insert --sets-mode default Jj repaint
 bind --mode insert --sets-mode default JJ repaint
 
-bind -M insert \cg skim-cd-widget
+if has_command skim
+	bind -M insert \cg skim-cd-widget
+end
 
 bind -M insert \cp up-or-search
 bind -M insert \cn down-or-search

@@ -156,7 +156,7 @@
           ];
         }
         {command = "firefox";}
-        {command = "kitty --single-instance";}
+        {command = "wezterm";}
       ];
 
       modes = {

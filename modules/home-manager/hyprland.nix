@@ -30,7 +30,6 @@
       exec-once = [
         "hyprpaper"
         "mako"
-        "/usr/lib/polkit-kde-authentication-agent-1"
         "eww daemon && eww open bar$EWW_BAR_MON"
         "firefox & wezterm &"
         (lib.concatStringsSep " " [
@@ -51,11 +50,11 @@
           "timeout 597 'notify-send -u critical \"Idling in 3 seconds!\"'"
           "timeout 598 'notify-send -u critical \"Idling in 2 seconds!\"'"
           "timeout 599 'notify-send -u critical \"Idling in 1 second!\"'"
-          "timeout 600 'swaylock -f'"
+          "timeout 600 'swaylock --daemonize'"
           "timeout 600 'hyprctl dispatch dpms off'"
           "resume      'hyprctl dispatch dpms on'"
           # "resume       'maybe-good-morning'"
-          "before-sleep 'swaylock -f'"
+          "before-sleep 'swaylock --daemonize'"
         ])
         ''swayidle -w timeout 600 'notify-send "Locking in 30 seconds..."' timeout 630 'swaylock -f' timeout 660 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on && maybe-good-morning' before-sleep 'swaylock -f'"''
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
