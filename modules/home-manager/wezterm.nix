@@ -23,6 +23,7 @@
         'Noto Color Emoji',
       }
 
+      config.disable_default_key_bindings = true
       config.default_cursor_style = 'BlinkingBar'
 
       config.font = font
@@ -32,6 +33,7 @@
       config.use_fancy_tab_bar = false
       config.tab_bar_at_bottom = false
       config.window_background_opacity = 1.0
+      config.enable_kitty_keyboard = true
 
       -- config.window_frame.font = config.font
       -- config.window_frame.font_size = font_size
@@ -166,6 +168,11 @@
           action = wezterm.action.PasteFrom'PrimarySelection'
         },
         {
+          key = 't',
+          mods = 'CTRL|SHIFT',
+          action = wezterm.action.SpawnTab'CurrentPaneDomain'
+        },
+        {
           key = 'h',
           mods = 'CTRL',
           action = wezterm.action.ActivatePaneDirection'Left'
@@ -180,17 +187,26 @@
           mods = 'CTRL',
           action = wezterm.action.ActivatePaneDirection'Up'
         },
-        -- use zellij for panes
-        -- {
-        --   key = 'j',
-        --   mods = 'CTRL|SHIFT',
-        --   action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
-        -- },
-        -- {
-        --   key = 'l',
-        --   mods = 'CTRL|SHIFT',
-        --   action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
-        -- },
+        {
+          key = 'j',
+          mods = 'CTRL',
+          action = wezterm.action.ActivatePaneDirection'Down'
+        },
+        {
+          key = 'p',
+          mods = 'CTRL|SHIFT',
+          action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
+        },
+        {
+          key = 'j',
+          mods = 'CTRL|SHIFT',
+          action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
+        },
+        {
+          key = 'l',
+          mods = 'CTRL|SHIFT',
+          action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
+        },
         {
           key = 'l',
           mods = 'CTRL|SHIFT|ALT',

@@ -39,6 +39,7 @@
         eza
         fd
         file
+        fzf
         gnumake
         gron
         hexyl

@@ -31,7 +31,9 @@
         "hyprpaper"
         "mako"
         "eww daemon && eww open bar$EWW_BAR_MON"
-        "firefox & wezterm &"
+        "firefox"
+        "kitty --single-instance"
+        "wezterm"
         (lib.concatStringsSep " " [
           "swayidle -w"
           "timeout 300 'notify-send \"Idling in 300 seconds\"'"
@@ -126,7 +128,9 @@
       bind = [
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         "$mainMod, return, exec, wezterm"
-        "$mainMod SHIFT, return, exec, kitty"
+        "$mainMod SHIFT, return, exec, wezterm"
+        # "$mainMod, return, exec, kitty --single-instance"
+        # "$mainMod SHIFT, return, exec, kitty"
         "$mainMod, U, exec, firefox"
         "$mainMod, space, exec, wofi --show drun"
         "$mainMod, C, killactive,"
@@ -247,11 +251,8 @@
       #     sensitivity = -0.5
       # }
 
-      # Example windowrule v1
-      # windowrule = float, ^(kitty|firefox)$
-      # Example windowrule v2
-      windowrulev2 = float,class:^.*(kitty|firefox|org.wezfurlong.wezterm).*$
       # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
+      windowrulev2 = float,class:^.*(kitty|firefox|org.wezfurlong.wezterm).*$
     '';
   };
 }

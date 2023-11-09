@@ -11,6 +11,9 @@
       unbind C-b
       set -g prefix C-s
 
+      set -g default-terminal "tmux-256color"
+      set -g terminal-overrides ",xterm-256color:RGB"
+
       set -g update-environment "WAYLAND_DISPLAY DISPLAY"
 
       bind R source-file "$HOME/.tmux.conf" \; display-message "Reloaded $HOME/.tmux.conf"

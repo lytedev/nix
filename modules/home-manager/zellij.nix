@@ -3,10 +3,12 @@
   lib,
   ...
 }: {
+  # zellij does not support modern terminal keyboard input:
+  # https://github.com/zellij-org/zellij/issues/735
   programs.zellij = {
     # uses home manager's toKDL generator
     enable = true;
-    enableFishIntegration = true;
+    # enableFishIntegration = true;
     settings = {
       pane_frames = false;
       simplified_ui = true;
@@ -27,11 +29,12 @@
         };
         layer = binds: (listToAttrs (map binder binds));
       in {
-        _props = {clear-defaults = true;};
+        # _props = {clear-defaults = true;};
         normal = {};
         locked = layer [
           [["Ctrl g"] {SwitchToMode = "Normal";}]
           [["Ctrl L"] {NewPane = "Right";}]
+          [["Ctrl Z"] {NewPane = "Right";}]
           [["Ctrl J"] {NewPane = "Down";}]
           [["Ctrl h"] {MoveFocus = "Left";}]
           [["Ctrl l"] {MoveFocus = "Right";}]
@@ -468,6 +471,7 @@
         ];
       };
 
+      default_layout = "compact";
       theme = "match";
 
       themes = {

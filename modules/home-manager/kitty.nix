@@ -155,9 +155,8 @@
       # kill tab
       "ctrl+alt+shift+q" = "close_tab";
 
-      # use zellij for panes
-      # "ctrl+shift+j" = "launch --location=hsplit --cwd=current";
-      # "ctrl+shift+l" = "launch --location=vsplit --cwd=current";
+      "ctrl+shift+j" = "launch --location=hsplit --cwd=current";
+      "ctrl+shift+l" = "launch --location=vsplit --cwd=current";
 
       "ctrl+alt+shift+k" = "move_window up";
       "ctrl+alt+shift+h" = "move_window left";
