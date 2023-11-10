@@ -157,3 +157,7 @@ bind -M default \cv edit_command_buffer
 test $PWD = $HOME && begin
 	cd $NICE_HOME || cd
 end
+
+if has_command tmux && ! set -q DO_NOT_AUTOSTART_TMUX && ! set -q TMUX
+	tmux new-session -D -s "default" &>/dev/null || tmux attach -t "default"
+end
