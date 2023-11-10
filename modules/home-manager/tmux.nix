@@ -111,7 +111,7 @@
       # set -g @plugin 'tmux-plugins/tmux-continuum'
 
       # set -g @resurrect-capture-pane-contents 'on'
-      # set -g @resurrect-processes 'helix hx vi vim nvim emacs man less more tail top htop btm irssi weechat mutt "git log" iex mix deno watchexec mosh-client ssh'
+      # set -g @resurrect-processes 'helix hx vi vim nvim emacs man less more tail top htop btm irssi weechat mutt "git log" iex mix deno watchexec mosh-client ssh senpai broot nnn iex mix'
 
       # bind A run-shell "#{@resurrect-save-script-path}"
       # bind L run-shell "#{@resurrect-restore-script-path}"

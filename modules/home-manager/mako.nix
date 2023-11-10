@@ -15,7 +15,7 @@
     textColor = text;
     borderColor = primary;
     progressColor = primary;
-    anchor = "bottom-left";
+    anchor = "top-right";
 
     extraConfig = ''
       [urgency=high]
