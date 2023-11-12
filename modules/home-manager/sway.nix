@@ -156,8 +156,8 @@
           ];
         }
         {command = "firefox";}
-        {command = "wezterm";}
-        # {command = "kitty --single-instance";}
+        # {command = "wezterm";}
+        {command = "kitty --single-instance";}
       ];
 
       modes = {
@@ -204,7 +204,7 @@
         "${mod}+control+space" = "exec makoctl dismiss";
         "${mod}+shift+space" = "exec makoctl invoke";
         # "${mod}+return" = "exec kitty --single-instance";
-        "${mod}+return" = "exec wezterm";
+        "${mod}+return" = "exec kitty";
         "${mod}+shift+return" = "exec floating-term";
         "${mod}+shift+alt+return" = "exec kitty";
         "${mod}+c" = "kill";
