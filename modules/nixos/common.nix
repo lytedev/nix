@@ -63,6 +63,7 @@
         sops
         smartmontools
         sqlite
+        skim
         sysstat
         unzip
         usbutils

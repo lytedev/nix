@@ -33,7 +33,12 @@
     };
     kernelPackages = pkgs.linuxPackages_6_5;
     # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
-    kernelParams = ["amdgpu.sg_display=0" "acpi_osi=\"!Windows 2020\"" "nvme.noacpi=1" "rtc_cmos.use_acpi_alarm=1"];
+    kernelParams = [
+      "amdgpu.sg_display=0"
+      "acpi_osi=\"!Windows 2020\""
+      # "nvme.noacpi=1" # maybe causing crashes?
+      "rtc_cmos.use_acpi_alarm=1"
+    ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
   };
