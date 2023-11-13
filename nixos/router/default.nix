@@ -353,7 +353,7 @@ in {
   services.avahi = {
     enable = true;
     reflector = true;
-    interfaces = [
+    allowInterfaces = [
       lan_if
     ];
   };
