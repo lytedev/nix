@@ -158,6 +158,12 @@ test $PWD = $HOME && begin
 	cd $NICE_HOME || cd
 end
 
-if has_command tmux && ! set -q DO_NOT_AUTOSTART_TMUX && ! set -q TMUX
-	tmux new-session -D -s "default" &>/dev/null || tmux attach -t "default"
-end
+# tmux has issues when pasting sometimes where it seems to interpret a newline
+# as C-j and jumps a pane and screws up the previous pane somehow
+# I think a tput reset can fix it, but it's just annoying and I don't think I
+# currently make heavy enough use of sessions and detaching and tmux-resurrect for
+# it to be worth it
+
+# if has_command tmux && ! set -q DO_NOT_AUTOSTART_TMUX && ! set -q TMUX
+# 	tmux new-session -D -s "default" &>/dev/null || tmux attach -t "default"
+# end
