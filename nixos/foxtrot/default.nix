@@ -21,9 +21,7 @@
       wifi
     ])
     ++ [
-      inputs.hardware.nixosModules.common-cpu-amd
-      # inputs.hardware.nixosModules.common-cpu-amd-pstate
-      inputs.hardware.nixosModules.common-pc-laptop-ssd
+      inputs.hardware.nixosModules.framework-13-7040-amd
     ];
 
   # TODO: hibernation? does sleep suffice?
@@ -34,7 +32,8 @@
       systemd-boot.enable = true;
     };
     kernelPackages = pkgs.linuxPackages_6_5;
-    kernelParams = ["amdgpu.sg_display=0"];
+    # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
+    kernelParams = ["amdgpu.sg_display=0" "acpi_osi=\"!Windows 2020\"" "nvme.noacpi=1" "rtc_cmos.use_acpi_alarm=1"];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
   };
@@ -42,13 +41,12 @@
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true;
   services.fprintd = {
-    enable = true;
+    enable = false;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
-  services.power-profiles-daemon.enable = false;
   services.tlp = {
-    enable = true;
+    enable = false;
     settings = {
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
