@@ -55,6 +55,9 @@
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
+  services.power-profiles-daemon = {
+    enable = true;
+  };
   services.tlp = {
     enable = false;
     settings = {
