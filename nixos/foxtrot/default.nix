@@ -26,6 +26,8 @@
 
   # TODO: hibernation? does sleep suffice?
 
+  hardware.wirelessRegulatoryDatabase = true;
+
   boot = {
     loader = {
       efi.canTouchEfiVariables = true;
@@ -36,6 +38,9 @@
     kernelParams = ["amdgpu.sg_display=0" "acpi_osi=\"!Windows 2020\"" "nvme.noacpi=1" "rtc_cmos.use_acpi_alarm=1"];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
+    extraModprobeConfig = ''
+      options cfg80211 ieee80211_regdom="US"
+    '';
   };
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
