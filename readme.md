@@ -129,6 +129,7 @@ Just for me, see [[lib/internal.md]]
 
 ## Short Term
 
+- more-easily manage gitea repo mirroring to github?
 - router https://github.com/breakds/nixos-routers/blob/main/machines/welderhelper/router.nix
 - a.lyte.dev for web analytics
 - grafana and stuff for monitoring

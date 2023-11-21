@@ -105,6 +105,7 @@
         border_size = 2;
         no_cursor_warps = true;
         resize_on_border = true;
+        no_focus_fallback = true;
 
         layout = "dwindle";
       };
