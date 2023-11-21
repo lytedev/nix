@@ -26,6 +26,17 @@
 
   # TODO: hibernation? does sleep suffice?
 
+  services.fwupd.enable = true;
+  services.fwupd.extraRemotes = ["lvfs-testing"];
+
+  hardware.opengl.extraPackages = [
+    pkgs.rocmPackages.clr.icd
+    pkgs.amdvlk
+    # encoding/decoding acceleration
+    pkgs.libvdpau-va-gl
+    pkgs.vaapiVdpau
+  ];
+
   hardware.wirelessRegulatoryDatabase = true;
 
   boot = {
@@ -38,8 +49,8 @@
     kernelParams = [
       "amdgpu.sg_display=0"
       "acpi_osi=\"!Windows 2020\""
-      # "nvme.noacpi=1" # maybe causing crashes?
-      "rtc_cmos.use_acpi_alarm=1"
+      # "nvme.noacpi=1" # maybe causing crashes upon waking?
+      # "rtc_cmos.use_acpi_alarm=1" # maybe causing excessive battery drain while sleeping -- perhaps due to waking?
     ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];

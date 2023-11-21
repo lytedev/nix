@@ -1,4 +1,6 @@
-{outputs, ...}: {
+{outputs, ...}: let
+  scale = 1.5;
+in {
   imports = with outputs.homeManagerModules; [
     sway
     sway-laptop
@@ -9,7 +11,7 @@
     settings = {
       # See https://wiki.hyprland.org/Configuring/Keywords/ for more
       monitor = [
-        "eDP-1,2256x1504@60,0x0,1.5"
+        "eDP-1,2256x1504@60,0x0,${toString scale}"
       ];
     };
   };
@@ -19,7 +21,7 @@
       output = {
         "BOE 0x0BCA Unknown" = {
           mode = "2256x1504@60Hz";
-          scale = "1.25";
+          scale = toString scale;
         };
       };
     };

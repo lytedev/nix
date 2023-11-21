@@ -9,6 +9,27 @@
 }: {
   networking.hostName = "thinker";
 
+  swapDevices = [
+    # TODO: move this to disko?
+    # sudo btrfs subvolume create /swap
+    # sudo btrfs filesystem mkswapfile --size 32g --uuid clear /swap/swapfile
+    # sudo swapon /swap/swapfile
+    {device = "/swap/swapfile";}
+  ];
+
+  # findmnt -no UUID -T /swap/swapfile
+  boot.resumeDevice = "/dev/disk/by-uuid/aacd6814-a5a2-457a-bf65-8d970cb1f03d";
+
+  services.logind = {
+    lidSwitch = "suspend-then-hibernate";
+    extraConfig = ''
+      HandlePowerKey=suspend-then-hibernate
+      IdleAction=suspend-then-hibernate
+      IdleActionSec=1m
+    '';
+  };
+  systemd.sleep.extraConfig = "HibernateDelaySec=30m";
+
   imports =
     [
       inputs.disko.nixosModules.disko
@@ -26,17 +47,16 @@
       # ./relative-module.nix
     ];
 
-  # TODO: hibernation? I've been using [deep] in /sys/power/mem_sleep alright
-  # with this machine so it may not be necessary?
-  # need to measure percentage lost per day, but I think it's around 10%/day
-  # it looks like I may have had hibernation working -- see ../old/third.nix
-
   boot = {
     loader = {
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
-    kernelParams = ["boot.shell_on_fail"];
+    # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
+    # the above won't work for btrfs, instead you need
+    # btrfs inspect-internal map-swapfile -r /swap/swapfile
+    # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
+    kernelParams = ["boot.shell_on_fail" "resume_offset=22816000"];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
   };
   hardware.bluetooth.enable = true;
