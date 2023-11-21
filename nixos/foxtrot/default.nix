@@ -26,6 +26,8 @@
 
   # TODO: hibernation? does sleep suffice?
 
+  hardware.wirelessRegulatoryDatabase = true;
+
   boot = {
     loader = {
       efi.canTouchEfiVariables = true;
@@ -41,6 +43,9 @@
     ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
+    extraModprobeConfig = ''
+      options cfg80211 ieee80211_regdom="US"
+    '';
   };
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
@@ -49,6 +54,9 @@
     enable = false;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
+  };
+  services.power-profiles-daemon = {
+    enable = true;
   };
   services.tlp = {
     enable = false;
