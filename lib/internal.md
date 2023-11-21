@@ -2,8 +2,85 @@
 
 ## Update Server
 
-```shell
+**NOTE**: I want to establish a solid way to do this without `root@`.
+
+```fish
 g a; set host beefcake; nix run nixpkgs#nixos-rebuild -- --flake ".#$host" \
   --target-host "root@$host" --build-host "root@$host" \
   switch --show-trace
 ```
+
+## Safer Method
+
+```bash
+# make sure all files are at least staged so nix flakes will see them
+git add -A
+
+# initialize a delayed reboot by a process you can kill later if things look good
+# note that the amount of time you give it probably needs to be enough time to both complete the upgrade
+# _and_ perform whatever testing you need
+host=your_host
+ssh -t "root@$host" "bash -c '
+  set -m
+  (sleep 300; reboot;) &
+  jobs -p
+  bg
+  disown
+'"
+
+# build the system and start running it, but do NOT set the machine up to boot to that system yet
+# we will test things and make sure it works first
+# if it fails, the reboot we started previously will automatically kick in once the timeout is reached
+# and the machine will boot to the now-previous iteration
+nix run nixpkgs#nixos-rebuild -- --flake ".#$host" \
+  --target-host "root@$host" --build-host "root@$host" \
+  test --show-trace
+
+# however you like, verify the system is running as expected
+# if it is, run the same command with "switch" instead of "test"
+# otherwise, we will wait until the machine reboots back into the 
+# this is crude, but should be pretty foolproof
+# the main gotcha is that the system is already unbootable or non-workable, but
+# if you always use this method, that should be an impossible state to get into
+
+# if we still have ssh access and the machine fails testing, just rollback
+# instead of waiting for the reboot
+ssh "root@$host" nixos-rebuild --rollback switch
+```
+
+## Provisioning New NixOS Hosts
+
+Note that for best results the target flake attribute should first be built and
+cached to the binary cache at `nix.h.lyte.dev`.
+
+```bash
+# establish network access
+# plug in ethernet or do the wpa_cli song and dance for wifi
+wpa_cli scan
+wpa_cli scan_results
+wpa_cli add_network 0
+wpa_cli set_network 0 ssid "MY_SSID"
+wpa_cli set_network 0 psk "MY_WIFI_PASSWORD"
+wpa_cli enable_network 0
+wpa_cli save_config
+
+# disk encryption key (if needed)
+echo -n "password" > /tmp/secret.key
+
+# partition disks
+nix-shell --packages git --run "sudo nix run \
+  --extra-experimental-features nix-command \
+  --extra-experimental-features flakes \
+  github:nix-community/disko -- \
+    --flake 'git+https://git.lyte.dev/lytedev/nix#${PARTITION_SCHEME}' \
+    --mode disko \
+    --arg disks '[ \"/dev/${DISK}\" ]'"
+
+# install
+nix-shell --packages git \
+  --run "sudo nixos-install \
+    --flake 'git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}' \
+    --option trusted-substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
+    --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
+```
+
