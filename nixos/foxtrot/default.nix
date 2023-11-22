@@ -40,7 +40,7 @@
     extraConfig = ''
       HandlePowerKey=suspend-then-hibernate
       IdleAction=suspend-then-hibernate
-      IdleActionSec=1m
+      IdleActionSec=10m
     '';
   };
   systemd.sleep.extraConfig = "HibernateDelaySec=30m";
@@ -49,7 +49,7 @@
   services.fwupd.extraRemotes = ["lvfs-testing"];
 
   hardware.opengl.extraPackages = [
-    pkgs.rocmPackages.clr.icd
+    # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
     # encoding/decoding acceleration
     pkgs.libvdpau-va-gl
@@ -63,7 +63,7 @@
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
-    kernelPackages = pkgs.linuxPackages_6_5;
+    kernelPackages = pkgs.linuxPackages_latest;
     # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
     # the above won't work for btrfs, instead you need
     # btrfs inspect-internal map-swapfile -r /swap/swapfile
