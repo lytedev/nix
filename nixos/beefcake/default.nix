@@ -359,11 +359,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     };
   };
 
-  services.gitea-actions-runner.instances.main = {
-    # TODO: simple git-based automation would be dope? maybe especially for
-    # mirroring to github super easy?
-    enable = false;
-  };
+  # services.gitea-actions-runner.instances.main = {
+  #   # TODO: simple git-based automation would be dope? maybe especially for
+  #   # mirroring to github super easy?
+  #   enable = false;
+  # };
 
   services.gitea = {
     enable = true;
