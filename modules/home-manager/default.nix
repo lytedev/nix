@@ -19,6 +19,7 @@
   zellij = import ./zellij.nix;
   firefox = import ./firefox.nix;
   broot = import ./broot.nix;
+  nnn = import ./nnn.nix;
   waybar = import ./waybar.nix;
   swaylock = import ./swaylock.nix;
   desktop = import ./desktop.nix;

@@ -3,7 +3,7 @@
     enable = true;
     enableFishIntegration = true;
     settings = {
-      modal = false; # vim mode?
+      modal = true; # vim mode?
 
       verbs = [
         {

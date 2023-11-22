@@ -18,6 +18,7 @@
     iex
     zellij
     broot
+    nnn
     cargo
     senpai
     tmux

@@ -359,6 +359,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     };
   };
 
+  services.gitea-actions-runner.instances.main = {
+    # TODO: simple git-based automation would be dope? maybe especially for
+    # mirroring to github super easy?
+    enable = false;
+  };
+
   services.gitea = {
     enable = true;
     appName = "git.lyte.dev";
@@ -369,6 +375,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         HTTP_ADDR = "127.0.0.1";
         HTTP_PORT = 3088;
         DOMAIN = "git.lyte.dev";
+      };
+      actions = {
+        ENABLED = true;
       };
       service = {
         DISABLE_REGISTRATION = true;
