@@ -70,7 +70,7 @@
     # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
     # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
     kernelParams = [
-      "amdgpu.sg_display=0"
+      # "amdgpu.sg_display=0"
       "acpi_osi=\"!Windows 2020\""
       "resume_offset=39331072"
       # "nvme.noacpi=1" # maybe causing crashes upon waking?
