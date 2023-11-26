@@ -289,6 +289,7 @@
         "control+XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +1%";
         "control+XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -1%";
         "XF86AudioMute" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        "${mod}+F1" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "XF86AudioMicMute" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
         "XF86MonBrightnessDown" = "exec brightnessctl set 10%-";
         "XF86MonBrightnessUp" = "exec brightnessctl set +10%";
