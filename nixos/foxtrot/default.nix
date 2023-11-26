@@ -24,13 +24,32 @@
       inputs.hardware.nixosModules.framework-13-7040-amd
     ];
 
-  # TODO: hibernation? does sleep suffice?
+  swapDevices = [
+    # TODO: move this to disko?
+    # sudo btrfs subvolume create /swap
+    # sudo btrfs filesystem mkswapfile --size 32g --uuid clear /swap/swapfile
+    # sudo swapon /swap/swapfile
+    {device = "/swap/swapfile";}
+  ];
+
+  # findmnt -no UUID -T /swap/swapfile
+  boot.resumeDevice = "/dev/disk/by-uuid/3076912c-ac61-4067-b6b2-361f68b2d038";
+
+  services.logind = {
+    lidSwitch = "suspend-then-hibernate";
+    extraConfig = ''
+      HandlePowerKey=suspend-then-hibernate
+      IdleAction=suspend-then-hibernate
+      IdleActionSec=10m
+    '';
+  };
+  systemd.sleep.extraConfig = "HibernateDelaySec=30m";
 
   services.fwupd.enable = true;
   services.fwupd.extraRemotes = ["lvfs-testing"];
 
   hardware.opengl.extraPackages = [
-    pkgs.rocmPackages.clr.icd
+    # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
     # encoding/decoding acceleration
     pkgs.libvdpau-va-gl
@@ -44,11 +63,16 @@
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
-    kernelPackages = pkgs.linuxPackages_6_5;
+    kernelPackages = pkgs.linuxPackages_latest;
+    # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
+    # the above won't work for btrfs, instead you need
+    # btrfs inspect-internal map-swapfile -r /swap/swapfile
+    # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
     # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
     kernelParams = [
-      "amdgpu.sg_display=0"
+      # "amdgpu.sg_display=0"
       "acpi_osi=\"!Windows 2020\""
+      "resume_offset=39331072"
       # "nvme.noacpi=1" # maybe causing crashes upon waking?
       # "rtc_cmos.use_acpi_alarm=1" # maybe causing excessive battery drain while sleeping -- perhaps due to waking?
     ];

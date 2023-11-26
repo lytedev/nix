@@ -1,5 +1,5 @@
 {outputs, ...}: let
-  scale = 1.5;
+  scale = 1.25;
 in {
   imports = with outputs.homeManagerModules; [
     sway

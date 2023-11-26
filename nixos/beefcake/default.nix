@@ -119,12 +119,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         owner = config.systemd.services.plausible.serviceConfig.User;
         group = config.systemd.services.plausible.serviceConfig.Group;
       };
-      plausible-erlang-cookie = {
-        path = "/var/lib/plausible/plausible-erlang-cookie";
-        mode = "0440";
-        owner = config.systemd.services.plausible.serviceConfig.User;
-        group = config.systemd.services.plausible.serviceConfig.Group;
-      };
       plausible-secret-key-base = {
         path = "/var/lib/plausible/plausible-secret-key-base";
         mode = "0440";
@@ -359,6 +353,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     };
   };
 
+  # services.gitea-actions-runner.instances.main = {
+  #   # TODO: simple git-based automation would be dope? maybe especially for
+  #   # mirroring to github super easy?
+  #   enable = false;
+  # };
+
   services.gitea = {
     enable = true;
     appName = "git.lyte.dev";
@@ -369,6 +369,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         HTTP_ADDR = "127.0.0.1";
         HTTP_PORT = 3088;
         DOMAIN = "git.lyte.dev";
+      };
+      actions = {
+        ENABLED = true;
       };
       service = {
         DISABLE_REGISTRATION = true;
@@ -406,7 +409,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   services.plausible = {
     # TODO: enable
     enable = false;
-    releaseCookiePath = config.sops.secrets.plausible-erlang-cookie.path;
     database = {
       clickhouse.setup = true;
       postgres = {
@@ -433,21 +435,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     ensureUsers = [
       {
         name = "daniel";
-        ensurePermissions = {
-          "DATABASE daniel" = "ALL PRIVILEGES";
-        };
+        ensureDBOwnership = true;
       }
       {
         name = "plausible";
-        ensurePermissions = {
-          "DATABASE plausible" = "ALL PRIVILEGES";
-        };
+        ensureDBOwnership = true;
       }
       {
         name = "nextcloud";
-        ensurePermissions = {
-          "DATABASE nextcloud" = "ALL PRIVILEGES";
-        };
+        ensureDBOwnership = true;
       }
     ];
     dataDir = "/storage/postgres";

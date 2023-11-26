@@ -6,9 +6,7 @@
     ensureUsers = [
       {
         name = "daniel";
-        ensurePermissions = {
-          "DATABASE daniel" = "ALL PRIVILEGES";
-        };
+        ensureDBOwnership = true;
       }
     ];
     enableTCPIP = true;

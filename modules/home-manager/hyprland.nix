@@ -27,6 +27,10 @@
         "desc:Dell Inc. DELL U2720Q D3TM623,3840x2160@60,3840x0,1.5,transform,3"
       ];
 
+      xwayland = {
+        force_zero_scaling = true;
+      };
+
       exec-once = [
         "hyprpaper"
         "mako"

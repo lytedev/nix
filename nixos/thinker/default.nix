@@ -25,7 +25,7 @@
     extraConfig = ''
       HandlePowerKey=suspend-then-hibernate
       IdleAction=suspend-then-hibernate
-      IdleActionSec=1m
+      IdleActionSec=10m
     '';
   };
   systemd.sleep.extraConfig = "HibernateDelaySec=30m";
