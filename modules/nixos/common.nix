@@ -43,7 +43,6 @@
         gnumake
         gron
         hexyl
-        htop
         iputils
         jq
         killall

@@ -7,7 +7,7 @@
 }: {
   imports = [
     ./sway.nix
-    ./hyprland.nix
+    # ./hyprland.nix
     # ./plasma.nix
     # ./gnome.nix
     ./user-installed-applications.nix

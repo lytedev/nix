@@ -43,7 +43,7 @@
       IdleActionSec=10m
     '';
   };
-  systemd.sleep.extraConfig = "HibernateDelaySec=30m";
+  systemd.sleep.extraConfig = "HibernateDelaySec=90m";
 
   services.fwupd.enable = true;
   services.fwupd.extraRemotes = ["lvfs-testing"];
@@ -59,22 +59,24 @@
   hardware.wirelessRegulatoryDatabase = true;
 
   boot = {
+    kernelPackages = pkgs.linuxPackages_latest; # seeing if using the stable kernel makes wow work
+
     loader = {
       efi.canTouchEfiVariables = true;
       systemd-boot.enable = true;
     };
-    kernelPackages = pkgs.linuxPackages_latest;
+
     # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
     # the above won't work for btrfs, instead you need
     # btrfs inspect-internal map-swapfile -r /swap/swapfile
     # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
     # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
     kernelParams = [
-      # "amdgpu.sg_display=0"
+      "amdgpu.sg_display=0"
       "acpi_osi=\"!Windows 2020\""
       "resume_offset=39331072"
       # "nvme.noacpi=1" # maybe causing crashes upon waking?
-      # "rtc_cmos.use_acpi_alarm=1" # maybe causing excessive battery drain while sleeping -- perhaps due to waking?
+      "rtc_cmos.use_acpi_alarm=1"
     ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
@@ -82,8 +84,11 @@
       options cfg80211 ieee80211_regdom="US"
     '';
   };
-  hardware.bluetooth.enable = true;
-  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = false;
+  };
+  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
   services.printing.enable = true;
   services.fprintd = {
     enable = false;
@@ -91,13 +96,13 @@
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
   services.power-profiles-daemon = {
-    enable = true;
+    enable = false;
   };
   services.tlp = {
-    enable = false;
+    enable = true;
     settings = {
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
-      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+      CPU_SCALING_GOVERNOR_ON_BAT = "ondemand";
       CPU_MIN_PERF_ON_BAT = 0;
       CPU_MAX_PERF_ON_BAT = 60;
 

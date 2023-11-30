@@ -29,6 +29,7 @@
   ewwbar = import ./ewwbar.nix;
   sway-laptop = import ./sway-laptop.nix;
   tmux = import ./tmux.nix;
+  htop = import ./htop.nix;
   senpai = import ./senpai.nix;
 
   dragon = import ./dragon.nix;

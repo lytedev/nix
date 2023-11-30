@@ -19,6 +19,7 @@
     zellij
     broot
     nnn
+    htop
     cargo
     senpai
     tmux

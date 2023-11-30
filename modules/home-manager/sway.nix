@@ -77,6 +77,7 @@
       enable = true;
     };
 
+    # TODO: stuff is opening on workspace 10 (0?)
     extraConfig = ''
       exec --no-startup-id {
         swaymsg "workspace 1"
@@ -155,7 +156,7 @@
             "before-sleep 'swaylock'"
           ];
         }
-        {command = "firefox";}
+        # {command = "firefox";}
         # {command = "wezterm";}
         {command = "kitty --single-instance";}
       ];
