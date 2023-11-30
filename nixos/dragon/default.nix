@@ -10,6 +10,8 @@
 }: {
   networking.hostName = "dragon";
 
+  boot.supportedFilesystems = ["ntfs"];
+
   imports =
     [
       (modulesPath + "/installer/scan/not-detected.nix")
