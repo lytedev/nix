@@ -26,6 +26,7 @@
 
   swapDevices = [
     # TODO: move this to disko?
+    # NOTE(oninstall):
     # sudo btrfs subvolume create /swap
     # sudo btrfs filesystem mkswapfile --size 32g --uuid clear /swap/swapfile
     # sudo swapon /swap/swapfile
@@ -33,7 +34,7 @@
   ];
 
   # findmnt -no UUID -T /swap/swapfile
-  boot.resumeDevice = "/dev/disk/by-uuid/3076912c-ac61-4067-b6b2-361f68b2d038";
+  boot.resumeDevice = "/dev/disk/by-uuid/81c3354a-f629-4b6b-a249-7705aeb9f0d5";
 
   services.logind = {
     lidSwitch = "suspend-then-hibernate";
@@ -66,6 +67,7 @@
       systemd-boot.enable = true;
     };
 
+    # NOTE(oninstall):
     # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
     # the above won't work for btrfs, instead you need
     # btrfs inspect-internal map-swapfile -r /swap/swapfile
@@ -74,7 +76,8 @@
     kernelParams = [
       "amdgpu.sg_display=0"
       "acpi_osi=\"!Windows 2020\""
-      "resume_offset=39331072"
+      # NOTE(oninstall):
+      "resume_offset=3421665"
       # "nvme.noacpi=1" # maybe causing crashes upon waking?
       "rtc_cmos.use_acpi_alarm=1"
     ];
