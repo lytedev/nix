@@ -84,3 +84,14 @@ nix-shell --packages git \
     --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
+Then:
+
+1. Setup/copy any GPG/SSH keys.
+
+```shell
+$ gpg --export-secret-key --armor daniel@lyte.dev | ssh $host "umask 077; cat - > p.key"
+
+```
+
+2. Setup/copy any password stores.
+3. Tailscale connection and roles.

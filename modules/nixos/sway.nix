@@ -60,7 +60,6 @@
       noto-fonts
       pamixer
       pavucontrol
-      pgcli
       playerctl
       pulseaudio
       pulsemixer
