@@ -5,7 +5,7 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    helix.url = "github:helix-editor/helix/23.10";
+    helix.url = "github:helix-editor/helix/master";
     helix.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko/master";

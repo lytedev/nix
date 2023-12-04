@@ -7,6 +7,10 @@ in {
     # hyprland
   ];
 
+  home = {
+    stateVersion = "24.05";
+  };
+
   wayland.windowManager.hyprland = {
     settings = {
       # See https://wiki.hyprland.org/Configuring/Keywords/ for more
