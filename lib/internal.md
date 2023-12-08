@@ -89,9 +89,20 @@ Then:
 1. Setup/copy any GPG/SSH keys.
 
 ```shell
+# from a machine with the key
 $ gpg --export-secret-key --armor daniel@lyte.dev | ssh $host "umask 077; cat - > p.key"
+$ rsync -r ~/.ssh $host:~/.ssh
 
+# on the target machine
+$ gpg --import ~/p.key && rm ~/p.key
+$ gpg --edit-key daniel@lyte.dev # trust ultimately
 ```
 
 2. Setup/copy any password stores.
+
+```shell
+$ rsync -r ~/.local/share/password-store $host:~/.local/share/password-store
+```
+
 3. Tailscale connection and roles.
+4. Firefox sync configured.
