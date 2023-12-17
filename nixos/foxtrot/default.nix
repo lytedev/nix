@@ -59,6 +59,8 @@
 
   hardware.wirelessRegulatoryDatabase = true;
 
+  hardware.framework.amd-7040.preventWakeOnAC = true;
+
   boot = {
     kernelPackages = pkgs.linuxPackages_latest; # seeing if using the stable kernel makes wow work
 

@@ -149,10 +149,27 @@
           display-messages = true;
           # display-inlay-hints = true;
         };
-        # statusline = {
-        #   left = ["mode" "spinner" "selections" "primary-selection-length" "position" "position-percentage" "diagnostics" "workspace-diagnostics"];
+        statusline = {
+          separator = " ";
+          mode = {
+            "normal" = "N";
+            "insert" = "I";
+            "select" = "S";
+          };
+          left = [
+            "file-name"
+            "mode"
+            # "selections"
+            # "primary-selection-length"
+            # "position"
+            # "position-percentage"
+            "spinner"
+            "diagnostics"
+            "workspace-diagnostics"
+          ];
+        };
         #   center = ["file-name"];
-        #   right = ["version-control" "total-line-numbers" "file-encoding"];
+        # right = ["version-control" "total-line-numbers" "file-encoding"];
         # };
       };
       keys = {
@@ -276,11 +293,11 @@
 
         "ui.statusline" = {
           fg = fgdim;
-          bg = bg2;
+          bg = bg;
         };
         "ui.statusline.inactive" = {
           fg = fg3;
-          bg = bg;
+          bg = bg2;
         };
         "ui.statusline.normal" = {
           fg = bg;
