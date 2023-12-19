@@ -168,9 +168,10 @@
 
     # Disk partition schemes and functions
     diskoConfigurations = import ./disko;
-  };
 
-  templates = import ./templates/all.nix;
+    # Flake templates for easily setting up Nix in a project using common patterns I like
+    templates = import ./templates/all.nix;
+  };
 
   nixConfig = {
     extra-experimental-features = ["nix-command" "flakes"];
