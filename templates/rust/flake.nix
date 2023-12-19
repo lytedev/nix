@@ -4,19 +4,14 @@
     self,
     nixpkgs,
   }: let
+    inherit (self) outputs;
     supportedSystems = ["x86_64-linux"];
-    forEachSupportedSystem = f:
-      nixpkgs.lib.genAttrs supportedSystems (system:
-        f {
-          inherit system;
-          pkgs = import nixpkgs {inherit system;};
-        });
+    forEachSupportedSystem = nixpkgs.lib.genAttrs supportedSystems;
   in {
-    devShells = forEachSupportedSystem ({
-      pkgs,
-      system,
-    }: {
-      rust-development = pkgs.mkShell {
+    devShells = forEachSupportedSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
+    in {
+      rust-dev = pkgs.mkShell {
         buildInputs = with pkgs; [
           cargo
           rustc
@@ -26,7 +21,7 @@
         ];
       };
 
-      default = forEachSupportedSystem ({system, ...}: self.outputs.${system}.rust-development);
+      default = outputs.devShells.${system}.rust-dev;
     });
   };
 }
