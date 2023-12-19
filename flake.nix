@@ -170,6 +170,8 @@
     diskoConfigurations = import ./disko;
   };
 
+  templates = import ./templates/all.nix;
+
   nixConfig = {
     extra-experimental-features = ["nix-command" "flakes"];
 
