@@ -4,7 +4,7 @@ in {
   imports = with outputs.homeManagerModules; [
     sway
     sway-laptop
-    # hyprland
+    hyprland
   ];
 
   home = {
