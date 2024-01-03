@@ -19,7 +19,7 @@
       podman
       postgres
       wifi
-      hyprland
+      # hyprland
     ])
     ++ [
       inputs.hardware.nixosModules.framework-13-7040-amd

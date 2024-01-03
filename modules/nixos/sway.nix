@@ -47,34 +47,34 @@
     systemPackages = with pkgs; [
       brightnessctl
       feh
-      gimp
+      # gimp
       grim
-      inkscape
-      krita
+      # inkscape
+      # krita
       libinput
       libinput-gestures
       libnotify
-      lutris
-      nil
-      nixpkgs-fmt
+      # lutris
+      # nil
+      # nixpkgs-fmt
       noto-fonts
       pamixer
-      pavucontrol
+      # pavucontrol
       playerctl
-      pulseaudio
+      # pulseaudio
       pulsemixer
-      rclone
-      restic
+      # rclone
+      # restic
       slurp
-      steam
+      # steam
       swaybg
       swayidle
       swaylock
-      vlc
-      vulkan-tools
+      # vlc
+      # vulkan-tools
       waybar
-      weechat
-      wine
+      # weechat
+      # wine
       wl-clipboard
       zathura
     ];
