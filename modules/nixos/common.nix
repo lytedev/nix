@@ -8,6 +8,8 @@
   pkgs,
   ...
 }: {
+  networking.hostName = lib.mkDefault "nixoslyte";
+
   imports = [
     inputs.home-manager.nixosModules.home-manager
   ];
@@ -26,51 +28,51 @@
 
     systemPackages = with pkgs;
       [
-        age
-        bat
-        bc
-        bind
-        bottom
-        btrfs-progs
-        cue
+        # age
+        # bat
+        # bc
+        # bind
+        # bottom
+        # btrfs-progs
+        # cue
         curl
-        dogdns
+        # dogdns
         dua
         eza
         fd
         file
         fzf
         gnumake
-        gron
-        hexyl
+        # gron
+        # hexyl
         iputils
-        jq
+        # jq
         killall
         less
         mosh
-        nmap
+        # nmap
         nettools
         openssl
-        pciutils
-        pv
-        rclone
-        restic
+        # pciutils
+        # pv
+        # rclone
+        # restic
         ripgrep
         rsync
-        rtx
+        # rtx
         sd
-        sops
+        # sops
         smartmontools
-        sqlite
-        skim
-        sysstat
+        # sqlite
+        # skim
+        # sysstat
         unzip
-        usbutils
-        watchexec
+        # usbutils
+        # watchexec
         wget
-        xh
+        # xh
         zellij
-        zstd
+        # zstd
       ]
       ++ (with inputs.home-manager.packages.${system}; [
         home-manager
@@ -168,6 +170,7 @@
       allowedUDPPorts = lib.mkDefault [];
     };
 
+    # TODO: podman equivalent?
     extraHosts = ''
       ::1 host.docker.internal
       127.0.0.1 host.docker.internal
@@ -245,9 +248,10 @@
     defaultUserShell = pkgs.fish;
   };
 
-  services.udev.extraRules = ''
-    # https://betaflight.com/docs/wiki/archive/Installing-Betaflight#step-1
-    # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="2e3c", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"
-    # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"'
-  '';
+  # TODO: should not be in common?
+  # services.udev.extraRules = ''
+  #   # https://betaflight.com/docs/wiki/archive/Installing-Betaflight#step-1
+  #   # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="2e3c", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"
+  #   # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"'
+  # '';
 }

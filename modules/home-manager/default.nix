@@ -32,6 +32,7 @@
   htop = import ./htop.nix;
   senpai = import ./senpai.nix;
 
+  base = import ./base.nix;
   dragon = import ./dragon.nix;
   thinker = import ./thinker.nix;
   foxtrot = import ./foxtrot.nix;

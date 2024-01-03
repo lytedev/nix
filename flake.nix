@@ -112,7 +112,11 @@
               }
             ];
         };
+
+      base = mkNixosSystem "x86_64-linux" [./nixos/base] [outputs.homeManagerModules.base];
     in {
+      base = base;
+      nixos = base; # alias
       dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
         dragon
       ]);

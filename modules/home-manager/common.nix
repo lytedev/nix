@@ -62,14 +62,15 @@
     ];
   };
 
-  programs.password-store = {
-    enable = true;
-    package = pkgs.pass.withExtensions (exts: [exts.pass-otp]);
-  };
+  # TODO: not common?
+  # programs.password-store = {
+  #   enable = true;
+  #   package = pkgs.pass.withExtensions (exts: [exts.pass-otp]);
+  # };
 
-  programs.gitui = {
-    enable = true;
-  };
+  # programs.gitui = {
+  #   enable = true;
+  # };
 
   programs.direnv = {
     enable = true;
@@ -97,6 +98,7 @@
     # fileWidgetOptions = ["--preview 'head {}'"];
   };
 
+  # TODO: regular cron or something?
   programs.nix-index = {
     enable = true;
     enableFishIntegration = true;
