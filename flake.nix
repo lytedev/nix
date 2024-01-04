@@ -81,7 +81,7 @@
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
-    nixosConfigurations = import ./nixos {
+    nixosConfigurations = builtins.mapAttrs (name: {}:  (import ./nixos) {
       base = {
         system = "x86_64-linux";
         modules = [./nixos/base];
