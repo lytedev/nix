@@ -3,16 +3,25 @@
   lib,
   inputs,
   colors,
-  # outputs,
+  outputs,
   system,
   pkgs,
+  modulesPath,
   ...
 }: {
   networking.hostName = lib.mkDefault "nixoslyte";
 
-  imports = [
-    inputs.home-manager.nixosModules.home-manager
-  ];
+  imports =
+    [
+      (modulesPath + "/installer/scan/not-detected.nix")
+      # inputs.sops-nix.nixosModules.sops
+      inputs.disko.nixosModules.disko
+      inputs.home-manager.nixosModules.home-manager
+    ]
+    ++ (with outputs.nixosModules; [
+      avahi
+      # daniel
+    ]);
 
   hardware.enableRedistributableFirmware = true;
 
@@ -177,44 +186,6 @@
     '';
   };
 
-  nix = {
-    settings = {
-      trusted-users = ["root" "daniel"];
-      experimental-features = lib.mkDefault ["nix-command" "flakes"];
-      substituters = [
-        "https://cache.nixos.org/"
-        "https://helix.cachix.org"
-        "https://nix-community.cachix.org"
-        "https://nix.h.lyte.dev"
-      ];
-      trusted-public-keys = [
-        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
-        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
-      ];
-    };
-
-    registry = {
-      self.flake = inputs.self;
-
-      nixpkgs = {
-        from = {
-          id = "nixpkgs";
-          type = "indirect";
-        };
-        flake = inputs.nixpkgs;
-      };
-    };
-  };
-
-  nixpkgs = {
-    config = {
-      allowUnfree = true;
-    };
-    hostPlatform = lib.mkDefault "x86_64-linux";
-  };
-
   programs = {
     fish = {
       enable = true;
@@ -254,4 +225,71 @@
   #   # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="2e3c", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"
   #   # ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", MODE="0664", GROUP="uucp"'
   # '';
+
+  nixpkgs = {
+    # You can add overlays here
+    overlays = [
+      # Add overlays your own flake exports (from overlays and pkgs dir):
+      outputs.overlays.additions
+      outputs.overlays.modifications
+      outputs.overlays.unstable-packages
+
+      # You can also add overlays exported from other flakes:
+      # neovim-nightly-overlay.overlays.default
+
+      # Or define it inline, for example:
+      # (final: prev: {
+      #   hi = final.hello.overrideAttrs (oldAttrs: {
+      #     patches = [ ./change-hello-to-hi.patch ];
+      #   });
+      # })
+    ];
+    # Configure your nixpkgs instance
+    config = {
+      # Disable if you don't want unfree packages
+      allowUnfree = true;
+    };
+  };
+
+  nix = {
+    # This will add each flake input as a registry
+    # To make nix3 commands consistent with your flake
+    registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
+
+    # This will additionally add your inputs to the system's legacy channels
+    # Making legacy nix commands consistent as well, awesome!
+    nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
+
+    settings = {
+      trusted-users = ["root" "daniel"];
+      experimental-features = lib.mkDefault ["nix-command" "flakes"];
+      substituters = [
+        "https://cache.nixos.org/"
+        "https://helix.cachix.org"
+        "https://nix-community.cachix.org"
+        "https://nix.h.lyte.dev"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+      ];
+      auto-optimise-store = true;
+    };
+
+    # registry = {
+    #   self.flake = inputs.self;
+
+    #   nixpkgs = {
+    #     from = {
+    #       id = "nixpkgs";
+    #       type = "indirect";
+    #     };
+    #     flake = inputs.nixpkgs;
+    #   };
+    # };
+  };
+
+  system.stateVersion = lib.mkDefault "23.11";
 }

@@ -3,9 +3,7 @@
   pkgs,
   ...
 }: {
-  imports = with outputs.homeManagerModules; [
-    common
-  ];
+  imports = with outputs.homeManagerModules; [common];
 
   home = {
     sessionVariables = {

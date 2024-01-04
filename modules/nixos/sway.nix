@@ -1,5 +1,9 @@
-{pkgs, ...}: {
-  imports = [./pipewire.nix];
+{
+  pkgs,
+  outputs,
+  ...
+}: {
+  imports = with outputs.nixosModules; [pipewire];
 
   # services.xserver.libinput.enable = true;
 

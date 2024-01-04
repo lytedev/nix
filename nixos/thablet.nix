@@ -10,7 +10,6 @@
   imports =
     [
       (modulesPath + "/installer/scan/not-detected.nix")
-      inputs.disko.nixosModules.disko
       flake.diskoConfigurations.standard
       inputs.hardware.nixosModules.lenovo-thinkpad-x1-yoga
     ]
@@ -43,7 +42,6 @@
     };
   };
 
-  # not necessarily "base", but all my machines are UEFI so...
   boot.loader.systemd-boot.enable = true;
 
   services.fprintd = {

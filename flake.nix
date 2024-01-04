@@ -27,13 +27,8 @@
     ssbm.url = "github:lytedev/ssbm-nix/my-nixpkgs";
     ssbm.inputs.nixpkgs.follows = "nixpkgs";
 
-    # doesn't support the forge mod loader yet
+    # TODO: doesn't support the forge mod loader yet
     # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
-
-    # need to bump ishiiruka upstream I think
-    # slippi-desktop.url = "github:project-slippi/slippi-desktop-app";
-    # slippi-desktop.flake = false;
-    # ssbm.inputs.slippi-desktop.follows = "slippi-desktop";
   };
 
   outputs = {
@@ -81,63 +76,47 @@
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
-    nixosConfigurations = builtins.mapAttrs (name: {}:  (import ./nixos) {
-      base = {
-        system = "x86_64-linux";
-        modules = [./nixos/base];
-      };
-
-      thablet = {
-        system = "x86_64-linux";
-        modules = [./nixos/thablet];
-      };
-      thinker = mkNixosSystem "x86_64-linux" [
-        ./nixos/thinker
-        (danielWithModules [outputs.homeManagerModules.thinker])
-      ];
-      foxtrot = mkNixosSystem "x86_64-linux" [
-        ./nixos/foxtrot
-        (danielWithModules [outputs.homeManagerModules.foxtrot])
-      ];
-      beefcake = mkNixosSystem "x86_64-linux" [
-        inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
-        ./nixos/beefcake
-        (danielWithModules [outputs.homeManagerModules.linux])
-      ];
-      rascal = mkNixosSystem "x86_64-linux" [
-        ./nixos/rascal
-        (danielWithModules [outputs.homeManagerModules.linux])
-      ];
-      musicbox = mkNixosSystem "x86_64-linux" [
-        ./nixos/musicbox
-        (danielWithModules [outputs.homeManagerModules.sway])
-      ];
-      router = mkNixosSystem "x86_64-linux" [
-        ./nixos/router
-        (danielWithModules [outputs.homeManagerModules.common])
-      ];
-    };
+    nixosConfigurations = builtins.mapAttrs (name: {
+      system,
+      modules,
+      ...
+    }:
+      nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {
+          inherit inputs outputs system;
+          inherit (outputs) colors font;
+          flake = self;
+        };
+        modules =
+          [
+            self.nixosModules.common
+          ]
+          ++ modules;
+      }) (import ./nixos);
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
       # TODO: non-system-specific home configurations?
-      "base-x86_64-linux" = let
-        system = "x86_64-linux";
-      in
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = {inherit inputs outputs system colors font;};
-          modules = with outputs.homeManagerModules; [linux];
-        };
-      "base-aarch64-darwin" = let
-        system = "aarch64-darwin";
-      in
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = {inherit inputs outputs system colors font;};
-          modules = with outputs.homeManagerModules; [macos];
-        };
+      # "base-x86_64-linux" = let
+      #   system = "x86_64-linux";
+      # in
+      #   home-manager.lib.homeManagerConfiguration {
+      #     pkgs = nixpkgs.legacyPackages.${system};
+      #     extraSpecialArgs = {
+      #     inherit inputs outputs system;
+      #     };
+      #     modules = with outputs.homeManagerModules; [linux];
+      #   };
+      # "base-aarch64-darwin" = let
+      #   system = "aarch64-darwin";
+      # in
+      #   home-manager.lib.homeManagerConfiguration {
+      #     pkgs = nixpkgs.legacyPackages.${system};
+      #     extraSpecialArgs = {inherit inputs outputs system colors font;};
+      #     modules = with outputs.homeManagerModules; [macos];
+      #   };
     };
 
     # Disk partition schemes and functions
