@@ -117,15 +117,11 @@
     in {
       base = base;
       nixos = base; # alias
-      dragon = mkNixosSystem "x86_64-linux" [./nixos/dragon] (with outputs.homeManagerModules; [
-        dragon
-      ]);
-      thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker] (with outputs.homeManagerModules; [
-        thinker
-      ]);
-      foxtrot = mkNixosSystem "x86_64-linux" [./nixos/foxtrot] (with outputs.homeManagerModules; [
-        foxtrot
-      ]);
+      thablet = mkNixosSystem "x86_64-linux" [./nixos/thablet] [outputs.homeManagerModules.base];
+      thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker] [outputs.homeManagerModules.thinker];
+      foxtrot = mkNixosSystem "x86_64-linux" [./nixos/foxtrot] [
+        outputs.homeManagerModules.foxtrot
+      ];
       beefcake =
         mkNixosSystem "x86_64-linux" [
           inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
@@ -133,15 +129,11 @@
         ] (with outputs.homeManagerModules; [
           linux
         ]);
-      rascal = mkNixosSystem "x86_64-linux" [./nixos/rascal] (with outputs.homeManagerModules; [
-        linux
-      ]);
-      musicbox = mkNixosSystem "x86_64-linux" [./nixos/musicbox] (with outputs.homeManagerModules; [
-        sway
-      ]);
-      router = mkNixosSystem "x86_64-linux" [./nixos/router] (with outputs.homeManagerModules; [
-        common
-      ]);
+      rascal = mkNixosSystem "x86_64-linux" [./nixos/rascal] [
+        outputs.homeManagerModules.linux
+      ];
+      musicbox = mkNixosSystem "x86_64-linux" [./nixos/musicbox] [outputs.homeManagerModules.sway];
+      router = mkNixosSystem "x86_64-linux" [./nixos/router] [outputs.homeManagerModules.common];
     };
 
     # Standalone home-manager configuration entrypoint

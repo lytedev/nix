@@ -1,35 +1,28 @@
 {pkgs, ...}: {
   imports = [./pipewire.nix];
 
-  # services.xserver.libinput.enable = true;
+  services.xserver.enable = true;
+  services.xserver.displayManager.gdm = {
+    enable = true;
+  };
 
-  services.gnome.gnome-keyring.enable = true;
+  hardware.pulseaudio.enable = false;
+
+  services.xserver.desktopManager.gnome = {
+    enable = true;
+  };
+
   programs.gnupg.agent = {
     enable = true;
     pinentryFlavor = "gnome3";
     enableSSHSupport = true;
   };
 
-  programs.sway = {
-    enable = true;
-    wrapperFeatures.gtk = true;
-  };
-
   xdg.portal = {
     enable = true;
-    wlr.enable = true;
-
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-wlr
-    ];
   };
 
   services.dbus.enable = true;
-
-  programs.thunar = {
-    enable = true;
-    plugins = with pkgs.xfce; [thunar-archive-plugin thunar-volman];
-  };
 
   services.gvfs = {
     enable = true;
