@@ -16,4 +16,7 @@
   wifi = import ./wifi.nix;
   gnome = import ./gnome.nix;
   kde-connect = import ./kde-connect.nix;
+
+  flanfam = import ./flanfam.nix;
+  flanfamkiosk = import ./flanfamkiosk.nix;
 }

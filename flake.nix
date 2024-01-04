@@ -46,24 +46,19 @@
 
     systems = [
       "aarch64-linux"
-      # "i686-linux"
-      "x86_64-linux"
       "aarch64-darwin"
       "x86_64-darwin"
     ];
 
     forAllSystems = nixpkgs.lib.genAttrs systems;
-
-    color-schemes = (import ./lib/colors.nix inputs).schemes;
-    colors = color-schemes.catppuccin-mocha-sapphire;
+  in {
+    colors = (import ./lib/colors.nix inputs).schemes.catppuccin-mocha-sapphire;
     # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
+
     font = {
       name = "IosevkaLyteTerm";
       size = 12;
     };
-  in {
-    colors = colors;
-    font = font;
 
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
@@ -86,54 +81,41 @@
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
-    nixosConfigurations = let
-      mkNixosSystem = system: modules: homeManagerModules:
-        nixpkgs.lib.nixosSystem {
-          system = system;
-          specialArgs = {
-            inherit inputs outputs system colors font;
-            flake = self;
-          };
-          modules =
-            [
-              inputs.sops-nix.nixosModules.sops
-              self.nixosModules.common
-            ]
-            ++ modules
-            ++ [
-              inputs.home-manager.nixosModules.home-manager
-              {
-                home-manager = {
-                  extraSpecialArgs = {inherit inputs outputs system colors font;};
-                  users.daniel = {
-                    imports = homeManagerModules;
-                  };
-                };
-              }
-            ];
-        };
+    nixosConfigurations = import ./nixos {
+      base = {
+        system = "x86_64-linux";
+        modules = [./nixos/base];
+      };
 
-      base = mkNixosSystem "x86_64-linux" [./nixos/base] [outputs.homeManagerModules.base];
-    in {
-      base = base;
-      nixos = base; # alias
-      thablet = mkNixosSystem "x86_64-linux" [./nixos/thablet] [outputs.homeManagerModules.base];
-      thinker = mkNixosSystem "x86_64-linux" [./nixos/thinker] [outputs.homeManagerModules.thinker];
-      foxtrot = mkNixosSystem "x86_64-linux" [./nixos/foxtrot] [
-        outputs.homeManagerModules.foxtrot
+      thablet = {
+        system = "x86_64-linux";
+        modules = [./nixos/thablet];
+      };
+      thinker = mkNixosSystem "x86_64-linux" [
+        ./nixos/thinker
+        (danielWithModules [outputs.homeManagerModules.thinker])
       ];
-      beefcake =
-        mkNixosSystem "x86_64-linux" [
-          inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
-          ./nixos/beefcake
-        ] (with outputs.homeManagerModules; [
-          linux
-        ]);
-      rascal = mkNixosSystem "x86_64-linux" [./nixos/rascal] [
-        outputs.homeManagerModules.linux
+      foxtrot = mkNixosSystem "x86_64-linux" [
+        ./nixos/foxtrot
+        (danielWithModules [outputs.homeManagerModules.foxtrot])
       ];
-      musicbox = mkNixosSystem "x86_64-linux" [./nixos/musicbox] [outputs.homeManagerModules.sway];
-      router = mkNixosSystem "x86_64-linux" [./nixos/router] [outputs.homeManagerModules.common];
+      beefcake = mkNixosSystem "x86_64-linux" [
+        inputs.api-lyte-dev.nixosModules.x86_64-linux.api-lyte-dev
+        ./nixos/beefcake
+        (danielWithModules [outputs.homeManagerModules.linux])
+      ];
+      rascal = mkNixosSystem "x86_64-linux" [
+        ./nixos/rascal
+        (danielWithModules [outputs.homeManagerModules.linux])
+      ];
+      musicbox = mkNixosSystem "x86_64-linux" [
+        ./nixos/musicbox
+        (danielWithModules [outputs.homeManagerModules.sway])
+      ];
+      router = mkNixosSystem "x86_64-linux" [
+        ./nixos/router
+        (danielWithModules [outputs.homeManagerModules.common])
+      ];
     };
 
     # Standalone home-manager configuration entrypoint
@@ -158,15 +140,15 @@
         };
     };
 
-    # TODO: nix-on-droid for phone terminal usage?
-    # TODO: nix-darwin for work?
-    # TODO: nixos ISO?
-
     # Disk partition schemes and functions
     diskoConfigurations = import ./disko;
 
     # Flake templates for easily setting up Nix in a project using common patterns I like
     templates = import ./templates/all.nix;
+
+    # TODO: nix-on-droid for phone terminal usage?
+    # TODO: nix-darwin for work?
+    # TODO: nixos ISO?
   };
 
   nixConfig = {

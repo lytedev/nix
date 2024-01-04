@@ -18,6 +18,8 @@
       desktop-usage
       gnome
       wifi
+      flanfam
+      flanfamkiosk
     ]);
 
   nixpkgs = {
@@ -66,10 +68,26 @@
     };
   };
 
+  # https://wiki.archlinux.org/title/Lenovo_ThinkPad_X1_Yoga_(Gen_3)#Using_acpi_call
+  systemd.services.activate-touch-hack = {
+    unitConfig = {
+      Description = "Touch wake Thinkpad X1 Yoga 3rd gen hack";
+      After = ["suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target"];
+    };
+
+    serviceConfig = {
+      ExecStart = ''
+        /bin/sh -c "echo '\\_SB.PCI0.LPCB.EC._Q2A'  > /proc/acpi/call"
+      '';
+    };
+
+    wantedBy = ["suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target"];
+  };
+
   boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "usb_storage" "sd_mod"];
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-intel"];
-  boot.extraModulePackages = [];
+  boot.extraModulePackages = with config.boot.kernelPackages; [acpi_call];
 
   networking.useDHCP = lib.mkDefault true;
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

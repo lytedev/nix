@@ -15,13 +15,13 @@
     bat
     helix
     git
-    iex
+    # iex
     zellij
     broot
     nnn
     htop
     cargo
-    senpai
+    # senpai
     tmux
   ];
 

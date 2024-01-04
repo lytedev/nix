@@ -1,5 +1,5 @@
 {
-  flake,
+  # flake,
   inputs,
   outputs,
   lib,
@@ -11,11 +11,16 @@
     [
       (modulesPath + "/installer/scan/not-detected.nix")
       inputs.disko.nixosModules.disko
-      flake.diskoConfigurations.standard
+      # flake.diskoConfigurations.standard
     ]
-    ++ (with outputs.nixosModules; [
-      desktop-usage
-      wifi
+    ++ (
+      with outputs.nixosModules; [
+        desktop-usage
+        wifi
+      ]
+    )
+    ++ (with outputs.homeManagerModules; [
+      sway
     ]);
 
   nixpkgs = {
@@ -40,7 +45,7 @@
   };
 
   # not necessarily "base", but all my machines are UEFI so...
-  boot.loader.systemd-boot.enable = true;
+  # boot.loader.systemd-boot.enable = true;
 
   networking = {
     firewall = {

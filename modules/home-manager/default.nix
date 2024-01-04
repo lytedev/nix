@@ -32,6 +32,9 @@
   htop = import ./htop.nix;
   senpai = import ./senpai.nix;
 
+  flanfam = import ./flanfam.nix;
+  flanfamkiosk = import ./flanfamkiosk.nix;
+
   base = import ./base.nix;
   dragon = import ./dragon.nix;
   thinker = import ./thinker.nix;
