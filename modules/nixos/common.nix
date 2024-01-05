@@ -2,7 +2,6 @@
   config,
   lib,
   inputs,
-  colors,
   outputs,
   system,
   pkgs,
@@ -20,7 +19,7 @@
     ]
     ++ (with outputs.nixosModules; [
       avahi
-      # daniel
+      daniel
     ]);
 
   hardware.enableRedistributableFirmware = true;
@@ -149,7 +148,7 @@
     useXkbConfig = true;
     earlySetup = true;
 
-    colors = with colors; [
+    colors = with outputs.colors; [
       bg
       red
       green

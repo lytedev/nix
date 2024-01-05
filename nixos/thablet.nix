@@ -19,7 +19,6 @@
       desktop-usage
       gnome
       wifi
-      daniel
       flanfam
       flanfamkiosk
     ]);
