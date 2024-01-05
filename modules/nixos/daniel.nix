@@ -1,9 +1,18 @@
-{outputs, ...}: {
+{
+  outputs,
+  inputs,
+  system,
+  ...
+}: {
   home-manager = {
+    extraSpecialArgs = {
+      inherit inputs outputs system;
+      inherit (outputs) colors font;
+    };
     users.daniel = {
-      # TODO: specify an email?
       accounts.email.accounts = {
         primary = {
+          primary = true;
           address = "daniel@lyte.dev";
         };
         legacy = {
@@ -26,9 +35,9 @@
 
       imports = with outputs.homeManagerModules; [
         common
-        senpai
-        iex
-        cargo
+        # senpai
+        # iex
+        # cargo
       ];
     };
   };

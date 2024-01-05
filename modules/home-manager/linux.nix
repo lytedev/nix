@@ -1,10 +1,4 @@
-{
-  outputs,
-  pkgs,
-  ...
-}: {
-  imports = with outputs.homeManagerModules; [common];
-
+{pkgs, ...}: {
   home = {
     sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";

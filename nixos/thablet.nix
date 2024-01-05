@@ -7,6 +7,8 @@
   modulesPath,
   ...
 }: {
+  networking.hostName = "thablet";
+
   imports =
     [
       (modulesPath + "/installer/scan/not-detected.nix")
@@ -17,9 +19,16 @@
       desktop-usage
       gnome
       wifi
+      daniel
       flanfam
       flanfamkiosk
     ]);
+
+  home-manager.users.daniel = {
+    imports = with outputs.homeManagerModules; [
+      sway
+    ];
+  };
 
   nixpkgs = {
     overlays = [
@@ -45,6 +54,7 @@
   boot.loader.systemd-boot.enable = true;
 
   services.fprintd = {
+    # TODO: am I missing a driver? see arch wiki for this h/w
     enable = true;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
@@ -57,19 +67,12 @@
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
 
-  networking = {
-    firewall = {
-      enable = true;
-      allowPing = true;
-      allowedTCPPorts = [22];
-      allowedUDPPorts = [];
-    };
-  };
-
   # https://wiki.archlinux.org/title/Lenovo_ThinkPad_X1_Yoga_(Gen_3)#Using_acpi_call
   systemd.services.activate-touch-hack = {
+    enable = true;
+    description = "Touch wake Thinkpad X1 Yoga 3rd gen hack";
+
     unitConfig = {
-      Description = "Touch wake Thinkpad X1 Yoga 3rd gen hack";
       After = ["suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target"];
     };
 

@@ -100,7 +100,7 @@
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest; # seeing if using the stable kernel makes wow work
+    kernelPackages = pkgs.linuxPackages_latest;
 
     loader = {
       efi.canTouchEfiVariables = true;
@@ -129,17 +129,22 @@
   };
   hardware.bluetooth = {
     enable = true;
+    # TODO: when resuming from hibernation, it would be nice if this would
+    # simply resume the power state at the time of hibernation
     powerOnBoot = false;
   };
   powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 
+  services.power-profiles-daemon = {
+    enable = true;
+  };
+  powerManagement.powertop.enable = true;
+
+  # disabled stuff here for posterity
   services.fprintd = {
     enable = false;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
-  };
-  services.power-profiles-daemon = {
-    enable = true;
   };
   services.tlp = {
     enable = false;
@@ -153,16 +158,6 @@
       CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
       CPU_MIN_PERF_ON_AC = 0;
       CPU_MAX_PERF_ON_AC = 100;
-    };
-  };
-  powerManagement.powertop.enable = true;
-
-  networking = {
-    firewall = {
-      enable = true;
-      allowPing = true;
-      allowedTCPPorts = [22];
-      allowedUDPPorts = [];
     };
   };
 
