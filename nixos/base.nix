@@ -7,7 +7,6 @@
   imports = with outputs.nixosModules; [
     # may need to be tweaked based on the machine's paritioning scheme
     flake.diskoConfigurations.standard
-    daniel
     desktop-usage
     wifi
   ];
