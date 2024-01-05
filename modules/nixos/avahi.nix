@@ -4,6 +4,6 @@
     enable = true;
     reflector = true;
     openFirewall = true;
-    nssmdns = true;
+    nssmdns4 = true;
   };
 }
