@@ -1,0 +1,49 @@
+[language-server.deno]
+command = "deno"
+args = ["lsp"]
+config.hostInfo = "helix"
+
+[[language]]
+name = "javascript"
+scope = "source.js"
+injection-regex = "(js|javascript)"
+language-id = "javascript"
+file-types = ["js", "mjs", "cjs", "rules", "es6", "pac", "jakefile"]
+shebangs = ["node"]
+comment-token = "//"
+language-servers = [ "deno" ]
+indent = { tab-width = 2, unit = "\t" }
+auto-format = true
+
+[[language]]
+name = "jsx"
+scope = "source.jsx"
+injection-regex = "jsx"
+language-id = "javascriptreact"
+file-types = ["jsx"]
+comment-token = "//"
+language-servers = [ "deno" ]
+indent = { tab-width = 2, unit = "\t" }
+grammar = "javascript"
+auto-format = true
+
+[[language]]
+name = "typescript"
+scope = "source.ts"
+injection-regex = "(ts|typescript)"
+file-types = ["ts", "mts", "cts"]
+language-id = "typescript"
+shebangs = ["deno", "ts-node"]
+language-servers = [ "deno" ]
+indent = { tab-width = 2, unit = "\t" }
+auto-format = true
+
+[[language]]
+name = "tsx"
+scope = "source.tsx"
+injection-regex = "(tsx)"
+language-id = "typescriptreact"
+file-types = ["tsx"]
+language-servers = [ "deno" ]
+indent = { tab-width = 2, unit = "\t" }
+auto-format = true
