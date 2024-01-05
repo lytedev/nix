@@ -35,9 +35,9 @@
 
       imports = with outputs.homeManagerModules; [
         common
-        # senpai
-        # iex
-        # cargo
+        senpai
+        iex
+        cargo
       ];
     };
   };
