@@ -27,6 +27,7 @@ in {
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
       sway
+      pass
       # sway-laptop
       # hyprland
     ];
