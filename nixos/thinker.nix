@@ -32,20 +32,16 @@
 
   imports =
     [
-      inputs.disko.nixosModules.disko
       flake.diskoConfigurations.thinker
+      inputs.hardware.nixosModules.lenovo-thinkpad-t480
+      inputs.hardware.nixosModules.common-pc-laptop-ssd
     ]
     ++ (with outputs.nixosModules; [
       desktop-usage
       podman
       postgres
       wifi
-    ])
-    ++ [
-      inputs.hardware.nixosModules.lenovo-thinkpad-t480
-      inputs.hardware.nixosModules.common-pc-laptop-ssd
-      # ./relative-module.nix
-    ];
+    ]);
 
   boot = {
     loader = {

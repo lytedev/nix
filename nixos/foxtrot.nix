@@ -11,8 +11,8 @@
 
   imports =
     [
-      inputs.disko.nixosModules.disko
       flake.diskoConfigurations.standard
+      inputs.hardware.nixosModules.framework-13-7040-amd
     ]
     ++ (with outputs.nixosModules; [
       desktop-usage
@@ -20,10 +20,7 @@
       postgres
       wifi
       # hyprland
-    ])
-    ++ [
-      inputs.hardware.nixosModules.framework-13-7040-amd
-    ];
+    ]);
 
   # use updated ppd for framework 13:
   # source: https://community.frame.work/t/tracking-ppd-v-tlp-for-amd-ryzen-7040/39423/137?u=lytedev

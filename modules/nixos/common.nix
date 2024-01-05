@@ -14,7 +14,7 @@
   imports =
     [
       (modulesPath + "/installer/scan/not-detected.nix")
-      # inputs.sops-nix.nixosModules.sops
+      inputs.sops-nix.nixosModules.sops
       inputs.disko.nixosModules.disko
       inputs.home-manager.nixosModules.home-manager
     ]

@@ -36,7 +36,6 @@ in {
   networking.useDHCP = false;
 
   imports = [
-    inputs.disko.nixosModules.disko
     flake.diskoConfigurations.unencrypted
   ];
 
