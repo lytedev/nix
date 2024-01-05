@@ -10,9 +10,9 @@
       inherit (outputs) colors font;
     };
     users.daniel = {
-      # TODO: specify an email?
       accounts.email.accounts = {
         primary = {
+          primary = true;
           address = "daniel@lyte.dev";
         };
         legacy = {

@@ -35,9 +35,6 @@
     };
 
     packages = [
-      # text editor
-      inputs.helix.packages.${system}.helix
-
       # tools I use when editing nix code
       pkgs.nil
       pkgs.alejandra

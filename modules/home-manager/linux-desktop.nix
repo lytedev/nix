@@ -5,6 +5,7 @@
   ...
 }: {
   imports = with outputs.homeManagerModules; [
+    linux
     desktop
     firefox
   ];
