@@ -1,6 +1,5 @@
 {
   flake,
-  inputs,
   lib,
   # outputs,
   # config,

@@ -1,5 +1,14 @@
-{outputs, ...}: {
+{
+  inputs,
+  system,
+  outputs,
+  ...
+}: {
   home-manager = {
+    extraSpecialArgs = {
+      inherit inputs outputs system;
+      inherit (outputs) colors font;
+    };
     users.daniel = {
       # TODO: specify an email?
       accounts.email.accounts = {

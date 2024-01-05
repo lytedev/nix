@@ -6,7 +6,9 @@
   # config,
   pkgs,
   ...
-}: {
+}: let
+  scale = 1.25;
+in {
   networking.hostName = "foxtrot";
 
   imports =
@@ -21,6 +23,38 @@
       wifi
       # hyprland
     ]);
+
+  home-manager.users.daniel = {
+    imports = with outputs.homeManagerModules; [
+      sway
+      # sway-laptop
+      # hyprland
+    ];
+
+    home = {
+      stateVersion = "24.05";
+    };
+
+    wayland.windowManager.hyprland = {
+      settings = {
+        # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+        monitor = [
+          "eDP-1,2256x1504@60,0x0,${toString scale}"
+        ];
+      };
+    };
+
+    wayland.windowManager.sway = {
+      config = {
+        output = {
+          "BOE 0x0BCA Unknown" = {
+            mode = "2256x1504@60Hz";
+            scale = toString scale;
+          };
+        };
+      };
+    };
+  };
 
   # use updated ppd for framework 13:
   # source: https://community.frame.work/t/tracking-ppd-v-tlp-for-amd-ryzen-7040/39423/137?u=lytedev

@@ -85,7 +85,6 @@
         inherit system;
         specialArgs = {
           inherit inputs outputs system;
-          inherit (outputs) colors font;
           flake = self;
         };
         modules =
@@ -114,7 +113,7 @@
       # in
       #   home-manager.lib.homeManagerConfiguration {
       #     pkgs = nixpkgs.legacyPackages.${system};
-      #     extraSpecialArgs = {inherit inputs outputs system colors font;};
+      #     extraSpecialArgs = {inherit inputs outputs system;};
       #     modules = with outputs.homeManagerModules; [macos];
       #   };
     };

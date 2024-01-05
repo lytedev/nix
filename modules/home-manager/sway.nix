@@ -8,11 +8,11 @@
   ...
 }: {
   imports = with outputs.homeManagerModules; [
-    linux
-    waybar
-    mako
-    swaylock
-    linux-desktop
+    # linux
+    # waybar
+    # mako
+    # swaylock
+    # linux-desktop
   ];
 
   programs.wofi = {
