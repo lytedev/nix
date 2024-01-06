@@ -1,6 +1,5 @@
 {
   flake,
-  inputs,
   lib,
   # outputs,
   # config,
@@ -36,7 +35,6 @@ in {
   networking.useDHCP = false;
 
   imports = [
-    inputs.disko.nixosModules.disko
     flake.diskoConfigurations.unencrypted
   ];
 

@@ -15,26 +15,16 @@
     bat
     helix
     git
-    iex
     zellij
     broot
     nnn
     htop
-    cargo
-    senpai
     tmux
   ];
 
-  # TODO: specify an email?
-  # accounts.email.accounts = {
-  #   primary = {
-  #     address = "daniel@lyte.dev";
-  #   };
-  # };
-
   home = {
-    username = lib.mkDefault "daniel";
-    homeDirectory = lib.mkDefault "/home/daniel/.home";
+    username = lib.mkDefault "lytedev";
+    homeDirectory = lib.mkDefault "/home/lytedev";
     stateVersion = lib.mkDefault "23.11";
 
     sessionVariables = {
@@ -45,16 +35,11 @@
     };
 
     packages = [
-      # I use gawk for my fish prompt
-      pkgs.gawk
-
-      # text editor
-      inputs.helix.packages.${system}.helix
-
       # tools I use when editing nix code
       pkgs.nil
       pkgs.alejandra
 
+      # common scripts
       (pkgs.buildEnv {
         name = "my-scripts-common";
         paths = [./scripts/common];

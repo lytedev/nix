@@ -1,6 +1,5 @@
 {
   flake,
-  inputs,
   outputs,
   # lib,
   # config,
@@ -11,7 +10,6 @@
 
   imports =
     [
-      inputs.disko.nixosModules.disko
       flake.diskoConfigurations.unencrypted
     ]
     ++ (with outputs.nixosModules; [

@@ -1,12 +1,4 @@
-{
-  outputs,
-  pkgs,
-  ...
-}: {
-  imports = with outputs.homeManagerModules; [
-    common
-  ];
-
+{pkgs, ...}: {
   home = {
     sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";
@@ -15,6 +7,7 @@
 
   programs.fish = {
     shellAliases = {
+      # TODO: these aren't working?
       sctl = "sudo systemctl";
       bt = "bluetoothctl";
       pa = "pulsemixer";

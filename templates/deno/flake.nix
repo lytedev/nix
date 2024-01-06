@@ -11,17 +11,13 @@
     devShells = forEachSupportedSystem (system: let
       pkgs = import nixpkgs {inherit system;};
     in {
-      rust-dev = pkgs.mkShell {
+      deno-dev = pkgs.mkShell {
         buildInputs = with pkgs; [
-          cargo
-          rustc
-          rustfmt
-          rustPackages.clippy
-          rust-analyzer
+          deno
         ];
       };
 
-      default = outputs.devShells.${system}.rust-dev;
+      default = outputs.devShells.${system}.deno-dev;
     });
   };
 }

@@ -6,24 +6,56 @@
   # config,
   pkgs,
   ...
-}: {
+}: let
+  scale = 1.25;
+in {
   networking.hostName = "foxtrot";
 
   imports =
     [
-      inputs.disko.nixosModules.disko
       flake.diskoConfigurations.standard
+      inputs.hardware.nixosModules.framework-13-7040-amd
     ]
     ++ (with outputs.nixosModules; [
       desktop-usage
       podman
       postgres
       wifi
-      hyprland
-    ])
-    ++ [
-      inputs.hardware.nixosModules.framework-13-7040-amd
+      # hyprland
+    ]);
+
+  home-manager.users.daniel = {
+    imports = with outputs.homeManagerModules; [
+      sway
+      pass
+      # sway-laptop
+      # hyprland
     ];
+
+    home = {
+      stateVersion = "24.05";
+    };
+
+    wayland.windowManager.hyprland = {
+      settings = {
+        # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+        monitor = [
+          "eDP-1,2256x1504@60,0x0,${toString scale}"
+        ];
+      };
+    };
+
+    wayland.windowManager.sway = {
+      config = {
+        output = {
+          "BOE 0x0BCA Unknown" = {
+            mode = "2256x1504@60Hz";
+            scale = toString scale;
+          };
+        };
+      };
+    };
+  };
 
   # use updated ppd for framework 13:
   # source: https://community.frame.work/t/tracking-ppd-v-tlp-for-amd-ryzen-7040/39423/137?u=lytedev
@@ -103,7 +135,7 @@
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest; # seeing if using the stable kernel makes wow work
+    kernelPackages = pkgs.linuxPackages_latest;
 
     loader = {
       efi.canTouchEfiVariables = true;
@@ -132,34 +164,22 @@
   };
   hardware.bluetooth = {
     enable = true;
+    # TODO: when resuming from hibernation, it would be nice if this would
+    # simply resume the power state at the time of hibernation
     powerOnBoot = false;
   };
   powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
-  services.printing.enable = true;
-  services.printing.browsing = true;
-  services.printing.browsedConf = ''
-    BrowseDNSSDSubTypes _cups,_print
-    BrowseLocalProtocols all
-    BrowseRemoteProtocols all
-    CreateIPPPrinterQueues All
 
-    BrowseProtocols all
-  '';
-  services.printing.drivers = [pkgs.gutenprint];
-  services.avahi = {
+  services.power-profiles-daemon = {
     enable = true;
-    reflector = true;
-    openFirewall = true;
-    nssmdns = true;
   };
+  powerManagement.powertop.enable = true;
 
+  # disabled stuff here for posterity
   services.fprintd = {
     enable = false;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
-  };
-  services.power-profiles-daemon = {
-    enable = true;
   };
   services.tlp = {
     enable = false;
@@ -173,16 +193,6 @@
       CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
       CPU_MIN_PERF_ON_AC = 0;
       CPU_MAX_PERF_ON_AC = 100;
-    };
-  };
-  powerManagement.powertop.enable = true;
-
-  networking = {
-    firewall = {
-      enable = true;
-      allowPing = true;
-      allowedTCPPorts = [22];
-      allowedUDPPorts = [];
     };
   };
 

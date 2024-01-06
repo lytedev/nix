@@ -8,16 +8,16 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
-  # inputs,
+  inputs,
   outputs,
-  modulesPath,
   config,
   pkgs,
+  system,
   ...
 }: {
   imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
     outputs.nixosModules.intel
+    inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
     # inputs.nix-minecraft.nixosModules.minecraft-servers
   ];
 
@@ -67,7 +67,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
 
   sops = {
-    defaultSopsFile = ../../secrets/beefcake/secrets.yml;
+    defaultSopsFile = ../secrets/beefcake/secrets.yml;
     age = {
       sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
       keyFile = "/var/lib/sops-nix/key.txt";

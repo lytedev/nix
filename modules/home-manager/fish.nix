@@ -1,4 +1,10 @@
-{
+{pkgs, ...}: {
+  home = {
+    packages = [
+      pkgs.gawk # used in prompt
+    ];
+  };
+
   programs.fish = {
     enable = true;
     # I load long scripts from files for a better editing experience
