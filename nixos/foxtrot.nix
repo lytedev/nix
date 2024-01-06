@@ -24,6 +24,9 @@ in {
       # hyprland
     ]);
 
+  programs.steam.enable = true;
+  programs.steam.remotePlay.openFirewall = true;
+
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
       sway
