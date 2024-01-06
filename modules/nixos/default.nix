@@ -9,7 +9,7 @@ with builtins;
       "desktop-usage"
       "intel"
       "pipewire"
-      "pipewire"
+      "pipewire-low-latency"
       "podman"
       "postgres"
       "sway"

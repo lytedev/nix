@@ -6,11 +6,12 @@ with builtins; (listToAttrs (map (name: {
     };
   }) [
     "base"
+    "beefcake"
+    "dragon"
+    "foxtrot"
+    "musicbox"
+    "rascal"
+    "router"
     "thablet"
     "thinker"
-    "foxtrot"
-    "beefcake"
-    "rascal"
-    "musicbox"
-    "router"
   ]))

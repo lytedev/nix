@@ -11,6 +11,6 @@
     wifi
   ];
 
-  # TODO: may not work for UEFI?
+  # TODO: may not work for non-UEFI?
   boot.loader.systemd-boot.enable = true;
 }
