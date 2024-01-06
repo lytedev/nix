@@ -11,18 +11,15 @@
 in {
   networking.hostName = "foxtrot";
 
-  imports =
-    [
-      flake.diskoConfigurations.standard
-      inputs.hardware.nixosModules.framework-13-7040-amd
-    ]
-    ++ (with outputs.nixosModules; [
-      desktop-usage
-      podman
-      postgres
-      wifi
-      # hyprland
-    ]);
+  imports = with outputs.nixosModules; [
+    flake.diskoConfigurations.standard
+    inputs.hardware.nixosModules.framework-13-7040-amd
+    desktop-usage
+    podman
+    postgres
+    wifi
+    # hyprland
+  ];
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [

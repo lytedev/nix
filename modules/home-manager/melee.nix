@@ -1,18 +1,6 @@
-{
-  # flake,
-  inputs,
-  # outputs,
-  # lib,
-  # config,
-  # pkgs,
-  # system,
-  # modulesPath,
-  ...
-}: {
+{inputs, ...}: {
   imports = [
-    {
-      nixpkgs.overlays = [inputs.ssbm.overlay];
-    }
+    {nixpkgs.overlays = [inputs.ssbm.overlay];}
     inputs.ssbm.homeManagerModule
   ];
 

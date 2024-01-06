@@ -1,18 +1,11 @@
-{
-  # flake,
-  inputs,
-  # outputs,
-  # lib,
-  # config,
-  # pkgs,
-  # system,
-  # modulesPath,
-  ...
-}: {
-  imports = [inputs.ssbm.nixosModule];
+{inputs, ...}: {
+  imports = [
+    inputs.ssbm.nixosModule
+  ];
 
   ssbm = {
     cache.enable = true;
+    overlay.enabled = true;
 
     gcc = {
       rules.enable = true;

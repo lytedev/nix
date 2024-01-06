@@ -183,9 +183,9 @@
             format = "gpt";
             partitions = [
               {
+                label = "EFI";
                 name = "ESP";
-                start = "1M";
-                end = "500M";
+                size = "512M";
                 bootable = true;
                 content = {
                   type = "filesystem";
