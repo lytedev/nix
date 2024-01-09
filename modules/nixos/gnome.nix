@@ -1,12 +1,14 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [./pipewire.nix];
 
   services.xserver.enable = true;
   services.xserver.displayManager.gdm = {
-    enable = true;
+    enable = lib.mkDefault false;
   };
-
-  hardware.pulseaudio.enable = false;
 
   services.xserver.desktopManager.gnome = {
     enable = true;
@@ -28,6 +30,8 @@
     enable = true;
   };
 
+  services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
+
   environment = {
     variables = {
       GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
@@ -37,36 +41,12 @@
     };
 
     systemPackages = with pkgs; [
-      brightnessctl
-      feh
-      # gimp
-      grim
-      # inkscape
-      # krita
+      gnomeExtensions.appindicator
       libinput
       libinput-gestures
       libnotify
-      # lutris
-      # nil
-      # nixpkgs-fmt
       noto-fonts
-      pamixer
-      # pavucontrol
-      playerctl
-      # pulseaudio
-      pulsemixer
-      # rclone
-      # restic
-      slurp
-      # steam
-      swaybg
-      swayidle
-      swaylock
-      # vlc
-      # vulkan-tools
-      waybar
-      # weechat
-      # wine
+      pavucontrol
       wl-clipboard
       zathura
     ];

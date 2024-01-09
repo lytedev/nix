@@ -18,7 +18,7 @@
       inputs.home-manager.nixosModules.home-manager
     ]
     ++ (with outputs.nixosModules; [
-      avahi
+      # avahi
       daniel
     ]);
 
@@ -34,60 +34,55 @@
       MANPAGER = "less";
     };
 
-    systemPackages = with pkgs;
-      [
-        # age
-        # bat
-        # bc
-        # bind
-        # bottom
-        # btrfs-progs
-        # cue
-        curl
-        # dogdns
-        dua
-        eza
-        fd
-        file
-        fzf
-        gnumake
-        # gron
-        # hexyl
-        iputils
-        # jq
-        killall
-        less
-        mosh
-        # nmap
-        nettools
-        openssl
-        # pciutils
-        # pv
-        # rclone
-        # restic
-        ripgrep
-        rsync
-        # rtx
-        sd
-        # sops
-        smartmontools
-        # sqlite
-        # skim
-        # sysstat
-        unzip
-        # usbutils
-        # watchexec
-        wget
-        # xh
-        zellij
-        # zstd
-      ]
-      ++ (with inputs.home-manager.packages.${system}; [
-        home-manager
-      ])
-      ++ (with inputs.helix.packages.${system}; [
-        helix
-      ]);
+    systemPackages = with pkgs; [
+      # age
+      # bat
+      # bc
+      # bind
+      # bottom
+      # btrfs-progs
+      # cue
+      curl
+      # dogdns
+      dua
+      eza
+      fd
+      file
+      fzf
+      gnumake
+      # gron
+      # hexyl
+      iputils
+      # jq
+      killall
+      less
+      mosh
+      # nmap
+      nettools
+      openssl
+      # pciutils
+      # pv
+      # rclone
+      # restic
+      ripgrep
+      rsync
+      # rtx
+      sd
+      # sops
+      smartmontools
+      # sqlite
+      # skim
+      # sysstat
+      unzip
+      # usbutils
+      # watchexec
+      wget
+      # xh
+      zellij
+      inputs.home-manager.packages.${system}.home-manager
+      inputs.helix.packages.${system}.helix
+      # zstd
+    ];
   };
 
   users.groups.daniel = {};

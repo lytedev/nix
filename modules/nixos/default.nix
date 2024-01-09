@@ -17,6 +17,7 @@ with builtins;
       "user-installed-applications"
       "wifi"
       "gnome"
+      "kde"
       "kde-connect"
       "printing"
       "avahi"

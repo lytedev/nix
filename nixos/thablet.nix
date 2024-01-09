@@ -4,6 +4,7 @@
   outputs,
   lib,
   config,
+  pkgs,
   modulesPath,
   ...
 }: {
@@ -17,11 +18,21 @@
     ]
     ++ (with outputs.nixosModules; [
       desktop-usage
-      gnome
+      sway
+      # gnome
+      kde
       wifi
       flanfam
       flanfamkiosk
     ]);
+
+  services.xserver.displayManager.gdm = {
+    enable = false;
+  };
+  services.xserver.displayManager.sddm.enable = false;
+  services.xserver.displayManager.lightdm.enable = true;
+
+  services.touchegg.enable = true;
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
@@ -55,13 +66,13 @@
   services.fprintd = {
     # TODO: am I missing a driver? see arch wiki for this h/w
     enable = true;
-    # tod.enable = true;
-    # tod.driver = pkgs.libfprint-2-tod1-goodix;
+    tod.enable = true;
+    tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
 
-  environment.systemPackages =
-    #with pkgs;
-    [];
+  # environment.systemPackages =
+  #with pkgs;
+  # [];
 
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;

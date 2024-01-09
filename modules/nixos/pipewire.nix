@@ -18,6 +18,8 @@
     };
   };
 
+  hardware.pulseaudio.enable = false; # maybe?
+
   security = {
     # I forget why I need these...
     polkit.enable = true;
