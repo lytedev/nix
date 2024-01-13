@@ -24,6 +24,13 @@ in {
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
 
+  environment = {
+    systemPackages = with pkgs; [
+      radeontop
+      sops
+    ];
+  };
+
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
       sway
@@ -50,7 +57,16 @@ in {
         output = {
           "BOE 0x0BCA Unknown" = {
             mode = "2256x1504@60Hz";
+            position = "0,0";
             scale = toString scale;
+          };
+
+          "Dell Inc. DELL U2720Q D3TM623" = {
+            # desktop left vertical monitor
+            mode = "1920x1080@60Hz";
+            # transform = "90";
+            # scale = "1.5";
+            position = "${toString (builtins.floor (2256 / scale))},0";
           };
         };
       };
@@ -113,6 +129,7 @@ in {
     lidSwitch = "suspend-then-hibernate";
     extraConfig = ''
       HandlePowerKey=suspend-then-hibernate
+      HandleLidSwitchDocked=ignore
       IdleAction=suspend-then-hibernate
       IdleActionSec=10m
     '';

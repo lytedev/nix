@@ -44,6 +44,7 @@ in {
       s = "status";
     };
 
+    # TODO: https://blog.scottlowe.org/2023/12/15/conditional-git-configuration/
     extraConfig = {
       push = {
         autoSetupRemote = true;
