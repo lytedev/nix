@@ -25,7 +25,7 @@
     hyprland
     printing
     ewwbar
-    melee
+    # melee
   ];
 
   home-manager.users.daniel = {

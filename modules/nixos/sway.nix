@@ -67,7 +67,7 @@
       pamixer
       # pavucontrol
       playerctl
-      # pulseaudio
+      pulseaudio
       pulsemixer
       # rclone
       # restic
