@@ -26,6 +26,8 @@
 
   services.journald.extraConfig = "SystemMaxUse=1G";
 
+  home-manager.useGlobalPkgs = true;
+
   environment = {
     variables = {
       EDITOR = "hx";
