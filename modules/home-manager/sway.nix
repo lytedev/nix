@@ -133,9 +133,9 @@
         {
           command = lib.concatStringsSep " " [
             "swayidle -w"
-            "timeout 300  'notify-send \"Idling in 300 seconds\"'"
-            "after-resume 'notify-send \"Idling cancelled.\"'"
-            "timeout 480  'notify-send -u critical \"Idling in 120 seconds\"'"
+            "before-sleep 'swaylock'"
+            "timeout 300 'notify-send \"Idling in 5 minutes\"' resume 'notify-send \"Idling cancelled.\"'"
+            "timeout 480  'notify-send -u critical \"Idling in 2 minutes\"'"
             "timeout 510  'notify-send -u critical \"Idling in 90 seconds\"'"
             "timeout 540  'notify-send -u critical \"Idling in 60 seconds!\"'"
             "timeout 570  'notify-send -u critical \"Idling in 30 seconds!\"'"
@@ -150,9 +150,7 @@
             "timeout 598  'notify-send -u critical \"Idling in 2 seconds!\"'"
             "timeout 599  'notify-send -u critical \"Idling in 1 second!\"'"
             "timeout 600  'swaylock -f'"
-            "timeout 600  'swaymsg \"output * dpms off\"'"
-            "after-resume 'swaymsg \"output * dpms on\" & maybe-good-morning &'"
-            "before-sleep 'swaylock'"
+            "timeout 600  'swaymsg \"output * dpms off\"' resume 'swaymsg \"output * dpms on\" & maybe-good-morning &'"
           ];
         }
         # {command = "firefox";}

@@ -35,6 +35,7 @@
 
       imports = with outputs.homeManagerModules; [
         common
+        gnome
         senpai
         iex
         cargo

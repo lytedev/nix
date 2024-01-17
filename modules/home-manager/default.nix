@@ -12,6 +12,7 @@ with builtins;
       "firefox"
       "fish"
       "git"
+      "gnome"
       "helix"
       "htop"
       "hyprland"

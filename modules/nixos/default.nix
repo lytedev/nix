@@ -8,6 +8,7 @@ with builtins;
       "ewwbar"
       "desktop-usage"
       "intel"
+      "lutris"
       "pipewire"
       "pipewire-low-latency"
       "podman"

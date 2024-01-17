@@ -15,7 +15,9 @@ in {
     flake.diskoConfigurations.standard
     inputs.hardware.nixosModules.framework-13-7040-amd
     desktop-usage
+    gnome
     podman
+    lutris
     postgres
     wifi
     # hyprland
