@@ -9,6 +9,46 @@
 }: {
   networking.hostName = "thinker";
 
+  imports = with outputs.nixosModules; [
+    flake.diskoConfigurations.thinker
+    inputs.hardware.nixosModules.lenovo-thinkpad-t480
+    inputs.hardware.nixosModules.common-pc-laptop-ssd
+    desktop-usage
+    podman
+    gnome
+    postgres
+    wifi
+  ];
+
+  boot = {
+    loader = {
+      efi.canTouchEfiVariables = true;
+      systemd-boot.enable = true;
+    };
+    # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
+    # the above won't work for btrfs, instead you need
+    # btrfs inspect-internal map-swapfile -r /swap/swapfile
+    # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
+    kernelParams = ["boot.shell_on_fail" "resume_offset=22816000"];
+    initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
+  };
+  hardware.bluetooth.enable = true;
+  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  services.printing.enable = true; # I own a printer in the year of our Lord 2023
+
+  home-manager.users.daniel = {
+    imports = with outputs.homeManagerModules; [
+      sway
+      pass
+      # sway-laptop
+      # hyprland
+    ];
+
+    home = {
+      stateVersion = "24.05";
+    };
+  };
+
   swapDevices = [
     # TODO: move this to disko?
     # sudo btrfs subvolume create /swap
@@ -29,35 +69,6 @@
     '';
   };
   systemd.sleep.extraConfig = "HibernateDelaySec=30m";
-
-  imports =
-    [
-      flake.diskoConfigurations.thinker
-      inputs.hardware.nixosModules.lenovo-thinkpad-t480
-      inputs.hardware.nixosModules.common-pc-laptop-ssd
-    ]
-    ++ (with outputs.nixosModules; [
-      desktop-usage
-      podman
-      postgres
-      wifi
-    ]);
-
-  boot = {
-    loader = {
-      efi.canTouchEfiVariables = true;
-      systemd-boot.enable = true;
-    };
-    # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
-    # the above won't work for btrfs, instead you need
-    # btrfs inspect-internal map-swapfile -r /swap/swapfile
-    # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
-    kernelParams = ["boot.shell_on_fail" "resume_offset=22816000"];
-    initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
-  };
-  hardware.bluetooth.enable = true;
-  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
-  services.printing.enable = true; # I own a printer in the year of our Lord 2023
 
   networking = {
     firewall = {
