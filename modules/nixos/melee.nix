@@ -1,11 +1,12 @@
 {inputs, ...}: {
   imports = [
+    {nixpkgs.overlays = [inputs.ssbm.overlay];}
     inputs.ssbm.nixosModule
   ];
 
   ssbm = {
     cache.enable = true;
-    overlay.enabled = true;
+    overlay.enable = true;
 
     gcc = {
       rules.enable = true;

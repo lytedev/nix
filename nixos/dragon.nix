@@ -1,5 +1,5 @@
 {
-  # config,
+  config,
   flake,
   inputs,
   outputs,
@@ -25,23 +25,26 @@
     hyprland
     printing
     ewwbar
-    # melee
+    melee
   ];
+
+  programs.steam.enable = true;
+  programs.steam.remotePlay.openFirewall = true;
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
       sway
       pass
-      # melee
+      melee
       # sway-laptop
-      # hyprland
+      hyprland
     ];
 
-    # ssbm = {
-    #   slippi-launcher = {
-    #     isoPath = "${config.home.homeDirectory}/../games/roms/dolphin/melee.iso";
-    #   };
-    # };
+    ssbm = {
+      slippi-launcher = {
+        isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
+      };
+    };
 
     wayland.windowManager.hyprland = {
       settings = {
