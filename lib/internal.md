@@ -106,3 +106,7 @@ $ rsync -r ~/.local/share/password-store $host:~/.local/share/password-store
 
 3. Tailscale connection and roles.
 4. Firefox sync configured.
+
+# Temporary Firewall Changes
+
+Source: https://discourse.nixos.org/t/how-to-temporarily-open-a-tcp-port-in-nixos/12306/2
