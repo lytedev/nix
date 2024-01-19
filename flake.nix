@@ -98,24 +98,25 @@
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
       # TODO: non-system-specific home configurations?
-      # "base-x86_64-linux" = let
-      #   system = "x86_64-linux";
-      # in
-      #   home-manager.lib.homeManagerConfiguration {
-      #     pkgs = nixpkgs.legacyPackages.${system};
-      #     extraSpecialArgs = {
-      #     inherit inputs outputs system;
-      #     };
-      #     modules = with outputs.homeManagerModules; [linux];
-      #   };
-      # "base-aarch64-darwin" = let
-      #   system = "aarch64-darwin";
-      # in
-      #   home-manager.lib.homeManagerConfiguration {
-      #     pkgs = nixpkgs.legacyPackages.${system};
-      #     extraSpecialArgs = {inherit inputs outputs system;};
-      #     modules = with outputs.homeManagerModules; [macos];
-      #   };
+      "deck" = let
+        system = "x86_64-linux";
+      in
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          extraSpecialArgs = {
+            inherit inputs outputs system;
+            inherit (outputs) colors font;
+          };
+          modules = with outputs.homeManagerModules; [
+            common
+            {
+              home.homeDirectory = "/home/deck";
+              home.username = "deck";
+              home.stateVersion = "24.05";
+            }
+            linux
+          ];
+        };
     };
 
     # Disk partition schemes and functions
