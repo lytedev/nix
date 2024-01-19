@@ -22,7 +22,8 @@ git add -A
 host=your_host
 ssh -t "root@$host" "bash -c '
   set -m
-  (sleep 300; reboot;) &
+  # sleep 30 mins
+  (sleep 1800; reboot;) &
   jobs -p
   bg
   disown

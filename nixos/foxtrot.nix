@@ -215,5 +215,9 @@ in {
     };
   };
 
+  networking.firewall.allowedTCPPorts = [
+    8000 # dev stuff
+  ];
+
   system.stateVersion = "24.05";
 }

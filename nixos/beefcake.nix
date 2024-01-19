@@ -284,6 +284,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         reverse_proxy :8096
       }
 
+      dev.h.lyte.dev {
+        reverse_proxy :8000
+      }
+
       # lidarr.h.lyte.dev {
         # reverse_proxy :8686
       # }
@@ -739,6 +743,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     # 5357 # ???
     22 # ssh
     6667 # soju irc bouncer
+    8000 # random development stuff
     64022 # ssh (for ben?)
   ];
   networking.firewall.allowedUDPPorts = [
