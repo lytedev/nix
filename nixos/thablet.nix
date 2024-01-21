@@ -9,23 +9,21 @@
 }: {
   networking.hostName = "thablet";
 
-  imports =
-    [
-      (modulesPath + "/installer/scan/not-detected.nix")
-      flake.diskoConfigurations.standard
-      inputs.hardware.nixosModules.lenovo-thinkpad-x1-yoga
-    ]
-    ++ (with outputs.nixosModules; [
-      desktop-usage
-      gnome
-      wifi
-      flanfam
-      flanfamkiosk
-    ]);
+  imports = with outputs.nixosModules; [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    flake.diskoConfigurations.standard
+    inputs.hardware.nixosModules.lenovo-thinkpad-x1-yoga
+    desktop-usage
+    fonts
+    gnome
+    wifi
+    flanfam
+    flanfamkiosk
+  ];
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
-      sway
+      linux-desktop
     ];
   };
 

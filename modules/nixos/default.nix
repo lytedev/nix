@@ -7,6 +7,7 @@ with builtins;
       "melee"
       "ewwbar"
       "desktop-usage"
+      "fonts"
       "intel"
       "lutris"
       "pipewire"

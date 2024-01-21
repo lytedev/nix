@@ -15,8 +15,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   system,
   ...
 }: {
-  imports = [
-    outputs.nixosModules.intel
+  imports = with outputs.nixosModules; [
+    intel
+    fonts # so that it gets cached to the nix store
     inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
     # inputs.nix-minecraft.nixosModules.minecraft-servers
   ];
