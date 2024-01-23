@@ -40,8 +40,7 @@
         # "wezterm"
         (lib.concatStringsSep " " [
           "swayidle -w"
-          "timeout 300  'notify-send \"Idling in 300 seconds\"'"
-          "resume       'notify-send \"Idling cancelled.\"'"
+          "timeout 300  'notify-send \"Idling in 300 seconds\"' resume 'notify-send \"Idling cancelled.\"'"
           "timeout 480  'notify-send -u critical \"Idling in 120 seconds\"'"
           "timeout 510  'notify-send -u critical \"Idling in 90 seconds\"'"
           "timeout 540  'notify-send -u critical \"Idling in 60 seconds!\"'"
@@ -57,9 +56,8 @@
           "timeout 598  'notify-send -u critical \"Idling in 2 seconds!\"'"
           "timeout 599  'notify-send -u critical \"Idling in 1 second!\"'"
           "timeout 600  'swaylock --daemonize'"
-          "timeout 600  'hyprctl dispatch dpms off'"
-          "resume       'hyprctl dispatch dpms on'"
-          # "resume       'maybe-good-morning'"
+          "timeout 600  'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on'"
+          "after-resume       'maybe-good-morning'"
           "before-sleep 'swaylock --daemonize'"
         ])
         ''swayidle -w timeout 600 'notify-send "Locking in 30 seconds..."' timeout 630 'swaylock -f' timeout 660 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on && maybe-good-morning' before-sleep 'swaylock -f'"''
