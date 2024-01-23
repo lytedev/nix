@@ -6,7 +6,7 @@
 
   ssbm = {
     cache.enable = true;
-    overlay.enable = true;
+    # overlay.enabled = true;
 
     gcc = {
       rules.enable = true;
