@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   inputs,
   outputs,
@@ -29,9 +30,9 @@
     imports = with outputs.homeManagerModules; [linux-desktop];
   };
 
-  environment.systemPackages =
-    #with pkgs;
-    [];
+  environment.systemPackages = with pkgs;
+  #with pkgs;
+    [variety];
 
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;

@@ -10,6 +10,7 @@ with builtins;
       "desktop"
       "ewwbar"
       "firefox"
+      "firefox-no-tabs"
       "fish"
       "git"
       "gnome"

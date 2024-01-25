@@ -37,6 +37,7 @@ in {
     imports = with outputs.homeManagerModules; [
       sway
       pass
+      firefox-no-tabs
       # sway-laptop
       # hyprland
     ];
