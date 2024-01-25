@@ -20,6 +20,8 @@
     flanfamkiosk
   ];
 
+  services.gnome.gnome-remote-desktop.enable = true;
+
   networking.networkmanager.enable = true;
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
@@ -60,6 +62,17 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/0f4e5814-0002-43f0-bfab-8368e3fe5b8a";
     fsType = "ext4";
+  };
+
+  networking = {
+    # useDHCP = true;
+
+    firewall = {
+      enable = true;
+      allowPing = true;
+      allowedTCPPorts = [22 5900];
+      allowedUDPPorts = [5900];
+    };
   };
 
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
