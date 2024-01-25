@@ -31,11 +31,24 @@
       };
 
       language = [
-        {
-          name = "elixir";
-          language-servers = ["lexical"]; # "lexical" "next-ls" ?
-          auto-format = true;
-        }
+        # {
+        #   name = "heex";
+        #   scope = "source.heex";
+        #   injection-regex = "heex";
+        #   language-servers = ["lexical"]; # "lexical" "next-ls" ?
+        #   auto-format = true;
+        #   file-types = ["heex"];
+        #   roots = ["mix.exs" "mix.lock"];
+        #   indent = {
+        #     tab-width = 2;
+        #     unit = "  ";
+        #   };
+        # }
+        # {
+        #   name = "elixir";
+        #   language-servers = ["lexical"]; # "lexical" "next-ls" ?
+        #   auto-format = true;
+        # }
         {
           name = "html";
           auto-format = false;

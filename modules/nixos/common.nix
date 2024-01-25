@@ -136,7 +136,7 @@
         PermitRootLogin = "yes";
       };
 
-      openFirewall = lib.mkDefault false;
+      openFirewall = lib.mkDefault true;
 
       # listenAddresses = [
       #   { addr = "0.0.0.0"; port = 22; }
