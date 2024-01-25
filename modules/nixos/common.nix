@@ -133,7 +133,7 @@
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        settings.PermitRootLogin = true;
+        PermitRootLogin = "yes";
       };
 
       openFirewall = lib.mkDefault false;
