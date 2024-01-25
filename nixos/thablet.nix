@@ -27,27 +27,6 @@
     ];
   };
 
-  nixpkgs = {
-    overlays = [
-      outputs.overlays.additions
-      outputs.overlays.modifications
-      outputs.overlays.unstable-packages
-    ];
-    config = {
-      allowUnfree = true;
-    };
-  };
-
-  nix = {
-    registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
-    nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
-
-    settings = {
-      experimental-features = "nix-command flakes";
-      auto-optimise-store = true;
-    };
-  };
-
   boot.loader.systemd-boot.enable = true;
 
   services.fprintd = {
@@ -87,8 +66,6 @@
   boot.kernelModules = ["kvm-intel" "acpi_call"];
   boot.extraModulePackages = with config.boot.kernelPackages; [acpi_call];
 
-  networking.useDHCP = lib.mkDefault true;
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
   system.stateVersion = "23.11";

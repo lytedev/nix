@@ -6,6 +6,7 @@ with builtins; (listToAttrs (map (name: {
     };
   }) [
     "base"
+    "htpc"
     "beefcake"
     "dragon"
     "foxtrot"

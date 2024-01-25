@@ -116,6 +116,11 @@
     defaultLocale = "en_US.UTF-8";
   };
 
+  programs.mosh = {
+    enable = true;
+    openFirewall = true;
+  };
+
   services = {
     xserver = {
       layout = "us";
@@ -127,6 +132,8 @@
 
       settings = {
         PasswordAuthentication = false;
+        KbdInteractiveAuthentication = false;
+        settings.PermitRootLogin = true;
       };
 
       openFirewall = lib.mkDefault false;
@@ -176,7 +183,7 @@
     firewall = {
       enable = lib.mkDefault true;
       allowPing = lib.mkDefault true;
-      allowedTCPPorts = lib.mkDefault [];
+      allowedTCPPorts = lib.mkDefault [22];
       allowedUDPPorts = lib.mkDefault [];
     };
 
@@ -291,6 +298,8 @@
     #   };
     # };
   };
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   system.stateVersion = lib.mkDefault "23.11";
 }

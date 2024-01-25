@@ -1,4 +1,6 @@
 {...}: {
+  sound.enable = true;
+
   services.pipewire = {
     enable = true;
 
@@ -14,12 +16,13 @@
 
   hardware = {
     pulseaudio = {
+      enable = false;
       support32Bit = true;
     };
   };
 
   security = {
-    # I forget why I need these...
+    # I forget why I need these exactly...
     polkit.enable = true;
     rtkit.enable = true;
   };
