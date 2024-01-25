@@ -1,7 +1,7 @@
 {
   lib,
+  inputs,
   outputs,
-  config,
   modulesPath,
   ...
 }: {
@@ -10,6 +10,9 @@
 
   imports = with outputs.nixosModules; [
     (modulesPath + "/installer/scan/not-detected.nix")
+    inputs.hardware.nixosModules.common-cpu-intel-kaby-lake
+    inputs.hardware.nixosModules.common-pc-ssd
+    inputs.hardware.nixosModules.common-pc
     desktop-usage
     gnome
     wifi
