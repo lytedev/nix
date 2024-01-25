@@ -51,7 +51,7 @@
 
   boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci"];
   boot.initrd.kernelModules = [];
-  boot.kernelModules = ["kvm-intel" "acpi_call"];
+  boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = with config.boot.kernelPackages; [acpi_call];
 
   fileSystems."/" = {
