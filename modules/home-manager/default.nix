@@ -31,6 +31,7 @@ with builtins;
       "sway-laptop"
       "swaylock"
       "tmux"
+      "wallpaper-manager"
       "waybar"
       "wezterm"
       "zellij"

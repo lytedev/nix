@@ -262,7 +262,9 @@
         "${mod}+p" = "focus parent";
         "${mod}+period" = "focus child";
         "${mod}+comma" = "focus child";
+
         "${mod}+tab" = "workspace back_and_forth";
+        "alt+tab" = "workspace back_and_forth";
 
         "${mod}+minus" = "gaps inner current minus 5";
         "${mod}+plus" = "gaps inner current plus 5";

@@ -2,7 +2,6 @@
   flake,
   inputs,
   outputs,
-  lib,
   # config,
   pkgs,
   ...
@@ -18,7 +17,7 @@ in {
     gnome
     podman
     lutris
-    postgres
+    # postgres
     wifi
     # hyprland
   ];
@@ -28,6 +27,10 @@ in {
 
   environment = {
     systemPackages = with pkgs; [
+      spotify
+      discord
+      slack
+      variety # wallpaper switcher that I use with GNOME
       radeontop
       sops
     ];
@@ -38,7 +41,7 @@ in {
       sway
       pass
       firefox-no-tabs
-      # sway-laptop
+      wallpaper-manager
       # hyprland
     ];
 
@@ -140,11 +143,24 @@ in {
   systemd.sleep.extraConfig = "HibernateDelaySec=90m";
 
   services.fwupd.enable = true;
+
+  # source: https://github.com/NixOS/nixos-hardware/tree/master/framework/13-inch/7040-amd#getting-the-fingerprint-sensor-to-work
+  # we need fwupd 1.9.7 to downgrade the fingerprint sensor firmware
+  # services.fwupd.package =
+  #   (import (builtins.fetchTarball {
+  #       url = "https://github.com/NixOS/nixpkgs/archive/bb2009ca185d97813e75736c2b8d1d8bb81bde05.tar.gz";
+  #       sha256 = "sha256:003qcrsq5g5lggfrpq31gcvj82lb065xvr7bpfa8ddsw8x4dnysk";
+  #     }) {
+  #       inherit (pkgs) system;
+  #     })
+  #   .fwupd;
+
   services.fwupd.extraRemotes = ["lvfs-testing"];
 
   hardware.opengl.extraPackages = [
     # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
+
     # encoding/decoding acceleration
     pkgs.libvdpau-va-gl
     pkgs.vaapiVdpau
@@ -169,12 +185,14 @@ in {
     # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
     # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
     kernelParams = [
+      "rtc_cmos.use_acpi_alarm=1"
       "amdgpu.sg_display=0"
       "acpi_osi=\"!Windows 2020\""
+
+      # "nvme.noacpi=1" # maybe causing crashes upon waking?
+
       # NOTE(oninstall):
       "resume_offset=3421665"
-      # "nvme.noacpi=1" # maybe causing crashes upon waking?
-      "rtc_cmos.use_acpi_alarm=1"
     ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
@@ -188,33 +206,32 @@ in {
     # simply resume the power state at the time of hibernation
     powerOnBoot = false;
   };
-  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+  powerManagement.cpuFreqGovernor = "ondemand";
 
   services.power-profiles-daemon = {
     enable = true;
   };
-  powerManagement.powertop.enable = true;
 
-  # disabled stuff here for posterity
   services.fprintd = {
-    enable = false;
+    enable = true;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
-  services.tlp = {
-    enable = false;
-    settings = {
-      CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
-      CPU_SCALING_GOVERNOR_ON_BAT = "ondemand";
-      CPU_MIN_PERF_ON_BAT = 0;
-      CPU_MAX_PERF_ON_BAT = 60;
 
-      CPU_SCALING_GOVERNOR_ON_AC = "performance";
-      CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-      CPU_MIN_PERF_ON_AC = 0;
-      CPU_MAX_PERF_ON_AC = 100;
-    };
-  };
+  # services.tlp = {
+  #   enable = true;
+  #   settings = {
+  #     CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+  #     CPU_SCALING_GOVERNOR_ON_BAT = "ondemand";
+  #     CPU_MIN_PERF_ON_BAT = 0;
+  #     CPU_MAX_PERF_ON_BAT = 80;
+
+  #     CPU_SCALING_GOVERNOR_ON_AC = "performance";
+  #     CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
+  #     CPU_MIN_PERF_ON_AC = 0;
+  #     CPU_MAX_PERF_ON_AC = 100;
+  #   };
+  # };
 
   networking.firewall.allowedTCPPorts = [
     8000 # dev stuff
