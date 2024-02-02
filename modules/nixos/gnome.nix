@@ -1,15 +1,19 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [./pipewire.nix];
 
-  services.xserver.enable = true;
+  services.xserver.enable = lib.mkDefault true;
   services.xserver.displayManager.gdm = {
-    enable = true;
+    enable = lib.mkDefault true;
   };
 
   hardware.pulseaudio.enable = false;
 
   services.xserver.desktopManager.gnome = {
-    enable = true;
+    enable = lib.mkDefault true;
 
     extraGSettingsOverridePackages = [pkgs.gnome.mutter];
     extraGSettingsOverrides = ''
@@ -43,6 +47,7 @@
     };
 
     systemPackages = with pkgs; [
+      gnome.gnome-power-manager
       brightnessctl
       feh
       # gimp

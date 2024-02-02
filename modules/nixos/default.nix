@@ -20,6 +20,7 @@ with builtins;
       "wifi"
       "gnome"
       "kde-connect"
+      "kde-plasma"
       "printing"
       "avahi"
 

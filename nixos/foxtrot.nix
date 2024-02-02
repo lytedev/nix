@@ -2,6 +2,7 @@
   flake,
   inputs,
   outputs,
+  # lib,
   # config,
   pkgs,
   ...
@@ -14,13 +15,18 @@ in {
     flake.diskoConfigurations.standard
     inputs.hardware.nixosModules.framework-13-7040-amd
     desktop-usage
-    gnome
+    # gnome
+    kde-plasma
     podman
     lutris
     # postgres
     wifi
     # hyprland
   ];
+
+  services.xserver.enable = true;
+  services.xserver.displayManager.sddm.enable = true;
+  services.xserver.desktopManager.plasma5.enable = true;
 
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
@@ -33,6 +39,7 @@ in {
       variety # wallpaper switcher that I use with GNOME
       radeontop
       sops
+      obs-studio
     ];
   };
 
@@ -78,6 +85,8 @@ in {
       };
     };
   };
+
+  services.upower.enable = true;
 
   # use updated ppd for framework 13:
   # source: https://community.frame.work/t/tracking-ppd-v-tlp-for-amd-ryzen-7040/39423/137?u=lytedev

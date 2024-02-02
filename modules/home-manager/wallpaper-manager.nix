@@ -11,7 +11,11 @@
     Install.WantedBy = ["graphical-session.target"];
     Service = {
       Environment = [
-        "PATH=${lib.makeBinPath (with pkgs; [variety])}"
+        "PATH=${lib.makeBinPath (with pkgs; [
+          variety
+          (lib.getBin pkgs.plasma5Packages.qttools)
+          libsForQt5.kdialog
+        ])}"
       ];
       ExecStart = ''
         ${pkgs.variety}/bin/variety
