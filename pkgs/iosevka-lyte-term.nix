@@ -1,6 +1,28 @@
-{pkgs, ...}:
-pkgs.iosevka.override {
+{iosevka, ...}:
+(iosevka.overrideAttrs
+  (final: prev: {
+    pname = "iosevka-lyte-term";
+
+    buildPhase = ''
+      export HOME=$TMPDIR
+      runHook preBuild
+      npm run build --no-update-notifier -- --jCmd=$NIX_BUILD_CORES --verbose=9 ttf::iosevka-lyteterm
+      npm run build --no-update-notifier -- --jCmd=$NIX_BUILD_CORES --verbose=9 woff2::iosevka-lyteterm
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      fontdir="$out/share/fonts"
+      install -d "$fontdir"
+      install "dist/$pname/ttf"/* "$fontdir/truetype"
+      install "dist/$pname/woff2"/* "$fontdir/woff2"
+      runHook postInstall
+    '';
+  }))
+.override {
   set = "lyteterm";
+
   privateBuildPlan = ''
     [buildPlans.iosevka-lyteterm]
     family = "IosevkaLyteTerm"
