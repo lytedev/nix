@@ -2,15 +2,15 @@
   pkgs,
   fonttools,
   brotli,
-  iosevka-lyte-term,
+  iosevka-lyteterm,
   ...
 }: let
-  BASE_FONTS = "${iosevka-lyte-term}/share/fonts/truetype";
+  BASE_FONTS = "${iosevka-lyteterm}/share/fonts/truetype";
 in
   pkgs.stdenvNoCC.mkDerivation {
     inherit BASE_FONTS;
-    pname = "iosevka-lyte-term-min";
-    version = iosevka-lyte-term.version;
+    pname = "iosevka-lyteterm-min";
+    version = iosevka-lyteterm.version;
     # do I need to include makesubset.bash and subset-glyphs.txt?
     buildInputs = [fonttools brotli];
     srcs = [

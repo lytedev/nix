@@ -1,7 +1,7 @@
 {iosevka, ...}:
 (iosevka.overrideAttrs
   (final: prev: {
-    pname = "iosevka-lyte-term";
+    pname = "iosevka-lyteterm";
 
     buildPhase = ''
       export HOME=$TMPDIR
@@ -14,9 +14,11 @@
     installPhase = ''
       runHook preInstall
       fontdir="$out/share/fonts"
+      ls -la "$pname"
+      ls -la "$pname/ttf"/*
       install -d "$fontdir"
-      install "dist/$pname/ttf"/* "$fontdir/truetype"
-      install "dist/$pname/woff2"/* "$fontdir/woff2"
+      install "$pname/ttf"/* "$fontdir/truetype"
+      install "$pname/woff2"/* "$fontdir/woff2"
       runHook postInstall
     '';
   }))
