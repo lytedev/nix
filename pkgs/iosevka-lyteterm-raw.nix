@@ -16,7 +16,8 @@
       runHook preInstall
       install -d "$out"
       ls -la .
-      install ./* "$out"
+      ls -la dist
+      cp -r dist/* "$out"
       runHook postInstall
     '';
   }))

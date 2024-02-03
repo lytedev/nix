@@ -11,15 +11,25 @@
 
   imports = with outputs.nixosModules; [
     (modulesPath + "/installer/scan/not-detected.nix")
-    inputs.hardware.nixosModules.common-cpu-intel-kaby-lake
-    inputs.hardware.nixosModules.common-pc-ssd
-    inputs.hardware.nixosModules.common-pc
+    inputs.hardware.nixosModules.raspberry-pi-4
+    # inputs.hardware.nixosModules.common-cpu-intel-kaby-lake
+    # inputs.hardware.nixosModules.common-pc-ssd
+    # inputs.hardware.nixosModules.common-pc
     desktop-usage
     gnome
     wifi
     flanfam
     flanfamkiosk
   ];
+
+  hardware = {
+    raspberry-pi."4".apply-overlays-dtmerge.enable = true;
+    deviceTree = {
+      enable = true;
+      filter = "*rpi-4-*.dtb";
+    };
+  };
+  console.enable = false;
 
   services.gnome.gnome-remote-desktop.enable = true;
 
@@ -32,13 +42,35 @@
 
   environment.systemPackages = with pkgs;
   #with pkgs;
-    [variety];
+    [
+      libcec
+      variety
+      libraspberrypi
+      raspberrypi-eeprom
+    ];
 
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
 
   services.xserver.displayManager.autoLogin.enable = true;
   services.xserver.displayManager.autoLogin.user = "daniel";
+
+  services.xserver = {
+    enable = true;
+    displayManager.lightdm.enable = true;
+    desktopManager.gnome.enable = true;
+    videoDrivers = ["fbdev"];
+  };
+
+  hardware.raspberry-pi."4".fkms-3d.enable = true;
+  hardware.raspberry-pi."4".audio.enable = true;
+
+  nixpkgs.overlays = [
+    # nixos-22.05
+    # (self: super: { libcec = super.libcec.override { inherit (self) libraspberrypi; }; })
+    # nixos-22.11
+    (self: super: {libcec = super.libcec.override {withLibraspberrypi = true;};})
+  ];
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
@@ -57,7 +89,9 @@
 
   boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci"];
   boot.initrd.kernelModules = [];
-  boot.kernelModules = ["kvm-intel"];
+  boot.kernelModules = [
+    # "kvm-intel"
+  ];
   boot.extraModulePackages = [];
 
   fileSystems."/" = {
@@ -76,7 +110,38 @@
     };
   };
 
+  services.udev.extraRules = ''
+    # allow access to raspi cec device for video group (and optionally register it as a systemd device, used below)
+    SUBSYSTEM=="vchiq", GROUP="video", MODE="0660", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/vchiq"
+  '';
+
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+
+  # optional: attach a persisted cec-client to `/run/cec.fifo`, to avoid the CEC ~1s startup delay per command
+  # scan for devices: `echo 'scan' &gt; /run/cec.fifo ; journalctl -u cec-client.service`
+  # set pi as active source: `echo 'as' &gt; /run/cec.fifo`
+  systemd.sockets."cec-client" = {
+    after = ["dev-vchiq.device"];
+    bindsTo = ["dev-vchiq.device"];
+    wantedBy = ["sockets.target"];
+    socketConfig = {
+      ListenFIFO = "/run/cec.fifo";
+      SocketGroup = "video";
+      SocketMode = "0660";
+    };
+  };
+  systemd.services."cec-client" = {
+    after = ["dev-vchiq.device"];
+    bindsTo = ["dev-vchiq.device"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      ExecStart = ''${pkgs.libcec}/bin/cec-client -d 1'';
+      ExecStop = ''/bin/sh -c "echo q &gt; /run/cec.fifo"'';
+      StandardInput = "socket";
+      StandardOutput = "journal";
+      Restart = "no";
+    };
+  };
 
   system.stateVersion = "23.11";
 }

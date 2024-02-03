@@ -35,6 +35,7 @@
     imports = with outputs.homeManagerModules; [
       sway
       pass
+      firefox-no-tabs
       melee
       # sway-laptop
       hyprland
