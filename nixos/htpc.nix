@@ -52,12 +52,13 @@
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
 
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "daniel";
-
   services.xserver = {
     enable = true;
-    displayManager.lightdm.enable = true;
+    displayManager = {
+      # lightdm.enable = true;
+      autoLogin.enable = true;
+      autoLogin.user = "daniel";
+    };
     desktopManager.gnome.enable = true;
     videoDrivers = ["fbdev"];
   };

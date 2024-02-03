@@ -66,7 +66,6 @@ See [lib/internal.md](./lib/internal.md).
 - a.lyte.dev for web analytics
 - grafana and stuff for monitoring
 - alerts?
-- Fonts installed by home manager instead of nixos module
 - Broot config?
 
 ## Long Term
