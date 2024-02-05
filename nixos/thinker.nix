@@ -4,7 +4,7 @@
   outputs,
   lib,
   # config,
-  # pkgs,
+  pkgs,
   ...
 }: {
   networking.hostName = "thinker";
@@ -19,6 +19,17 @@
     postgres
     wifi
   ];
+
+  environment = {
+    systemPackages = with pkgs; [
+      spotify
+      discord
+      obs-studio
+      variety # wallpaper switcher that I use with GNOME
+      sops
+      slack
+    ];
+  };
 
   boot = {
     loader = {
@@ -40,6 +51,8 @@
     imports = with outputs.homeManagerModules; [
       sway
       pass
+      firefox-no-tabs
+      wallpaper-manager
       # sway-laptop
       # hyprland
     ];
@@ -66,6 +79,7 @@
       HandlePowerKey=suspend-then-hibernate
       IdleAction=suspend-then-hibernate
       IdleActionSec=10m
+      HandleLidSwitchDocked=ignore
     '';
   };
   systemd.sleep.extraConfig = "HibernateDelaySec=30m";
