@@ -25,8 +25,6 @@ in {
   ];
 
   services.xserver.enable = true;
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
 
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
@@ -36,6 +34,7 @@ in {
       spotify
       discord
       slack
+      godot_4
       variety # wallpaper switcher that I use with GNOME
       radeontop
       sops

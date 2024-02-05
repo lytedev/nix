@@ -9,14 +9,11 @@
 
   services.xserver.displayManager.defaultSession = "plasmawayland";
   services.xserver.enable = lib.mkDefault true;
-  services.xserver.displayManager.sddm = {
-    enable = lib.mkDefault true;
-  };
+
+  services.xserver.displayManager.sddm.enable = true;
+  services.xserver.desktopManager.plasma5.enable = true;
 
   hardware.pulseaudio.enable = false;
-  services.xserver.desktopManager.plasma5 = {
-    enable = lib.mkDefault true;
-  };
 
   qt = {
     enable = true;
@@ -54,6 +51,7 @@
       libsForQt5.ktorrent
       libsForQt5.kdevelop
       libsForQt5.kdialog
+      libsForQt5.kdeplasma-addons
     ];
   };
 }
