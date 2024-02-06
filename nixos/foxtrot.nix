@@ -144,11 +144,11 @@ in {
     # HandleLidSwitchDocked=ignore
     extraConfig = ''
       HandlePowerKey=suspend-then-hibernate
-      IdleAction=suspend-then-hibernate
       IdleActionSec=10m
+      IdleAction=suspend-then-hibernate
     '';
   };
-  systemd.sleep.extraConfig = "HibernateDelaySec=90m";
+  systemd.sleep.extraConfig = "HibernateDelaySec=30m";
 
   services.fwupd.enable = true;
 
