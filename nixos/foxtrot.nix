@@ -141,9 +141,9 @@ in {
 
   services.logind = {
     lidSwitch = "suspend-then-hibernate";
+    # HandleLidSwitchDocked=ignore
     extraConfig = ''
       HandlePowerKey=suspend-then-hibernate
-      HandleLidSwitchDocked=ignore
       IdleAction=suspend-then-hibernate
       IdleActionSec=10m
     '';

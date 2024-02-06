@@ -2,6 +2,7 @@
   imports = with outputs.homeManagerModules; [
     common
     desktop
+    pass
   ];
 
   # TODO: pinentry curses?
