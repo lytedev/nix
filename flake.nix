@@ -118,25 +118,25 @@
             linux
           ];
         };
-      work = forAllSystems (
-        system:
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = nixpkgs.legacyPackages.${system};
-            extraSpecialArgs = {
-              inherit inputs outputs system;
-              inherit (outputs) colors font;
-            };
-            modules = with outputs.homeManagerModules; [
-              common
-              {
-                home.homeDirectory = "/Users/daniel.flanagan";
-                home.username = "daniel.flanagan";
-                home.stateVersion = "24.05";
-              }
-              macos
-            ];
-          }
-      );
+      workm1 = let
+        system = "aarch64-linux";
+      in
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          extraSpecialArgs = {
+            inherit inputs outputs system;
+            inherit (outputs) colors font;
+          };
+          modules = with outputs.homeManagerModules; [
+            common
+            {
+              home.homeDirectory = "/Users/daniel.flanagan";
+              home.username = "daniel.flanagan";
+              home.stateVersion = "24.05";
+            }
+            macos
+          ];
+        };
     };
 
     # Disk partition schemes and functions
