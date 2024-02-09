@@ -66,6 +66,10 @@ set -U fish_pager_color_prefix blue # the string being completed
 set -U fish_pager_color_progress white\x1e\x2d\x2dbackground\x3d333 # status indicator at the bottom
 # set -U fish_pager_color_secondary \x2d\x2dbackground\x3d181818 # alternating rows
 
+if test -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
+	source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
+end
+
 function has_command --wraps=command --description "Exits non-zero if the given command cannot be found"
 	command --quiet --search $argv[1]
 end
@@ -74,6 +78,6 @@ if has_command rtx
 	rtx activate fish | source
 end
 
-for dir in ~/.cargo/bin ~/.nimble/bin ~/.local/bin
-	fish_add_path $dir
+for dir in ~/.cargo/bin ~/.nimble/bin ~/.local/bin /opt/homebrew/bin
+	test -d $dir && fish_add_path $dir
 end
