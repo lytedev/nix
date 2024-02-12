@@ -119,7 +119,7 @@
           ];
         };
       workm1 = let
-        system = "aarch64-linux";
+        system = "aarch64-darwin";
       in
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
