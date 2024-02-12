@@ -340,11 +340,11 @@
     "slippi-desktop": {
       "flake": false,
       "locked": {
-        "lastModified": 1607036060,
-        "narHash": "sha256-TUYsiVvKAws3N3roZYDwkLB0obyl6zwvh8CAk2RwHrY=",
+        "lastModified": 1706482760,
+        "narHash": "sha256-l6KunEEwadCGaL8MPSOJB1ZB41TXmDsoh27eVdxojoM=",
         "owner": "project-slippi",
         "repo": "slippi-desktop-app",
-        "rev": "3ca39ba6bbd02157515b12a79aa01e5d669ad1b1",
+        "rev": "5a32466751445f9963a3c0dedbe513ad127440f7",
         "type": "github"
       },
       "original": {
@@ -384,16 +384,16 @@
         "slippi-desktop": "slippi-desktop"
       },
       "locked": {
-        "lastModified": 1704561657,
-        "narHash": "sha256-2IOPvEgMW9TlEi74NKRbhtZzY414t77lfHxxl2ixUlM=",
+        "lastModified": 1707778560,
+        "narHash": "sha256-iTOcSrZgxLHotWJT0LZU5FYyfANgblsO6lsxt7nyyA8=",
         "owner": "lytedev",
         "repo": "ssbm-nix",
-        "rev": "75c62f692154172a9fc4bc4658b7597741a5b49f",
+        "rev": "6ff92c8d340cf2a96f925bbd994443cdb76cb641",
         "type": "github"
       },
       "original": {
         "owner": "lytedev",
-        "ref": "my-nixpkgs",
+        "ref": "v3.4.0",
         "repo": "ssbm-nix",
         "type": "github"
       }
