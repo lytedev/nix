@@ -24,7 +24,7 @@
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
     api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
 
-    ssbm.url = "github:lytedev/ssbm-nix/v3.4.0";
+    ssbm.url = "github:lytedev/ssbm-nix";
     ssbm.inputs.nixpkgs.follows = "nixpkgs";
 
     # TODO: doesn't support the forge mod loader yet
