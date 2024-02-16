@@ -123,9 +123,9 @@ in {
   };
 
   services = {
-    xserver = {
+    xserver.xkb = {
       layout = "us";
-      xkbOptions = "ctrl:nocaps";
+      options = "ctrl:nocaps";
     };
 
     openssh = {

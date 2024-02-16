@@ -1,9 +1,11 @@
 {
+  pkgs,
   inputs,
   colors,
-  system,
   ...
-}: {
+}: let
+  inherit (pkgs) system;
+in {
   programs.helix = {
     enable = true;
     package = inputs.helix.packages.${system}.helix;

@@ -88,7 +88,6 @@
         inherit system;
         specialArgs = {
           inherit inputs outputs system;
-          flake = self;
         };
         modules =
           [
