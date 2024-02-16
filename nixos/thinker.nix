@@ -1,5 +1,4 @@
 {
-  flake,
   inputs,
   outputs,
   lib,
@@ -10,7 +9,7 @@
   networking.hostName = "thinker";
 
   imports = with outputs.nixosModules; [
-    flake.diskoConfigurations.thinker
+    outputs.diskoConfigurations.thinker
     inputs.hardware.nixosModules.lenovo-thinkpad-t480
     inputs.hardware.nixosModules.common-pc-laptop-ssd
     desktop-usage

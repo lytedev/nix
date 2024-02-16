@@ -1,5 +1,5 @@
 {
-  flake,
+  outputs,
   lib,
   # outputs,
   # config,
@@ -35,7 +35,7 @@ in {
   networking.useDHCP = false;
 
   imports = [
-    flake.diskoConfigurations.unencrypted
+    outputs.diskoConfigurations.unencrypted
   ];
 
   # TODO: perform a hardware scan

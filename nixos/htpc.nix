@@ -34,7 +34,6 @@
   services.gnome.gnome-remote-desktop.enable = true;
 
   networking.networkmanager.enable = true;
-  nix.settings.experimental-features = ["nix-command" "flakes"];
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [linux-desktop];
@@ -85,7 +84,7 @@
 
   powerManagement.enable = false;
 
-  boot.loader.grub.enable = true;
+  # boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
 
   boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci"];

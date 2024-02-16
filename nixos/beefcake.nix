@@ -690,8 +690,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
   virtualisation.oci-containers.backend = "podman";
   virtualisation.oci-containers.containers = {
-    autoStart = false;
     minecraft-jland = {
+      autoStart = false;
+
       # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
       image = "docker.io/itzg/minecraft-server";
       user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";

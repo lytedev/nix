@@ -12,7 +12,7 @@
   boot.supportedFilesystems = ["ntfs"];
 
   imports = with outputs.nixosModules; [
-    flake.diskoConfigurations.standard
+    outputs.diskoConfigurations.standard
     inputs.hardware.nixosModules.common-cpu-amd
     inputs.hardware.nixosModules.common-pc-ssd
     outputs.nixosModules.pipewire-low-latency
@@ -36,15 +36,14 @@
       pass
       firefox-no-tabs
       melee
-      # sway-laptop
-      hyprland
+      # hyprland
     ];
 
-    ssbm = {
-      slippi-launcher = {
-        isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
-      };
-    };
+    # ssbm = {
+    #   slippi-launcher = {
+    #     isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
+    #   };
+    # };
 
     wayland.windowManager.hyprland = {
       settings = {

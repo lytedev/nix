@@ -27,7 +27,7 @@
 
     ssbm.url = "github:lytedev/ssbm-nix";
     # I think if I force this to follow nixpkgs, I won't get caching benefits
-    # ssbm.inputs.nixpkgs.follows = "nixpkgs";
+    ssbm.inputs.nixpkgs.follows = "nixpkgs";
 
     # TODO: doesn't (can't?) support the forge mod loader yet
     # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
