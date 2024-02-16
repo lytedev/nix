@@ -1,13 +1,13 @@
 {inputs, ...}: {
   imports = [
     {nixpkgs.overlays = [inputs.ssbm.overlay];}
-    inputs.ssbm.homeManagerModule
+    # inputs.ssbm.homeManagerModules.default
   ];
 
-  ssbm = {
-    slippi-launcher = {
-      enable = true;
-      launchMeleeOnPlay = false;
-    };
-  };
+  # ssbm = {
+  #   slippi-launcher = {
+  #     enable = false;
+  #     launchMeleeOnPlay = false;
+  #   };
+  # };
 }

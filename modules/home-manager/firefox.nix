@@ -16,6 +16,7 @@
         id = 0;
         settings = {
           "general.smoothScroll" = true;
+          "browser.zoom.siteSpecific" = false;
         };
 
         extraConfig = ''

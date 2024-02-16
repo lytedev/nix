@@ -1,5 +1,4 @@
 {
-  flake,
   outputs,
   # lib,
   # config,
@@ -8,14 +7,11 @@
 }: {
   networking.hostName = "musicbox";
 
-  imports =
-    [
-      flake.diskoConfigurations.unencrypted
-    ]
-    ++ (with outputs.nixosModules; [
-      desktop-usage
-      wifi
-    ]);
+  imports = with outputs.nixosModules; [
+    outputs.diskoConfigurations.unencrypted
+    desktop-usage
+    wifi
+  ];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

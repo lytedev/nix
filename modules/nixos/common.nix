@@ -3,11 +3,12 @@
   lib,
   inputs,
   outputs,
-  system,
   pkgs,
   modulesPath,
   ...
-}: {
+}: let
+  inherit (pkgs) system;
+in {
   networking.hostName = lib.mkDefault "nixoslyte";
 
   imports =
@@ -122,9 +123,9 @@
   };
 
   services = {
-    xserver = {
+    xserver.xkb = {
       layout = "us";
-      xkbOptions = "ctrl:nocaps";
+      options = "ctrl:nocaps";
     };
 
     openssh = {
@@ -261,13 +262,14 @@
   };
 
   nix = {
+    # This will additionally add your inputs to the system's legacy channels
+    # Making legacy nix commands consistent as well, awesome!
+    # Not sure why I would need this...
+    # nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
+
     # This will add each flake input as a registry
     # To make nix3 commands consistent with your flake
     registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
-
-    # This will additionally add your inputs to the system's legacy channels
-    # Making legacy nix commands consistent as well, awesome!
-    nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
 
     settings = {
       trusted-users = ["root" "daniel"];

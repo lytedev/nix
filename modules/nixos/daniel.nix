@@ -1,10 +1,11 @@
 {
   pkgs,
   inputs,
-  system,
   outputs,
   ...
-}: {
+}: let
+  inherit (pkgs) system;
+in {
   home-manager = {
     extraSpecialArgs = {
       inherit inputs outputs system;

@@ -9,7 +9,7 @@ in {
   networking.hostName = "foxtrot";
 
   imports = with outputs.nixosModules; [
-    flake.diskoConfigurations.standard
+    outputs.diskoConfigurations.standard
     inputs.hardware.nixosModules.framework-13-7040-amd
     desktop-usage
     # gnome

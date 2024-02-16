@@ -1,9 +1,11 @@
 {
+  pkgs,
   inputs,
   colors,
-  system,
   ...
-}: {
+}: let
+  inherit (pkgs) system;
+in {
   programs.helix = {
     enable = true;
     package = inputs.helix.packages.${system}.helix;
@@ -68,6 +70,26 @@
             tab-width = 2;
             unit = "\t";
           };
+        }
+        {
+          name = "javascript";
+          auto-format = true;
+        }
+        {
+          name = "typescript";
+          auto-format = true;
+        }
+        {
+          name = "jsx";
+          auto-format = true;
+        }
+        {
+          name = "tsx";
+          auto-format = true;
+        }
+        {
+          name = "jsonc";
+          auto-format = true;
         }
 
         # {

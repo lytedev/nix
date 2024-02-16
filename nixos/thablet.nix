@@ -1,5 +1,4 @@
 {
-  flake,
   inputs,
   outputs,
   lib,
@@ -11,7 +10,7 @@
 
   imports = with outputs.nixosModules; [
     (modulesPath + "/installer/scan/not-detected.nix")
-    flake.diskoConfigurations.standard
+    outputs.diskoConfigurations.standard
     inputs.hardware.nixosModules.lenovo-thinkpad-x1-yoga
     desktop-usage
     fonts

@@ -1,10 +1,4 @@
 {
-  pkgs,
-  inputs,
-  outputs,
-  system,
-  ...
-}: {
   imports = [
     ./sway.nix
     # ./hyprland.nix
@@ -14,8 +8,6 @@
     ./user-installed-applications.nix
     ./kde-connect.nix
   ];
-
-  nixpkgs.overlays = [outputs.overlays.modifications];
 
   hardware = {
     opengl = {
