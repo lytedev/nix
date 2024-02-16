@@ -84,10 +84,10 @@
         zellij
         # zstd
       ]
-      ++ (with inputs.home-manager.packages.${system}; [
+      ++ (with inputs.home-manager.packages.${pkgs.system}; [
         home-manager
       ])
-      ++ (with inputs.helix.packages.${system}; [
+      ++ (with inputs.helix.packages.${pkgs.system}; [
         helix
       ]);
   };

@@ -6,7 +6,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     helix.url = "github:helix-editor/helix/master";
-    helix.inputs.nixpkgs.follows = "nixpkgs";
+    # I think if I force this to follow nixpkgs, I won't get caching benefits
+    # helix.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
@@ -25,9 +26,10 @@
     api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
 
     ssbm.url = "github:lytedev/ssbm-nix";
-    ssbm.inputs.nixpkgs.follows = "nixpkgs";
+    # I think if I force this to follow nixpkgs, I won't get caching benefits
+    # ssbm.inputs.nixpkgs.follows = "nixpkgs";
 
-    # TODO: doesn't support the forge mod loader yet
+    # TODO: doesn't (can't?) support the forge mod loader yet
     # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
   };
 
@@ -156,6 +158,7 @@
     extra-substituters = [
       "https://cache.nixos.org/"
       "https://helix.cachix.org"
+      "https://ssbm-nix.cachix.org"
       "https://nix-community.cachix.org"
       "https://nix.h.lyte.dev"
     ];
@@ -163,6 +166,7 @@
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+      "ssbm-nix.cachix.org-1:YN104LKAWaKQIecOphkftXgXlYZVK/IRHM1UD7WAIew="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
     ];
