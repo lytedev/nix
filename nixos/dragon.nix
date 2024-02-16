@@ -17,14 +17,14 @@
     inputs.hardware.nixosModules.common-pc-ssd
     outputs.nixosModules.pipewire-low-latency
 
-    desktop-usage
-    podman
-    postgres
-    wifi
-    hyprland
-    printing
-    ewwbar
-    melee
+    # desktop-usage
+    # podman
+    # postgres
+    # wifi
+    # hyprland
+    # printing
+    # ewwbar
+    # melee
   ];
 
   programs.steam.enable = true;
@@ -32,12 +32,12 @@
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
-      sway
-      pass
-      firefox-no-tabs
-      melee
-      # sway-laptop
-      hyprland
+      # sway
+      # pass
+      # firefox-no-tabs
+      # melee
+      # # sway-laptop
+      # hyprland
     ];
 
     ssbm = {

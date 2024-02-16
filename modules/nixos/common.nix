@@ -1,26 +1,23 @@
 {
-  config,
-  lib,
-  inputs,
-  outputs,
-  system,
+  # config,
+  # inputs,
+  # outputs,
   pkgs,
-  modulesPath,
+  # modulesPath,
   ...
-}: {
+}: let
+  lib = pkgs.lib;
+in {
   networking.hostName = lib.mkDefault "nixoslyte";
 
-  imports =
-    [
-      (modulesPath + "/installer/scan/not-detected.nix")
-      inputs.sops-nix.nixosModules.sops
-      inputs.disko.nixosModules.disko
-      inputs.home-manager.nixosModules.home-manager
-    ]
-    ++ (with outputs.nixosModules; [
-      avahi
-      daniel
-    ]);
+  imports = [
+    # (modulesPath + "/installer/scan/not-detected.nix")
+    # inputs.sops-nix.nixosModules.sops
+    # inputs.disko.nixosModules.disko
+    # inputs.home-manager.nixosModules.home-manager
+    # ./avahi.nix
+    # ./daniel.nix
+  ];
 
   hardware.enableRedistributableFirmware = true;
 
@@ -108,7 +105,7 @@
     };
 
     root = {
-      openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
+      # openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
     };
   };
 
@@ -157,24 +154,24 @@
     useXkbConfig = true;
     earlySetup = true;
 
-    colors = with outputs.colors; [
-      bg
-      red
-      green
-      orange
-      blue
-      purple
-      yellow
-      fg3
-      fgdim
-      red
-      green
-      orange
-      blue
-      purple
-      yellow
-      fg
-    ];
+    # colors = with outputs.colors; [
+    #   bg
+    #   red
+    #   green
+    #   orange
+    #   blue
+    #   purple
+    #   yellow
+    #   fg3
+    #   fgdim
+    #   red
+    #   green
+    #   orange
+    #   blue
+    #   purple
+    #   yellow
+    #   fg
+    # ];
   };
 
   networking = {
@@ -239,9 +236,9 @@
     # You can add overlays here
     overlays = [
       # Add overlays your own flake exports (from overlays and pkgs dir):
-      outputs.overlays.additions
-      outputs.overlays.modifications
-      outputs.overlays.unstable-packages
+      # outputs.overlays.additions
+      # outputs.overlays.modifications
+      # outputs.overlays.unstable-packages
 
       # You can also add overlays exported from other flakes:
       # neovim-nightly-overlay.overlays.default
@@ -263,11 +260,11 @@
   nix = {
     # This will add each flake input as a registry
     # To make nix3 commands consistent with your flake
-    registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
+    # registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
 
     # This will additionally add your inputs to the system's legacy channels
     # Making legacy nix commands consistent as well, awesome!
-    nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
+    # nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
 
     settings = {
       trusted-users = ["root" "daniel"];

@@ -85,7 +85,7 @@
 
   powerManagement.enable = false;
 
-  boot.loader.grub.enable = true;
+  # boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
 
   boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci"];

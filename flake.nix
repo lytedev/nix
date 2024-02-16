@@ -38,8 +38,12 @@
     nixpkgs,
     home-manager,
     ...
-  } @ inputs: let
-    inherit (self) outputs;
+  }: let
+    inherit (self) outputs inputs;
+
+    # a wrapper around all the stuff we might hand off to modules so they can
+    # effectively reference this flake's inputs and outputs
+    thisFlake = {inherit outputs inputs;};
 
     systems = [
       "aarch64-linux"
@@ -60,22 +64,26 @@
 
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system: import ./pkgs {pkgs = nixpkgs.legacyPackages.${system};});
+    packages = forAllSystems (system:
+      import ./pkgs {
+        inherit thisFlake;
+        pkgs = nixpkgs.legacyPackages.${system};
+      });
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
 
     # Your custom packages and modifications, exported as overlays
-    overlays = import ./overlays {inherit inputs;};
+    overlays = import ./overlays thisFlake;
 
     # Reusable nixos modules you might want to export
     # These are usually stuff you would upstream into nixpkgs
-    nixosModules = import ./modules/nixos;
+    nixosModules = import ./modules/nixos thisFlake;
 
     # Reusable home-manager modules you might want to export
     # These are usually stuff you would upstream into home-manager
-    homeManagerModules = import ./modules/home-manager;
+    homeManagerModules = import ./modules/home-manager thisFlake;
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
@@ -86,16 +94,12 @@
     }:
       nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = {
-          inherit inputs outputs system;
-          flake = self;
-        };
         modules =
           [
-            self.nixosModules.common
+            outputs.nixosModules.common
           ]
           ++ modules;
-      }) (import ./nixos);
+      }) (import ./nixos thisFlake);
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
@@ -106,18 +110,14 @@
       in
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = {
-            inherit inputs outputs system;
-            inherit (outputs) colors font;
-          };
           modules = with outputs.homeManagerModules; [
             common
+            linux
             {
               home.homeDirectory = "/home/deck";
               home.username = "deck";
               home.stateVersion = "24.05";
             }
-            linux
           ];
         };
       workm1 = let
@@ -125,18 +125,14 @@
       in
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = {
-            inherit inputs outputs system;
-            inherit (outputs) colors font;
-          };
           modules = with outputs.homeManagerModules; [
             common
+            macos
             {
               home.homeDirectory = "/Users/daniel.flanagan";
               home.username = "daniel.flanagan";
               home.stateVersion = "24.05";
             }
-            macos
           ];
         };
     };

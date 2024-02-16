@@ -1,15 +1,5 @@
 {
-  pkgs,
-  inputs,
-  system,
-  outputs,
-  ...
-}: {
   home-manager = {
-    extraSpecialArgs = {
-      inherit inputs outputs system;
-      inherit (outputs) colors font;
-    };
     users.daniel = {
       accounts.email.accounts = {
         primary = {
@@ -34,12 +24,12 @@
         homeDirectory = "/home/daniel/.home";
       };
 
-      imports = with outputs.homeManagerModules; [
-        common
-        gnome
-        senpai
-        iex
-        cargo
+      imports = [
+        ./common.nix
+        ./gnome.nix
+        ./senpai.nix
+        ./iex.nix
+        ./cargo.nix
       ];
     };
   };

@@ -1,3 +1,4 @@
+_thisFlake:
 with builtins;
   listToAttrs (map (name: {
       name = name;
