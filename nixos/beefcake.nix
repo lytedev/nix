@@ -8,20 +8,23 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
-  inputs,
-  outputs,
-  config,
+  # inputs,
+  # outputs,
+  # config,
   pkgs,
   ...
 }: let
   inherit (pkgs) system;
 in {
-  imports = with outputs.nixosModules; [
-    intel
-    fonts # so that it gets cached to the nix store
-    inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
-    # inputs.nix-minecraft.nixosModules.minecraft-servers
-  ];
+  imports =
+    [
+      ../modules/nixos/intel.nix
+      ../modules/nixos/fonts.nix
+    ]
+    ++ [
+      # inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
+      # inputs.nix-minecraft.nixosModules.minecraft-servers
+    ];
 
   nixpkgs.overlays = [
     # inputs.nix-minecraft.overlay
@@ -57,16 +60,16 @@ in {
     secretKeyFile = "/var/cache-priv-key.pem";
   };
 
-  services.api-lyte-dev = rec {
-    enable = true;
-    port = 5757;
-    stateDir = "/var/lib/api-lyte-dev";
-    configFile = config.sops.secrets."api.lyte.dev".path;
-    user = "api-lyte-dev";
-    group = user;
-  };
+  # services.api-lyte-dev = rec {
+  #   enable = true;
+  #   port = 5757;
+  #   stateDir = "/var/lib/api-lyte-dev";
+  #   # configFile = config.sops.secrets."api.lyte.dev".path;
+  #   user = "api-lyte-dev";
+  #   group = user;
+  # };
 
-  systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
+  # systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
 
   sops = {
     defaultSopsFile = ../secrets/beefcake/secrets.yml;
@@ -99,33 +102,33 @@ in {
       # "myservice/my_subdir/my_secret" = { };
 
       "api.lyte.dev" = {
-        path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
+        # path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
         # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
         mode = "0440";
-        owner = config.services.api-lyte-dev.user;
-        group = config.services.api-lyte-dev.group;
+        # owner = config.services.api-lyte-dev.user;
+        # group = config.services.api-lyte-dev.group;
       };
 
       "jland.env" = {
         path = "/var/lib/jland/jland.env";
         # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
         mode = "0440";
-        owner = config.users.users.jland.name;
-        group = config.users.groups.jland.name;
+        # owner = config.users.users.jland.name;
+        # group = config.users.groups.jland.name;
       };
 
       plausible-admin-password = {
         # TODO: path = "${config.systemd.services.plausible.serviceConfig.WorkingDirectory}/plausible-admin-password.txt";
         path = "/var/lib/plausible/plausible-admin-password";
         mode = "0440";
-        owner = config.systemd.services.plausible.serviceConfig.User;
-        group = config.systemd.services.plausible.serviceConfig.Group;
+        # owner = config.systemd.services.plausible.serviceConfig.User;
+        # group = config.systemd.services.plausible.serviceConfig.Group;
       };
       plausible-secret-key-base = {
         path = "/var/lib/plausible/plausible-secret-key-base";
         mode = "0440";
-        owner = config.systemd.services.plausible.serviceConfig.User;
-        group = config.systemd.services.plausible.serviceConfig.Group;
+        # owner = config.systemd.services.plausible.serviceConfig.User;
+        # group = config.systemd.services.plausible.serviceConfig.Group;
       };
       nextcloud-admin-password = {
         path = "/var/lib/nextcloud/admin-password";
@@ -187,7 +190,7 @@ in {
   users.users.lytedev = {
     # for running my services and applications and stuff
     isNormalUser = true;
-    openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
+    # openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
     group = "lytedev";
   };
 
@@ -214,7 +217,8 @@ in {
       [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbPqzKB09U+i4Kqu136yOjflLZ/J7pYsNulTAd4x903 root@chromebox.h.lyte.dev"
       ]
-      ++ config.users.users.daniel.openssh.authorizedKeys.keys;
+      # ++ config.users.users.daniel.openssh.authorizedKeys.keys;
+      ;
   };
 
   users.users.guest = {
@@ -281,72 +285,72 @@ in {
     # TODO: there are some hardcoded ports here!
     # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
     # TODO: customize the files.lyte.dev template?
-    configFile = pkgs.writeText "Caddyfile" ''
-      video.lyte.dev {
-        reverse_proxy :8096
-      }
+    # configFile = pkgs.writeText "Caddyfile" ''
+    #   video.lyte.dev {
+    #     reverse_proxy :8096
+    #   }
 
-      dev.h.lyte.dev {
-        reverse_proxy :8000
-      }
+    #   dev.h.lyte.dev {
+    #     reverse_proxy :8000
+    #   }
 
-      # lidarr.h.lyte.dev {
-        # reverse_proxy :8686
-      # }
+    #   # lidarr.h.lyte.dev {
+    #     # reverse_proxy :8686
+    #   # }
 
-      # radarr.h.lyte.dev {
-        # reverse_proxy :7878
-      # }
+    #   # radarr.h.lyte.dev {
+    #     # reverse_proxy :7878
+    #   # }
 
-      # sonarr.h.lyte.dev {
-        # reverse_proxy :8989
-      # }
+    #   # sonarr.h.lyte.dev {
+    #     # reverse_proxy :8989
+    #   # }
 
-      # bazarr.h.lyte.dev {
-        # reverse_proxy :${toString config.services.bazarr.listenPort}
-      # }
+    #   # bazarr.h.lyte.dev {
+    #     # reverse_proxy :$${toString config.services.bazarr.listenPort}
+    #   # }
 
-      bw.lyte.dev {
-        reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}
-      }
+    #   bw.lyte.dev {
+    #     reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}
+    #   }
 
-      api.lyte.dev {
-        reverse_proxy :${toString config.services.api-lyte-dev.port}
-      }
+    #   api.lyte.dev {
+    #     reverse_proxy :${toString config.services.api-lyte-dev.port}
+    #   }
 
-      a.lyte.dev {
-        reverse_proxy :${toString config.services.plausible.server.port}
-      }
+    #   a.lyte.dev {
+    #     reverse_proxy :${toString config.services.plausible.server.port}
+    #   }
 
-      nextcloud.lyte.dev {
-        reverse_proxy :${toString 9999}
-      }
+    #   nextcloud.lyte.dev {
+    #     reverse_proxy :${toString 9999}
+    #   }
 
-      git.lyte.dev {
-        reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
-      }
+    #   git.lyte.dev {
+    #     reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
+    #   }
 
-      files.lyte.dev {
-        file_server browse {
-          # browse template
-          # hide .*
-          root /storage/files.lyte.dev
-        }
-      }
+    #   files.lyte.dev {
+    #     file_server browse {
+    #       # browse template
+    #       # hide .*
+    #       root /storage/files.lyte.dev
+    #     }
+    #   }
 
-      nix.h.lyte.dev {
-        reverse_proxy :${toString config.services.nix-serve.port}
-      }
+    #   nix.h.lyte.dev {
+    #     reverse_proxy :${toString config.services.nix-serve.port}
+    #   }
 
-      # proxy everything else to chromebox
-      :80 {
-        reverse_proxy 10.0.0.5:80
-      }
+    #   # proxy everything else to chromebox
+    #   :80 {
+    #     reverse_proxy 10.0.0.5:80
+    #   }
 
-      :443 {
-        reverse_proxy 10.0.0.5:443
-      }
-    '';
+    #   :443 {
+    #     reverse_proxy 10.0.0.5:443
+    #   }
+    # '';
   };
 
   services.vaultwarden = {
@@ -426,12 +430,12 @@ in {
       baseUrl = "http://beefcake.hare-cod.ts.net:8899";
       disableRegistration = true;
       port = 8899;
-      secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
+      # secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
     };
     adminUser = {
       activate = false;
       email = "daniel@lyte.dev";
-      passwordFile = config.sops.secrets.plausible-admin-password.path;
+      # passwordFile = config.sops.secrets.plausible-admin-password.path;
     };
   };
 
@@ -696,15 +700,15 @@ in {
 
       # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
       image = "docker.io/itzg/minecraft-server";
-      user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
+      # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
       extraOptions = [
         "--tty"
         "--interactive"
       ];
       environment = {
         EULA = "true";
-        UID = toString config.users.users.jland.uid;
-        GID = toString config.users.groups.jland.gid;
+        # UID = toString config.users.users.jland.uid;
+        # GID = toString config.users.groups.jland.gid;
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
         VERSION = "1.20.1";
@@ -731,7 +735,7 @@ in {
         # https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
       };
       environmentFiles = [
-        config.sops.secrets."jland.env".path
+        # config.sops.secrets."jland.env".path
       ];
       ports = ["26965:25565"];
       volumes = [
