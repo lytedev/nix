@@ -46,6 +46,12 @@ in {
 
     # TODO: https://blog.scottlowe.org/2023/12/15/conditional-git-configuration/
     extraConfig = {
+      init = {
+        defaultBranch = "main";
+      };
+
+      merge.conflictstyle = "zdiff3";
+
       push = {
         autoSetupRemote = true;
       };
