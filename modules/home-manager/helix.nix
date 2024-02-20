@@ -53,10 +53,14 @@ in {
         # }
         {
           name = "html";
+          file-types = ["html"];
+          scope = "source.html";
           auto-format = false;
         }
         {
           name = "nix";
+          file-types = ["nix"];
+          scope = "source.nix";
           auto-format = true;
           formatter = {
             command = "alejandra";
@@ -65,6 +69,8 @@ in {
         }
         {
           name = "fish";
+          file-types = ["fish"];
+          scope = "source.fish";
           auto-format = true;
           indent = {
             tab-width = 2;
@@ -73,22 +79,32 @@ in {
         }
         {
           name = "javascript";
+          file-types = ["js" "mjs"];
+          scope = "source.js";
           auto-format = true;
         }
         {
           name = "typescript";
+          file-types = ["ts" "mts"];
+          scope = "source.ts";
           auto-format = true;
         }
         {
           name = "jsx";
+          file-types = ["jsx"];
+          scope = "source.jsx";
           auto-format = true;
         }
         {
           name = "tsx";
+          file-types = ["tsx"];
+          scope = "source.tsx";
           auto-format = true;
         }
         {
           name = "jsonc";
+          file-types = ["jsonc"];
+          scope = "source.jsonc";
           auto-format = true;
         }
 
