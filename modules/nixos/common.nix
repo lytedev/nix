@@ -269,37 +269,29 @@ in {
 
     # This will add each flake input as a registry
     # To make nix3 commands consistent with your flake
-    registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
+    # registry = lib.mapAttrs (_: value: {flake = value;}) inputs;
 
     settings = {
       trusted-users = ["root" "daniel"];
+
       experimental-features = lib.mkDefault ["nix-command" "flakes"];
+
       substituters = [
         "https://cache.nixos.org/"
         "https://helix.cachix.org"
         "https://nix-community.cachix.org"
         "https://nix.h.lyte.dev"
       ];
+
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
       ];
-      auto-optimise-store = true;
+
+      auto-optimise-store = false;
     };
-
-    # registry = {
-    #   self.flake = inputs.self;
-
-    #   nixpkgs = {
-    #     from = {
-    #       id = "nixpkgs";
-    #       type = "indirect";
-    #     };
-    #     flake = inputs.nixpkgs;
-    #   };
-    # };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
