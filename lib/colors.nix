@@ -1,4 +1,4 @@
-{nixpkgs, ...}: {
+{lib, ...}: {
   schemes = let
     mkColorScheme = scheme @ {
       scheme-name,
@@ -51,7 +51,7 @@
         // scheme;
     in
       {
-        withHashPrefix = nixpkgs.lib.mapAttrs (_: value: "#${value}") base;
+        withHashPrefix = lib.mapAttrs (_: value: "#${value}") base;
       }
       // base;
   in {

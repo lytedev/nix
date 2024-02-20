@@ -8,7 +8,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
-  # inputs,
+  inputs,
   # outputs,
   # config,
   pkgs,
@@ -22,7 +22,7 @@ in {
       ../modules/nixos/fonts.nix
     ]
     ++ [
-      # inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
+      inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
       # inputs.nix-minecraft.nixosModules.minecraft-servers
     ];
 

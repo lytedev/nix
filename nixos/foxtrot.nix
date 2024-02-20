@@ -32,6 +32,7 @@ in {
       discord
       slack
       godot_4
+      fractal
       variety # wallpaper switcher that I use with GNOME
       radeontop
       sops

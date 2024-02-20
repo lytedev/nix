@@ -6,7 +6,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     helix.url = "github:helix-editor/helix/master";
-    # I think if I force this to follow nixpkgs, I won't get caching benefits
+    # I think if I force this to follow nixpkgs, I won't get caching benefits?
     # helix.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko/master";
@@ -26,19 +26,40 @@
     api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
 
     ssbm.url = "github:lytedev/ssbm-nix";
-    # I think if I force this to follow nixpkgs, I won't get caching benefits
-    ssbm.inputs.nixpkgs.follows = "nixpkgs";
+    # ssbm.inputs.nixpkgs.follows = "nixpkgs";
 
     # TODO: doesn't (can't?) support the forge mod loader yet
     # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
+  };
+
+  nixConfig = {
+    extra-experimental-features = ["nix-command" "flakes"];
+
+    extra-substituters = [
+      "https://cache.nixos.org/"
+      "https://helix.cachix.org"
+      # "https://ssbm-nix.cachix.org"
+      "https://nix-community.cachix.org"
+      "https://nix.h.lyte.dev"
+    ];
+
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+      # "ssbm-nix.cachix.org-1:YN104LKAWaKQIecOphkftXgXlYZVK/IRHM1UD7WAIew="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+    ];
   };
 
   outputs = {
     self,
     nixpkgs,
     home-manager,
+    sops-nix,
+    disko,
     ...
-  } @ inputs: let
+  }: let
     inherit (self) outputs;
 
     systems = [
@@ -50,7 +71,7 @@
 
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
-    colors = (import ./lib/colors.nix inputs).schemes.catppuccin-mocha-sapphire;
+    colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
     # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
 
     font = {
@@ -67,7 +88,7 @@
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
 
     # Your custom packages and modifications, exported as overlays
-    overlays = import ./overlays {inherit inputs;};
+    overlays = import ./overlays;
 
     # Reusable nixos modules you might want to export
     # These are usually stuff you would upstream into nixpkgs
@@ -76,6 +97,16 @@
     # Reusable home-manager modules you might want to export
     # These are usually stuff you would upstream into home-manager
     homeManagerModules = import ./modules/home-manager;
+
+    # TODO: nix-on-droid for phone terminal usage?
+    # TODO: nix-darwin for work?
+    # TODO: nixos ISO?
+
+    # Disk partition schemes and functions
+    diskoConfigurations = import ./disko;
+
+    # Flake templates for easily setting up Nix in a project using common patterns I like
+    templates = import ./templates/all.nix;
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
@@ -86,11 +117,11 @@
     }:
       nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = {
-          inherit inputs outputs system;
-        };
         modules =
           [
+            sops-nix.nixosModules.sops
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
             self.nixosModules.common
           ]
           ++ modules;
@@ -105,10 +136,6 @@
       in
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = {
-            inherit inputs outputs system;
-            inherit (outputs) colors font;
-          };
           modules = with outputs.homeManagerModules; [
             common
             {
@@ -124,10 +151,6 @@
       in
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
-          extraSpecialArgs = {
-            inherit inputs outputs system;
-            inherit (outputs) colors font;
-          };
           modules = with outputs.homeManagerModules; [
             common
             {
@@ -139,35 +162,5 @@
           ];
         };
     };
-
-    # Disk partition schemes and functions
-    diskoConfigurations = import ./disko;
-
-    # Flake templates for easily setting up Nix in a project using common patterns I like
-    templates = import ./templates/all.nix;
-
-    # TODO: nix-on-droid for phone terminal usage?
-    # TODO: nix-darwin for work?
-    # TODO: nixos ISO?
-  };
-
-  nixConfig = {
-    extra-experimental-features = ["nix-command" "flakes"];
-
-    extra-substituters = [
-      "https://cache.nixos.org/"
-      "https://helix.cachix.org"
-      "https://ssbm-nix.cachix.org"
-      "https://nix-community.cachix.org"
-      "https://nix.h.lyte.dev"
-    ];
-
-    extra-trusted-public-keys = [
-      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
-      "ssbm-nix.cachix.org-1:YN104LKAWaKQIecOphkftXgXlYZVK/IRHM1UD7WAIew="
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
-    ];
   };
 }
