@@ -49,11 +49,16 @@
     devShells = forAllSystems (system: let
       pkgs = nixpkgsFor system;
       erlang = pkgs.beam.packages.erlang_26;
-      elixir = erlang.elixir_1_15;
+      elixir = erlang.elixir_1_16;
     in {
       default = pkgs.mkShell {
         shellHook = "export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive";
-        buildInputs = [erlang elixir pkgs.elixir-ls];
+        buildInputs = with pkgs; [
+          erlang_26
+          erlang
+          elixir-ls
+          elixir
+        ];
       };
     });
   };
