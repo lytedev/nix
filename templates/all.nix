@@ -7,4 +7,8 @@
     path = ./deno;
     description = "A template for working on a TypeScript and Deno project";
   };
+  elixir = {
+    path = ./elixir;
+    description = "A template for working on an Elixir project";
+  };
 }
