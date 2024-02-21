@@ -63,6 +63,7 @@ in {
         mosh
         # nmap
         nettools
+        nodePackages.bash-language-server
         openssl
         # pciutils
         # pv
@@ -72,6 +73,8 @@ in {
         rsync
         # rtx
         sd
+        shellcheck
+        shfmt
         # sops
         smartmontools
         # sqlite

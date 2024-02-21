@@ -23,6 +23,8 @@
 
   programs.dconf.enable = true;
 
+  services.dbus.enable = true;
+
   environment = {
     variables = {
       GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
@@ -40,7 +42,6 @@
       libsForQt5.kate
       libsForQt5.kdenlive
       libsForQt5.merkuro
-      libsForQt5.kmail
       libsForQt5.kcalc
       libsForQt5.neochat
       libsForQt5.filelight

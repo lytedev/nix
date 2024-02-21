@@ -13,6 +13,7 @@
       Environment = [
         "PATH=${lib.makeBinPath (with pkgs; [
           variety
+          dbus
           (lib.getBin pkgs.plasma5Packages.qttools)
           libsForQt5.kdialog
         ])}"

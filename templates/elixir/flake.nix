@@ -54,6 +54,7 @@
       default = pkgs.mkShell {
         shellHook = "export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive";
         buildInputs = with pkgs; [
+          inotify-tools
           erlang_26
           erlang
           elixir-ls
