@@ -1,0 +1,22 @@
+# secret files
+*.secret.*
+
+# build output
+/_build
+
+# elixir dependencies
+/deps
+
+# crash dumps
+erl_crash.dump
+
+# sqlite databases
+*.db
+*.db-shm
+*.db-wal
+
+# nix build output
+/result
+
+# direnv cache
+/.direnv
