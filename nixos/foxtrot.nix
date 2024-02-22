@@ -1,4 +1,5 @@
 {
+  api-lyte-dev,
   inputs,
   outputs,
   pkgs,
@@ -9,6 +10,26 @@ in {
   networking.hostName = "foxtrot";
 
   imports = with outputs.nixosModules; [
+    ({
+      config,
+      pkgs,
+      ...
+    }: let
+      inherit (pkgs) lib;
+      cfg = config.services.myservice;
+    in {
+      options.services.myservice = {
+        enable = lib.mkEnableOption "Enables the api.lyte.dev service";
+      };
+
+      config =
+        lib.mkIf cfg.enable {
+        };
+    })
+    {
+      services.myservice.enable = true;
+    }
+
     outputs.diskoConfigurations.standard
     inputs.hardware.nixosModules.framework-13-7040-amd
     desktop-usage

@@ -8,7 +8,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
-  inputs,
+  api-lyte-dev,
+  # inputs,
   # outputs,
   config,
   pkgs,
@@ -22,12 +23,12 @@ in {
       ../modules/nixos/fonts.nix
     ]
     ++ [
-      inputs.api-lyte-dev.nixosModules.${system}.api-lyte-dev
-      # inputs.nix-minecraft.nixosModules.minecraft-servers
+      # api-lyte-dev.nixosModules.api-lyte-dev
+      # nix-minecraft.nixosModules.minecraft-servers
     ];
 
   nixpkgs.overlays = [
-    # inputs.nix-minecraft.overlay
+    # nix-minecraft.overlay
   ];
 
   boot.initrd.availableKernelModules = ["ehci_pci" "megaraid_sas" "usbhid" "uas" "sd_mod"];
@@ -60,16 +61,17 @@ in {
     secretKeyFile = "/var/cache-priv-key.pem";
   };
 
-  services.api-lyte-dev = rec {
-    enable = true;
-    port = 5757;
-    stateDir = "/var/lib/api-lyte-dev";
-    configFile = config.sops.secrets."api.lyte.dev".path;
-    user = "api-lyte-dev";
-    group = user;
-  };
+  # services.api-lyte-dev = rec {
+  #   enable = true;
+  #   port = 5757;
+  #   stateDir = "/var/lib/api-lyte-dev";
+  #   configFile = config.sops.secrets."api.lyte.dev".path;
+  #   configFile = /dev/null;
+  #   user = "api-lyte-dev";
+  #   group = user;
+  # };
 
-  systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
+  # systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
 
   sops = {
     defaultSopsFile = ../secrets/beefcake/secrets.yml;
@@ -105,8 +107,8 @@ in {
         # path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
         # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
         mode = "0440";
-        owner = config.services.api-lyte-dev.user;
-        group = config.services.api-lyte-dev.group;
+        # owner = config.services.api-lyte-dev.user;
+        # group = config.services.api-lyte-dev.group;
       };
 
       "jland.env" = {
@@ -130,12 +132,12 @@ in {
         owner = config.systemd.services.plausible.serviceConfig.User;
         group = config.systemd.services.plausible.serviceConfig.Group;
       };
-      nextcloud-admin-password = {
-        path = "/var/lib/nextcloud/admin-password";
-        mode = "0440";
-        owner = config.services.nextcloud.serviceConfig.User;
-        group = config.services.nextcloud.serviceConfig.Group;
-      };
+      # nextcloud-admin-password = {
+      #   path = "/var/lib/nextcloud/admin-password";
+      #   mode = "0440";
+      #   owner = config.services.nextcloud.serviceConfig.User;
+      #   group = config.services.nextcloud.serviceConfig.Group;
+      # };
     };
   };
 
@@ -314,7 +316,7 @@ in {
       }
 
       api.lyte.dev {
-        reverse_proxy :${toString config.services.api-lyte-dev.port}
+        reverse_proxy :$${toString config.services.api-lyte-dev.port}
       }
 
       a.lyte.dev {
@@ -429,12 +431,12 @@ in {
       baseUrl = "http://beefcake.hare-cod.ts.net:8899";
       disableRegistration = true;
       port = 8899;
-      # secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
+      secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
     };
     adminUser = {
       activate = false;
       email = "daniel@lyte.dev";
-      # passwordFile = config.sops.secrets.plausible-admin-password.path;
+      passwordFile = config.sops.secrets.plausible-admin-password.path;
     };
   };
 
