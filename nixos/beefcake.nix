@@ -258,7 +258,11 @@ in {
     group = "nextcloud";
   };
 
-  environment.systemPackages = [pkgs.linuxquota];
+  environment.systemPackages = with pkgs; [
+    linuxquota
+    htop
+    bottom
+  ];
 
   # TODO: make the client declarative? right now I think it's manually git
   # clone'd to /root
@@ -776,7 +780,7 @@ in {
         # config.sops.secrets."flanilla.env".path
       ];
 
-      ports = ["26965:25565"];
+      ports = ["26966:25565"];
 
       volumes = [
         "/storage/flanilla/data:/data"
