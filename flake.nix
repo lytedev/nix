@@ -37,6 +37,7 @@
     self,
     nixpkgs,
     home-manager,
+    api-lyte-dev,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -87,7 +88,7 @@
       nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit inputs outputs system;
+          inherit inputs outputs system api-lyte-dev;
         };
         modules =
           [
