@@ -17,6 +17,27 @@
     inputs.hardware.nixosModules.common-pc-ssd
     outputs.nixosModules.pipewire-low-latency
 
+    ({
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+      with lib; let
+        cfg = config.services.myservice;
+      in {
+        options.services.myservice = {
+          enable = mkEnableOption "Enables the api.lyte.dev service";
+        };
+
+        config = mkIf cfg.enable {
+          networking.hostName = "anything-to-test";
+        };
+      })
+    {
+      services.myservice.enable = true;
+    }
+
     desktop-usage
     podman
     postgres

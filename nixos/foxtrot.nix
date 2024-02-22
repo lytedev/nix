@@ -13,19 +13,20 @@ in {
     ({
       config,
       pkgs,
+      lib,
       ...
-    }: let
-      inherit (pkgs) lib;
-      cfg = config.services.myservice;
-    in {
-      options.services.myservice = {
-        enable = lib.mkEnableOption "Enables the api.lyte.dev service";
-      };
-
-      config =
-        lib.mkIf cfg.enable {
+    }:
+      with lib; let
+        cfg = config.services.myservice;
+      in {
+        options.services.myservice = {
+          enable = mkEnableOption "Enables the api.lyte.dev service";
         };
-    })
+
+        config =
+          mkIf cfg.enable {
+          };
+      })
     {
       services.myservice.enable = true;
     }

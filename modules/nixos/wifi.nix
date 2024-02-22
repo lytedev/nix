@@ -1,5 +1,5 @@
-{pkgs, ...}: let
-  inherit (pkgs.lib) mkDefault;
+{lib, ...}: let
+  inherit (lib) mkDefault;
 in {
   networking.networkmanager.enable = mkDefault true;
   systemd.services.NetworkManager-wait-online.enable = mkDefault false;
