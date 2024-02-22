@@ -33,6 +33,7 @@ in {
       slack
       godot_4
       fractal
+      prismlauncher
       variety # wallpaper switcher that I use with GNOME
       radeontop
       sops

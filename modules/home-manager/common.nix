@@ -4,6 +4,7 @@
   system,
   inputs,
   outputs,
+  config,
   ...
 }: {
   # TODO: fonts? right now they are only handled at the nixos-level (desktop-usage module)
@@ -76,10 +77,21 @@
     defaultOptions = ["--no-clear-start" "--color=16"];
   };
 
+  programs.atuin = {
+    enable = true;
+    enableBashIntegration = config.programs.bash.enable;
+    enableFishIntegration = config.programs.fish.enable;
+    enableZshIntegration = config.programs.zsh.enable;
+    enableNushellIntegration = config.programs.nushell.enable;
+
+    settings = {
+    };
+  };
+
   programs.fzf = {
     # using good ol' fzf until skim sucks less out of the box I guess
     enable = true;
-    enableFishIntegration = true;
+    # enableFishIntegration = true;
     # defaultCommand = "fd --type f";
     # defaultOptions = ["--height 40%"];
     # fileWidgetOptions = ["--preview 'head {}'"];
