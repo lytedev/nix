@@ -71,7 +71,10 @@ in {
     group = user;
   };
 
-  systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
+  systemd.services.api-lyte-dev.environment = {
+    RELEASE_HOST = "api.lyte.dev";
+    LOG_LEVEL = "debug";
+  };
 
   sops = {
     defaultSopsFile = ../secrets/beefcake/secrets.yml;
