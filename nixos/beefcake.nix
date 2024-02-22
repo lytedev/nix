@@ -748,6 +748,7 @@ in {
       createLocally = true;
       # uri = "postgresql://atuin@localhost:5432/atuin";
     };
+    openRegistration = false;
   };
 
   virtualisation.oci-containers.backend = "podman";
