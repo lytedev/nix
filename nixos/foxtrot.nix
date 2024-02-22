@@ -38,6 +38,7 @@ in {
       radeontop
       sops
       obs-studio
+      xh
     ];
   };
 

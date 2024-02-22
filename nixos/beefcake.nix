@@ -29,6 +29,15 @@ in {
       # inputs.nix-minecraft.nixosModules.minecraft-servers
     ];
 
+  home-manager.users.daniel = {
+    # imports = with outputs.homeManagerModules; [
+    # ];
+
+    home = {
+      stateVersion = "24.05";
+    };
+  };
+
   nixpkgs.overlays = [
     # inputs.nix-minecraft.overlay
   ];
@@ -270,6 +279,8 @@ in {
     linuxquota
     htop
     bottom
+    curl
+    xh
   ];
 
   # TODO: make the client declarative? right now I think it's manually git
@@ -462,7 +473,12 @@ in {
 
   services.postgresql = {
     enable = true;
-    ensureDatabases = ["daniel" "plausible" "nextcloud"];
+    ensureDatabases = [
+      "daniel"
+      "plausible"
+      "nextcloud"
+      # "atuin"
+    ];
     ensureUsers = [
       {
         name = "daniel";
@@ -476,10 +492,10 @@ in {
         name = "nextcloud";
         ensureDBOwnership = true;
       }
-      {
-        name = "atuin";
-        ensureDBOwnership = true;
-      }
+      # {
+      #   name = "atuin";
+      #   ensureDBOwnership = true;
+      # }
     ];
     dataDir = "/storage/postgres";
     enableTCPIP = true;
@@ -493,10 +509,11 @@ in {
       local sameuser  all       peer map=superuser_map
       local plausible plausible peer map=superuser_map
       local nextcloud nextcloud peer map=superuser_map
-      local atuin atuin peer map=superuser_map
+      local atuin     atuin     peer map=superuser_map
 
       # lan ipv4
-      host  all       all     10.0.0.0/24   trust
+      host  all       all     192.168.0.0/16 trust
+      host  all       all     10.0.0.0/24    trust
 
       # tailnet ipv4
       host       all       all     100.64.0.0/10 trust
@@ -504,11 +521,12 @@ in {
 
     identMap = ''
       # ArbitraryMapName systemUser DBUser
-        superuser_map    root       postgres
-        superuser_map    postgres   postgres
-        superuser_map    daniel     postgres
-        # Let other names login as themselves
-        superuser_map   /^(.*)$    \1
+      superuser_map    root       postgres
+      superuser_map    postgres   postgres
+      superuser_map    daniel     postgres
+
+      # Let other names login as themselves
+      superuser_map    /^(.*)$    \1
     '';
   };
 
@@ -727,7 +745,8 @@ in {
   services.atuin = {
     enable = true;
     database = {
-      createLocally = false;
+      createLocally = true;
+      # uri = "postgresql://atuin@localhost:5432/atuin";
     };
   };
 

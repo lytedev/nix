@@ -85,6 +85,10 @@
     enableNushellIntegration = config.programs.nushell.enable;
 
     settings = {
+      auto_sync = true;
+      sync_frequency = "1m";
+      sync_address = "https://atuin.h.lyte.dev";
+      keymap_mode = "vim-insert";
     };
   };
 
