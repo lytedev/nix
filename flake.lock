@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1708463499,
-        "narHash": "sha256-GvqU+Z3cZkgMXf41vfMELLKPk+EVUl1UMW56Gz5ccrU=",
+        "lastModified": 1708573384,
+        "narHash": "sha256-l4MSfNXfPdY1hPtKwsAvqMuIhnjDqgmE2Bq6J8h5wyw=",
         "ref": "refs/heads/master",
-        "rev": "e3f0cae4f75101706bc8b9a822f7d90b03a91702",
-        "revCount": 80,
+        "rev": "4d7f82fe9b5d7d3881455577f7477049d1db130c",
+        "revCount": 81,
         "type": "git",
         "url": "ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git"
       },
