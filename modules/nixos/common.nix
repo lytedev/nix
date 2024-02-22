@@ -297,11 +297,11 @@ in {
     };
   };
 
-  # TODO: regular cron or something?
-  programs.nix-index = {
-    enable = true;
-    enableFishIntegration = true;
-  };
+  # # TODO: regular cron or something?
+  # programs.nix-index = {
+  #   enable = true;
+  #   # enableFishIntegration = true;
+  # };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 

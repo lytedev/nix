@@ -100,9 +100,9 @@
   # TODO: regular cron or something?
   programs.nix-index = {
     enable = true;
-    enableFishIntegration = true;
-  };
 
-  # maybe we can share somehow so things for nix-y systems and non-nix-y systems alike
-  # am I going to _have_ non-nix systems anymore?
+    enableBashIntegration = config.programs.bash.enable;
+    enableFishIntegration = config.programs.fish.enable;
+    enableZshIntegration = config.programs.zsh.enable;
+  };
 }

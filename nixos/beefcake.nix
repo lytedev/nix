@@ -556,13 +556,18 @@ in {
   #   listenPort = 6767;
   # };
 
-  services.samba-wsdd.enable = true;
+  services.samba-wsdd = {
+    enable = true;
+  };
 
   services.samba = {
     enable = true;
     openFirewall = true;
     securityType = "user";
-    package = pkgs.sambaFull;
+
+    # not needed since I don't think I use printer sharing?
+    # https://nixos.wiki/wiki/Samba#Printer_sharing
+    # package = pkgs.sambaFull; # broken last I checked in nixpkgs?
 
     extraConfig = ''
       workgroup = WORKGROUP
@@ -576,10 +581,10 @@ in {
       hosts deny = 0.0.0.0/0
       guest account = nobody
       map to guest = bad user
-      load printers = yes
-      printing = cups
-      printcap name = cups
     '';
+    # load printers = yes
+    # printing = cups
+    # printcap name = cups
     shares = {
       libre = {
         path = "/storage/libre";
@@ -621,17 +626,17 @@ in {
         "force user" = "daniel";
         "force group" = "users";
       };
-      printers = {
-        comment = "All Printers";
-        path = "/var/spool/samba";
-        public = "yes";
-        browseable = "yes";
-        # to allow user 'guest account' to print.
-        "guest ok" = "yes";
-        writable = "no";
-        printable = "yes";
-        "create mode" = 0700;
-      };
+      # printers = {
+      #   comment = "All Printers";
+      #   path = "/var/spool/samba";
+      #   public = "yes";
+      #   browseable = "yes";
+      #   # to allow user 'guest account' to print.
+      #   "guest ok" = "yes";
+      #   writable = "no";
+      #   printable = "yes";
+      #   "create mode" = 0700;
+      # };
     };
   };
 
