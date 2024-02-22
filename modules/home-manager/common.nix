@@ -84,6 +84,10 @@
     enableZshIntegration = config.programs.zsh.enable;
     enableNushellIntegration = config.programs.nushell.enable;
 
+    flags = [
+      "--disable-up-arrow"
+    ];
+
     settings = {
       auto_sync = true;
       sync_frequency = "1m";
