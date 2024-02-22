@@ -815,6 +815,10 @@ in {
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
         VERSION = "1.20.4";
+        OPS = "lytedev";
+        MODE = "creative";
+        DIFFICULTY = "peaceful";
+        ONLINE_MODE = "false";
         MEMORY = "8G";
         MAX_MEMORY = "16G";
         ALLOW_FLIGHT = "true";

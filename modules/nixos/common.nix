@@ -28,6 +28,7 @@ in {
   services.journald.extraConfig = "SystemMaxUse=1G";
 
   home-manager.useGlobalPkgs = true;
+  # home-manager.useUserPkgs = true; # wut is this?
 
   environment = {
     variables = {
