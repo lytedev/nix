@@ -753,6 +753,36 @@ in {
         "/storage/jland/worlds:/worlds"
       ];
     };
+
+    minecraft-flanilla = {
+      autoStart = true;
+
+      image = "docker.io/itzg/minecraft-server";
+      extraOptions = ["--tty" "--interactive"];
+      environment = {
+        EULA = "true";
+        # UID = toString config.users.users.jland.uid;
+        # GID = toString config.users.groups.jland.gid;
+        STOP_SERVER_ANNOUNCE_DELAY = "20";
+        TZ = "America/Chicago";
+        VERSION = "1.20.4";
+        MEMORY = "8G";
+        MAX_MEMORY = "16G";
+        ALLOW_FLIGHT = "true";
+        ENABLE_QUERY = "true";
+      };
+
+      environmentFiles = [
+        # config.sops.secrets."flanilla.env".path
+      ];
+
+      ports = ["26965:25565"];
+
+      volumes = [
+        "/storage/flanilla/data:/data"
+        "/storage/flanilla/worlds:/worlds"
+      ];
+    };
   };
 
   networking.firewall.allowedTCPPorts = [
