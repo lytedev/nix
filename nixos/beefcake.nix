@@ -311,6 +311,10 @@ in {
         reverse_proxy :8000
       }
 
+      atuin.h.lyte.dev {
+        reverse_proxy :${toString config.services.atuin.port}
+      }
+
       # lidarr.h.lyte.dev {
         # reverse_proxy :8686
       # }
@@ -472,6 +476,10 @@ in {
         name = "nextcloud";
         ensureDBOwnership = true;
       }
+      {
+        name = "atuin";
+        ensureDBOwnership = true;
+      }
     ];
     dataDir = "/storage/postgres";
     enableTCPIP = true;
@@ -485,6 +493,7 @@ in {
       local sameuser  all       peer map=superuser_map
       local plausible plausible peer map=superuser_map
       local nextcloud nextcloud peer map=superuser_map
+      local atuin atuin peer map=superuser_map
 
       # lan ipv4
       host  all       all     10.0.0.0/24   trust
@@ -717,6 +726,9 @@ in {
 
   services.atuin = {
     enable = true;
+    database = {
+      createLocally = false;
+    };
   };
 
   virtualisation.oci-containers.backend = "podman";
