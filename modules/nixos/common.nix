@@ -138,7 +138,7 @@ in {
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        PermitRootLogin = "yes";
+        PermitRootLogin = "prohibit-password";
       };
 
       openFirewall = lib.mkDefault true;
