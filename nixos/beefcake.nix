@@ -190,6 +190,7 @@ in {
       "users" # general users group
       "jellyfin" # write access to /storage/jellyfin
       "jland"
+      "flanilla"
     ];
   };
 
@@ -243,12 +244,19 @@ in {
   users.groups.jland = {
     gid = 982;
   };
+  users.groups.flanilla = {
+  };
   users.users.jland = {
     uid = 986;
     # used for running the jland minecraft server
     isSystemUser = true;
     createHome = false;
     group = "jland";
+  };
+  users.users.flanilla = {
+    isSystemUser = true;
+    createHome = false;
+    group = "flanilla";
   };
 
   users.users.nextcloud = {
@@ -766,11 +774,12 @@ in {
       autoStart = true;
 
       image = "docker.io/itzg/minecraft-server";
+      user = "${toString config.users.users.flanilla.uid}:${toString config.users.groups.flanilla.gid}";
       extraOptions = ["--tty" "--interactive"];
       environment = {
         EULA = "true";
-        # UID = toString config.users.users.jland.uid;
-        # GID = toString config.users.groups.jland.gid;
+        UID = toString config.users.users.flanilla.uid;
+        GID = toString config.users.groups.flanilla.gid;
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
         VERSION = "1.20.4";
