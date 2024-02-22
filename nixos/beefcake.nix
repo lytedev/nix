@@ -10,6 +10,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 {
   # inputs,
   # outputs,
+  lib,
   api-lyte-dev,
   config,
   pkgs,
@@ -72,7 +73,7 @@ in {
   };
 
   systemd.services.api-lyte-dev.environment = {
-    RELEASE_HOST = "api.lyte.dev";
+    RELEASE_HOST = lib.mkForce "api.lyte.dev";
     LOG_LEVEL = "debug";
   };
 
