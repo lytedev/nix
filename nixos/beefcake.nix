@@ -707,6 +707,10 @@ in {
   #   # $ nix run nixpkgs#packwiz curseforge import Monumental+Experience-2.2.53.zip
   # };
 
+  services.atuin = {
+    enable = true;
+  };
+
   virtualisation.oci-containers.backend = "podman";
   virtualisation.oci-containers.containers = {
     minecraft-jland = {
@@ -797,6 +801,9 @@ in {
     6667 # soju irc bouncer
     8000 # random development stuff
     64022 # ssh (for ben?)
+    25565
+    26965
+    26966
   ];
   networking.firewall.allowedUDPPorts = [
     # 53 # DNS
