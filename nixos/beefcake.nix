@@ -11,6 +11,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   api-lyte-dev,
   # inputs,
   # outputs,
+  # api-lyte-dev,
   config,
   pkgs,
   ...
@@ -25,6 +26,10 @@ in {
     ++ [
       # api-lyte-dev.nixosModules.api-lyte-dev
       # nix-minecraft.nixosModules.minecraft-servers
+      api-lyte-dev.nixosModules.${system}.api-lyte-dev
+      # inputs.nix-minecraft.nixosModules.minecraft-servers
+
+      # inputs.nix-minecraft.nixosModules.minecraft-servers
     ];
 
   nixpkgs.overlays = [
@@ -61,17 +66,16 @@ in {
     secretKeyFile = "/var/cache-priv-key.pem";
   };
 
-  # services.api-lyte-dev = rec {
-  #   enable = true;
-  #   port = 5757;
-  #   stateDir = "/var/lib/api-lyte-dev";
-  #   configFile = config.sops.secrets."api.lyte.dev".path;
-  #   configFile = /dev/null;
-  #   user = "api-lyte-dev";
-  #   group = user;
-  # };
+  services.api-lyte-dev = rec {
+    enable = true;
+    port = 5757;
+    stateDir = "/var/lib/api-lyte-dev";
+    configFile = config.sops.secrets."api.lyte.dev".path;
+    user = "api-lyte-dev";
+    group = user;
+  };
 
-  # systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
+  systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
 
   sops = {
     defaultSopsFile = ../secrets/beefcake/secrets.yml;
@@ -138,6 +142,12 @@ in {
       #   owner = config.services.nextcloud.serviceConfig.User;
       #   group = config.services.nextcloud.serviceConfig.Group;
       # };
+      nextcloud-admin-password = {
+        path = "/var/lib/nextcloud/admin-password";
+        mode = "0440";
+        # owner = config.services.nextcloud.serviceConfig.User;
+        # group = config.services.nextcloud.serviceConfig.Group;
+      };
     };
   };
 
@@ -316,7 +326,7 @@ in {
       }
 
       api.lyte.dev {
-        reverse_proxy :$${toString config.services.api-lyte-dev.port}
+        reverse_proxy :${toString config.services.api-lyte-dev.port}
       }
 
       a.lyte.dev {
