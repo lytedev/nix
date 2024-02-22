@@ -10,7 +10,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 {
   # inputs,
   # outputs,
-  # api-lyte-dev,
+  api-lyte-dev,
   config,
   pkgs,
   ...
@@ -23,7 +23,7 @@ in {
       ../modules/nixos/fonts.nix
     ]
     ++ [
-      # api-lyte-dev.nixosModules.api-lyte-dev
+      api-lyte-dev.nixosModules.api-lyte-dev
 
       # inputs.nix-minecraft.nixosModules.minecraft-servers
     ];
@@ -62,16 +62,16 @@ in {
     secretKeyFile = "/var/cache-priv-key.pem";
   };
 
-  # services.api-lyte-dev = rec {
-  #   enable = true;
-  #   port = 5757;
-  #   stateDir = "/var/lib/api-lyte-dev";
-  #   configFile = config.sops.secrets."api.lyte.dev".path;
-  #   user = "api-lyte-dev";
-  #   group = user;
-  # };
+  services.api-lyte-dev = rec {
+    enable = true;
+    port = 5757;
+    stateDir = "/var/lib/api-lyte-dev";
+    configFile = config.sops.secrets."api.lyte.dev".path;
+    user = "api-lyte-dev";
+    group = user;
+  };
 
-  # systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
+  systemd.services.api-lyte-dev.environment.LOG_LEVEL = "debug";
 
   sops = {
     defaultSopsFile = ../secrets/beefcake/secrets.yml;
@@ -107,8 +107,8 @@ in {
         # path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
         # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
         mode = "0440";
-        # owner = config.services.api-lyte-dev.user;
-        # group = config.services.api-lyte-dev.group;
+        owner = config.services.api-lyte-dev.user;
+        group = config.services.api-lyte-dev.group;
       };
 
       "jland.env" = {
@@ -315,9 +315,9 @@ in {
         reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}
       }
 
-      # api.lyte.dev {
-      #   reverse_proxy :$${toString config.services.api-lyte-dev.port}
-      # }
+      api.lyte.dev {
+        reverse_proxy :${toString config.services.api-lyte-dev.port}
+      }
 
       a.lyte.dev {
         reverse_proxy :${toString config.services.plausible.server.port}
