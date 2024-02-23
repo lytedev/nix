@@ -28,6 +28,7 @@ in {
   services.journald.extraConfig = "SystemMaxUse=1G";
 
   home-manager.useGlobalPkgs = true;
+  # home-manager.useUserPkgs = true; # wut is this?
 
   environment = {
     variables = {
@@ -137,7 +138,7 @@ in {
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        PermitRootLogin = "yes";
+        PermitRootLogin = "prohibit-password";
       };
 
       openFirewall = lib.mkDefault true;
