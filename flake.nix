@@ -2,6 +2,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit-hooks.inputs.nixpkgs-unstable.follows = "nixpkgs";
+
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -37,6 +41,7 @@
     self,
     nixpkgs,
     home-manager,
+    pre-commit-hooks,
     api-lyte-dev,
     ...
   } @ inputs: let
@@ -66,6 +71,20 @@
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+
+    checks = forAllSystems (system: {
+      pre-commit-check = pre-commit-hooks.lib.${system}.run {
+        src = ./.;
+        hooks = {
+          alejandra.enable = true;
+        };
+      };
+    });
+
+    devShell = forAllSystems (system:
+      nixpkgs.legacyPackages.${system}.mkShell {
+        inherit (outputs.checks.${system}.pre-commit-check) shellHook;
+      });
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};

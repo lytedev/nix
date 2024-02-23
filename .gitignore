@@ -1,3 +1,7 @@
-*.log
+/.direnv
 result
+
+.pre-commit-config.yaml
+
+*.log
 *.qcow2

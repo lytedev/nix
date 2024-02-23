@@ -19,14 +19,6 @@ You don't have even have to clone this crap yourself. How cool is that! But if y
 $ nixos-rebuild switch --flake ./repo/dir/for/nix#${FLAKE_ATTR}
 ```
 
-## Setup
-
-If you're gonna change stuff you had better setup the pre-commit hook:
-
-```shell_session
-$ ln -s $PWD/pre-commit.bash .git/hooks/pre-commit
-```
-
 ## Secrets
 
 If you're deploying anything secrets-related, you will need the proper keys:
@@ -39,18 +31,17 @@ $ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
 ## NixOS
 
 ```shell_session
-$ nixos-rebuild switch --flake 
+$ nixos-rebuild switch --flake .
 ```
 
 ## Not NixOS
 
-**NOTE**: I pretty much solely use Home Manager as a NixOS module presently, so this is not fully supported.
+**NOTE**: I pretty much solely use Home Manager as a NixOS module presently, so
+this is not fully supported.
 
 ```shell_session
 $ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-$ nix profile install github:nix-community/home-manager
-$ FLAKE_ATTR=base-x86_64-linux
-$ home-manager switch --flake git+https://git.lyte.dev/lytedev/nix#$FLAKE_ATTR
+$ nix run github:nix-community/home-manager switch --flake git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}
 ```
 
 # Internal/Advanced Usage
