@@ -36,7 +36,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
       pkgs.mkShell {
-        buildInputs = with pkgs; [nil];
+        buildInputs = with pkgs; [nil alejandra];
         inherit (outputs.checks.${system}.pre-commit-check) shellHook;
       });
 
