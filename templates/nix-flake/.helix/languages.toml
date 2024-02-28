@@ -1,0 +1,9 @@
+[[language]]
+auto-format = true
+file-types = ["nix"]
+name = "nix"
+scope = "source.nix"
+
+[language.formatter]
+args = ["-"]
+command = "alejandra"

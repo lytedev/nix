@@ -4,7 +4,7 @@
 
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    pre-commit-hooks.inputs.nixpkgs-unstable.follows = "nixpkgs";
+    # pre-commit-hooks.inputs.nixpkgs-unstable.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -41,6 +41,7 @@
     self,
     nixpkgs,
     home-manager,
+    hardware,
     pre-commit-hooks,
     api-lyte-dev,
     ...
@@ -107,7 +108,7 @@
       nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit inputs outputs system api-lyte-dev;
+          inherit inputs outputs system api-lyte-dev hardware;
         };
         # extraSpecialArgs = {
         #   inherit inputs outputs system api-lyte-dev;
