@@ -1,0 +1,8 @@
+# ignore `nix build` output
+/result
+
+# ignore direnv cache stuff
+/.direnv
+
+# ignore pre-commit hooks as installed by direnv
+/.pre-commit-config.yaml
