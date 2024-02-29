@@ -7,11 +7,11 @@
 
   # qt.platformTheme = "gnome";
 
-  services.xserver.displayManager.defaultSession = "plasmawayland";
+  services.xserver.displayManager.defaultSession = "plasma";
   services.xserver.enable = lib.mkDefault true;
 
   services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  services.xserver.desktopManager.plasma6.enable = true;
 
   hardware.pulseaudio.enable = false;
 

@@ -1,4 +1,5 @@
 {
+  lib,
   inputs,
   outputs,
   pkgs,
@@ -53,7 +54,12 @@ in {
 
     home = {
       stateVersion = "24.05";
+      pointerCursor = {
+        size = 40;
+      };
     };
+
+    services.mako.enable = lib.mkForce false; # don't use mako when using plasma
 
     wayland.windowManager.hyprland = {
       settings = {
