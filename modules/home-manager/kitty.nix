@@ -168,7 +168,7 @@
       "ctrl+l" = "neighboring_window right";
       "ctrl+k" = "neighboring_window up";
       "ctrl+j" = "neighboring_window down";
-      "ctrl+shift+n" = "nth_window -1";
+      "ctrl+shift+h" = "nth_window -1";
       "ctrl+shift+space>u" = "kitten hints --type=url --program @";
 
       "ctrl+shift+z" = "toggle_layout stack";
