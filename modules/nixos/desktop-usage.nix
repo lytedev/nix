@@ -7,6 +7,7 @@
     ./fonts.nix
     ./user-installed-applications.nix
     ./kde-connect.nix
+    ./troubleshooting-tools.nix
   ];
 
   hardware = {

@@ -15,4 +15,8 @@
     path = ./elixir;
     description = "A template for working on an Elixir project";
   };
+  godot = {
+    path = ./godot;
+    description = "A template for working on a Godot game or project";
+  };
 }

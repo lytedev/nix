@@ -1,6 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/master";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    # I have this as a separate input so I don't rebuild the font every time I
+    # want to upgrade nixpkgs
+    nixpkgsForIosevka.url = "github:nixos/nixpkgs?rev=5863c27340ba4de8f83e7e3c023b9599c3cb3c80";
 
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
@@ -40,12 +44,14 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgsForIosevka,
     home-manager,
     hardware,
     pre-commit-hooks,
     api-lyte-dev,
     ...
   } @ inputs: let
+    # TODO: make @ inputs unnecessary by making arguments explicit in all modules?
     inherit (self) outputs;
 
     systems = [
@@ -57,7 +63,7 @@
 
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
-    colors = (import ./lib/colors.nix inputs).schemes.catppuccin-mocha-sapphire;
+    colors = (import ./lib/colors.nix {inherit nixpkgs;}).schemes.catppuccin-mocha-sapphire;
     # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
 
     font = {
@@ -67,7 +73,11 @@
 
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system: import ./pkgs {pkgs = nixpkgs.legacyPackages.${system};});
+    packages = forAllSystems (system:
+      import ./pkgs {
+        pkgs = nixpkgs.legacyPackages.${system};
+        pkgsForIosevka = nixpkgsForIosevka.legacyPackages.${system};
+      });
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
@@ -88,7 +98,7 @@
       });
 
     # Your custom packages and modifications, exported as overlays
-    overlays = import ./overlays {inherit inputs;};
+    overlays = import ./overlays {inherit nixpkgs nixpkgsForIosevka;};
 
     # Reusable nixos modules you might want to export
     # These are usually stuff you would upstream into nixpkgs
