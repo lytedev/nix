@@ -35,8 +35,8 @@
     system = "x86_64-linux";
     modules = [./thinker.nix];
   };
-  htpifour = {
-    system = "aarch64-linux";
-    modules = [./htpifour.nix];
-  };
+  # htpifour = {
+  #   system = "aarch64-linux";
+  #   modules = [./htpifour.nix];
+  # };
 }

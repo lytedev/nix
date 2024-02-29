@@ -1,3 +1,3 @@
 {pkgs, ...}: {
-  environment.systemPackages = with pkgs; [eww-wayland];
+  environment.systemPackages = [pkgs.eww];
 }

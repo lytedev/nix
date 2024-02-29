@@ -2,6 +2,8 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    # nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
+
     # I have this as a separate input so I don't rebuild the font every time I
     # want to upgrade nixpkgs
     nixpkgsForIosevka.url = "github:nixos/nixpkgs?rev=5863c27340ba4de8f83e7e3c023b9599c3cb3c80";
