@@ -19,6 +19,7 @@
 
     desktop-usage
     podman
+    kde-plasma
     postgres
     wifi
     hyprland
@@ -30,11 +31,29 @@
   programs.steam.enable = true;
   programs.steam.remotePlay.openFirewall = true;
 
+  environment = {
+    systemPackages = with pkgs; [
+      spotify
+      discord
+      radeontop
+      slack
+      godot_4
+      fractal
+      prismlauncher
+      variety # wallpaper switcher that I use with GNOME
+      radeontop
+      sops
+      obs-studio
+      xh
+    ];
+  };
+
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
       sway
       pass
       firefox-no-tabs
+      wallpaper-manager
       melee
       # hyprland
     ];
@@ -44,6 +63,8 @@
     #     isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
     #   };
     # };
+
+    services.mako.enable = lib.mkForce false; # don't use mako when using plasma
 
     wayland.windowManager.hyprland = {
       settings = {
@@ -111,12 +132,6 @@
 
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
-
-  environment = {
-    systemPackages = with pkgs; [
-      radeontop
-    ];
-  };
 
   networking = {
     firewall = {
