@@ -4,8 +4,8 @@ in {
   programs.git = {
     enable = true;
 
-    userEmail = email;
     userName = lib.mkDefault "Daniel Flanagan";
+    userEmail = email;
 
     delta = {
       enable = true;
@@ -16,23 +16,32 @@ in {
       enable = true;
     };
 
-    signing = {
-      signByDefault = true;
-      key = email;
-    };
+    # signing = {
+    # signByDefault = false;
+    # key = ~/.ssh/personal-ed25519;
+    # };
 
     aliases = {
       a = "add -A";
       ac = "commit -a";
-      b = "rev-parse --symbolic-full-name HEAD";
+      acm = "commit -a -m";
       c = "commit";
       cm = "commit -m";
-      cnv = "commit --no-verify";
       co = "checkout";
+
+      b = "rev-parse --symbolic-full-name HEAD";
+      cnv = "commit --no-verify";
+      cns = "commit --no-gpg-sign";
+      cnvs = "commit --no-verify --no-gpg-sign";
+      cnsv = "commit --no-verify --no-gpg-sign";
+
       d = "diff";
       ds = "diff --staged";
       dt = "difftool";
+
       f = "fetch";
+      fa = "fetch --all";
+
       l = "log --graph --abbrev-commit --decorate --oneline --all";
       plainlog = " log --pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
       ls = "ls-files";
@@ -46,19 +55,28 @@ in {
 
     # TODO: https://blog.scottlowe.org/2023/12/15/conditional-git-configuration/
     extraConfig = {
-      init = {
-        defaultBranch = "main";
+      commit = {
+        verbose = true;
+        # gpgSign = true;
       };
+
+      tag = {
+        # gpgSign = true;
+        sort = "version:refname";
+      };
+
+      # include.path = local.gitconfig
+
+      gpg.format = "ssh";
+      log.date = "local";
+
+      init.defaultBranch = "main";
 
       merge.conflictstyle = "zdiff3";
 
-      push = {
-        autoSetupRemote = true;
-      };
+      push.autoSetupRemote = true;
 
-      branch = {
-        autoSetupMerge = true;
-      };
+      branch.autoSetupMerge = true;
 
       sendemail = {
         smtpserver = "smtp.mailgun.org";

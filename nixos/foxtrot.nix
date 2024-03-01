@@ -143,6 +143,7 @@ in {
     pkgs.vaapiVdpau
   ];
 
+  networking.networkmanager.wifi.powersave = false;
   hardware.wirelessRegulatoryDatabase = true;
 
   hardware.framework.amd-7040.preventWakeOnAC = true;
