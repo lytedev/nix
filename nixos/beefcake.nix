@@ -623,7 +623,7 @@ in {
       # note: localhost is the ipv6 localhost ::1
       hosts allow = 100.64.0.0/10 192.168.0.0/16 127.0.0.1 localhost
       hosts deny = 0.0.0.0/0
-      guest account = nobody
+      guest account = guest
       map to guest = bad user
       # load printers = yes
       # printing = cups

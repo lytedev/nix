@@ -26,6 +26,7 @@
     printing
     ewwbar
     melee
+    lutris
   ];
 
   programs.steam.enable = true;
