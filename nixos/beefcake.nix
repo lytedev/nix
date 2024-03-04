@@ -621,7 +621,7 @@ in {
       #use sendfile = yes
       #max protocol = smb2
       # note: localhost is the ipv6 localhost ::1
-      hosts allow = 192.168.0.0/16 127.0.0.1 localhost
+      hosts allow = 100.64.0.0/10 192.168.0.0/16 127.0.0.1 localhost
       hosts deny = 0.0.0.0/0
       guest account = nobody
       map to guest = bad user
