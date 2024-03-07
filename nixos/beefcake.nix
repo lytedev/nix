@@ -243,6 +243,13 @@ in {
     createHome = true;
   };
 
+  users.users.scannerupload = {
+    # used for scanner samba access
+    isSystemUser = true;
+    group = "users";
+    createHome = true;
+  };
+
   users.users.plausible = {
     # used for anonymous samba access
     isSystemUser = true;
@@ -624,7 +631,7 @@ in {
       hosts allow = 100.64.0.0/10 192.168.0.0/16 127.0.0.1 localhost
       hosts deny = 0.0.0.0/0
       guest account = guest
-      map to guest = bad user
+      map to guest = never
       # load printers = yes
       # printing = cups
       # printcap name = cups
@@ -637,8 +644,8 @@ in {
         "guest ok" = "yes";
         "create mask" = "0666";
         "directory mask" = "0777";
-        "force user" = "nobody";
-        "force group" = "users";
+        # "force user" = "nobody";
+        # "force group" = "users";
       };
       public = {
         path = "/storage/public";
@@ -647,28 +654,39 @@ in {
         "guest ok" = "yes";
         "create mask" = "0664";
         "directory mask" = "0775";
-        "force user" = "nobody";
-        "force group" = "users";
+        # "force user" = "nobody";
+        # "force group" = "users";
       };
       family = {
         path = "/storage/family";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
-        "create mask" = "0664";
-        "directory mask" = "0775";
-        "force user" = "nobody";
-        "force group" = "family";
+        "create mask" = "0660";
+        "directory mask" = "0770";
+        # "force user" = "nobody";
+        # "force group" = "family";
+      };
+      scannerdocs = {
+        path = "/storage/scannerdocs";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+        "create mask" = "0600";
+        "directory mask" = "0700";
+        "valid users" = "scannerupload";
+        "force user" = "scannerupload";
+        "force group" = "users";
       };
       daniel = {
         path = "/storage/daniel";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
-        "create mask" = "0640";
-        "directory mask" = "0750";
-        "force user" = "daniel";
-        "force group" = "users";
+        "create mask" = "0600";
+        "directory mask" = "0700";
+        # "force user" = "daniel";
+        # "force group" = "users";
       };
       # printers = {
       #   comment = "All Printers";

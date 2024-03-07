@@ -41,7 +41,7 @@
       godot_4
       fractal
       prismlauncher
-      variety # wallpaper switcher that I use with GNOME
+      # variety
       radeontop
       sops
       obs-studio
@@ -54,7 +54,7 @@
       sway
       pass
       firefox-no-tabs
-      wallpaper-manager
+      # wallpaper-manager
       melee
       # hyprland
     ];
