@@ -211,6 +211,22 @@
     },
     "nixpkgs-stable": {
       "locked": {
+        "lastModified": 1709677081,
+        "narHash": "sha256-tix36Y7u0rkn6mTm0lA45b45oab2cFLqAzDbJxeXS+c=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "880992dcc006a5e00dd0591446fdf723e6a51a64",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-23.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-stable_2": {
+      "locked": {
         "lastModified": 1704874635,
         "narHash": "sha256-YWuCrtsty5vVZvu+7BchAxmcYzTMfolSPP5io8+WYCg=",
         "owner": "NixOS",
@@ -265,7 +281,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "nixpkgs-stable": "nixpkgs-stable"
+        "nixpkgs-stable": "nixpkgs-stable_2"
       },
       "locked": {
         "lastModified": 1708018599,
@@ -289,6 +305,7 @@
         "helix": "helix",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_2",
+        "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgsForIosevka": "nixpkgsForIosevka",
         "pre-commit-hooks": "pre-commit-hooks",
         "sops-nix": "sops-nix",
