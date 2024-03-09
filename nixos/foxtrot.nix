@@ -25,17 +25,20 @@ in {
   services.xserver.enable = true;
 
   programs.steam.enable = true;
+  programs.steam.gamescopeSession.enable = true;
+  # programs.steam.package = inputs.nixpkgs-stable.legacyPackages.${pkgs.system}.steam;
   programs.steam.remotePlay.openFirewall = true;
+  services.udev.packages = with pkgs; [steam];
 
   environment = {
     systemPackages = with pkgs; [
+      steam
       spotify
       discord
       slack
       godot_4
       fractal
       prismlauncher
-      variety # wallpaper switcher that I use with GNOME
       radeontop
       sops
       obs-studio
@@ -48,7 +51,7 @@ in {
       sway
       pass
       firefox-no-tabs
-      wallpaper-manager
+      # wallpaper-manager
       # hyprland
     ];
 
