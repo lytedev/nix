@@ -14,6 +14,7 @@ in {
     inputs.hardware.nixosModules.framework-13-7040-amd
     desktop-usage
     # gnome
+    printing
     kde-plasma
     podman
     lutris
