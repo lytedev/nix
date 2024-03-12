@@ -841,6 +841,7 @@ in {
         MAX_MEMORY = "16G";
         ALLOW_FLIGHT = "true";
         ENABLE_QUERY = "true";
+        ENABLE_COMMAND_BLOCK = "true";
       };
 
       environmentFiles = [
