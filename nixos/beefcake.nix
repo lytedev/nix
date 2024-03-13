@@ -381,6 +381,10 @@ in {
         reverse_proxy :${toString config.services.nix-serve.port}
       }
 
+      vpn.h.lyte.dev {
+        reverse_proxy ${toString config.services.headscale.settings.tls_letsencrypt_listen}
+      }
+
       # proxy everything else to chromebox
       :80 {
         reverse_proxy 10.0.0.5:80
@@ -890,6 +894,29 @@ in {
   services.soju = {
     enable = true;
     listen = ["irc+insecure://:6667"];
+  };
+
+  services.headscale = {
+    enable = true;
+    address = "0.0.0.0";
+    port = 7777;
+    settings = {
+      db_type = "sqlite3";
+      db_path = "/var/lib/headscale/db.sqlite";
+      dns_config = {
+        base_domain = "vpn.h.lyte.dev";
+        domains = [
+          # "vpn.h.lyte.dev"
+        ];
+        nameservers = [
+          "1.1.1.1"
+          # "192.168.0.1"
+        ];
+        override_local_dns = false;
+      };
+      tls_letsencrypt_hostname = "vpn.h.lyte.dev";
+      tls_letsencrypt_listen = ":7778";
+    };
   };
 
   system.stateVersion = "22.05";

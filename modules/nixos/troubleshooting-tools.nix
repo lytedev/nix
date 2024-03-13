@@ -3,5 +3,7 @@
     pciutils
     usbutils
     nmap
+    dogdns
+    dnsutils
   ];
 }
