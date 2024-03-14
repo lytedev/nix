@@ -189,7 +189,13 @@ in {
       enable = lib.mkDefault true;
       allowPing = lib.mkDefault true;
       allowedTCPPorts = lib.mkDefault [22];
-      allowedUDPPorts = lib.mkDefault [];
+      allowedUDPPortRanges = [
+        {
+          # mosh
+          from = 60000;
+          to = 60010;
+        }
+      ];
     };
 
     extraHosts = ''

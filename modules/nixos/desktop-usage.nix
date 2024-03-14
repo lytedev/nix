@@ -8,6 +8,7 @@
     ./user-installed-applications.nix
     ./kde-connect.nix
     ./troubleshooting-tools.nix
+    ./development-tools.nix
   ];
 
   hardware = {
