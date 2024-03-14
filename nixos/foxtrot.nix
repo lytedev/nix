@@ -40,6 +40,9 @@ in {
       godot_4
       fractal
       prismlauncher
+      upower
+      acpi
+      prismlauncher
       radeontop
       sops
       obs-studio

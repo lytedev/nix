@@ -38,63 +38,58 @@ in {
       MANPAGER = "less";
     };
 
-    systemPackages = with pkgs;
-      [
-        # age
-        # bat
-        # bc
-        # bind
-        # bottom
-        # btrfs-progs
-        # cue
-        curl
-        # dogdns
-        dua
-        eza
-        fd
-        file
-        fzf
-        gnumake
-        # gron
-        # hexyl
-        iputils
-        # jq
-        killall
-        less
-        mosh
-        # nmap
-        nettools
-        nodePackages.bash-language-server
-        openssl
-        # pciutils
-        # pv
-        # rclone
-        # restic
-        ripgrep
-        rsync
-        # rtx
-        sd
-        shellcheck
-        shfmt
-        # sops
-        smartmontools
-        # sqlite
-        # skim
-        # sysstat
-        unzip
-        # usbutils
-        # watchexec
-        wget
-        # xh
-        zellij
-        # zstd
-      ]
-      ++ (with inputs.home-manager.packages.${system}; [
-        home-manager
-      ])
-      ++ (with inputs.helix.packages.${system}; [
-        helix
-      ]);
+    systemPackages = with pkgs; [
+      # age
+      # bat
+      # bc
+      # bind
+      # bottom
+      # btrfs-progs
+      # cue
+      curl
+      # dogdns
+      dua
+      eza
+      fd
+      file
+      fzf
+      gnumake
+      # gron
+      # hexyl
+      iputils
+      # jq
+      killall
+      less
+      mosh
+      # nmap
+      nettools
+      nodePackages.bash-language-server
+      openssl
+      # pciutils
+      # pv
+      # rclone
+      # restic
+      ripgrep
+      rsync
+      # rtx
+      sd
+      shellcheck
+      shfmt
+      # sops
+      smartmontools
+      # sqlite
+      # skim
+      # sysstat
+      unzip
+      # usbutils
+      # watchexec
+      wget
+      # xh
+      zellij
+      # zstd
+      inputs.home-manager.packages.${system}.home-manager
+      inputs.helix.packages.${system}.helix
+    ];
   };
 
   users.groups.daniel = {};
