@@ -7,7 +7,7 @@
     wol
     shellcheck
     shfmt
-    bash-language-server
+    nodePackages.bash-language-server
     xh
     jq
     curl
