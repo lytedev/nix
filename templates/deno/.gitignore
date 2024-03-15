@@ -1,2 +1,5 @@
-/target
+# nix build results
+/result
+
+# direnv cache
 /.direnv

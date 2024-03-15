@@ -14,6 +14,7 @@
     in {
       deno-dev = pkgs.mkShell {
         buildInputs = with pkgs; [
+          vscode-langservers-extracted
           deno
           curl
           xh

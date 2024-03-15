@@ -77,36 +77,6 @@ in {
             unit = "\t";
           };
         }
-        {
-          name = "javascript";
-          file-types = ["js" "mjs"];
-          scope = "source.js";
-          auto-format = true;
-        }
-        {
-          name = "typescript";
-          file-types = ["ts" "mts"];
-          scope = "source.ts";
-          auto-format = true;
-        }
-        {
-          name = "jsx";
-          file-types = ["jsx"];
-          scope = "source.jsx";
-          auto-format = true;
-        }
-        {
-          name = "tsx";
-          file-types = ["tsx"];
-          scope = "source.tsx";
-          auto-format = true;
-        }
-        {
-          name = "jsonc";
-          file-types = ["jsonc"];
-          scope = "source.jsonc";
-          auto-format = true;
-        }
 
         # {
         #   name = "javascript";
