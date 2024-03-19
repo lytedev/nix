@@ -5,7 +5,13 @@
     nixpkgs,
   }: let
     inherit (self) outputs;
-    supportedSystems = ["x86_64-linux"];
+    supportedSystems = [
+      "x86_64-linux"
+      "aarch64-linux"
+
+      "x86_64-darwin"
+      "aarch64-darwin"
+    ];
     forEachSupportedSystem = nixpkgs.lib.genAttrs supportedSystems;
   in {
     devShells = forEachSupportedSystem (system: let
@@ -18,6 +24,8 @@
           rustfmt
           rustPackages.clippy
           rust-analyzer
+          lldb
+          pkg-config
         ];
       };
 

@@ -2,8 +2,8 @@
   programs.senpai = {
     enable = true;
     config = {
-      addr = "a";
-      nick = "a";
+      address = "a";
+      nickname = "a";
     };
   };
 

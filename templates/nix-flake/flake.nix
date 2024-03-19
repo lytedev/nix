@@ -1,8 +1,6 @@
 {
-  inputs = {
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-  };
+  inputs.pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+  inputs.pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = {
     self,
@@ -12,14 +10,15 @@
   }: let
     inherit (self) outputs;
 
-    systems = [
+    supportedSystems = [
       "aarch64-linux"
+      "x86_64-linux"
+
       "aarch64-darwin"
       "x86_64-darwin"
-      "x86_64-linux"
     ];
 
-    forAllSystems = nixpkgs.lib.genAttrs systems;
+    forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
   in {
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
 

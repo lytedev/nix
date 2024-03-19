@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   inputs,
   colors,
@@ -6,6 +7,25 @@
 }: let
   inherit (pkgs) system;
 in {
+  # helix rust debugger stuff
+  # https://github.com/helix-editor/helix/wiki/Debugger-Configurations
+  home.file."${config.xdg.configHome}/lldb_vscode_rustc_primer.py" = {
+    text = ''
+      import subprocess
+      import pathlib
+      import lldb
+
+      # Determine the sysroot for the active Rust interpreter
+      rustlib_etc = pathlib.Path(subprocess.getoutput('rustc --print sysroot')) / 'lib' / 'rustlib' / 'etc'
+      if not rustlib_etc.exists():
+          raise RuntimeError('Unable to determine rustc sysroot')
+
+      # Load lldb_lookup.py and execute lldb_commands with the correct path
+      lldb.debugger.HandleCommand(f"""command script import "{rustlib_etc / 'lldb_lookup.py'}" """)
+      lldb.debugger.HandleCommand(f"""command source -s 0 "{rustlib_etc / 'lldb_commands'}" """)
+    '';
+  };
+
   programs.helix = {
     enable = true;
     package = inputs.helix.packages.${system}.helix;
@@ -51,6 +71,31 @@ in {
         #   language-servers = ["lexical"]; # "lexical" "next-ls" ?
         #   auto-format = true;
         # }
+        {
+          name = "rust";
+
+          debugger = {
+            name = "lldb-vscode";
+            transport = "stdio";
+            command = "lldb-vscode";
+            templates = [
+              {
+                name = "binary";
+                request = "launch";
+                completion = [
+                  {
+                    name = "binary";
+                    completion = "filename";
+                  }
+                ];
+                args = {
+                  program = "{0}";
+                  initCommands = ["command script import ${config.xdg.configHome}/lldb_vscode_rustc_primer.py"];
+                };
+              }
+            ];
+          };
+        }
         {
           name = "html";
           file-types = ["html"];

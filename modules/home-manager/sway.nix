@@ -145,6 +145,7 @@
             "timeout 600  'swaymsg \"output * dpms off\"' resume 'swaymsg \"output * dpms on\" & maybe-good-morning &'"
           ];
         }
+        # {command = "mako";}
         # {command = "firefox";}
         # {command = "wezterm";}
         {command = "kitty --single-instance";}

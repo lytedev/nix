@@ -68,8 +68,6 @@
     #   };
     # };
 
-    services.mako.enable = lib.mkForce false; # don't use mako when using plasma
-
     wayland.windowManager.hyprland = {
       settings = {
         env = [
