@@ -5,6 +5,7 @@
     kubectl
     stern
     libresprite
+    logseq
     audacity
     wol
     shellcheck
