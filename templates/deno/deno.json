@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "deno run -A --watch=src,mod.ts mod.ts"
+  },
+  "fmt": {
+    "useTabs": true,
+    "semiColons": false,
+    "singleQuote": true
+  }
+}

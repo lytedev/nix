@@ -4,7 +4,7 @@
   ...
 }: {
   services.mako = with colors.withHashPrefix; {
-    enable = true;
+    enable = false; # mako is launched alongside the wm/de instead
     borderSize = 1;
     maxVisible = 5;
     defaultTimeout = 15000;
