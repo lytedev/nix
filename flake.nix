@@ -29,8 +29,8 @@
     hardware.url = "github:nixos/nixos-hardware";
     # hardware.inputs.nixpkgs.follows = "nixpkgs";
 
-    # hyprland.url = "github:hyprwm/Hyprland";
-    # hyprland.inputs.nixpkgs.follows = "nixpkgs";
+    hyprland.url = "github:hyprwm/Hyprland";
+    hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
     api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";

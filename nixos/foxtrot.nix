@@ -20,7 +20,7 @@ in {
     lutris
     # postgres
     wifi
-    # hyprland
+    hyprland
     {
       programs.steam.enable = true;
       programs.steam.gamescopeSession.enable = true;

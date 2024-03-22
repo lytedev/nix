@@ -3,7 +3,7 @@ local wezterm = require'wezterm'
 -- rough duplication of colors.nix and font values from flake.nix
 FONT = {
   name = "IosevkaLyteTerm";
-  size = 12;
+  size = 12.0;
 }
 
 COLORS = {
@@ -16,7 +16,7 @@ if wezterm.config_builder then
 end
 
 local font_spec = { family = FONT.name, weight = 'Medium', italic = false }
-local font_size = tostring(FONT.size);
+local font_size = FONT.size;
 
 local font = wezterm.font_with_fallback{
   font_spec,

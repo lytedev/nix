@@ -3,6 +3,11 @@
     ./pipewire.nix
   ];
 
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
+
   # services.xserver.libinput.enable = true;
 
   services.gnome.gnome-keyring.enable = true;
@@ -15,11 +20,6 @@
     # };
   };
 
-  programs.sway = {
-    enable = true;
-    wrapperFeatures.gtk = true;
-  };
-
   xdg.portal = {
     enable = true;
     wlr.enable = true;
@@ -28,6 +28,9 @@
       xdg-desktop-portal-wlr
     ];
   };
+
+  # I'm currently leaning Plasma since 6.0 released, so we use that pinentry
+  programs.gnupg.agent.pinentryPackage = pkgs.pinentry-qt;
 
   services.dbus.enable = true;
 
