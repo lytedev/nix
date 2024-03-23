@@ -61,7 +61,7 @@
       libinput
       libinput-gestures
       libnotify
-      # mako
+      mako
       # lutris
       # nil
       # nixpkgs-fmt

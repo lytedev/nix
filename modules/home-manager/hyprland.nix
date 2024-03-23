@@ -6,7 +6,13 @@
   # font,
   ...
 }: {
-  imports = [outputs.homeManagerModules.ewwbar];
+  imports = with outputs.homeManagerModules; [
+    ewwbar
+    mako
+    swaylock
+    # TODO: figure out how to import this for this module _and_ for the sway module?
+    # linux-desktop
+  ];
 
   home.file."${config.xdg.configHome}/hypr/hyprpaper.conf" = {
     enable = true;
@@ -23,8 +29,6 @@
       monitor = [
         # See https://wiki.hyprland.org/Configuring/Monitors/
         ",preferred,auto,auto"
-        "desc:LG Display 0x0521,3840x2160@120,0x0,1"
-        "desc:Dell Inc. DELL U2720Q D3TM623,3840x2160@60,3840x0,1.5,transform,3"
       ];
 
       xwayland = {

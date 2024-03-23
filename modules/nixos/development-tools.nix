@@ -9,6 +9,8 @@
 
   environment.systemPackages = with pkgs; [
     taplo # toml language server for editing helix configs per repo
+    oil
+    nushell
     watchexec
     android-tools
     kubectl

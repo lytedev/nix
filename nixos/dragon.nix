@@ -59,7 +59,7 @@
       firefox-no-tabs
       # wallpaper-manager
       melee
-      # hyprland
+      hyprland
     ];
 
     # ssbm = {
@@ -75,7 +75,11 @@
         ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [
-          "DP-3,3840x2160@120,0x0,1"
+          # "DP-2,3840x2160@60,-2160x0,1,transform,3"
+          "DP-3,3840x2160@120,0x0,1,bitdepth,10"
+          # "desc:LG Display 0x0521,3840x2160@120,0x0,1"
+          # "desc:Dell Inc. DELL U2720Q D3TM623,3840x2160@60,3840x0,1.5,transform,1"
+          "DP-2,3840x2160@60,-${toString (builtins.ceil (2160 / 1.5))}x0,1.5,transform,1"
         ];
         input = {
           force_no_accel = true;
