@@ -1,5 +1,5 @@
 {
-  lib,
+  # lib,
   inputs,
   outputs,
   pkgs,
@@ -10,6 +10,11 @@ in {
   networking.hostName = "foxtrot";
 
   imports = with outputs.nixosModules; [
+    {
+      nixpkgs.overlays = [
+        outputs.overlays.modifications
+      ];
+    }
     outputs.diskoConfigurations.standard
     inputs.hardware.nixosModules.framework-13-7040-amd
     desktop-usage
@@ -99,8 +104,6 @@ in {
         size = 40;
       };
     };
-
-    services.mako.enable = lib.mkForce false; # don't use mako when using plasma
 
     wayland.windowManager.hyprland = {
       settings = {
