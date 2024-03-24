@@ -193,6 +193,14 @@ in {
 
   services.fprintd = {
     enable = true;
+    package = pkgs.fprintd.overrideAttrs {
+      # Source: https://github.com/NixOS/nixpkgs/commit/87ca2dc071581aea0e691c730d6844f1beb07c9f
+      mesonCheckFlags = [
+        # PAM related checks are timing out
+        "--no-suite"
+        "fprintd:TestPamFprintd"
+      ];
+    };
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
