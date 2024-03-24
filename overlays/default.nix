@@ -12,7 +12,16 @@
   # This one contains whatever you want to overlay
   # You can change versions, add patches, set compilation flags, anything really.
   # https://nixos.wiki/wiki/Overlays
-  modifications = final: prev: {
+  modifications = final: prev: rec {
+    fprintd = prev.fprintd.overrideAttrs {
+      # Source: https://github.com/NixOS/nixpkgs/commit/87ca2dc071581aea0e691c730d6844f1beb07c9f
+      mesonCheckFlags = [
+        # PAM related checks are timing out
+        "--no-suite"
+        "fprintd:TestPamFprintd"
+      ];
+    };
+    final.fprintd = fprintd;
     pythonPackagesExtensions =
       prev.pythonPackagesExtensions
       ++ [

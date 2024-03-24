@@ -31,7 +31,7 @@
 
   services.fprintd = {
     # TODO: am I missing a driver? see arch wiki for this h/w
-    enable = true;
+    enable = false;
     # tod.enable = true;
     # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
