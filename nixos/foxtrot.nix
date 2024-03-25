@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  scale = 1.25;
+  scale = 1.333333;
 in {
   networking.hostName = "foxtrot";
 
@@ -96,7 +96,7 @@ in {
       pass
       firefox-no-tabs
       # wallpaper-manager
-      # hyprland
+      hyprland
     ];
     home = {
       stateVersion = "24.05";
