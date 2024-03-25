@@ -20,7 +20,7 @@ in {
     desktop-usage
     # gnome
     printing
-    kde-plasma
+    # kde-plasma
     podman
     lutris
     # postgres

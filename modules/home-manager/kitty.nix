@@ -54,7 +54,7 @@
       tab_bar_align = "left";
       tab_bar_style = "separator";
       tab_separator = ''""'';
-      tab_bar_edge = "top";
+      tab_bar_edge = "bottom";
       tab_title_template = ''"{fmt.fg.tab}{fmt.bg.tab} {activity_symbol}{title} "'';
       active_tab_font_style = "normal";
 

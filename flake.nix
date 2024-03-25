@@ -94,9 +94,15 @@
       };
     });
 
-    devShell = forAllSystems (system:
-      nixpkgs.legacyPackages.${system}.mkShell {
+    devShell = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      pkgs.mkShell {
         inherit (outputs.checks.${system}.pre-commit-check) shellHook;
+
+        buildInputs = with pkgs; [
+          lua-language-server
+        ];
       });
 
     # Your custom packages and modifications, exported as overlays

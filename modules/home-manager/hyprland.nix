@@ -89,6 +89,7 @@
           natural_scroll = "yes";
           tap-to-click = true;
           middle_button_emulation = true;
+          disable_while_typing = false;
         };
       };
 
@@ -174,6 +175,7 @@
         ", XF86AudioNext, exec, playerctl next"
         ", XF86AudioPrev, exec, playerctl previous"
         "$mainMod, tab, workspace, previous"
+        "ALT, tab, workspace, previous"
 
         # Switch workspaces with mainMod + [0-9]
         "$mainMod, 1, workspace, 1"
