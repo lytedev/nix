@@ -49,18 +49,11 @@ wezterm.on('format-tab-title', function (tab, _, _, _, _, max_width)
   return ' ' .. string.sub(title, 0, max_width - 2) .. ' '
 end)
 
----@diagnostic disable-next-line: unused-local
-local function scheme_for_appearance(appearance)
-  -- TODO: some way to detect if WM or something?
-  -- if appearance:find "Dark" then
-  --   return "Catppuccin Mocha"
-  -- else
-  --   return "Catppuccin Latte"
-  -- end
-  return "Catppuccin Mocha"
-end
+local colors, metadata = wezterm.color.load_scheme(wezterm.home_dir .. "/.config/wezterm/colors/catppuccin-mocha-sapphire.toml")
+wezterm.colors = colors
 
-config.color_scheme = scheme_for_appearance(wezterm.gui.get_appearance())
+-- config.color_scheme_dirs = { '~/.config/wezterm/colors' }
+-- config.color_scheme = 'catpuccin-mocha-sapphire';
 
 config.inactive_pane_hsb = {
   saturation = 0.8,
