@@ -91,11 +91,11 @@
             "warning" = 30;
             "critical" = 1;
           };
-          "format" = "{capacity}% {icon}";
-          "format-charging" = "{capacity}% 󱐋";
-          "format-plugged" = "{capacity}% 󰚥";
-          "format-alt" = "{time} {icon}";
-          "format-good" = ""; # An empty format will hide the modul;
+          "format" = "{capacity}% {time} {icon}";
+          "format-charging" = "{capacity}% {time} 󱐋";
+          "format-plugged" = "{capacity}% {time} 󰚥";
+          "format-alt" = "{capacity}% {icon}";
+          "format-good" = ""; # An empty format will hide the module
           "format-full" = "󰁹";
           "format-icons" = ["󰂎" "󰁻" "󰁽" "󰁿" "󰂂"];
         };

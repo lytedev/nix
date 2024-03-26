@@ -78,6 +78,8 @@
       swaybg
       swayidle
       swaylock
+      swayosd
+      tofi
       # vlc
       # vulkan-tools
       waybar

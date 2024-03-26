@@ -3,6 +3,7 @@
   outputs,
   lib,
   config,
+  pkgs,
   # font,
   ...
 }: {
@@ -13,34 +14,24 @@
     linux-desktop
   ];
 
-  programs.wofi = {
-    enable = true;
-    settings = {
-      width = "640";
-      height = "360";
-    };
-    style = ''
-      * {
-        border-radius: 0;
-      }
-
-      window {
-        margin: 0px;
-        padding: 8px;
-      }
-
-      #outer-box {
-        margin: 8px;
-      }
-
-      #outer-box, #inner-box {
-        margin-top: 8px;
-      }
-    '';
-  };
-
   programs.foot = {
     enable = true;
+  };
+
+  home.file."${config.xdg.configHome}/tofi/config" = {
+    enable = true;
+    text = ''
+      font = ${pkgs.iosevka-lyteterm}/share/fonts/truetype/iosevka-lyteterm-regular.ttf
+
+      text-color = #f8f8f8
+      prompt-color = #f38ba8
+      selection-color = #66d9ef
+      background-color = #1e1e2e
+      border-width = 4
+      border-color = #66d9ef
+
+      fuzzy-match = true
+    '';
   };
 
   wayland.windowManager.sway = {
@@ -74,7 +65,7 @@
         swaymsg "workspace 1"
       }
 
-      set $tilers "(wezterm.*|kitty.*|firefox.*|slack.*|Slack.*|thunar.*|Alacritty.*|alacritty.*|Discord.*|discord.*)"
+      set $tilers "(wezterm.*|kitty.*|firefox.*|[Ss]lack.*|thunar.*|[Aa]lacritty.*|[Dd]iscord.*)"
       for_window [title=".*"] floating enable
       for_window [app_id=$tilers] floating disable
     '';
@@ -120,6 +111,9 @@
 
       startup = [
         {
+          command = "swayosd-server";
+        }
+        {
           command = "waybar";
         }
         {
@@ -148,7 +142,7 @@
         # {command = "mako";}
         # {command = "firefox";}
         # {command = "wezterm";}
-        {command = "kitty --single-instance";}
+        {command = "wezterm";}
       ];
 
       modes = {
@@ -190,17 +184,18 @@
       };
       keybindings = let
         mod = config.wayland.windowManager.sway.config.modifier;
+        menu = "tofi-run | xargs swaymsg exec --";
       in {
-        # bindsym $mod+shift+space exec wofi --show drun
         "${mod}+control+space" = "exec makoctl dismiss";
         "${mod}+shift+space" = "exec makoctl invoke";
         # "${mod}+return" = "exec kitty --single-instance";
-        "${mod}+return" = "exec kitty";
+        "${mod}+return" = "exec wezterm";
         "${mod}+shift+return" = "exec floating-term";
         "${mod}+shift+alt+return" = "exec kitty";
         "${mod}+c" = "kill";
         "${mod}+shift+c" = "kill # TODO: kill -9?";
-        "${mod}+space" = "exec wofi --show drun";
+        "${mod}+alt+space" = "exec wofi --show drun";
+        "${mod}+space" = "exec ${menu}";
         "${mod}+shift+s" = "exec clipshot";
         "${mod}+e" = "exec thunar";
         "${mod}+shift+r" = "reload";
@@ -277,23 +272,39 @@
         # TODO: this should also reset the horizontal and vertical gaps?
         "${mod}+control+equal" = "gaps inner current set 0";
 
-        "XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
-        "XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
+        "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume raise";
+        "XF86AudioLowerVolume" = "exec swayosd-client --output-volume lower";
+        "XF86AudioMute" = "exec swayosd-client --output-volume mute-toggle";
+        "XF86AudioMicMute" = "exec swayosd-client --input-volume mute-toggle";
+        "${mod}+shift+v" = "exec swayosd-client --input-volume mute-toggle";
+        # "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume 15";
+        # "XF86AudioLowerVolume" = "exec swayosd-client --output-volume -15";
+        # "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume raise --max-volume 120";
+        # "XF86AudioLowerVolume" = "exec swayosd-client --output-volume lower --max-volume 120";
+        # "XF86AudioRaiseVolume" = "exec  swayosd-client --output-volume +10 --device alsa_output.pci-0000_11_00.4.analog-stereo.monitor";
+        # "XF86AudioLowerVolume" = "exec  swayosd-client --output-volume -10 --device alsa_output.pci-0000_11_00.4.analog-stereo.monitor";
+        "XF86MonBrightnessUp" = "exec swayosd-client --brightness raise";
+        "XF86MonBrightnessDown" = "exec swayosd-client --brightness lower";
+        # "XF86MonBrightnessUp" = " exec swayosd-client --brightness 10";
+        # "XF86MonBrightnessDown" = "exec swayosd-client --brightness -10";
+
+        # "XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
+        # "XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
         "control+XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +1%";
         "control+XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -1%";
-        "XF86AudioMute" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        # "XF86AudioMute" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "${mod}+F1" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
-        "XF86AudioMicMute" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
-        "XF86MonBrightnessDown" = "exec brightnessctl set 10%-";
-        "XF86MonBrightnessUp" = "exec brightnessctl set +10%";
-        "shift+XF86MonBrightnessDown" = "exec brightnessctl set 1%";
-        "shift+XF86MonBrightnessUp" = "exec brightnessctl set 100%";
-        "control+XF86MonBrightnessDown" = "exec brightnessctl set 1%-";
-        "control+XF86MonBrightnessUp" = "exec brightnessctl set +1%";
+        # "XF86AudioMicMute" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        # "XF86MonBrightnessDown" = "exec brightnessctl set 10%-";
+        # "XF86MonBrightnessUp" = "exec brightnessctl set +10%";
+        # "shift+XF86MonBrightnessDown" = "exec brightnessctl set 1%";
+        # "shift+XF86MonBrightnessUp" = "exec brightnessctl set 100%";
+        # "control+XF86MonBrightnessDown" = "exec brightnessctl set 1%-";
+        # "control+XF86MonBrightnessUp" = "exec brightnessctl set +1%";
         "XF86AudioPlay" = "exec playerctl play-pause";
         "XF86AudioNext" = "exec playerctl next";
         "XF86AudioPrev" = "exec playerctl previous";
-        "${mod}+shift+v" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        # "${mod}+shift+v" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
 
         "${mod}+control+shift+l" = "exec swaylock";
 
