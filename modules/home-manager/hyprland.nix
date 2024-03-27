@@ -14,8 +14,6 @@
     ./linux-desktop.nix
   ];
 
-  # TODO: Hyprland on Dragon currently cannot screenshare
-
   home.packages = with pkgs; [
     # TODO: integrate osd
     swayosd
