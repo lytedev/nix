@@ -1,4 +1,5 @@
 {
+  pkgs,
   outputs,
   colors,
   config,
@@ -12,6 +13,10 @@
     swaylock
     # TODO: figure out how to import this for this module _and_ for the sway module?
     # linux-desktop
+  ];
+
+  home.packages = with pkgs; [
+    swayosd
   ];
 
   home.file."${config.xdg.configHome}/hypr/hyprpaper.conf" = {
@@ -38,9 +43,10 @@
       exec-once = [
         "hyprpaper"
         "mako"
+        "swayosd"
         "eww daemon && eww open bar$EWW_BAR_MON"
         "firefox"
-        "kitty --single-instance"
+        "wezterm"
         # "wezterm"
         (lib.concatStringsSep " " [
           "swayidle -w"
@@ -137,10 +143,10 @@
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         # "$mainMod, return, exec, wezterm"
         # "$mainMod SHIFT, return, exec, wezterm"
-        "$mainMod, return, exec, kitty --single-instance"
+        "$mainMod, return, exec, wezterm"
         "$mainMod SHIFT, return, exec, kitty"
         "$mainMod, U, exec, firefox"
-        "$mainMod, space, exec, wofi --show drun"
+        "$mainMod, space, exec, tofi-run | xargs swaymsg exec --"
         "$mainMod, C, killactive,"
         "$mainMod, M, exit,"
         "$mainMod, E, exec, dolphin"
