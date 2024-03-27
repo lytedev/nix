@@ -33,6 +33,9 @@
 (defwidget sidestuff []
   (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :spacing 20
     time
+    ; TODO: indicator/tray/taskbar/toolbar icons and management? (probably should use something standalone?)
+    ; https://github.com/elkowar/eww/issues/111
+
     ; TODO: idle inhibitor?
     ; TODO: battery time remaining?
     ; TODO: hyprland workspaces?

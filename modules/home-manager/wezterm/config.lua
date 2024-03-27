@@ -17,9 +17,10 @@ config.default_cursor_style = 'BlinkingBar'
 -- config.disable_default_key_bindings = true
 config.hide_tab_bar_if_only_one_tab = true
 config.use_fancy_tab_bar = false
-config.tab_bar_at_bottom = false
+config.tab_bar_at_bottom = true
 config.window_background_opacity = 1.0
 config.enable_kitty_keyboard = true
+config.show_new_tab_button_in_tab_bar = true
 
 local function tab_title(tab_info)
   local title = tab_info.tab_title
@@ -35,6 +36,7 @@ wezterm.on('format-tab-title', function (tab, _, _, _, _, max_width)
   return ' ' .. string.sub(title, 0, max_width - 2) .. ' '
 end)
 
+-- see nix module which has home manager create this color scheme file
 config.color_scheme = 'catppuccin-mocha-sapphire';
 
 config.inactive_pane_hsb = {
