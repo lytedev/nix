@@ -13,7 +13,7 @@
     :x "0%"
     :y "0%"
     :width "100%"
-    :height "31px"
+    :height "32px"
     :anchor "bottom center")
   (bar))
 
@@ -26,7 +26,7 @@
     :x "0%"
     :y "0%"
     :width "100%"
-    :height "31px"
+    :height "32px"
     :anchor "bottom center")
   (bar))
 
@@ -50,8 +50,8 @@
     )
     {" " + round(EWW_CPU["avg"], 0) + "%"}
     {" " + round(EWW_RAM["used_mem_perc"], 0) + "%"}
-    {isDesktop == "true" ? "" : " " + brightness + "%"}
-    {isDesktop == "true" ? "" : "󱊣 " + EWW_BATTERY["BAT1"]["capacity"] + "%"}
+    {showBrightness == "true" ? "" : " " + brightness + "%"}
+    {showBattery == "true" ? "" : "󱊣 " + EWW_BATTERY["BAT1"]["capacity"] + "%"}
   ))
 
 (defwidget music []
@@ -79,8 +79,13 @@
 (defpoll time :interval "1s"
   "date '+%a %b %d %H:%M:%S'")
 
-(defpoll isDesktop :interval "24h"
-  "if [ -d \"$HOME/.config/lytedev-env/host-desktop\" ]; then echo true; else echo false; fi")
+(defpoll showBrightness :interval "24h"
+  ; if we have at least one file in /sys/class/backlight, we should try and show brightness
+  "if [ \"$(find /sys/class/backlight -mindepth 1 -maxdepth 1 | head -n 1 | wc -l)\" == \"1\" ]; then echo true; else echo false; fi")
+
+(defpoll showBattery :interval "24h"
+  ; if we have at least one battery in /sys/class/power_supply, we should try and show battery levels
+  "if [ \"$(find /sys/class/power_supply* -mindepth 1 -maxdepth 1 | grep '^BAT' | head -n 1 | wc -l)\" == \"1\" ]; then echo true; else echo false; fi")
 
 (defpoll brightness :interval "10s"
   "echo $(((100 * $(brightnessctl get)) / $(brightnessctl max)))")

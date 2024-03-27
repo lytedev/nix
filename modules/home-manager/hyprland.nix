@@ -79,7 +79,6 @@
 
       env = [
         "XCURSOR_SIZE,24"
-        "EWW_BAR_MON,0"
       ];
 
       input = {
