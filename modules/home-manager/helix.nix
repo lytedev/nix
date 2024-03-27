@@ -26,6 +26,10 @@ in {
     '';
   };
 
+  # NOTE: Currently, helix crashes when editing markdown in certain scenarios,
+  # presumably due to an old markdown treesitter grammar
+  # https://github.com/helix-editor/helix/issues/9011
+
   programs.helix = {
     enable = true;
     package = inputs.helix.packages.${system}.helix;

@@ -1,7 +1,7 @@
 {
   imports = [
     ./sway.nix
-    ./hyprland.nix
+    # ./hyprland.nix
     ./fonts.nix
     ./user-installed-applications.nix
     ./kde-connect.nix

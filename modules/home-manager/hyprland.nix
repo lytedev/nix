@@ -1,21 +1,23 @@
 {
   pkgs,
-  outputs,
   colors,
   config,
   lib,
   # font,
   ...
 }: {
-  imports = with outputs.homeManagerModules; [
-    ewwbar
-    mako
-    swaylock
+  imports = [
+    ./ewwbar.nix
+    ./mako.nix
+    ./swaylock.nix
     # TODO: figure out how to import this for this module _and_ for the sway module?
-    # linux-desktop
+    ./linux-desktop.nix
   ];
 
+  # TODO: Hyprland on Dragon currently cannot screenshare
+
   home.packages = with pkgs; [
+    # TODO: integrate osd
     swayosd
   ];
 
@@ -43,10 +45,13 @@
       exec-once = [
         "hyprpaper"
         "mako"
-        "swayosd"
+        "swayosd-server"
         "eww daemon && eww open bar$EWW_BAR_MON"
         "firefox"
         "wezterm"
+        "xwaylandvideobridge"
+        "dbus-update-activation-environment --systemd --all"
+        "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
         # "wezterm"
         (lib.concatStringsSep " " [
           "swayidle -w"
@@ -138,94 +143,90 @@
         dim_inactive = false;
       };
 
-      "$mainMod" = "SUPER";
+      "$mod" = "SUPER";
       bind = [
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
-        # "$mainMod, return, exec, wezterm"
-        # "$mainMod SHIFT, return, exec, wezterm"
-        "$mainMod, return, exec, wezterm"
-        "$mainMod SHIFT, return, exec, kitty"
-        "$mainMod, U, exec, firefox"
-        "$mainMod, space, exec, tofi-run | xargs swaymsg exec --"
-        "$mainMod, C, killactive,"
-        "$mainMod, M, exit,"
-        "$mainMod, E, exec, dolphin"
-        "$mainMod, F, togglefloating,"
-        "$mainMod SHIFT, F, fullscreen,"
-        "$mainMod, R, exec, anyrun"
-        "$mainMod, S, pseudo, # dwindle"
-        "$mainMod, P, togglesplit, # dwindle"
+        # "$mod, return, exec, wezterm"
+        # "$mod SHIFT, return, exec, wezterm"
+        "$mod, return, exec, wezterm"
+        "$mod SHIFT, return, exec, kitty"
+        "$mod, U, exec, firefox"
+        "$mod, space, exec, tofi-run | xargs hyprctl dispatch exec --"
+        "$mod, C, killactive,"
+        "$mod SHIFT, E, exit,"
+        "$mod, E, exec, dolphin"
+        "$mod, F, togglefloating,"
+        "$mod SHIFT, F, fullscreen,"
+        "$mod, R, exec, anyrun"
+        "$mod, S, pseudo, # dwindle"
+        "$mod, P, togglesplit, # dwindle"
 
-        # Move focus with mainMod + arrow keys
-        "$mainMod, left, movefocus, l"
-        "$mainMod, right, movefocus, r"
-        "$mainMod, up, movefocus, u"
-        "$mainMod, down, movefocus, d"
-        "$mainMod, h, movefocus, l"
-        "$mainMod, l, movefocus, r"
-        "$mainMod, k, movefocus, u"
-        "$mainMod, j, movefocus, d"
-        "$mainMod SHIFT, H, swapwindow, l"
-        "$mainMod SHIFT, L, swapwindow, r"
-        "$mainMod SHIFT, K, swapwindow, u"
-        "$mainMod SHIFT, J, swapwindow, d"
-        "$mainMod SHIFT, V, exec, pamixer --default-source --toggle-mute"
-        "$mainMod, F1, exec, pamixer --default-source --toggle-mute"
-        ", XF86AudioMicMute, exec, pamixer --default-source --toggle-mute"
-        ", XF86AudioMute, exec, pamixer --toggle-mute"
-        ", XF86AudioRaiseVolume, exec, pamixer --increase 5"
-        ", XF86AudioLowerVolume, exec, pamixer --decrease 5"
-        "CTRL, XF86AudioRaiseVolume, exec, pamixer --increase 1"
-        "CTRL, XF86AudioLowerVolume, exec, pamixer --decrease 1"
+        # Move focus with mod + arrow keys
+        "$mod, left, movefocus, l"
+        "$mod, right, movefocus, r"
+        "$mod, up, movefocus, u"
+        "$mod, down, movefocus, d"
+        "$mod, h, movefocus, l"
+        "$mod, l, movefocus, r"
+        "$mod, k, movefocus, u"
+        "$mod, j, movefocus, d"
+        "$mod SHIFT, H, swapwindow, l"
+        "$mod SHIFT, L, swapwindow, r"
+        "$mod SHIFT, K, swapwindow, u"
+        "$mod SHIFT, J, swapwindow, d"
+
+        "$mod SHIFT, V, exec, swayosd-client --input-volume mute-toggle"
+        ", XF86AudioMicMute, exec, swayosd-client --input-volume mute-toggle"
+        ", XF86AudioMute, exec, swayosd-client --output-volume mute-toggle"
+        ", XF86AudioRaiseVolume, exec, swayosd-client --output-volume raise"
+        ", XF86AudioLowerVolume, exec, swayosd-client --output-volume lower"
+
+        ", XF86MonBrightnessUp, exec, swayosd-client --brightness raise"
+        ", XF86MonBrightnessDown, exec, swayosd-client --brightness lower"
+
         ", XF86AudioPlay, exec, playerctl play-pause"
         ", XF86AudioNext, exec, playerctl next"
         ", XF86AudioPrev, exec, playerctl previous"
-        "$mainMod, tab, workspace, previous"
+        "$mod, tab, workspace, previous"
         "ALT, tab, workspace, previous"
 
-        # Switch workspaces with mainMod + [0-9]
-        "$mainMod, 1, workspace, 1"
-        "$mainMod, 2, workspace, 2"
-        "$mainMod, 3, workspace, 3"
-        "$mainMod, 4, workspace, 4"
-        "$mainMod, 5, workspace, 5"
-        "$mainMod, 6, workspace, 6"
-        "$mainMod, 7, workspace, 7"
-        "$mainMod, 8, workspace, 8"
-        "$mainMod, 9, workspace, 9"
-        "$mainMod, 0, workspace, 10"
+        # Switch workspaces with mod + [0-9]
+        "$mod, 1, workspace, 1"
+        "$mod, 2, workspace, 2"
+        "$mod, 3, workspace, 3"
+        "$mod, 4, workspace, 4"
+        "$mod, 5, workspace, 5"
+        "$mod, 6, workspace, 6"
+        "$mod, 7, workspace, 7"
+        "$mod, 8, workspace, 8"
+        "$mod, 9, workspace, 9"
+        "$mod, 0, workspace, 10"
 
-        # Move active window to a workspace with mainMod + SHIFT + [0-9]
-        "$mainMod SHIFT, 1, movetoworkspace, 1"
-        "$mainMod SHIFT, 2, movetoworkspace, 2"
-        "$mainMod SHIFT, 3, movetoworkspace, 3"
-        "$mainMod SHIFT, 4, movetoworkspace, 4"
-        "$mainMod SHIFT, 5, movetoworkspace, 5"
-        "$mainMod SHIFT, 6, movetoworkspace, 6"
-        "$mainMod SHIFT, 7, movetoworkspace, 7"
-        "$mainMod SHIFT, 8, movetoworkspace, 8"
-        "$mainMod SHIFT, 9, movetoworkspace, 9"
-        "$mainMod SHIFT, 0, movetoworkspace, 10"
-        ", XF86MonBrightnessDown, exec, brightnessctl set 10%-"
-        ", XF86MonBrightnessUp, exec, brightnessctl set +10%"
-        "SHIFT, XF86MonBrightnessDown, exec, brightnessctl set 1%"
-        "SHIFT, XF86MonBrightnessUp, exec, brightnessctl set 100%"
-        "CTRL, XF86MonBrightnessDown, exec, brightnessctl set 1%-"
-        "CTRL, XF86MonBrightnessUp, exec, brightnessctl set +1%"
-        "$mainMod SHIFT, S, exec, clipshot"
+        # Move active window to a workspace with mod + SHIFT + [0-9]
+        "$mod SHIFT, 1, movetoworkspace, 1"
+        "$mod SHIFT, 2, movetoworkspace, 2"
+        "$mod SHIFT, 3, movetoworkspace, 3"
+        "$mod SHIFT, 4, movetoworkspace, 4"
+        "$mod SHIFT, 5, movetoworkspace, 5"
+        "$mod SHIFT, 6, movetoworkspace, 6"
+        "$mod SHIFT, 7, movetoworkspace, 7"
+        "$mod SHIFT, 8, movetoworkspace, 8"
+        "$mod SHIFT, 9, movetoworkspace, 9"
+        "$mod SHIFT, 0, movetoworkspace, 10"
+        "$mod SHIFT, S, exec, clipshot"
 
-        # Scroll through existing workspaces with mainMod + scroll
-        "$mainMod, mouse_down, workspace, e+1"
-        "$mainMod, mouse_up, workspace, e-1"
-        "CTRL SHIFT $mainMod, L, exec, swaylock"
-        "$mainMod CTRL, space, exec, makoctl dismiss"
-        "$mainMod SHIFT CTRL, space, exec, makoctl restore"
-        "$mainMod SHIFT, space, exec, makoctl invoke"
-        "$mainMod, E, exec, thunar"
+        # Scroll through existing workspaces with mod + scroll
+        "$mod, mouse_down, workspace, e+1"
+        "$mod, mouse_up, workspace, e-1"
+        "CTRL SHIFT $mod, L, exec, swaylock"
+        "$mod CTRL, space, exec, makoctl dismiss"
+        "$mod SHIFT CTRL, space, exec, makoctl restore"
+        "$mod SHIFT, space, exec, makoctl invoke"
+        "$mod, E, exec, thunar"
       ];
 
-      # Move/resize windows with mainMod + LMB/RMB and dragging
-      bindm = ["$mainMod, mouse:272, movewindow" "$mainMod, mouse:273, resizewindow"];
+      # Move/resize windows with mod + LMB/RMB and dragging
+      bindm = ["$mod, mouse:272, movewindow" "$mod, mouse:273, resizewindow"];
     };
 
     extraConfig = ''
@@ -245,7 +246,7 @@
 
       dwindle {
         # See https://wiki.hyprland.org/Configuring/Dwindle-Layout/ for more
-        # master switch for pseudotiling. Enabling is bound to mainMod + P in the keybinds section below
+        # master switch for pseudotiling. Enabling is bound to mod + P in the keybinds section below
         pseudotile = yes
         preserve_split = 1
         no_gaps_when_only = true
@@ -269,6 +270,11 @@
 
       # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
       # windowrulev2 = float,class:^.*(kitty|firefox|org.wezfurlong.wezterm).*$
+      windowrulev2 = opacity 0.0 override 0.0 override,class:^(xwaylandvideobridge)$
+      windowrulev2 = noanim,class:^(xwaylandvideobridge)$
+      windowrulev2 = noinitialfocus,class:^(xwaylandvideobridge)$
+      windowrulev2 = maxsize 1 1,class:^(xwaylandvideobridge)$
+      windowrulev2 = noblur,class:^(xwaylandvideobridge)$
     '';
   };
 }

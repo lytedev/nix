@@ -4,7 +4,7 @@
   ...
 }: {
   services.mako = with colors.withHashPrefix; {
-    enable = true; # TODO: launch mako alongside the wm/de instead so that I can use the plasma notification daemon if I choose to use plasma
+    enable = true;
 
     borderSize = 1;
     maxVisible = 5;

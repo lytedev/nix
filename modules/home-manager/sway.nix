@@ -1,17 +1,16 @@
 {
   colors,
-  outputs,
   lib,
   config,
   pkgs,
   # font,
   ...
 }: {
-  imports = with outputs.homeManagerModules; [
-    waybar
-    mako
-    swaylock
-    linux-desktop
+  imports = [
+    ./waybar.nix
+    ./mako.nix
+    ./swaylock.nix
+    ./linux-desktop.nix
   ];
 
   programs.foot = {

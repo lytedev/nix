@@ -30,7 +30,7 @@
     # hardware.inputs.nixpkgs.follows = "nixpkgs";
 
     hyprland.url = "github:hyprwm/Hyprland";
-    hyprland.inputs.nixpkgs.follows = "nixpkgs";
+    # hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
     api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
@@ -202,6 +202,7 @@
       "https://ssbm-nix.cachix.org"
       "https://nix-community.cachix.org"
       "https://nix.h.lyte.dev"
+      "https://hyprland.cachix.org"
     ];
 
     extra-trusted-public-keys = [
@@ -210,6 +211,7 @@
       "ssbm-nix.cachix.org-1:YN104LKAWaKQIecOphkftXgXlYZVK/IRHM1UD7WAIew="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
   };
 }
