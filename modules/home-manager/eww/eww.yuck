@@ -31,13 +31,12 @@
   (bar))
 
 (defwidget sidestuff []
-  (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :spacing 20
+  (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :valign "center" :spacing 20
     time
     ; TODO: indicator/tray/taskbar/toolbar icons and management? (probably should use something standalone?)
     ; https://github.com/elkowar/eww/issues/111
 
     ; TODO: idle inhibitor?
-    ; TODO: battery time remaining?
     ; TODO: hyprland workspaces?
     ; TODO: get these to align properly? icons seem lower than they should be?
     (box :class "mic" (
@@ -52,6 +51,7 @@
     {" ${round(EWW_RAM["used_mem_perc"], 0)}%"}
     {showBrightness == "false" ? "" : (" ${brightness}%")}
     {showBattery == "false" ? "" : ("󱊣 ${EWW_BATTERY["BAT1"]["capacity"]}% (${batteryTime})")}
+    (box :orientation "h" :space-evenly false :halign "start" :valign "center" (workspaces))
   ))
 
 (defwidget music []
@@ -95,3 +95,6 @@
 
 (defpoll brightness :interval "10s"
   "echo $(((100 * $(brightnessctl get)) / $(brightnessctl max)))")
+
+(deflisten workspace "scripts/hypr-workspaces.bash")
+(defwidget workspaces [] (literal :content workspace))

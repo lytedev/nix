@@ -51,6 +51,7 @@
         "dbus-update-activation-environment --systemd --all"
         "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
         # "wezterm"
+        # NOTE: maybe check out hypridle?
         (lib.concatStringsSep " " [
           "swayidle -w"
           "timeout 300  'notify-send \"Idling in 300 seconds\"' resume 'notify-send \"Idling cancelled.\"'"
@@ -184,6 +185,7 @@
         ", XF86AudioPlay, exec, playerctl play-pause"
         ", XF86AudioNext, exec, playerctl next"
         ", XF86AudioPrev, exec, playerctl previous"
+
         "$mod, tab, workspace, previous"
         "ALT, tab, workspace, previous"
 
