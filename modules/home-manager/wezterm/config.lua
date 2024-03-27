@@ -1,39 +1,25 @@
 local wezterm = require'wezterm'
-
-FONT = {
-  name = "IosevkaLyteTerm";
-  size = 12.0;
-}
-
 local config = {}
-
 if wezterm.config_builder then
   config = wezterm.config_builder()
 end
 
-local font_spec = { family = FONT.name, weight = 'Medium', italic = false }
-local font_size = FONT.size;
-
-local font = wezterm.font_with_fallback{
-  font_spec,
+config.font = wezterm.font_with_fallback{
+  { family = "IosevkaLyteTerm", weight = 'Medium', italic = false },
   { family = 'Symbols Nerd Font Mono', weight = 'Regular', italic = false },
   'Noto Color Emoji',
 }
+config.font_size = 12.0
+-- config.window_frame.font = config.font
+-- config.window_frame.font_size = font_size
 
--- config.disable_default_key_bindings = true
 config.default_cursor_style = 'BlinkingBar'
-
-config.font = font
-config.font_size = font_size
-
+-- config.disable_default_key_bindings = true
 config.hide_tab_bar_if_only_one_tab = true
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = false
 config.window_background_opacity = 1.0
 config.enable_kitty_keyboard = true
-
--- config.window_frame.font = config.font
--- config.window_frame.font_size = font_size
 
 local function tab_title(tab_info)
   local title = tab_info.tab_title
@@ -49,11 +35,7 @@ wezterm.on('format-tab-title', function (tab, _, _, _, _, max_width)
   return ' ' .. string.sub(title, 0, max_width - 2) .. ' '
 end)
 
-local colors, metadata = wezterm.color.load_scheme(wezterm.home_dir .. "/.config/wezterm/colors/catppuccin-mocha-sapphire.toml")
-wezterm.colors = colors
-
--- config.color_scheme_dirs = { '~/.config/wezterm/colors' }
--- config.color_scheme = 'catpuccin-mocha-sapphire';
+config.color_scheme = 'catppuccin-mocha-sapphire';
 
 config.inactive_pane_hsb = {
   saturation = 0.8,
