@@ -11,7 +11,7 @@
         enable = true;
         package = inputs.hyprland.packages.${pkgs.system}.hyprland;
       };
-      environment.systemPackages = with pkgs; [hyprpaper xwaylandvideobridge];
+      environment.systemPackages = with pkgs; [hyprpaper xwaylandvideobridge socat];
     }
   ];
 }

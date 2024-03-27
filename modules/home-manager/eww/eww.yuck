@@ -31,7 +31,7 @@
   (bar))
 
 (defwidget sidestuff []
-  (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :valign "center" :spacing 20
+  (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :valign "center" :spacing 10
     time
     ; TODO: indicator/tray/taskbar/toolbar icons and management? (probably should use something standalone?)
     ; https://github.com/elkowar/eww/issues/111
@@ -49,8 +49,8 @@
     )
     {" ${round(EWW_CPU["avg"], 0)}%"}
     {" ${round(EWW_RAM["used_mem_perc"], 0)}%"}
-    {showBrightness == "false" ? "" : (" ${brightness}%")}
-    {showBattery == "false" ? "" : ("󱊣 ${EWW_BATTERY["BAT1"]["capacity"]}% (${batteryTime})")}
+    {(showBrightness == "true") ? (" ${brightness}%") : ""}
+    {(showBattery == "true") ? ("󱊣 ${EWW_BATTERY["BAT1"]["capacity"]}% (${batteryTime})") : ""}
     (box :orientation "h" :space-evenly false :halign "start" :valign "center" (workspaces))
   ))
 
@@ -77,7 +77,7 @@
   "pamixer --default-source --get-mute; pactl subscribe | grep source --line-buffered | while read i; do pamixer --default-source --get-mute; done")
 
 (deflisten batteryTime :initial "unknown"
-  "upower -d | rg '\\s*time to empty:\\s*(\\d.*)\$' -r '\$1'")
+  "command -v upower && upower -d | rg '\\s*time to empty:\\s*(\\d.*)\$' -r '\$1'")
 
 ; (deflisten batteryTime :initial "unknown"
 ;   "upower -d | rg '\s*time to empty:\s*(\d.*)\$' -r '\$1'; upower --monitor-detail | rg '\s*time to empty:\s*(\d.*)\$' -r '\$1'")

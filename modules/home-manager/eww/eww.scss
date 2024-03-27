@@ -39,7 +39,7 @@ $rosewater: #f5e0dc;
 }
 
 .sidestuff slider {
-  color: #ffd5cd;
+  color: $sapphire;
 }
 
 .metric {}
@@ -75,10 +75,26 @@ $rosewater: #f5e0dc;
 
 .vol .muted,
 .mic .live {
-  color: #f38ba8;
+  color: $red;
 }
 
 .vol .live,
 .mic .muted {
-  color: #74c7ec;
+  color: $sapphire;
+}
+
+.workspace {
+  padding-left: 10px;
+  padding-right: 10px;
+  color: #666666;
+}
+
+.workspace.occupied {
+  color: $text;
+}
+
+.workspace.occupied.focused,
+.workspace.focused {
+  color: $base;
+  background-color: $sapphire;
 }
