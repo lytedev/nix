@@ -107,6 +107,9 @@ in {
 
     wayland.windowManager.hyprland = {
       settings = {
+        env = [
+          "EWW_BAR_MON,0"
+        ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [
           "eDP-1,2256x1504@60,0x0,${toString scale}"

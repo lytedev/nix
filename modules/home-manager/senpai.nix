@@ -2,8 +2,9 @@
   programs.senpai = {
     enable = true;
     config = {
-      address = "a";
-      nickname = "a";
+      address = "irc+insecure://beefcake:6667";
+      nickname = "lytedev";
+      password-cmd = ["pass" "soju"];
     };
   };
 
