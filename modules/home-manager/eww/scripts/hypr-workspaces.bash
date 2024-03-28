@@ -35,6 +35,12 @@ workspaces() {
     focus "$num"
   done
 
+  # TODO: would be nice to have monitors' workspaces show up in left-to-right
+  # order as laid out in physical/pixel space
+  # this would make glancing at the workspace indicator more intuitive
+  # TODO: might be nice to exclude certain windows as counting towards "occupation" such as xwaylandvideobridge or w/e
+  # NOTE: maybe I can group workspaces by their monitor with some mechanism for "unassigned" workspace to show up by a "primary" monitor
+
   # render eww widget
   echo "(eventbox :onscroll \"echo {} | sed -e 's/up/-1/g' -e 's/down/+1/g' | xargs hyprctl dispatch workspace\" \
     (box :class \"workspaces\" :orientation \"h\" :spacing 0 :space-evenly \"true\" \
