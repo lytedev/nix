@@ -153,7 +153,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       systemd.services."build-lytedev-flake" = {
         script = ''
-          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git
+          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git --accept-flake-config
         '';
         path = with pkgs; [git nixos-rebuild];
         serviceConfig = {
