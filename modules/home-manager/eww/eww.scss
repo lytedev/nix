@@ -93,6 +93,13 @@ $rosewater: #f5e0dc;
   color: $text;
 }
 
+.workspace.occupied.active,
+.workspace.active {
+  color: $base;
+  background-color: $subtext1;
+}
+
+.workspace.occupied.focused.active,
 .workspace.occupied.focused,
 .workspace.focused {
   color: $base;

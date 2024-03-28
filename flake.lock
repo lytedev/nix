@@ -332,22 +332,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-next": {
-      "locked": {
-        "lastModified": 1711646189,
-        "narHash": "sha256-+fnMLzJhiLAY/2ACsWPnLkstUpR0PKEVjlsCWH2aFGg=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "5d44454602e6964b5e582edc81098aac06f8ecbe",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "staging-next",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1711124224,
@@ -461,7 +445,6 @@
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "nixpkgs": "nixpkgs_3",
-        "nixpkgs-next": "nixpkgs-next",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgsForIosevka": "nixpkgsForIosevka",
         "pre-commit-hooks": "pre-commit-hooks",

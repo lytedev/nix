@@ -49,6 +49,7 @@
     )
     {" ${round(EWW_CPU["avg"], 0)}%"}
     {" ${round(EWW_RAM["used_mem_perc"], 0)}%"}
+    ; TODO: have these "widgets" be omitted entirely instead of just empty strings
     {(showBrightness == "true") ? (" ${brightness}%") : ""}
     {(showBattery == "true") ? ("󱊣 ${EWW_BATTERY["BAT1"]["capacity"]}% (${batteryTime})") : ""}
     (box :orientation "h" :space-evenly false :halign "start" :valign "center" (workspaces))

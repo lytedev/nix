@@ -4,7 +4,7 @@
 
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
-    nixpkgs-next.url = "github:nixos/nixpkgs/staging-next";
+    # nixpkgs-next.url = "github:nixos/nixpkgs/staging-next";
 
     # I have this as a separate input so I don't rebuild the font every time I
     # want to upgrade nixpkgs
@@ -48,7 +48,7 @@
   outputs = {
     self,
     nixpkgs,
-    nixpkgs-next,
+    # nixpkgs-next,
     nixpkgsForIosevka,
     home-manager,
     hardware,
@@ -147,7 +147,7 @@
           }) (import ./nixos))
       // {
         # TODO: stabilize "appliance"-type hosts on stable nixpkgs ASAP to avoid breakages
-        beefcake = nixpkgs-next.lib.nixosSystem {
+        beefcake = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
             inherit inputs outputs api-lyte-dev hardware;
