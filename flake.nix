@@ -4,6 +4,8 @@
 
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
+    nixpkgs-next.url = "github:nixos/nixpkgs/staging-next";
+
     # I have this as a separate input so I don't rebuild the font every time I
     # want to upgrade nixpkgs
     nixpkgsForIosevka.url = "github:nixos/nixpkgs?rev=5863c27340ba4de8f83e7e3c023b9599c3cb3c80";
@@ -24,7 +26,7 @@
 
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
+    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
 
     hardware.url = "github:nixos/nixos-hardware";
     # hardware.inputs.nixpkgs.follows = "nixpkgs";
@@ -46,6 +48,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-next,
     nixpkgsForIosevka,
     home-manager,
     hardware,
@@ -118,25 +121,48 @@
 
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#your-hostname'
-    nixosConfigurations = builtins.mapAttrs (name: {
-      system,
-      modules,
-      ...
-    }:
-      nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = {
-          inherit inputs outputs system api-lyte-dev hardware;
+    nixosConfigurations =
+      (builtins.mapAttrs (name: {
+          system,
+          modules,
+          ...
+        }:
+        # let
+        # commonModules =
+        # in
+          nixpkgs.lib.nixosSystem {
+            inherit system;
+            specialArgs = {
+              # TODO: avoid special args and actually pass inputs to modules?
+              inherit inputs outputs hardware;
+            };
+            # extraSpecialArgs = {
+            #   inherit inputs outputs system api-lyte-dev;
+            # };
+            modules =
+              [
+                self.nixosModules.common
+              ]
+              ++ modules;
+          }) (import ./nixos))
+      // {
+        # TODO: stabilize "appliance"-type hosts on stable nixpkgs ASAP to avoid breakages
+        beefcake = nixpkgs-next.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs outputs api-lyte-dev hardware;
+          };
+          modules = [self.nixosModules.common ./nixos/beefcake.nix];
         };
-        # extraSpecialArgs = {
-        #   inherit inputs outputs system api-lyte-dev;
+        # rascal = {
+        #   system = "x86_64-linux";
+        #   modules = [./rascal.nix];
         # };
-        modules =
-          [
-            self.nixosModules.common
-          ]
-          ++ modules;
-      }) (import ./nixos);
+        # router = {
+        #   system = "x86_64-linux";
+        #   modules = [./router.nix];
+        # };
+      };
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'

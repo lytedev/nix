@@ -268,7 +268,10 @@
       # }
 
       # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
-      # windowrulev2 = float,class:^.*(kitty|firefox|org.wezfurlong.wezterm).*$
+      windowrulev2 = idleinhibit,class:^.*([Ss]lippi).*$
+      windowrulev2 = float,class:^.*([Kk]itty|[Ff]irefox|[Ww]ezterm|[Dd]iscord|[Ss]potify|[Ss]lack).*$
+      windowrulev2 = opacity 1.0 0.9,floating:1
+
       windowrulev2 = opacity 0.0 override 0.0 override,class:^(xwaylandvideobridge)$
       windowrulev2 = noanim,class:^(xwaylandvideobridge)$
       windowrulev2 = noinitialfocus,class:^(xwaylandvideobridge)$

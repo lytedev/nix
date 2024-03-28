@@ -125,6 +125,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
     }
     {
+      # nix binary cache
       services.nix-serve = {
         enable = true;
         secretKeyFile = "/var/cache-priv-key.pem";
@@ -138,6 +139,26 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         80
         443
       ];
+
+      # regularly build this flake so we have stuff in the cache
+      systemd.timers."build-lytedev-flake" = {
+        wantedBy = ["timers.target"];
+        timerConfig = {
+          OnBootSec = "30m"; # 30 minutes after booting
+          OnUnitActiveSec = "1d"; # every day afterwards
+          Unit = "build-lytedev-flake.service";
+        };
+      };
+
+      systemd.services."build-lytedev-flake" = {
+        script = ''
+          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          User = "daniel"; # might have to run as me for git ssh access to the repo
+        };
+      };
     }
     {
       services.headscale = {

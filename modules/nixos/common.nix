@@ -18,10 +18,10 @@ in {
       inputs.disko.nixosModules.disko
       inputs.home-manager.nixosModules.home-manager
     ]
-    ++ (with outputs.nixosModules; [
-      avahi
-      daniel
-    ]);
+    ++ [
+      ./avahi.nix
+      ./daniel.nix
+    ];
 
   hardware.enableRedistributableFirmware = true;
 
