@@ -157,6 +157,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         '';
         path = with pkgs; [git nixos-rebuild];
         serviceConfig = {
+          # TODO: mkdir -p...?
+          WorkingDirectory = "/home/daniel/.home/nightly-flake-builds";
           Type = "oneshot";
           User = "daniel"; # might have to run as me for git ssh access to the repo
         };
