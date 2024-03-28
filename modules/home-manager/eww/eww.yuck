@@ -76,11 +76,10 @@
 (deflisten micMuted :initial "false"
   "pamixer --default-source --get-mute; pactl subscribe | grep source --line-buffered | while read i; do pamixer --default-source --get-mute; done")
 
-(deflisten batteryTime :initial "unknown"
-  "command -v upower && upower -d | rg '\\s*time to empty:\\s*(\\d.*)\$' -r '\$1'")
+  ; "upower -d | rg '\\s*(time to empty|time to full):\\s*(\\d.*)\$' -r '\$2'; upower --monitor-detail | rg '\\s*(time to empty|time to full):\\s*(\\d.*)\$' -r '\$2'")
 
 ; (deflisten batteryTime :initial "unknown"
-;   "upower -d | rg '\s*time to empty:\s*(\d.*)\$' -r '\$1'; upower --monitor-detail | rg '\s*time to empty:\s*(\d.*)\$' -r '\$1'")
+;   "upower -d | rg '\s*time to empty:\s*(\d.*)\$' -r '\$1'; upower --monitor-detail | rg '\\s*time to empty:\\s*(\\d.*)\$' -r '\$1'")
 
 (defpoll time :interval "1s"
   "date '+%a %b %d %H:%M:%S'")
@@ -91,10 +90,12 @@
 
 (defpoll showBattery :interval "24h"
   ; if we have at least one battery in /sys/class/power_supply, we should try and show battery levels
-  "if find /sys/class/power_supply -mindepth 1 -maxdepth 1 | rg '\/sys\/class\/power_supply\/BAT'; then echo true; else echo false; fi")
+  "if find /sys/class/power_supply -mindepth 1 -maxdepth 1 2>&1 | rg '\/sys\/class\/power_supply\/BAT' 2>&1 > /dev/null; then echo true; else echo false; fi")
 
 (defpoll brightness :interval "10s"
   "echo $(((100 * $(brightnessctl get)) / $(brightnessctl max)))")
+
+(deflisten batteryTime :initial "unknown" "scripts/battery-time.bash")
 
 (deflisten workspace "scripts/hypr-workspaces.bash")
 (defwidget workspaces [] (literal :content workspace))

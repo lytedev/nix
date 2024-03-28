@@ -1,3 +1,3 @@
 {pkgs, ...}: {
-  environment.systemPackages = [pkgs.eww];
+  environment.systemPackages = with pkgs; [eww upower];
 }
