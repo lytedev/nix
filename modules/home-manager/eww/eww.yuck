@@ -76,8 +76,7 @@
 (deflisten micMuted :initial "false"
   "pamixer --default-source --get-mute; pactl subscribe | grep source --line-buffered | while read i; do pamixer --default-source --get-mute; done")
 
-(deflisten batteryTime :initial "unknown"
-  "upower -d | rg '\\s*(time to empty|time to full):\\s*(\\d.*)\$' -r '\$2'; upower --monitor-detail | rg '\\s*(time to empty|time to full):\\s*(\\d.*)\$' -r '\$2'")
+  ; "upower -d | rg '\\s*(time to empty|time to full):\\s*(\\d.*)\$' -r '\$2'; upower --monitor-detail | rg '\\s*(time to empty|time to full):\\s*(\\d.*)\$' -r '\$2'")
 
 ; (deflisten batteryTime :initial "unknown"
 ;   "upower -d | rg '\s*time to empty:\s*(\d.*)\$' -r '\$1'; upower --monitor-detail | rg '\\s*time to empty:\\s*(\\d.*)\$' -r '\$1'")
@@ -95,6 +94,8 @@
 
 (defpoll brightness :interval "10s"
   "echo $(((100 * $(brightnessctl get)) / $(brightnessctl max)))")
+
+(deflisten batteryTime :initial "unknown" "scripts/battery-time.bash")
 
 (deflisten workspace "scripts/hypr-workspaces.bash")
 (defwidget workspaces [] (literal :content workspace))
