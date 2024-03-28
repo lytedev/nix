@@ -141,6 +141,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       ];
 
       # regularly build this flake so we have stuff in the cache
+      # TODO: schedule this for nightly builds instead of intervals based on boot time
       systemd.timers."build-lytedev-flake" = {
         wantedBy = ["timers.target"];
         timerConfig = {
