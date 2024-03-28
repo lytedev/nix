@@ -153,8 +153,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       systemd.services."build-lytedev-flake" = {
         script = ''
-          ${pkgs.nixos-rebuild}/bin/nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git
+          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git
         '';
+        path = with pkgs; [git nixos-rebuild];
         serviceConfig = {
           Type = "oneshot";
           User = "daniel"; # might have to run as me for git ssh access to the repo
