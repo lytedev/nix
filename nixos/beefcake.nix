@@ -653,6 +653,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             THEMES = "catppuccin-mocha-sapphire,gitea,arc-green,auto,pitchblack";
             DEFAULT_THEME = "catppuccin-mocha-sapphire";
           };
+          indexer = {
+            REPO_INDEXER_ENABLED = "true";
+            REPO_INDEXER_PATH = "indexers/repos.bleve";
+            MAX_FILE_SIZE = "1048576";
+            # REPO_INDEXER_INCLUDE =
+            REPO_INDEXER_EXCLUDE = "resources/bin/**";
+          };
         };
         lfs = {
           enable = true;
