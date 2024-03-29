@@ -14,6 +14,9 @@
     ./linux-desktop.nix
   ];
 
+  # TODO: Hyprland seems to have issues with resuming from hibernation on my
+  # laptop where it uses a ton of CPU.
+
   home.packages = with pkgs; [
     # TODO: integrate osd
     swayosd

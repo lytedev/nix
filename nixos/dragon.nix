@@ -19,7 +19,7 @@
 
     desktop-usage
     podman
-    # kde-plasma
+    kde-plasma
     postgres
     wifi
     hyprland

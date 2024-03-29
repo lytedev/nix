@@ -9,6 +9,9 @@
 in {
   networking.hostName = "foxtrot";
 
+  # TODO: I currently have issues with wifi after resuming from hibernation sometimes.
+  # I have to modprobe remove and re-add the wifi module to resolve. Mildly annoying.
+
   imports = with outputs.nixosModules; [
     {
       nixpkgs.overlays = [

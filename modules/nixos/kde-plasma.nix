@@ -12,10 +12,10 @@
   # typing and I go to resize kitty and crash loses my work.
   # It is entirely possible that this is due to my configuration, though, and
   # not the fault of the applications themselves!
-  # TODO: I'm switching to wezterm. Will this solve my issue?
-  # TODO: find an issue to link to?
   # https://www.reddit.com/r/kde/comments/ohiwqf/kitty_crashes_plasma_wayland_session/
   # https://gitlab.archlinux.org/archlinux/packaging/packages/kitty/-/issues/3
+
+  # NOTE: I'm switching to wezterm. Will this solve my issue?
 
   # qt.platformTheme = "gnome";
 
