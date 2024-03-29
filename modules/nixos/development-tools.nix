@@ -29,4 +29,12 @@
     jq
     curl
   ];
+
+  services.udev.packages = [
+    pkgs.platformio
+    pkgs.openocd
+  ];
+
+  programs.adb.enable = true;
+  users.users.daniel.extraGroups = ["adbusers"];
 }

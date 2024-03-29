@@ -25,6 +25,7 @@
     hyprland
     printing
     melee
+    steam
     lutris
   ];
 
@@ -147,13 +148,6 @@
       allowedUDPPorts = [];
     };
   };
-
-  services.udev.packages = [
-    pkgs.platformio
-    pkgs.openocd
-  ];
-  programs.adb.enable = true;
-  users.users.daniel.extraGroups = ["adbusers"];
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
   system.stateVersion = "23.11";
