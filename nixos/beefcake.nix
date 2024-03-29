@@ -358,13 +358,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       users.extraGroups = {
         "plausible" = {};
       };
-      # TODO: ensure we're not doing the same dumb thing we were doing on the old host and eating storage
-      services.clickhouse.enable = true;
-      systemd.services.plausible.serviceConfig.User = "plausible";
-      systemd.services.plausible.serviceConfig.Group = "plausible";
       services.plausible = {
         # TODO: enable
-        enable = false;
+        enable = true;
         database = {
           clickhouse.setup = true;
           postgres = {
@@ -373,21 +369,89 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
         server = {
-          baseUrl = "http://beefcake.hare-cod.ts.net:8899";
+          baseUrl = "https://a.lyte.dev";
           disableRegistration = true;
           port = 8899;
-          # secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
+          secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
         };
         adminUser = {
           activate = false;
           email = "daniel@lyte.dev";
-          # passwordFile = config.sops.secrets.plausible-admin-password.path;
+          passwordFile = config.sops.secrets.plausible-admin-password.path;
         };
+      };
+      systemd.services.plausible = let
+        cfg = config.services.plausible;
+      in {
+        serviceConfig.User = "plausible";
+        serviceConfig.Group = "plausible";
+        # since createdb is not gated behind postgres.setup, this breaks
+        script = lib.mkForce ''
+          # Elixir does not start up if `RELEASE_COOKIE` is not set,
+          # even though we set `RELEASE_DISTRIBUTION=none` so the cookie should be unused.
+          # Thus, make a random one, which should then be ignored.
+          export RELEASE_COOKIE=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 20)
+          export ADMIN_USER_PWD="$(< $CREDENTIALS_DIRECTORY/ADMIN_USER_PWD )"
+          export SECRET_KEY_BASE="$(< $CREDENTIALS_DIRECTORY/SECRET_KEY_BASE )"
+
+          ${lib.optionalString (cfg.mail.smtp.passwordFile != null)
+            ''export SMTP_USER_PWD="$(< $CREDENTIALS_DIRECTORY/SMTP_USER_PWD )"''}
+
+          # setup
+          ${
+            if cfg.database.postgres.setup
+            then "${cfg.package}/createdb.sh"
+            else ""
+          }
+          ${cfg.package}/migrate.sh
+          export IP_GEOLOCATION_DB=${pkgs.dbip-country-lite}/share/dbip/dbip-country-lite.mmdb
+          ${cfg.package}/bin/plausible eval "(Plausible.Release.prepare() ; Plausible.Auth.create_user(\"$ADMIN_USER_NAME\", \"$ADMIN_USER_EMAIL\", \"$ADMIN_USER_PWD\"))"
+          ${lib.optionalString cfg.adminUser.activate ''
+            psql -d plausible <<< "UPDATE users SET email_verified=true where email = '$ADMIN_USER_EMAIL';"
+          ''}
+
+          exec plausible start
+        '';
       };
       services.caddy.virtualHosts."a.lyte.dev" = {
         extraConfig = ''
           reverse_proxy :${toString config.services.plausible.server.port}
         '';
+      };
+    }
+    {
+      # clickhouse
+      environment.etc = {
+        "clickhouse-server/users.d/disable-logging-query.xml" = {
+          text = ''
+            <clickhouse>
+              <profiles>
+                <default>
+                  <log_queries>0</log_queries>
+                  <log_query_threads>0</log_query_threads>
+                </default>
+              </profiles>
+            </clickhouse>
+          '';
+        };
+        "clickhouse-server/config.d/reduce-logging.xml" = {
+          text = ''
+            <clickhouse>
+              <logger>
+                <level>warning</level>
+                <console>true</console>
+              </logger>
+              <query_thread_log remove="remove"/>
+              <query_log remove="remove"/>
+              <text_log remove="remove"/>
+              <trace_log remove="remove"/>
+              <metric_log remove="remove"/>
+              <asynchronous_metric_log remove="remove"/>
+              <session_log remove="remove"/>
+              <part_log remove="remove"/>
+            </clickhouse>
+          '';
+        };
       };
     }
     {
@@ -467,31 +531,32 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
         package = pkgs.postgresql_15;
 
+        # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
         authentication = pkgs.lib.mkOverride 10 ''
-          #type database  DBuser    auth-method
-          local all       postgres  peer map=superuser_map
-          local all       daniel    peer map=superuser_map
-          local sameuser  all       peer map=superuser_map
-          local plausible plausible peer map=superuser_map
-          local nextcloud nextcloud peer map=superuser_map
-          local atuin     atuin     peer map=superuser_map
+          #type database  user      auth-method    auth-options
+          local all       postgres  peer           map=superuser_map
+          local all       daniel    peer           map=superuser_map
+          local sameuser  all       peer           map=superuser_map
+          # local plausible plausible peer
+          # local nextcloud nextcloud peer
+          # local atuin     atuin     peer
 
           # lan ipv4
-          host  all       all     192.168.0.0/16 trust
-          host  all       all     10.0.0.0/24    trust
+          host  all       daniel    192.168.0.0/16 trust
+          host  all       daniel    10.0.0.0/24    trust
 
           # tailnet ipv4
-          host       all       all     100.64.0.0/10 trust
+          host  all       daniel    100.64.0.0/10 trust
         '';
 
         identMap = ''
-          # ArbitraryMapName systemUser DBUser
-          superuser_map    root       postgres
-          superuser_map    postgres   postgres
-          superuser_map    daniel     postgres
+          # map            system_user db_user
+          superuser_map    root        postgres
+          superuser_map    postgres    postgres
+          superuser_map    daniel      postgres
 
           # Let other names login as themselves
-          superuser_map    /^(.*)$    \1
+          superuser_map    /^(.*)$     \1
         '';
       };
 
