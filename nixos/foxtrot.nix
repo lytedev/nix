@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  scale = 1.333333;
+  scale = 1.25;
 in {
   networking.hostName = "foxtrot";
 
@@ -20,7 +20,7 @@ in {
     desktop-usage
     # gnome
     printing
-    # kde-plasma
+    kde-plasma
     podman
     lutris
     # postgres
