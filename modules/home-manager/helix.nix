@@ -29,6 +29,8 @@ in {
   # NOTE: Currently, helix crashes when editing markdown in certain scenarios,
   # presumably due to an old markdown treesitter grammar
   # https://github.com/helix-editor/helix/issues/9011
+  # https://github.com/helix-editor/helix/issues/8821
+  # https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/114
 
   programs.helix = {
     enable = true;

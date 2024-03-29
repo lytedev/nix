@@ -196,6 +196,7 @@ in {
     extraHosts = ''
       ::1 host.docker.internal
       127.0.0.1 host.docker.internal
+
       ::1 host.containers.internal
       127.0.0.1 host.containers.internal
     '';
