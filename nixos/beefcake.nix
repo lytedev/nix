@@ -163,6 +163,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           User = "daniel"; # might have to run as me for git ssh access to the repo
         };
       };
+
+      networking = {
+        extraHosts = ''
+          ::1 nix.h.lyte.dev
+          127.0.0.1 nix.h.lyte.dev
+        '';
+      };
     }
     {
       services.headscale = {
