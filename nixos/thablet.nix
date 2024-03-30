@@ -15,7 +15,6 @@
     desktop-usage
     fonts
     # gnome
-    sway
     kde-plasma
     wifi
     flanfam

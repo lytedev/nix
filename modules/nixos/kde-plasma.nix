@@ -35,6 +35,8 @@
     #   style = "adwaita-dark";
   };
 
+  programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
+
   programs.dconf.enable = true;
 
   services.dbus.enable = true;

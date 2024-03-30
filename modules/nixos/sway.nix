@@ -30,7 +30,7 @@
   };
 
   # I'm currently leaning Plasma since 6.0 released, so we use that pinentry
-  # programs.gnupg.agent.pinentryPackage = pkgs.pinentry-qt;
+  # programs.gnupg.agent.pinentryPackage = pkgs.pinen;
 
   services.dbus.enable = true;
 
