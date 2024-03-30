@@ -15,6 +15,7 @@
     desktop-usage
     fonts
     # gnome
+    sway
     kde-plasma
     wifi
     flanfam
@@ -23,7 +24,7 @@
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
-      linux-desktop
+      sway
     ];
   };
 
