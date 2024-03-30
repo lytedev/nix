@@ -14,7 +14,8 @@
     inputs.hardware.nixosModules.common-pc-laptop-ssd
     desktop-usage
     podman
-    gnome
+    # gnome
+    kde-plasma
     postgres
     wifi
   ];
@@ -23,10 +24,15 @@
     systemPackages = with pkgs; [
       spotify
       discord
-      obs-studio
-      variety # wallpaper switcher that I use with GNOME
-      sops
       slack
+      godot_4
+      fractal
+      prismlauncher
+      variety
+      radeontop
+      sops
+      obs-studio
+      xh
     ];
   };
 
@@ -51,7 +57,7 @@
       sway
       pass
       firefox-no-tabs
-      wallpaper-manager
+      # wallpaper-manager
       # sway-laptop
       # hyprland
     ];
@@ -59,6 +65,8 @@
     home = {
       stateVersion = "24.05";
     };
+
+    services.mako.enable = lib.mkForce false; # don't use mako when using plasma
   };
 
   swapDevices = [
