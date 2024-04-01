@@ -23,7 +23,7 @@
 
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
-      linux-desktop
+      sway
     ];
   };
 
