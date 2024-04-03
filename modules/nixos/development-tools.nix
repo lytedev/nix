@@ -28,6 +28,7 @@
     xh
     jq
     curl
+    google-chrome
   ];
 
   services.udev.packages = [
