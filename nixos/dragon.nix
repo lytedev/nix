@@ -22,7 +22,7 @@
     kde-plasma
     postgres
     wifi
-    hyprland
+    # hyprland
     printing
     # melee
     steam
@@ -61,6 +61,8 @@
       # melee
       hyprland
     ];
+
+    services.mako.enable = lib.mkForce false; # don't use mako when using plasma
 
     # ssbm = {
     #   slippi-launcher = {
@@ -137,7 +139,10 @@
   boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
   boot.kernelModules = ["kvm-amd"];
 
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
   networking = {

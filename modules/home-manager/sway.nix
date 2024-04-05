@@ -8,7 +8,7 @@
 }: {
   imports = [
     ./waybar.nix
-    ./mako.nix
+    # ./mako.nix
     ./swaylock.nix
     ./linux-desktop.nix
   ];

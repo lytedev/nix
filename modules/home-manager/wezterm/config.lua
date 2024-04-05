@@ -1,11 +1,11 @@
-local wezterm = require'wezterm'
+local wezterm = require 'wezterm'
 local config = {}
 if wezterm.config_builder then
   config = wezterm.config_builder()
 end
 
-config.font = wezterm.font_with_fallback{
-  { family = "IosevkaLyteTerm", weight = 'Medium', italic = false },
+config.font = wezterm.font_with_fallback {
+  { family = "IosevkaLyteTerm",        weight = 'Medium',  italic = false },
   { family = 'Symbols Nerd Font Mono', weight = 'Regular', italic = false },
   'Noto Color Emoji',
 }
@@ -31,7 +31,7 @@ local function tab_title(tab_info)
 end
 
 -- wezterm.on('format-tab-title', function (tab, tabs, panes, config, hover, max_width)
-wezterm.on('format-tab-title', function (tab, _, _, _, _, max_width)
+wezterm.on('format-tab-title', function(tab, _, _, _, _, max_width)
   local title = tab_title(tab)
   return ' ' .. string.sub(title, 0, max_width - 2) .. ' '
 end)
@@ -48,57 +48,57 @@ config.keys = {
   {
     key = 'Insert',
     mods = 'SHIFT',
-    action = wezterm.action.PasteFrom'Clipboard'
+    action = wezterm.action.PasteFrom 'Clipboard'
   },
   {
     key = 'v',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.PasteFrom'PrimarySelection'
+    action = wezterm.action.PasteFrom 'PrimarySelection'
   },
   {
     key = 't',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.SpawnTab'CurrentPaneDomain'
+    action = wezterm.action.SpawnTab 'CurrentPaneDomain'
   },
   {
     key = 'h',
     mods = 'CTRL',
-    action = wezterm.action.ActivatePaneDirection'Left'
+    action = wezterm.action.ActivatePaneDirection 'Left'
   },
   {
     key = 'l',
     mods = 'CTRL',
-    action = wezterm.action.ActivatePaneDirection'Right'
+    action = wezterm.action.ActivatePaneDirection 'Right'
   },
   {
     key = 'k',
     mods = 'CTRL',
-    action = wezterm.action.ActivatePaneDirection'Up'
+    action = wezterm.action.ActivatePaneDirection 'Up'
   },
   {
     key = 'j',
     mods = 'CTRL',
-    action = wezterm.action.ActivatePaneDirection'Down'
+    action = wezterm.action.ActivatePaneDirection 'Down'
   },
   {
     key = 'j',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.SplitVertical{domain='CurrentPaneDomain'}
+    action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' }
   },
   {
     key = 'l',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}
+    action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' }
   },
   {
     key = 'k',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.SplitVertical{args={'top'},domain='CurrentPaneDomain'}
+    action = wezterm.action.SplitVertical { args = { 'top' }, domain = 'CurrentPaneDomain' }
   },
   {
     key = 'h',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.SplitHorizontal{args={'right'},domain='CurrentPaneDomain'}
+    action = wezterm.action.SplitHorizontal { args = { 'right' }, domain = 'CurrentPaneDomain' }
   },
   {
     key = 'p',
@@ -113,15 +113,15 @@ config.keys = {
   {
     key = 'r',
     mods = 'CTRL|SHIFT|ALT',
-    action = wezterm.action.RotatePanes'Clockwise'
+    action = wezterm.action.RotatePanes 'Clockwise'
   },
 }
 
 -- config.unix_domains = {
-  -- {
-    -- name = 'unix',
-    -- local_echo_threshold_ms = 10,
-  -- },
+--   {
+--     name = 'unix',
+--     local_echo_threshold_ms = 10,
+--   },
 -- }
 
 -- config.default_gui_startup_args = { 'connect', 'unix' }
