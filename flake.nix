@@ -12,14 +12,11 @@
 
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    # pre-commit-hooks.inputs.nixpkgs-unstable.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     helix.url = "github:helix-editor/helix/master";
-    # I think if I force this to follow nixpkgs, I won't get caching benefits
-    # helix.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
@@ -29,20 +26,13 @@
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
 
     hardware.url = "github:nixos/nixos-hardware";
-    # hardware.inputs.nixpkgs.follows = "nixpkgs";
 
     hyprland.url = "github:hyprwm/Hyprland";
-    # hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
     api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
 
     ssbm.url = "github:lytedev/ssbm-nix";
-    # I think if I force this to follow nixpkgs, I won't get caching benefits
-    ssbm.inputs.nixpkgs.follows = "nixpkgs";
-
-    # TODO: doesn't (can't?) support the forge mod loader yet
-    # nix-minecraft.url = "github:Infinidoge/nix-minecraft";
   };
 
   outputs = {

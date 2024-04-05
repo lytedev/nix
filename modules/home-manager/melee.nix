@@ -1,6 +1,6 @@
 {inputs, ...}: {
   imports = [
-    {nixpkgs.overlays = [inputs.ssbm.overlay];}
+    # {nixpkgs.overlays = [inputs.ssbm.overlay];}
     # inputs.ssbm.homeManagerModules.default
   ];
 

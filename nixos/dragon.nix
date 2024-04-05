@@ -1,5 +1,5 @@
 {
-  # config,
+  config,
   inputs,
   outputs,
   lib,
@@ -24,7 +24,7 @@
     wifi
     hyprland
     printing
-    melee
+    # melee
     steam
     lutris
   ];
@@ -58,7 +58,7 @@
       pass
       firefox-no-tabs
       # wallpaper-manager
-      melee
+      # melee
       hyprland
     ];
 

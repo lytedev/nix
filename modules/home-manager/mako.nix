@@ -4,7 +4,7 @@
   ...
 }: {
   services.mako = with colors.withHashPrefix; {
-    enable = true;
+    enable = false;
 
     borderSize = 1;
     maxVisible = 5;
