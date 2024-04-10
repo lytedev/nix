@@ -27,6 +27,7 @@
     nodePackages.yaml-language-server
     xh
     jq
+    jujutsu
     curl
     google-chrome
   ];

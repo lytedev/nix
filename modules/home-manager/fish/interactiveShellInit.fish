@@ -139,10 +139,10 @@ bind --mode insert --sets-mode default jk repaint
 bind --mode insert --sets-mode default jK repaint
 bind --mode insert --sets-mode default Jk repaint
 bind --mode insert --sets-mode default JK repaint
-bind --mode insert --sets-mode default jj repaint
-bind --mode insert --sets-mode default jJ repaint
-bind --mode insert --sets-mode default Jj repaint
-bind --mode insert --sets-mode default JJ repaint
+# bind --mode insert --sets-mode default jj repaint
+# bind --mode insert --sets-mode default jJ repaint
+# bind --mode insert --sets-mode default Jj repaint
+# bind --mode insert --sets-mode default JJ repaint
 
 if has_command skim
     bind -M insert \cg skim-cd-widget
