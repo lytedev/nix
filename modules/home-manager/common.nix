@@ -95,9 +95,15 @@
       sync_frequency = "1m";
       sync_address = "https://atuin.h.lyte.dev";
       keymap_mode = "vim-insert";
+      inline_height = 10;
+      show_preview = true;
 
       sync = {
         records = true;
+      };
+
+      dotfiles = {
+        enabled = true;
       };
     };
   };
