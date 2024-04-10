@@ -10,11 +10,9 @@
   environment.systemPackages = with pkgs; [
     taplo # toml language server for editing helix configs per repo
     oil
-    nushell
     watchexec
     android-tools
     kubectl
-    vscode
     stern
     libresprite
     logseq
@@ -26,8 +24,6 @@
     nodePackages.bash-language-server
     nodePackages.yaml-language-server
     xh
-    jq
-    jujutsu
     curl
     google-chrome
   ];
@@ -39,4 +35,33 @@
 
   programs.adb.enable = true;
   users.users.daniel.extraGroups = ["adbusers"];
+
+  home-manager.users.daniel = {
+    home = {
+    };
+
+    programs.nushell = {
+      enable = true;
+    };
+
+    programs.jujutsu = {
+      enable = true;
+    };
+
+    programs.k9s = {
+      enable = true;
+    };
+
+    programs.vscode = {
+      enable = true;
+    };
+
+    programs.jq = {
+      enable = true;
+    };
+
+    programs.chromium = {
+      enable = true;
+    };
+  };
 }
