@@ -1,8 +1,9 @@
 {pkgs, ...}: {
   environment = {
     systemPackages = with pkgs; [
-      wine
+      wineWowPackages.waylandFull
       lutris
+      winetricks
     ];
   };
 }

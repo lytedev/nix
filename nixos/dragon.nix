@@ -24,7 +24,7 @@
     wifi
     # hyprland
     printing
-    # melee
+    melee
     steam
     lutris
   ];
