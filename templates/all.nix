@@ -19,4 +19,8 @@
     path = ./godot;
     description = "A template for working on a Godot game or project";
   };
+  nim = {
+    path = ./nim;
+    description = "A template for working on a Nim project";
+  };
 }
