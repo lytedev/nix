@@ -20,7 +20,22 @@
 
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
-    nixpkgsFor = system: import nixpkgs {inherit system;};
+    overlay = final: prev: {
+      erlangPackages = prev.beam.packagesWith prev.erlang_26;
+      erlang = final.erlangPackages.erlang;
+      elixir = final.erlangPackages.elixir_1_16;
+
+      mixRelease = final.erlangPackages.mixRelease.override {
+        elixir = final.elixir;
+      };
+      fetchMixDeps = final.erlangPackages.fetchMixDeps.override {
+        elixir = final.elixir;
+      };
+
+      elixir-ls = prev.elixir-ls.override {elixir = final.elixir;};
+    };
+
+    nixpkgsFor = system: ((import nixpkgs {inherit system;}).extend overlay);
   in {
     packages = forAllSystems (system: let
       pkgs = nixpkgsFor system;
@@ -49,17 +64,14 @@
 
     devShells = forAllSystems (system: let
       pkgs = nixpkgsFor system;
-      erlang = pkgs.beam.packages.erlang_26;
-      elixir = erlang.elixir_1_16;
     in {
       default = pkgs.mkShell {
         shellHook = "export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive";
         buildInputs = with pkgs; [
-          inotify-tools
-          erlang_26
-          erlang
-          elixir-ls
           elixir
+          elixir-ls
+
+          inotify-tools
         ];
       };
     });
