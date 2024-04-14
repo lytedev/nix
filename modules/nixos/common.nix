@@ -39,6 +39,7 @@ in {
     };
 
     systemPackages = with pkgs; [
+      atuin
       # age
       # bat
       # bc
