@@ -187,10 +187,10 @@ in {
     powerOnBoot = false;
   };
   powerManagement.cpuFreqGovernor = "ondemand";
-  powerManagement.resumeCommands = ''
-    modprobe -rv mt7921e
-    modprobe -v mt7921e
-  '';
+  # powerManagement.resumeCommands = ''
+  #   modprobe -rv mt7921e
+  #   modprobe -v mt7921e
+  # '';
 
   services.power-profiles-daemon = {
     enable = true;

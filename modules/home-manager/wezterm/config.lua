@@ -106,6 +106,16 @@ config.keys = {
     action = wezterm.action.ActivateCommandPalette
   },
   {
+    key = 'w',
+    mods = 'CTRL|SHIFT',
+    action = wezterm.action.CloseCurrentPane { confirm = true },
+  },
+  {
+    key = 'w',
+    mods = 'CTRL|ALT|SHIFT',
+    action = wezterm.action.CloseCurrentTab { confirm = true },
+  },
+  {
     key = 'l',
     mods = 'CTRL|SHIFT|ALT',
     action = wezterm.action.ShowDebugOverlay
