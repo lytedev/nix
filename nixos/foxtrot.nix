@@ -151,7 +151,7 @@ in {
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    # kernelPackages = pkgs.linuxPackages_latest;
 
     loader = {
       efi.canTouchEfiVariables = true;

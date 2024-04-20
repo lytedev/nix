@@ -682,6 +682,23 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "files.lyte.dev" = {
             # TODO: customize the files.lyte.dev template?
             extraConfig = ''
+              # @options {
+              #   method OPTIONS
+              # }
+              # @corsOrigin {
+              #   header_regexp Origin ^https?://([a-zA-Z0-9-]+\.)*lyte\.dev$
+              # }
+              header {
+                Access-Control-Allow-Origin "{http.request.header.Origin}"
+                Access-Control-Allow-Credentials true
+                Access-Control-Allow-Methods *
+                Access-Control-Allow-Headers *
+                Vary Origin
+                defer
+              }
+              # reverse_proxy shuwashuwa:8848 {
+              #   header_down -Access-Control-Allow-Origin
+              # }
               file_server browse {
                 # browse template
                 # hide .*
