@@ -47,6 +47,7 @@
       VISUAL = "hx";
       PAGER = "less";
       MANPAGER = "less";
+      GTK_USE_PORTAL = "1";
     };
 
     systemPackages = with pkgs; [

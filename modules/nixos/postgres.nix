@@ -36,4 +36,8 @@
         superuser_map   /^(.*)$    \1
     '';
   };
+
+  environment.systemPackages = with pkgs; [
+    pgcli
+  ];
 }

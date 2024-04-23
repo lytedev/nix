@@ -19,6 +19,8 @@
     audacity
     wol
     shellcheck
+    skim
+    gron
     shfmt
     vscode-langservers-extracted
     nodePackages.bash-language-server
