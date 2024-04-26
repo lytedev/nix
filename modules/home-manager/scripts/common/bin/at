@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 usage() {
-	echo "at - waits until after the specified datetime"
+	echo "at - exit after the specified datetime"
 	echo "Usage:"
 	echo "  at <DATETIME> && command..."
 	echo
@@ -9,13 +9,17 @@ usage() {
 	echo "  at 15:00:00 && echo \"it is 3 o'clock\""
 }
 
-[[ -z "$1" ]] && { echo "Error: No DATE argument provided." >&2; usage; exit 1; }
+[[ -z "$1" ]] && { echo "error: no DATE argument provided" >&2; usage; exit 1; }
 
 d="$(date -d "${@}" +%s)"
+_dt=$((d - $(date +%s)))
+days=$((_dt / 86400))
+printf 'Started at %s (with duration %sd %s)\n' "$(date)" "$days" "$(date -u --date @$((_dt)) +%H:%M:%S)"
+
 while [[ "$d" -ge "$(date +%s)" ]]; do
 	_dt=$((d - $(date +%s)))
 	days=$((_dt / 86400))
-	echo -ne "\rTime Remaining: ${days}d $(date -u --date @$((_dt)) +%H:%M:%S) ";
+	printf "\r%sd %s " "$days" "$(date -u --date @$((_dt)) +%H:%M:%S)";
 	sleep 0.1
 done
 exit 0
