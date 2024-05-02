@@ -160,7 +160,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           # build main laptop configuration
           nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#foxtrot --accept-flake-config
         '';
-        path = with pkgs; [git nixos-rebuild];
+        path = with pkgs; [openssh git nixos-rebuild];
         serviceConfig = {
           # TODO: mkdir -p...?
           WorkingDirectory = "/home/daniel/.home/nightly-flake-builds";
