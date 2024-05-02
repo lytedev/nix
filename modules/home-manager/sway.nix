@@ -80,9 +80,9 @@
       ];
 
       output = {
-        "*" = {
-          background = "$HOME/.wallpaper fill";
-        };
+        # "*" = {
+        #   background = "$HOME/.wallpaper fill";
+        # };
       };
 
       # TODO: popup_during_fullscreen smart

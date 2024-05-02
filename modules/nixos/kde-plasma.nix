@@ -21,10 +21,10 @@
 
   services.desktopManager.plasma6.enable = true;
 
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.displayManager.sddm.wayland.enable = true;
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
 
-  services.xserver.displayManager.defaultSession = "plasma";
+  services.displayManager.defaultSession = "plasma";
   services.xserver.enable = lib.mkDefault true;
 
   hardware.pulseaudio.enable = false;

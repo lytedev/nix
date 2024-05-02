@@ -12,39 +12,15 @@
   # This one contains whatever you want to overlay
   # You can change versions, add patches, set compilation flags, anything really.
   # https://nixos.wiki/wiki/Overlays
-  modifications = final: prev: rec {
-    fprintd = prev.fprintd.overrideAttrs {
-      # Source: https://github.com/NixOS/nixpkgs/commit/87ca2dc071581aea0e691c730d6844f1beb07c9f
-      mesonCheckFlags = [
-        # PAM related checks are timing out
-        "--no-suite"
-        "fprintd:TestPamFprintd"
-      ];
-    };
-    final.fprintd = fprintd;
-    pythonPackagesExtensions =
-      prev.pythonPackagesExtensions
-      ++ [
-        (
-          python-final: python-prev: {
-            catppuccin = python-prev.catppuccin.overridePythonAttrs (oldAttrs: rec {
-              version = "1.3.2";
-
-              src = prev.fetchFromGitHub {
-                owner = "catppuccin";
-                repo = "python";
-                rev = "refs/tags/v${version}";
-                hash = "sha256-spPZdQ+x3isyeBXZ/J2QE6zNhyHRfyRQGiHreuXzzik=";
-              };
-
-              # can be removed next version
-              disabledTestPaths = [
-                "tests/test_flavour.py" # would download a json to check correctness of flavours
-              ];
-            });
-          }
-        )
-      ];
+  modifications = final: prev: {
+    # final.fprintd = prev.fprintd.overrideAttrs {
+    #   # Source: https://github.com/NixOS/nixpkgs/commit/87ca2dc071581aea0e691c730d6844f1beb07c9f
+    #   mesonCheckFlags = [
+    #     # PAM related checks are timing out
+    #     "--no-suite"
+    #     "fprintd:TestPamFprintd"
+    #   ];
+    # };
   };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will
