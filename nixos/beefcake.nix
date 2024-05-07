@@ -11,7 +11,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   # inputs,
   # outputs,
   lib,
-  api-lyte-dev,
   config,
   pkgs,
   ...
@@ -85,14 +84,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
           # subdirectory
           # "myservice/my_subdir/my_secret" = { };
-
-          "api.lyte.dev" = {
-            # path = "${config.services.api-lyte-dev.stateDir}/secrets.json";
-            # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
-            mode = "0440";
-            owner = config.services.api-lyte-dev.user;
-            group = config.services.api-lyte-dev.group;
-          };
 
           "jland.env" = {
             path = "/var/lib/jland/jland.env";
@@ -229,25 +220,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       networking.firewall.allowedTCPPorts = [
         6667
       ];
-    }
-    {
-      services.api-lyte-dev = rec {
-        enable = true;
-        port = 5757;
-        stateDir = "/var/lib/api-lyte-dev";
-        configFile = config.sops.secrets."api.lyte.dev".path;
-        user = "api-lyte-dev";
-        group = user;
-      };
-      systemd.services.api-lyte-dev.environment = {
-        RELEASE_HOST = lib.mkForce "api.lyte.dev";
-        LOG_LEVEL = "debug";
-      };
-      services.caddy.virtualHosts."api.lyte.dev" = {
-        extraConfig = ''
-          reverse_proxy :${toString config.services.api-lyte-dev.port}
-        '';
-      };
     }
     {
       # samba
@@ -989,7 +961,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         26966
       ];
     }
-    api-lyte-dev.nixosModules.api-lyte-dev
   ];
 
   # TODO: non-root processes and services that access secrets need to be part of

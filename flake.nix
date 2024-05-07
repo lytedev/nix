@@ -29,9 +29,6 @@
 
     hyprland.url = "github:hyprwm/Hyprland";
 
-    api-lyte-dev.url = "git+ssh://gitea@git.lyte.dev/lytedev/api.lyte.dev.git";
-    api-lyte-dev.inputs.nixpkgs.follows = "nixpkgs";
-
     ssbm.url = "github:lytedev/ssbm-nix";
   };
 
@@ -43,7 +40,6 @@
     home-manager,
     hardware,
     pre-commit-hooks,
-    api-lyte-dev,
     ...
   } @ inputs: let
     # TODO: make @ inputs unnecessary by making arguments explicit in all modules?
@@ -127,7 +123,7 @@
               inherit inputs outputs hardware;
             };
             # extraSpecialArgs = {
-            #   inherit inputs outputs system api-lyte-dev;
+            #   inherit inputs outputs system;
             # };
             modules =
               [
@@ -140,7 +136,7 @@
         beefcake = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
-            inherit inputs outputs api-lyte-dev hardware;
+            inherit inputs outputs hardware;
           };
           modules = [self.nixosModules.common ./nixos/beefcake.nix];
         };
