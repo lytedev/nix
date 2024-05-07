@@ -98,8 +98,16 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             path = "/var/lib/jland/jland.env";
             # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
             mode = "0440";
-            owner = config.users.users.jland.name;
-            group = config.users.groups.jland.name;
+            owner = config.users.users.daniel.name;
+            group = config.users.groups.daniel.name;
+          };
+
+          "dawncraft.env" = {
+            path = "/var/lib/dawncraft/dawncraft.env";
+            # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
+            mode = "0440";
+            owner = config.users.users.daniel.name;
+            group = config.users.groups.daniel.name;
           };
 
           plausible-admin-password = {
@@ -478,7 +486,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "caddy" # write access to /storage/files.lyte.dev
           "users" # general users group
           "jellyfin" # write access to /storage/jellyfin
-          "jland"
           "flanilla"
         ];
       };
@@ -888,6 +895,58 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       networking.firewall.allowedTCPPorts = [
         26965
+      ];
+    }
+    {
+      # dawncraft minecraft server
+      systemd.tmpfiles.rules = [
+        "d /storage/dawncraft/ 0770 1000 1000 -"
+        "d /storage/dawncraft/data/ 0770 1000 1000 -"
+        "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
+        "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
+      ];
+      virtualisation.oci-containers.containers.minecraft-dawncraft = {
+        autoStart = true;
+
+        # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+        image = "docker.io/itzg/minecraft-server";
+        extraOptions = [
+          "--tty"
+          "--interactive"
+        ];
+        environment = {
+          EULA = "true";
+
+          STOP_SERVER_ANNOUNCE_DELAY = "20";
+          TZ = "America/Chicago";
+          VERSION = "1.18.2";
+          MEMORY = "8G";
+          MAX_MEMORY = "16G";
+
+          ALLOW_FLIGHT = "true";
+          ENABLE_QUERY = "true";
+          SERVER_PORT = "26968";
+          QUERY_PORT = "26968";
+
+          TYPE = "AUTO_CURSEFORGE";
+          CF_SLUG = "dawn-craft";
+
+          CF_EXCLUDE_MODS = "368398";
+          CF_FORCE_SYNCHRONIZE = "true";
+          # CF_FILE_ID = "5247696"; # 2.0.7 server
+        };
+        environmentFiles = [
+          config.sops.secrets."dawncraft.env".path
+        ];
+        ports = ["26968:26968/tcp" "26968:26968/udp"];
+        volumes = [
+          "/storage/dawncraft/data:/data"
+          "/storage/dawncraft/worlds:/worlds"
+          "/storage/dawncraft/downloads:/downloads"
+        ];
+      };
+      networking.firewall.allowedTCPPorts = [
+        26968
       ];
     }
     {
