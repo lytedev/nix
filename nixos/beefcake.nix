@@ -893,7 +893,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           TZ = "America/Chicago";
           VERSION = "1.18.2";
           MEMORY = "8G";
-          MAX_MEMORY = "16G";
+          MAX_MEMORY = "32G";
 
           ALLOW_FLIGHT = "true";
           ENABLE_QUERY = "true";
