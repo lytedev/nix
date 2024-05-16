@@ -17,6 +17,7 @@ with builtins;
       "melee"
       "pipewire"
       "pipewire-low-latency"
+      "music-production"
       "podman"
       "postgres"
       "printing"
