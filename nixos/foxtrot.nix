@@ -26,7 +26,7 @@ in {
     kde-plasma
     podman
     lutris
-    # postgres
+    postgres
     wifi
     hyprland
     steam

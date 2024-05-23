@@ -179,7 +179,7 @@ in {
 
   networking.extraHosts = ''
     127.0.0.1 localhost
-    127.0.1.1 router.h.lyte.dev router
+    ${ip} router.h.lyte.dev router
 
     ::1 localhost ip6-localhost ip6-loopback
     ff02::1 ip6-allnodes

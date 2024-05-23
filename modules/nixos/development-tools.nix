@@ -9,6 +9,7 @@
 
   environment.systemPackages = with pkgs; [
     taplo # toml language server for editing helix configs per repo
+    pgcli
     oil
     watchexec
     android-tools

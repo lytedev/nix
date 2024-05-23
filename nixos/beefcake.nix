@@ -1025,6 +1025,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   #   listenPort = 6767;
   # };
 
+  networking.firewall.allowedUDPPorts = [9876 9877];
+  networking.firewall.allowedUDPPortRanges = [
+    {
+      from = 27000;
+      to = 27100;
+    }
+  ];
+
   home-manager.users.daniel.home.stateVersion = "24.05";
   system.stateVersion = "22.05";
 }
