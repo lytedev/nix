@@ -13,6 +13,7 @@
     inputs.hardware.nixosModules.lenovo-thinkpad-t480
     inputs.hardware.nixosModules.common-pc-laptop-ssd
     desktop-usage
+    music-production
     podman
     # gnome
     kde-plasma
@@ -49,9 +50,9 @@
     initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci"];
   };
   services.tlp = {
-    enable = true;
+    enable = false;
   };
-  services.power-profiles-daemon.enable = false;
+  services.power-profiles-daemon.enable = true;
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   services.printing.enable = true; # I own a printer in the year of our Lord 2023

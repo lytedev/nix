@@ -34,6 +34,7 @@ in {
   environment = {
     variables = {
       EDITOR = "hx";
+      SYSTEMD_EDITOR = "hx";
       VISUAL = "hx";
       PAGER = "less";
       MANPAGER = "less";
