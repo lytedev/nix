@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  scale = 1.25;
+  scale = 1.5;
 in {
   networking.hostName = "foxtrot";
 
@@ -28,7 +28,7 @@ in {
     lutris
     postgres
     wifi
-    hyprland
+    # hyprland
     steam
     {
       # laptop power management
@@ -94,7 +94,7 @@ in {
       pass
       firefox-no-tabs
       # wallpaper-manager
-      hyprland
+      # hyprland
     ];
     home = {
       stateVersion = "24.05";
