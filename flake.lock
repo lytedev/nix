@@ -382,11 +382,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1711703276,
-        "narHash": "sha256-iMUFArF0WCatKK6RzfUJknjem0H9m4KgorO/p3Dopkk=",
+        "lastModified": 1716330097,
+        "narHash": "sha256-8BO3B7e3BiyIDsaKA0tY8O88rClYRTjvAp66y+VBUeU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d8fe5e6c92d0d190646fb9f1056741a229980089",
+        "rev": "5710852ba686cc1fd0d3b8e22b3117d43ba374c2",
         "type": "github"
       },
       "original": {
@@ -462,11 +462,11 @@
     "slippi-desktop": {
       "flake": false,
       "locked": {
-        "lastModified": 1711346593,
-        "narHash": "sha256-WWgGRT58w1a4UcEe924hqa4ZVodQtsbXC44aCOEj528=",
+        "lastModified": 1713234497,
+        "narHash": "sha256-UOZo3YybBldkn1McZRr0oAYEieTtjCGgcA4YqpEOyXI=",
         "owner": "project-slippi",
         "repo": "slippi-desktop-app",
-        "rev": "02f3f007cd03c6e2b0da57db65c90646efc04a86",
+        "rev": "ae8bb69e235b6e46b24bc966aeaa80f45030c6f9",
         "type": "github"
       },
       "original": {
@@ -504,11 +504,11 @@
         "slippi-desktop": "slippi-desktop"
       },
       "locked": {
-        "lastModified": 1712071998,
-        "narHash": "sha256-k95NCkXJ61PGMFuqyMtfvP3yTLozED/7DkN+lBWK0gs=",
+        "lastModified": 1716565139,
+        "narHash": "sha256-kjfc9Mg/YdY8OQU+Irm8v9iIhtgIw5qW/6VAehjW6GA=",
         "owner": "lytedev",
         "repo": "ssbm-nix",
-        "rev": "eff966a97287d1d86b189d59a14bf744d86836b0",
+        "rev": "922b91f3f9c0dbdf2ce17921dfc07872d7d41c4b",
         "type": "github"
       },
       "original": {

@@ -23,4 +23,8 @@
     path = ./nim;
     description = "A template for working on a Nim project";
   };
+  gleam = {
+    path = ./gleam;
+    description = "A template for working on a Gleam project";
+  };
 }

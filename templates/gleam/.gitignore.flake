@@ -1,0 +1,13 @@
+# secret files
+*.secret.*
+
+# sqlite databases
+*.db
+*.db-shm
+*.db-wal
+
+# nix build output
+/result
+
+# direnv cache
+/.direnv

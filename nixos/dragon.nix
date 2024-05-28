@@ -43,6 +43,7 @@
       slack
       godot_4
       fractal
+      jdk17
       prismlauncher
       # variety
       radeontop
@@ -58,17 +59,17 @@
       pass
       firefox-no-tabs
       # wallpaper-manager
-      # melee
+      melee
       hyprland
     ];
 
     services.mako.enable = lib.mkForce false; # don't use mako when using plasma
 
-    # ssbm = {
-    #   slippi-launcher = {
-    #     isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
-    #   };
-    # };
+    ssbm = {
+      slippi-launcher = {
+        isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
+      };
+    };
 
     wayland.windowManager.hyprland = {
       settings = {
