@@ -12,13 +12,13 @@
 
   services.gnome.gnome-keyring.enable = true;
 
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-    # settings = {
-    #   pinentry-program = "/run/current-system/sw/bin/pinentry";
-    # };
-  };
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  #   # settings = {
+  #   #   pinentry-program = "/run/current-system/sw/bin/pinentry";
+  #   # };
+  # };
 
   xdg.portal = {
     enable = true;

@@ -1,15 +1,21 @@
 {
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  # inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs?rev=ae34cb9560a578b6354655538e98fb69e8bc8d39";
   outputs = inputs: let
     supportedSystems = ["aarch64-linux" "x86_64-linux" "x86_64-darwin" "aarch64-darwin"];
     forAllSystems = inputs.nixpkgs.lib.genAttrs supportedSystems;
-    nixpkgsFor = system: (import inputs.nixpkgs {inherit system;});
+    overlay = final: prev: {
+      erlangPackages = prev.beam.packagesWith prev.erlang_26;
+      erlang = final.erlangPackages.erlang;
+    };
+    nixpkgsFor = system: ((import inputs.nixpkgs {inherit system;}).extend overlay);
   in {
     devShells = forAllSystems (system: let
       pkgs = nixpkgsFor system;
     in {
       default = pkgs.mkShell {
         buildInputs = with pkgs; [
+          erlang
           gleam
         ];
       };

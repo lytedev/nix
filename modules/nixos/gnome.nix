@@ -22,11 +22,11 @@
     '';
   };
 
-  programs.gnupg.agent = {
-    enable = true;
-    # pinentryFlavor = "gnome3";
-    enableSSHSupport = true;
-  };
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   # pinentryFlavor = "gnome3";
+  #   enableSSHSupport = true;
+  # };
 
   xdg.portal = {
     enable = true;
