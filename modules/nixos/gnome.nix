@@ -5,10 +5,16 @@
 }: {
   imports = [./pipewire.nix];
 
+  # mkForce is used liberally to take precedence over KDE Plasma
+  # so I can have both "usable" at once
+
   services.xserver.enable = lib.mkDefault true;
   services.xserver.displayManager.gdm = {
-    enable = lib.mkDefault true;
+    enable = lib.mkForce true; # take precedence over KDE's SDDM
   };
+  services.displayManager.execCmd = lib.mkForce "exec ${pkgs.gnome.gdm}/bin/gdm";
+  services.displayManager.defaultSession = lib.mkForce "gnome";
+  programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
 
   hardware.pulseaudio.enable = false;
 

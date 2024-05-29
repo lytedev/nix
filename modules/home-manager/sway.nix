@@ -3,7 +3,7 @@
   lib,
   config,
   pkgs,
-  # font,
+  font,
   ...
 }: {
   imports = [
@@ -15,6 +15,30 @@
 
   programs.foot = {
     enable = true;
+  };
+
+  home.file."${config.xdg.configHome}/mako/config" = {
+    enable = true;
+    text = with colors.withHashPrefix; ''
+      border-size=1
+      max-visible=5
+      default-timeout=15000
+      font=Symbols Nerd Font ${toString font.size},${font.name} ${toString font.size}
+      anchor=top-right
+
+      background-color=${bg}
+      text-color=${text}
+      border-color=${primary}
+      progress-color=${primary}
+
+      [urgency=high]
+      border-color=${urgent}
+
+      [urgency=high]
+      background-color=${urgent}
+      border-color=${urgent}
+      text-color=${bg}
+    '';
   };
 
   home.file."${config.xdg.configHome}/tofi/config" = {
@@ -141,7 +165,6 @@
         # {command = "mako";}
         # {command = "firefox";}
         # {command = "wezterm";}
-        {command = "wezterm";}
       ];
 
       modes = {

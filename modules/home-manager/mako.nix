@@ -6,21 +6,23 @@
   services.mako = with colors.withHashPrefix; {
     enable = false;
 
-    borderSize = 1;
-    maxVisible = 5;
-    defaultTimeout = 15000;
-    font = "Symbols Nerd Font ${toString font.size},${font.name} ${toString font.size}";
-    # TODO: config
-
-    backgroundColor = bg;
-    textColor = text;
-    borderColor = primary;
-    progressColor = primary;
     anchor = "top-right";
 
     extraConfig = ''
+      border-size=1
+      max-visible=5
+      default-timeout=15000
+      font=Symbols Nerd Font ${toString font.size},${font.name} ${toString font.size}
+      anchor=top-right
+
+      background-color=${colors.bg}
+      text-color=${colors.text}
+      border-color=${colors.primary}
+      progress-color=${colors.primary}
+
       [urgency=high]
       border-color=${urgent}
+
       [urgency=high]
       background-color=${urgent}
       border-color=${urgent}
