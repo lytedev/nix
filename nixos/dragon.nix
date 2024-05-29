@@ -59,17 +59,17 @@
       pass
       firefox-no-tabs
       # wallpaper-manager
-      melee
+      inputs.slippi.homeManagerModules.default
+      {
+        slippi.launcher = {
+          enable = true;
+          isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
+        };
+      }
       hyprland
     ];
 
     services.mako.enable = lib.mkForce false; # don't use mako when using plasma
-
-    ssbm = {
-      slippi-launcher = {
-        isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
-      };
-    };
 
     wayland.windowManager.hyprland = {
       settings = {

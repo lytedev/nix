@@ -29,8 +29,10 @@
 
     hyprland.url = "github:hyprwm/Hyprland";
 
-    ssbm.url = "github:lytedev/ssbm-nix";
+    # ssbm.url = "github:lytedev/ssbm-nix";
     # ssbm.url = "git+file:///home/daniel/code/open-source/ssbm-nix";
+    # slippi.url = "github:lytedev/slippi-nix";
+    slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
   };
 
   outputs = {

@@ -39,10 +39,11 @@
       MANPAGER = "less";
     };
 
-    packages = [
+    packages = with pkgs; [
       # tools I use when editing nix code
-      pkgs.nil
-      pkgs.alejandra
+      nil
+      alejandra
+      gnupg
 
       # common scripts
       (pkgs.buildEnv {

@@ -12,14 +12,6 @@
 
   services.gnome.gnome-keyring.enable = true;
 
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  #   # settings = {
-  #   #   pinentry-program = "/run/current-system/sw/bin/pinentry";
-  #   # };
-  # };
-
   xdg.portal = {
     enable = true;
     wlr.enable = true;
@@ -28,9 +20,6 @@
       xdg-desktop-portal-wlr
     ];
   };
-
-  # I'm currently leaning Plasma since 6.0 released, so we use that pinentry
-  # programs.gnupg.agent.pinentryPackage = pkgs.pinen;
 
   services.dbus.enable = true;
 

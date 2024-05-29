@@ -1,13 +1,25 @@
-{
+{pkgs, ...}: {
   imports = [
     ./sway.nix
     # ./hyprland.nix
+    ./kde-plasma.nix
     ./fonts.nix
     ./user-installed-applications.nix
     ./kde-connect.nix
     ./troubleshooting-tools.nix
     ./development-tools.nix
   ];
+
+  environment = {
+    variables = {
+      GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
+      GTK_USE_PORTAL = "1";
+    };
+
+    systemPackages = with pkgs; [
+      gnupg
+    ];
+  };
 
   hardware = {
     opengl = {

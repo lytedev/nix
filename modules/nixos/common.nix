@@ -57,6 +57,7 @@ in {
       file
       fzf
       gnumake
+      gnupg
       # gron
       # hexyl
       iputils
