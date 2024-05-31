@@ -608,7 +608,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # clickhouse and plausible analytics once they're up and running?
       services.restic.backups = let
         defaults = {
-          passwordFile = "/root/restic-localbackup-password";
+          passwordFile = "/root/restic-remotebackup-password";
           paths = [
             "/storage/files.lyte.dev"
             "/storage/daniel"
@@ -631,6 +631,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         local =
           defaults
           // {
+            passwordFile = "/root/restic-localbackup-password";
             repository = "/storage/backups/local";
           };
         rascal =
@@ -878,7 +879,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
       ];
       virtualisation.oci-containers.containers.minecraft-dawncraft = {
-        autoStart = true;
+        autoStart = false;
 
         # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
         image = "docker.io/itzg/minecraft-server";

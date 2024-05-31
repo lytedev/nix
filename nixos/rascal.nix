@@ -1,6 +1,5 @@
 {
   inputs,
-  # outputs,
   config,
   modulesPath,
   ...
@@ -18,24 +17,49 @@
     fsType = "f2fs";
   };
 
+  fileSystems."/storage" = {
+    device = "/dev/disk/by-uuid/410fa651-4918-447c-9337-97cc12ff6d2a";
+    fsType = "ext4";
+  };
+
   boot.loader.grub = {
     enable = true;
     device = "/dev/sda";
   };
 
+  users.users = {
+    beefcake = {
+      # used for restic backups
+      isNormalUser = true;
+      openssh.authorizedKeys.keys =
+        config.users.users.daniel.openssh.authorizedKeys.keys
+        ++ [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
+        ];
+    };
+
+    daniel = {
+      # used for restic backups
+      isNormalUser = true;
+      extraGroups = ["users" "wheel" "video" "dialout" "uucp"];
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
+      ];
+    };
+
+    root = {
+      openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
+    };
+  };
+
   networking = {
     hostName = "rascal";
     networkmanager.enable = true;
-  };
-
-  users.users.beefcake = {
-    # used for restic backups
-    isNormalUser = true;
-    openssh.authorizedKeys.keys =
-      config.users.users.daniel.openssh.authorizedKeys.keys
-      ++ [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
-      ];
+    firewall = {
+      enable = true;
+      allowPing = true;
+      allowedTCPPorts = [22];
+    };
   };
 
   system.stateVersion = "22.05";

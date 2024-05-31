@@ -8,6 +8,7 @@
   programs.fish = {
     shellAliases = {
       # TODO: these aren't working?
+      disks = "df -h && lsblk";
       sctl = "sudo systemctl";
       bt = "bluetoothctl";
       pa = "pulsemixer";
