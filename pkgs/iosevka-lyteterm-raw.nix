@@ -1,7 +1,7 @@
 {iosevka, ...}: let
   set = "LyteTerm";
 in
-  iosevka.override {
+  (iosevka.override {
     inherit set;
 
     privateBuildPlan = ''
@@ -122,5 +122,10 @@ in
       ascii-grave = 'straight'
       question = 'smooth'
       punctuation-dot = 'round'
+    '';
+  })
+  .overrideAttrs {
+    postBuild = ''
+      npm run build --no-update-notifier --targets woff2::$pname -- --jCmd=$NIX_BUILD_CORES --verbose=9
     '';
   }
