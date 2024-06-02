@@ -2,15 +2,15 @@
   pkgs,
   parallel,
   python311Packages,
-  iosevka-lyteterm-raw,
+  iosevkaLyteTerm,
   ...
 }: let
-  BASE_FONTS = "${iosevka-lyteterm-raw}/iosevka-lyteterm";
+  BASE_FONTS = "${iosevkaLyteTerm}";
 in
   pkgs.stdenvNoCC.mkDerivation {
     inherit BASE_FONTS;
-    pname = "iosevka-lyteterm-webmin";
-    version = iosevka-lyteterm-raw.version;
+    pname = "iosevkaLyteTermWebMin";
+    version = iosevkaLyteTerm.version;
     buildInputs = [parallel] ++ (with python311Packages; [fonttools brotli]);
     PYTHONPATH = pkgs.python3.withPackages (pp: with pp; [brotli]);
     srcs = [

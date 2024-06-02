@@ -17,7 +17,11 @@
     };
 
     systemPackages = with pkgs; [
+      marksman
+      markdown-oxide
       gnupg
+      pinentry-tty
+      pinentry-curses
     ];
   };
 

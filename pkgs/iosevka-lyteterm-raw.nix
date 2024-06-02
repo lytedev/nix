@@ -1,7 +1,6 @@
 {iosevka, ...}: let
   set = "LyteTerm";
-in
-  (iosevka.override {
+in ((iosevka.override {
     inherit set;
 
     privateBuildPlan = ''
@@ -125,7 +124,22 @@ in
     '';
   })
   .overrideAttrs {
-    postBuild = ''
+    buildPhase = ''
+      export HOME=$TMPDIR
+      runHook preBuild
+      npm run build --no-update-notifier --targets ttf::$pname -- --jCmd=$NIX_BUILD_CORES --verbose=9
       npm run build --no-update-notifier --targets woff2::$pname -- --jCmd=$NIX_BUILD_CORES --verbose=9
+      runHook postBuild
     '';
-  }
+
+    installPhase = ''
+      runHook preInstall
+      ttfontdir="$out/share/fonts/truetype"
+      wfontdir="$out/share/fonts/woff2"
+      install -d "$ttfontdir"
+      install -d "$wfontdir"
+      install "dist/$pname/TTF"/* "$ttfontdir"
+      install "dist/$pname/WOFF2"/* "$wfontdir"
+      runHook postInstall
+    '';
+  })
