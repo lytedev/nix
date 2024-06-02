@@ -44,7 +44,7 @@
   home.file."${config.xdg.configHome}/tofi/config" = {
     enable = true;
     text = ''
-      font = ${pkgs.iosevka-lyteterm}/share/fonts/truetype/iosevka-lyteterm-regular.ttf
+      font = ${pkgs.iosevkaLyteTerm}/share/fonts/truetype/IosevkaLyteTerm-regular.ttf
 
       text-color = #f8f8f8
       prompt-color = #f38ba8

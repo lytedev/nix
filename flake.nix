@@ -62,7 +62,7 @@
     # Your custom packages
     # Acessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (system:
-      import ./pkgs {
+      import ./packages {
         pkgs = nixpkgs.legacyPackages.${system};
       });
 
