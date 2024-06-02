@@ -1,14 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # nixpkgs-next.url = "github:nixos/nixpkgs/staging-next";
-
-    # I have this as a separate input so I don't rebuild the font every time I
-    # want to upgrade nixpkgs
-    nixpkgsForIosevka.url = "github:nixos/nixpkgs?rev=5863c27340ba4de8f83e7e3c023b9599c3cb3c80";
 
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
@@ -22,8 +18,8 @@
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
     sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     hardware.url = "github:nixos/nixos-hardware";
 
@@ -38,8 +34,6 @@
   outputs = {
     self,
     nixpkgs,
-    # nixpkgs-next,
-    nixpkgsForIosevka,
     home-manager,
     hardware,
     pre-commit-hooks,
@@ -70,7 +64,6 @@
     packages = forAllSystems (system:
       import ./pkgs {
         pkgs = nixpkgs.legacyPackages.${system};
-        pkgsForIosevka = nixpkgsForIosevka.legacyPackages.${system};
       });
 
     # Formatter for your nix files, available through 'nix fmt'
@@ -98,7 +91,7 @@
       });
 
     # Your custom packages and modifications, exported as overlays
-    overlays = import ./overlays {inherit nixpkgs nixpkgsForIosevka;};
+    overlays = import ./overlays {inherit nixpkgs;};
 
     # Reusable nixos modules you might want to export
     # These are usually stuff you would upstream into nixpkgs

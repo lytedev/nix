@@ -1,12 +1,8 @@
-{
-  nixpkgs,
-  nixpkgsForIosevka,
-  ...
-}: {
+{nixpkgs, ...}: {
   # This one brings our custom packages from the 'pkgs' directory
   additions = final: _prev:
     import ../pkgs {
-      pkgsForIosevka = nixpkgsForIosevka.legacyPackages.${final.system};
+      pkgs = nixpkgs.legacyPackages.${final.system};
     };
 
   # This one contains whatever you want to overlay
