@@ -144,7 +144,7 @@
 
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
+    # powerOnBoot = true; # this is the default
   };
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 

@@ -10,19 +10,13 @@
     firefox
   ];
 
-  gtk = {
-    enable = true;
-    # Currently failing: https://github.com/NixOS/nixpkgs/issues/298043
-    # Overlay from https://github.com/NixOS/nixpkgs/issues/298043#issuecomment-2015319496
-    # Fix on master but not yet in unstable https://github.com/NixOS/nixpkgs/pull/297683
-    theme = {
-      name = "Catppuccin-Mocha-Compact-Sapphire-Dark";
-      package = pkgs.catppuccin-gtk.override {
-        accents = ["sapphire"];
-        size = "compact";
-        tweaks = ["rimless"];
-        variant = "mocha";
-      };
+  gtk.theme = {
+    name = "Catppuccin-Mocha-Compact-Sapphire-Dark";
+    package = pkgs.catppuccin-gtk.override {
+      accents = ["sapphire"];
+      size = "compact";
+      tweaks = ["rimless"];
+      variant = "mocha";
     };
   };
 
