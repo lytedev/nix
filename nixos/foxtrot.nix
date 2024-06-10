@@ -1,5 +1,6 @@
 {
-  # lib,
+  lib,
+  # config,
   inputs,
   outputs,
   pkgs,
@@ -136,6 +137,10 @@ in {
     };
   };
 
+  home-manager.users.valerie = {
+    home.stateVersion = "24.05";
+  };
+
   hardware.opengl.extraPackages = [
     # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
@@ -152,6 +157,56 @@ in {
 
   boot = {
     # kernelPackages = pkgs.linuxPackages_latest;
+    # https://github.com/void-linux/void-packages/issues/50417#issuecomment-2131802836 fix framework 13 not shutting down
+    kernelPatches = [
+      {
+        name = "framework13shutdownfix";
+        patch = ''
+          From 41d0d1b5b8bb1e6fbaf17ddbb654e6fa903eacdd Mon Sep 17 00:00:00 2001
+          From: Mario Limonciello <mario.limonciello@amd.com>
+          Date: Sat, 25 May 2024 19:33:08 -0500
+          Subject: [PATCH] Add hopefully a solution for shutdown regression
+
+          ---
+           .../drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c  | 20 ++++++++++---------
+           1 file changed, 11 insertions(+), 9 deletions(-)
+
+          diff --git a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c
+          index 4abfcd32747d..636381121986 100644
+          --- a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c
+          +++ b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c
+          @@ -226,15 +226,17 @@ static int smu_v13_0_4_system_features_control(struct smu_context *smu, bool en)
+           	struct amdgpu_device *adev = smu->adev;
+           	int ret = 0;
+
+          -	if (!en && adev->in_s4) {
+          -		/* Adds a GFX reset as workaround just before sending the
+          -		 * MP1_UNLOAD message to prevent GC/RLC/PMFW from entering
+          -		 * an invalid state.
+          -		 */
+          -		ret = smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_GfxDeviceDriverReset,
+          -						      SMU_RESET_MODE_2, NULL);
+          -		if (ret)
+          -			return ret;
+          +	if (!en && !adev->in_s0ix) {
+          +		if (adev->in_s4) {
+          +			/* Adds a GFX reset as workaround just before sending the
+          +			* MP1_UNLOAD message to prevent GC/RLC/PMFW from entering
+          +			* an invalid state.
+          +			*/
+          +			ret = smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_GfxDeviceDriverReset,
+          +							SMU_RESET_MODE_2, NULL);
+          +			if (ret)
+          +				return ret;
+          +		}
+
+           		ret = smu_cmn_send_smc_msg(smu, SMU_MSG_PrepareMp1ForUnload, NULL);
+           	}
+          --
+          2.43.0
+        '';
+      }
+    ];
 
     loader = {
       efi.canTouchEfiVariables = true;
@@ -227,6 +282,7 @@ in {
 
   networking.firewall.allowedTCPPorts = [
     8000 # dev stuff
+    7777
   ];
 
   system.stateVersion = "24.05";

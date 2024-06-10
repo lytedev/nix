@@ -96,6 +96,7 @@ in {
     ];
   };
 
+  users.groups.valerie = {};
   users.groups.daniel = {};
 
   users.users = {
@@ -108,6 +109,18 @@ in {
       ];
       group = "daniel";
       extraGroups = ["users" "wheel" "video" "dialout" "uucp"];
+      packages = [];
+    };
+
+    valerie = {
+      isNormalUser = true;
+      home = "/home/valerie";
+      createHome = true;
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
+      ];
+      group = "valerie";
+      extraGroups = ["users" "video"];
       packages = [];
     };
 
@@ -290,7 +303,7 @@ in {
         "https://cache.nixos.org/"
         "https://helix.cachix.org"
         "https://nix-community.cachix.org"
-        "https://nix.h.lyte.dev"
+        # "https://nix.h.lyte.dev"
       ];
 
       trusted-public-keys = [

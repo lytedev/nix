@@ -7,9 +7,6 @@
   config,
   ...
 }: {
-  # TODO: fonts? right now they are only handled at the nixos-level (desktop-usage module)
-  # TODO: wallpaper?
-
   imports = with outputs.homeManagerModules; [
     # nix-colors.homeManagerModules.default
     fish
@@ -44,24 +41,8 @@
       nil
       alejandra
       gnupg
-
-      # common scripts
-      (pkgs.buildEnv {
-        name = "my-scripts-common";
-        paths = [./scripts/common];
-      })
     ];
   };
-
-  # TODO: not common?
-  # programs.password-store = {
-  #   enable = true;
-  #   package = pkgs.pass.withExtensions (exts: [exts.pass-otp]);
-  # };
-
-  # programs.gitui = {
-  #   enable = true;
-  # };
 
   programs.direnv = {
     enable = true;

@@ -29,6 +29,10 @@
       noto-fonts
       vlc
       wl-clipboard
+
+      libsForQt5.qt5.qtvirtualkeyboard
+      maliit-keyboard
+      maliit-framework
       # libsForQt5.kate
       # libsForQt5.kdenlive
       # libsForQt5.merkuro

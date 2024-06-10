@@ -6,6 +6,9 @@
 }: let
   inherit (pkgs) system;
 in {
+  # TODO: fonts? right now they are only handled at the nixos-level (desktop-usage module)
+  # TODO: wallpaper?
+
   home-manager = {
     extraSpecialArgs = {
       inherit inputs outputs system;
