@@ -9,10 +9,6 @@
   scale = 1.5;
 in {
   networking.hostName = "foxtrot";
-
-  # TODO: I currently have issues with wifi after resuming from hibernation sometimes.
-  # I have to modprobe remove and re-add the wifi module to resolve. Mildly annoying.
-
   imports = with outputs.nixosModules; [
     {
       nixpkgs.overlays = [
@@ -46,17 +42,8 @@ in {
       boot.resumeDevice = "/dev/disk/by-uuid/81c3354a-f629-4b6b-a249-7705aeb9f0d5";
       systemd.sleep.extraConfig = "HibernateDelaySec=30m";
       services.fwupd.enable = true;
-      # source: https://github.com/NixOS/nixos-hardware/tree/master/framework/13-inch/7040-amd#getting-the-fingerprint-sensor-to-work
-      # we need fwupd 1.9.7 to downgrade the fingerprint sensor firmware
-      # services.fwupd.package =
-      #   (import (builtins.fetchTarball {
-      #       url = "https://github.com/NixOS/nixpkgs/archive/bb2009ca185d97813e75736c2b8d1d8bb81bde05.tar.gz";
-      #       sha256 = "sha256:003qcrsq5g5lggfrpq31gcvj82lb065xvr7bpfa8ddsw8x4dnysk";
-      #     }) {
-      #       inherit (pkgs) system;
-      #     })
-      #   .fwupd;
       services.fwupd.extraRemotes = ["lvfs-testing"];
+
       # NOTE: I'm letting plasma settings handle this I guess?
       # services.logind = {
       #   lidSwitch = "suspend-then-hibernate";
@@ -161,50 +148,10 @@ in {
     kernelPatches = [
       {
         name = "framework13shutdownfix";
-        patch = ''
-          From 41d0d1b5b8bb1e6fbaf17ddbb654e6fa903eacdd Mon Sep 17 00:00:00 2001
-          From: Mario Limonciello <mario.limonciello@amd.com>
-          Date: Sat, 25 May 2024 19:33:08 -0500
-          Subject: [PATCH] Add hopefully a solution for shutdown regression
-
-          ---
-           .../drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c  | 20 ++++++++++---------
-           1 file changed, 11 insertions(+), 9 deletions(-)
-
-          diff --git a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c
-          index 4abfcd32747d..636381121986 100644
-          --- a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c
-          +++ b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_4_ppt.c
-          @@ -226,15 +226,17 @@ static int smu_v13_0_4_system_features_control(struct smu_context *smu, bool en)
-           	struct amdgpu_device *adev = smu->adev;
-           	int ret = 0;
-
-          -	if (!en && adev->in_s4) {
-          -		/* Adds a GFX reset as workaround just before sending the
-          -		 * MP1_UNLOAD message to prevent GC/RLC/PMFW from entering
-          -		 * an invalid state.
-          -		 */
-          -		ret = smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_GfxDeviceDriverReset,
-          -						      SMU_RESET_MODE_2, NULL);
-          -		if (ret)
-          -			return ret;
-          +	if (!en && !adev->in_s0ix) {
-          +		if (adev->in_s4) {
-          +			/* Adds a GFX reset as workaround just before sending the
-          +			* MP1_UNLOAD message to prevent GC/RLC/PMFW from entering
-          +			* an invalid state.
-          +			*/
-          +			ret = smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_GfxDeviceDriverReset,
-          +							SMU_RESET_MODE_2, NULL);
-          +			if (ret)
-          +				return ret;
-          +		}
-
-           		ret = smu_cmn_send_smc_msg(smu, SMU_MSG_PrepareMp1ForUnload, NULL);
-           	}
-          --
-          2.43.0
-        '';
+        patch = builtins.fetchurl {
+          url = "https://github.com/void-linux/void-packages/files/15445612/0001-Add-hopefully-a-solution-for-shutdown-regression.PATCH";
+          sha256 = "sha256:10zcnzy5hkam2cnxx441b978gzhvnqlcc49k7bpz9dc28xyjik50";
+        };
       }
     ];
 
