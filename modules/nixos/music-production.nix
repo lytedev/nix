@@ -3,15 +3,10 @@
   # environment?
   imports = [
     {
-      # DAW
       environment.systemPackages = with pkgs; [
-        ardour
-      ];
-    }
-    {
-      # synths/VSTs
-      environment.systemPackages = with pkgs; [
-        helm
+        helvum # pipewire graph/patchbay GUI
+        ardour # DAW
+        helm # synth
       ];
     }
   ];

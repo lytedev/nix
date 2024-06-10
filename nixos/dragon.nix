@@ -16,6 +16,7 @@
     inputs.hardware.nixosModules.common-cpu-amd
     inputs.hardware.nixosModules.common-pc-ssd
     outputs.nixosModules.pipewire-low-latency
+    outputs.nixosModules.music-production
 
     desktop-usage
     podman
@@ -143,7 +144,7 @@
 
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
+    # powerOnBoot = true; # this is the default
   };
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
