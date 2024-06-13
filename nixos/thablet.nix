@@ -14,6 +14,7 @@
     inputs.hardware.nixosModules.lenovo-thinkpad-x1-yoga
     desktop-usage
     fonts
+    steam
     # gnome
     kde-plasma
     wifi
@@ -39,11 +40,6 @@
   environment.systemPackages =
     #with pkgs;
     [];
-
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-  };
 
   # https://wiki.archlinux.org/title/Lenovo_ThinkPad_X1_Yoga_(Gen_3)#Using_acpi_call
   systemd.services.activate-touch-hack = {
