@@ -3,7 +3,7 @@
     enable = true;
     text = ''
       [build]
-      rustdocflags = ["--default-theme=ayu"];
+      rustdocflags = ["--default-theme=ayu"]
     '';
   };
 
