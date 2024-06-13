@@ -47,13 +47,14 @@
     };
     shellAbbrs = {};
     shellAliases = {
-      l = "br";
       ls = "eza --group-directories-first --classify";
-      la = "eza -la --group-directories-first --classify";
-      lA = "eza -la --all --group-directories-first --classify";
-      tree = "eza --tree --level=3";
-      lt = "eza -l --sort=modified";
-      lat = "eza -la --sort=modified";
+      l = "ls";
+      ll = "ls --long --group";
+      la = "ll --all";
+      lA = "la --all"; # --all twice to show . and ..
+      tree = "ls --tree --level=3";
+      lt = "ll --sort=modified";
+      lat = "la --sort=modified";
       lc = "lt --sort=accessed";
       lT = "lt --reverse";
       lC = "lc --reverse";

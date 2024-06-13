@@ -1,10 +1,10 @@
 # paths
 if not set --query NICE_HOME
-	set --export --universal NICE_HOME $HOME
+    set --export --universal NICE_HOME $HOME
 
-	# if HOME ends with a dir called .home, assume that NICE_HOME is HOME's parent dir
-	test (basename $HOME) = .home \
-		&& set --export --universal NICE_HOME (realpath $HOME/..)
+    # if HOME ends with a dir called .home, assume that NICE_HOME is HOME's parent dir
+    test (basename $HOME) = .home \
+        && set --export --universal NICE_HOME (realpath $HOME/..)
 end
 
 set --export --universal XDG_CONFIG_HOME $HOME/.config
@@ -38,8 +38,8 @@ set --export --universal BROWSER firefox
 set --export --universal SOPS_AGE_KEY_FILE "$XDG_CONFIG_HOME/sops/age/keys.txt"
 
 if has_command skim
-	set --export --universal SKIM_ALT_C_COMMAND "fd --hidden --type directory"
-	set --export --universal SKIM_CTRL_T_COMMAND "fd --hidden"
+    set --export --universal SKIM_ALT_C_COMMAND "fd --hidden --type directory"
+    set --export --universal SKIM_CTRL_T_COMMAND "fd --hidden"
 end
 
 # colors
@@ -67,17 +67,20 @@ set -U fish_pager_color_progress white\x1e\x2d\x2dbackground\x3d333 # status ind
 # set -U fish_pager_color_secondary \x2d\x2dbackground\x3d181818 # alternating rows
 
 if test -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
-	source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
+    source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
 end
 
 function has_command --wraps=command --description "Exits non-zero if the given command cannot be found"
-	command --quiet --search $argv[1]
+    command --quiet --search $argv[1]
 end
 
 if has_command rtx
-	rtx activate fish | source
+    rtx activate fish | source
 end
 
 for dir in ~/.cargo/bin ~/.nimble/bin ~/.local/bin /opt/homebrew/bin
-	test -d $dir && fish_add_path $dir
+    test -d $dir && fish_add_path $dir
 end
+
+# don't let other users read my files by default
+umask 077

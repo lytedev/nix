@@ -149,11 +149,14 @@
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
   networking = {
-    firewall = {
+    firewall = let
+      terraria = 7777;
+      stardew-valley = 24642;
+    in {
       enable = true;
       allowPing = true;
-      allowedTCPPorts = [22 7777];
-      allowedUDPPorts = [];
+      allowedTCPPorts = [22 terraria stardew-valley];
+      allowedUDPPorts = [terraria stardew-valley];
     };
   };
 
