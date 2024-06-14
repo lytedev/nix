@@ -624,7 +624,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           initialize = true;
           exclude = [];
           timerConfig = {
-            OnCalendar = "04:45";
+            OnCalendar = ["04:45" "17:45"];
           };
         };
       in {
