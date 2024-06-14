@@ -47,8 +47,9 @@
     ];
 
     forAllSystems = nixpkgs.lib.genAttrs systems;
+    pkgsFor = system: import nixpkgs {inherit system;};
   in {
-    colors = (import ./lib/colors.nix {inherit nixpkgs;}).schemes.catppuccin-mocha-sapphire;
+    colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
     # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
 
     font = {
@@ -60,7 +61,6 @@
     # Acessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (system:
       import ./packages {
-        pkgs = nixpkgs.legacyPackages.${system};
       });
 
     # Formatter for your nix files, available through 'nix fmt'
