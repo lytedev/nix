@@ -2,29 +2,25 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-
-    # nixpkgs-next.url = "github:nixos/nixpkgs/staging-next";
-
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-
-    home-manager.url = "github:nix-community/home-manager/master";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    helix.url = "github:helix-editor/helix/master";
+    # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
     sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+
+    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    helix.url = "github:helix-editor/helix/master";
     hardware.url = "github:nixos/nixos-hardware";
-
     hyprland.url = "github:hyprwm/Hyprland";
-
     slippi.url = "github:lytedev/slippi-nix";
   };
 
@@ -61,6 +57,7 @@
     # Acessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (system:
       import ./packages {
+        pkgs = pkgsFor system;
       });
 
     # Formatter for your nix files, available through 'nix fmt'
@@ -77,7 +74,7 @@
     });
 
     devShell = forAllSystems (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = pkgsFor system;
     in
       pkgs.mkShell {
         inherit (outputs.checks.${system}.pre-commit-check) shellHook;
@@ -151,7 +148,7 @@
         system = "x86_64-linux";
       in
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgsFor system;
           extraSpecialArgs = {
             inherit inputs outputs system;
             inherit (outputs) colors font;
@@ -170,7 +167,7 @@
         system = "aarch64-darwin";
       in
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgsFor system;
           extraSpecialArgs = {
             inherit inputs outputs system;
             inherit (outputs) colors font;
