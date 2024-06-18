@@ -5,7 +5,6 @@
     enable = true;
     extest.enable = true;
     gamescopeSession.enable = true;
-    gamescope.enable = true;
 
     extraPackages = with pkgs; [
       gamescope
