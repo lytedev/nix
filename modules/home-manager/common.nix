@@ -41,6 +41,10 @@
       nil
       alejandra
       gnupg
+      (pkgs.buildEnv {
+        name = "my-common-scripts";
+        paths = [./scripts/common];
+      })
     ];
   };
 
