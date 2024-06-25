@@ -8,22 +8,15 @@
     pre-commit-hooks,
     ...
   }: let
-    inherit (self) outputs;
-
-    supportedSystems = [
-      "aarch64-linux"
-      "x86_64-linux"
-
-      "aarch64-darwin"
-      "x86_64-darwin"
-    ];
-
-    forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+    systems = ["aarch64-linux" "aarch64-darwin" "x86_64-darwin" "x86_64-linux"];
+    forSystems = nixpkgs.lib.genAttrs systems;
+    pkgsFor = system: import nixpkgs {inherit system;};
+    genPkgs = f: (f (forSystems pkgsFor));
   in {
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+    formatter = genPkgs (pkgs: pkgs.alejandra);
 
-    checks = forAllSystems (system: {
-      pre-commit-check = pre-commit-hooks.lib.${system}.run {
+    checks = genPkgs (pkgs: {
+      pre-commit-check = pre-commit-hooks.lib.${pkgs.system}.run {
         src = ./.;
         hooks = {
           alejandra.enable = true;
@@ -31,15 +24,13 @@
       };
     });
 
-    devShell = forAllSystems (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
+    devShell = genPkgs (pkgs:
       pkgs.mkShell {
         buildInputs = with pkgs; [nil alejandra];
-        inherit (outputs.checks.${system}.pre-commit-check) shellHook;
+        inherit (self.outputs.checks.${pkgs.system}.pre-commit-check) shellHook;
       });
 
-    # packages = forAllSystems (system: import ./pkgs {pkgs = nixpkgs.legacyPackages.${system};});
+    # packages = genPkgs (pkgs: import ./pkgs {inherit pkgs;});
     # overlays = import ./overlays self;
     # nixosModules = import ./modules/nixos;
     # homeManagerModules = import ./modules/home-manager;

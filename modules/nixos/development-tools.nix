@@ -31,9 +31,10 @@
     google-chrome
   ];
 
-  services.udev.packages = [
-    pkgs.platformio
-    pkgs.openocd
+  services.udev.packages = with pkgs; [
+    platformio
+    openocd
+    via
   ];
 
   programs.adb.enable = true;

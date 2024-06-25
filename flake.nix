@@ -32,17 +32,10 @@
     ...
   } @ inputs: let
     # TODO: make @ inputs unnecessary by making arguments explicit in all modules?
-    inherit (self) outputs;
-
-    systems = [
-      "aarch64-linux"
-      "aarch64-darwin"
-      "x86_64-darwin"
-      "x86_64-linux"
-    ];
-
-    forAllSystems = nixpkgs.lib.genAttrs systems;
+    systems = ["aarch64-linux" "aarch64-darwin" "x86_64-darwin" "x86_64-linux"];
+    forSystems = nixpkgs.lib.genAttrs systems;
     pkgsFor = system: import nixpkgs {inherit system;};
+    genPkgs = f: (f (forSystems pkgsFor));
   in {
     colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
     # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
@@ -52,19 +45,10 @@
       size = 12;
     };
 
-    # Your custom packages
-    # Acessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system:
-      import ./packages {
-        pkgs = pkgsFor system;
-      });
-
-    # Formatter for your nix files, available through 'nix fmt'
-    # Other options beside 'alejandra' include 'nixpkgs-fmt'
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
-
-    checks = forAllSystems (system: {
-      pre-commit-check = pre-commit-hooks.lib.${system}.run {
+    packages = genPkgs (pkgs: import ./packages {inherit pkgs;});
+    formatter = genPkgs (pkgs: pkgs.alejandra);
+    checks = genPkgs (pkgs: {
+      pre-commit-check = pre-commit-hooks.lib.${pkgs.system}.run {
         src = ./.;
         hooks = {
           alejandra.enable = true;
@@ -72,30 +56,19 @@
       };
     });
 
-    devShell = forAllSystems (system: let
-      pkgs = pkgsFor system;
-    in
+    devShell = genPkgs (pkgs:
       pkgs.mkShell {
-        inherit (outputs.checks.${system}.pre-commit-check) shellHook;
+        inherit (self.outputs.checks.${pkgs.system}.pre-commit-check) shellHook;
 
         buildInputs = with pkgs; [
           lua-language-server
         ];
       });
 
-    # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit nixpkgs;};
-
-    # Reusable nixos modules you might want to export
-    # These are usually stuff you would upstream into nixpkgs
     nixosModules = import ./modules/nixos;
-
-    # Reusable home-manager modules you might want to export
-    # These are usually stuff you would upstream into home-manager
     homeManagerModules = import ./modules/home-manager;
 
-    # NixOS configuration entrypoint
-    # Available through 'nixos-rebuild --flake .#your-hostname'
     nixosConfigurations =
       (builtins.mapAttrs (name: {
           system,
@@ -109,7 +82,8 @@
             inherit system;
             specialArgs = {
               # TODO: avoid special args and actually pass inputs to modules?
-              inherit inputs outputs hardware;
+              inherit (self) outputs;
+              inherit inputs hardware;
             };
             # extraSpecialArgs = {
             #   inherit inputs outputs system;
@@ -121,11 +95,11 @@
               ++ modules;
           }) (import ./nixos))
       // {
-        # TODO: stabilize "appliance"-type hosts on stable nixpkgs ASAP to avoid breakages
         beefcake = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
-            inherit inputs outputs hardware;
+            inherit (self) outputs;
+            inherit inputs hardware;
           };
           modules = [self.nixosModules.common ./nixos/beefcake.nix];
         };
@@ -139,8 +113,6 @@
         # };
       };
 
-    # Standalone home-manager configuration entrypoint
-    # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
       # TODO: non-system-specific home configurations?
       "deck" = let
@@ -149,10 +121,11 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsFor system;
           extraSpecialArgs = {
-            inherit inputs outputs system;
-            inherit (outputs) colors font;
+            inherit (self) outputs;
+            inherit inputs system;
+            inherit (self.outputs) colors font;
           };
-          modules = with outputs.homeManagerModules; [
+          modules = with self.outputs.homeManagerModules; [
             common
             {
               home.homeDirectory = "/home/deck";
@@ -168,10 +141,11 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsFor system;
           extraSpecialArgs = {
-            inherit inputs outputs system;
-            inherit (outputs) colors font;
+            inherit (self) outputs;
+            inherit inputs system;
+            inherit (self.outputs) colors font;
           };
-          modules = with outputs.homeManagerModules; [
+          modules = with self.outputs.homeManagerModules; [
             common
             {
               home.homeDirectory = "/Users/daniel.flanagan";
@@ -183,10 +157,7 @@
         };
     };
 
-    # Disk partition schemes and functions
     diskoConfigurations = import ./disko;
-
-    # Flake templates for easily setting up Nix in a project using common patterns I like
     templates = import ./templates/all.nix;
 
     # TODO: nix-on-droid for phone terminal usage?
