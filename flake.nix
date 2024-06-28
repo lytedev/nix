@@ -396,9 +396,12 @@
           google-chrome
         ];
 
+        hardware.gpgSmartcards.enable = true;
+
         services.udev.packages = with pkgs; [
           platformio
           openocd
+          pkgs.yubikey-personalization
           via
         ];
 
@@ -406,6 +409,11 @@
         users.users.daniel.extraGroups = ["adbusers"];
 
         home-manager.users.daniel = {
+          home.packages = with pkgs; [
+            yubikey-personalization
+            yubikey-manager
+            yubico-piv-tool
+          ];
           programs.nushell = {
             enable = true;
           };
@@ -496,7 +504,7 @@
         ];
       };
 
-      plasma6 = {
+      plasma6 = {pkgs, ...}: {
         imports = with nixosModules; [
           kde-connect
           pipewire
@@ -509,6 +517,16 @@
         };
         services.desktopManager.plasma6.enable = true;
         programs.dconf.enable = true;
+
+        environment.systemPackages = with pkgs; [
+          wl-clipboard
+        ];
+
+        programs.gnupg.agent = {
+          enable = true;
+          enableSSHSupport = true;
+          pinentryPackage = pkgs.pinentry-qt;
+        };
       };
 
       lutris = {pkgs, ...}: {
@@ -2075,6 +2093,10 @@
           enable = true;
           package = pkgs.pass.withExtensions (exts: [exts.pass-otp]);
         };
+
+        home.packages = with pkgs; [
+          pinentry-curses
+        ];
       };
 
       senpai = {config, ...}: {
@@ -2796,6 +2818,7 @@
 
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
+                pass
                 senpai
                 iex
                 cargo
