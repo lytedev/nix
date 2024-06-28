@@ -1,5 +1,4 @@
 {
-  outputs,
   lib,
   # outputs,
   # config,
@@ -33,10 +32,6 @@ in {
   networking.hostName = "router";
   networking.domain = "h.lyte.dev";
   networking.useDHCP = false;
-
-  imports = [
-    outputs.diskoConfigurations.unencrypted
-  ];
 
   # TODO: perform a hardware scan
 
@@ -356,5 +351,5 @@ in {
     ];
   };
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.05";
 }
