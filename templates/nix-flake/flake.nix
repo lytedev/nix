@@ -24,11 +24,14 @@
       };
     });
 
-    devShell = genPkgs (pkgs:
-      pkgs.mkShell {
+    devShells = genPkgs (pkgs: {
+      nix = pkgs.mkShell {
         buildInputs = with pkgs; [nil alejandra];
         inherit (self.outputs.checks.${pkgs.system}.pre-commit-check) shellHook;
-      });
+      };
+
+      default = self.outputs.devShells.${pkgs.system}.nix;
+    });
 
     # packages = genPkgs (pkgs: import ./pkgs {inherit pkgs;});
     # overlays = import ./overlays self;

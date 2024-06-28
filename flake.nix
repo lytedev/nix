@@ -11,8 +11,8 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -26,29 +26,51 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-unstable,
+    disko,
+    # sops-nix,
+    pre-commit,
     home-manager,
+    helix,
     hardware,
-    pre-commit-hooks,
+    hyprland,
+    slippi,
     ...
-  } @ inputs: let
+  }: let
+    inherit (self) outputs;
+
     # TODO: make @ inputs unnecessary by making arguments explicit in all modules?
     systems = ["aarch64-linux" "aarch64-darwin" "x86_64-darwin" "x86_64-linux"];
     forSystems = nixpkgs.lib.genAttrs systems;
-    pkgsFor = system: import nixpkgs {inherit system;};
-    genPkgs = f: (f (forSystems pkgsFor));
-  in {
-    colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
-    # colors = (import ./lib/colors.nix inputs).color-schemes.donokai;
+    pkgsFor = system: (import nixpkgs {
+      inherit system;
+      inherit (outputs) overlays;
+    });
+    genPkgs = func: (forSystems (system: func (pkgsFor system)));
+    pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
+    vanillaPkg = callee: pkg callee {};
 
-    font = {
-      name = "IosevkaLyteTerm";
-      size = 12;
+    # colors = (pkg ./lib/colors.nix {}).schemes.catppuccin-mocha-sapphire;
+
+    # font = {
+    #   name = "IosevkaLyteTerm";
+    #   size = 12;
+    # };
+
+    moduleArgs = {
+      # inherit colors font;
+      inherit helix slippi hyprland hardware disko home-manager;
+      inherit (outputs) nixosModules homeManagerModules diskoConfigurations overlays;
     };
+  in {
+    diskoConfigurations = import ./disko;
+    templates = import ./templates;
+    packages = vanillaPkg ./packages;
 
-    packages = genPkgs (pkgs: import ./packages {inherit pkgs;});
-    formatter = genPkgs (pkgs: pkgs.alejandra);
-    checks = genPkgs (pkgs: {
-      pre-commit-check = pre-commit-hooks.lib.${pkgs.system}.run {
+    formatter = genPkgs (p: p.alejandra);
+
+    checks = vanillaPkg ({system}: {
+      pre-commit-check = pre-commit.lib.${system}.run {
         src = ./.;
         hooks = {
           alejandra.enable = true;
@@ -56,109 +78,97 @@
       };
     });
 
-    devShell = genPkgs (pkgs:
-      pkgs.mkShell {
-        inherit (self.outputs.checks.${pkgs.system}.pre-commit-check) shellHook;
+    devShells = vanillaPkg ({
+      system,
+      pkgs,
+      mkShell,
+    }: {
+      default = mkShell {
+        inherit (outputs.checks.${system}.pre-commit-check) shellHook;
 
         buildInputs = with pkgs; [
           lua-language-server
+          nodePackages.bash-language-server
         ];
-      });
+      };
+    });
 
-    overlays = import ./overlays {inherit nixpkgs;};
+    overlays = {
+      additions = _final: prev: outputs.packages.${prev.system};
+
+      modifications = final: prev: {
+        final.helix = helix.outputs.packages.${final.system}.helix;
+      };
+
+      unstable-packages = final: _prev: {
+        final.unstable = import nixpkgs-unstable {
+          system = final.system;
+          config.allowUnfree = true;
+        };
+      };
+    };
+
     nixosModules = import ./modules/nixos;
     homeManagerModules = import ./modules/home-manager;
 
-    nixosConfigurations =
-      (builtins.mapAttrs (name: {
-          system,
-          modules,
-          ...
-        }:
-        # let
-        # commonModules =
-        # in
-          nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = {
-              # TODO: avoid special args and actually pass inputs to modules?
-              inherit (self) outputs;
-              inherit inputs hardware;
-            };
-            # extraSpecialArgs = {
-            #   inherit inputs outputs system;
-            # };
-            modules =
-              [
-                self.nixosModules.common
-              ]
-              ++ modules;
-          }) (import ./nixos))
-      // {
-        beefcake = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = {
-            inherit (self) outputs;
-            inherit inputs hardware;
-          };
-          modules = [self.nixosModules.common ./nixos/beefcake.nix];
-        };
-        # rascal = {
-        #   system = "x86_64-linux";
-        #   modules = [./rascal.nix];
-        # };
-        # router = {
-        #   system = "x86_64-linux";
-        #   modules = [./router.nix];
-        # };
-      };
+    # nixosConfigurations =
+    # (builtins.mapAttrs (name: {
+    #   system,
+    #   modules,
+    #   ...
+    # }:
+    #   nixpkgs.lib.nixosSystem {
+    #     inherit system;
+    #     # specialArgs = moduleArgs;
+    #     modules =
+    #       [
+    #         self.nixosModules.common
+    #       ]
+    #       ++ modules;
+    #   }) (import ./nixos))
+    # // {
+    #   beefcake = nixpkgs.lib.nixosSystem {
+    #     system = "x86_64-linux";
+    #     specialArgs = moduleArgs;
+    #     modules = [self.nixosModules.common ./nixos/beefcake.nix];
+    #   };
+    # };
 
-    homeConfigurations = {
-      # TODO: non-system-specific home configurations?
-      "deck" = let
-        system = "x86_64-linux";
-      in
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor system;
-          extraSpecialArgs = {
-            inherit (self) outputs;
-            inherit inputs system;
-            inherit (self.outputs) colors font;
-          };
-          modules = with self.outputs.homeManagerModules; [
-            common
-            {
-              home.homeDirectory = "/home/deck";
-              home.username = "deck";
-              home.stateVersion = "24.05";
-            }
-            linux
-          ];
-        };
-      workm1 = let
-        system = "aarch64-darwin";
-      in
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor system;
-          extraSpecialArgs = {
-            inherit (self) outputs;
-            inherit inputs system;
-            inherit (self.outputs) colors font;
-          };
-          modules = with self.outputs.homeManagerModules; [
-            common
-            {
-              home.homeDirectory = "/Users/daniel.flanagan";
-              home.username = "daniel.flanagan";
-              home.stateVersion = "24.05";
-            }
-            macos
-          ];
-        };
-    };
-
-    diskoConfigurations = import ./disko;
-    templates = import ./templates/all.nix;
+    # homeConfigurations = {
+    #   # TODO: non-system-specific home configurations?
+    #   "deck" = let
+    #     system = "x86_64-linux";
+    #   in
+    #     home-manager.lib.homeManagerConfiguration {
+    #       pkgs = pkgsFor system;
+    #       extraSpecialArgs = moduleArgs;
+    #       modules = with self.outputs.homeManagerModules; [
+    #         common
+    #         {
+    #           home.homeDirectory = "/home/deck";
+    #           home.username = "deck";
+    #           home.stateVersion = "24.05";
+    #         }
+    #         linux
+    #       ];
+    #     };
+    #   workm1 = let
+    #     system = "aarch64-darwin";
+    #   in
+    #     home-manager.lib.homeManagerConfiguration {
+    #       pkgs = pkgsFor system;
+    #       extraSpecialArgs = moduleArgs;
+    #       modules = with self.outputs.homeManagerModules; [
+    #         common
+    #         {
+    #           home.homeDirectory = "/Users/daniel.flanagan";
+    #           home.username = "daniel.flanagan";
+    #           home.stateVersion = "24.05";
+    #         }
+    #         macos
+    #       ];
+    #     };
+    # };
 
     # TODO: nix-on-droid for phone terminal usage?
     # TODO: nix-darwin for work?

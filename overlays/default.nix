@@ -2,7 +2,7 @@
   # This one brings our custom packages from the 'pkgs' directory
   additions = final: _prev:
     import ../packages {
-      pkgs = nixpkgs.legacyPackages.${final.system};
+      pkgs = import nixpkgs {inherit (final) system;};
     };
 
   # This one contains whatever you want to overlay

@@ -1,9 +1,12 @@
 {
+  overlays,
   config,
   lib,
-  inputs,
-  outputs,
   pkgs,
+  colors,
+  sops-nix,
+  home-manager,
+  disko,
   modulesPath,
   ...
 }: let
@@ -13,14 +16,14 @@ in {
 
   imports =
     [
-      (modulesPath + "/installer/scan/not-detected.nix")
-      inputs.sops-nix.nixosModules.sops
-      inputs.disko.nixosModules.disko
-      inputs.home-manager.nixosModules.home-manager
+      # (modulesPath + "/installer/scan/not-detected.nix")
+      # sops-nix.nixosModules.sops
+      # disko.nixosModules.disko
+      # home-manager.nixosModules.home-manager
     ]
     ++ [
-      ./avahi.nix
-      ./daniel.nix
+      # ./avahi.nix
+      # ./daniel.nix
     ];
 
   hardware.enableRedistributableFirmware = true;
@@ -174,7 +177,7 @@ in {
     useXkbConfig = true;
     earlySetup = true;
 
-    colors = with outputs.colors; [
+    colors = with colors; [
       bg
       red
       green
@@ -263,9 +266,9 @@ in {
     # You can add overlays here
     overlays = [
       # Add overlays your own flake exports (from overlays and pkgs dir):
-      outputs.overlays.additions
-      outputs.overlays.modifications
-      outputs.overlays.unstable-packages
+      overlays.additions
+      overlays.modifications
+      overlays.unstable-packages
 
       # You can also add overlays exported from other flakes:
       # neovim-nightly-overlay.overlays.default
