@@ -1,13 +1,12 @@
 {
   pkgs,
   lib,
-  system,
-  inputs,
-  outputs,
   config,
   ...
-}: {
-  imports = with outputs.homeManagerModules; [
+}: let
+  inherit (pkgs) system;
+in {
+  imports = with homeManagerModules; [
     # nix-colors.homeManagerModules.default
     fish
     bat
@@ -55,7 +54,6 @@
 
   programs.eza = {
     enable = true;
-    package = inputs.nixpkgs.legacyPackages.${system}.eza;
   };
 
   programs.skim = {

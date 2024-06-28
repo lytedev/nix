@@ -1,8 +1,6 @@
 {
   config,
   pkgs,
-  inputs,
-  colors,
   ...
 }: let
   inherit (pkgs) system;
