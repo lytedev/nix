@@ -2726,10 +2726,10 @@
             };
           }
           ./nixos/beefcake.nix
-          ({...}: {
+          {
             services.smartd.enable = true;
             services.fwupd.enable = true;
-          })
+          }
         ];
       };
 
@@ -2894,54 +2894,67 @@
               # };
             };
           })
+          {
+            services.smartd.enable = true;
+            services.fwupd.enable = true;
+          }
         ];
       };
 
-      foxtrot = {...}: {
-        imports = with nixosModules; [
+      foxtrot = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+
+        modules = with nixosModules; [
           common
-          laptop
+          ./nixos/foxtrot.nix
+          {
+            services.smartd.enable = true;
+            services.fwupd.enable = true;
+          }
         ];
       };
 
-      thablet = {...}: {
-        imports = with nixosModules; [
+      thablet = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+
+        modules = with nixosModules; [
           common
-          laptop
+          ./nixos/thablet.nix
+          {
+            services.smartd.enable = true;
+            services.fwupd.enable = true;
+          }
         ];
       };
 
-      thinker = {...}: {
-        imports = with nixosModules; [
+      thinker = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+
+        modules = with nixosModules; [
           common
-          laptop
+          ./nixos/thinker.nix
+          {
+            services.smartd.enable = true;
+            services.fwupd.enable = true;
+          }
+        ];
+      };
+
+      rascal = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+
+        modules = with nixosModules; [
+          common
+          ./nixos/rascal.nix
+          {
+            services.smartd.enable = true;
+            services.fwupd.enable = true;
+          }
         ];
       };
     };
 
-    # nixosConfigurations =
-    # (builtins.mapAttrs (name: {
-    #   system,
-    #   modules,
-    #   ...
-    # }:
-    #   nixpkgs.lib.nixosSystem {
-    #     inherit system;
-    #     # specialArgs = moduleArgs;
-    #     modules =
-    #       [
-    #         nixosModules.common
-    #       ]
-    #       ++ modules;
-    #   }) (import ./nixos))
-    # // {
-    #   beefcake = nixpkgs.lib.nixosSystem {
-    #     system = "x86_64-linux";
-    #     specialArgs = moduleArgs;
-    #     modules = [nixosModules.common ./nixos/beefcake.nix];
-    #   };
-    # };
-
+    # TODO: homeconfigs?
     # homeConfigurations = {
     #   # TODO: non-system-specific home configurations?
     #   "deck" = let
