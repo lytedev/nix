@@ -22,7 +22,6 @@
     }: let
       base =
         {
-          # aliases?
           text = fg;
           primary = blue;
           urgent = red;
@@ -50,10 +49,10 @@
         }
         // scheme;
     in
-      {
+      base
+      // {
         withHashPrefix = lib.mapAttrs (_: value: "#${value}") base;
-      }
-      // base;
+      };
   in {
     donokai = mkColorScheme {
       scheme-name = "donokai";
