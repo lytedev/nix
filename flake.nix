@@ -275,7 +275,7 @@
         # enable an ssh server and provide root access with my primary public key
 
         users.users.root = {
-          openssh.authorizedKeys.keys = pubkey;
+          openssh.authorizedKeys.keys = [pubkey];
         };
 
         services.openssh = {
@@ -881,6 +881,8 @@
           no-giant-logs
           allow-redistributable-firmware
           mdns-and-lan-service-discovery
+          tailscale
+          ssh-server
 
           my-favorite-default-system-apps
           mosh

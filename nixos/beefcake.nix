@@ -1026,6 +1026,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   #   listenPort = 6767;
   # };
 
+  networking.firewall.allowedTCPPorts = [9876 9877];
   networking.firewall.allowedUDPPorts = [9876 9877];
   networking.firewall.allowedUDPPortRanges = [
     {
