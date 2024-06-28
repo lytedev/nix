@@ -2946,6 +2946,7 @@
         system = "x86_64-linux";
 
         modules = with nixosModules; [
+          hardware.nixosModules.common-cpu-amd
           common
           ./nixos/rascal.nix
           {

@@ -1,11 +1,9 @@
 {
-  inputs,
   config,
   modulesPath,
   ...
 }: {
   imports = [
-    inputs.hardware.nixosModules.common-cpu-amd
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
@@ -62,5 +60,5 @@
     };
   };
 
-  system.stateVersion = "22.05";
+  system.stateVersion = "24.05";
 }
