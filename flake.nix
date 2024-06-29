@@ -1,14 +1,13 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
-    # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
     sops-nix.url = "github:Mic92/sops-nix";
-    # sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     pre-commit.url = "github:cachix/pre-commit-hooks.nix";
@@ -46,7 +45,7 @@
   outputs = {
     self,
     nixpkgs,
-    # nixpkgs-unstable,
+    nixpkgs-unstable,
     disko,
     sops-nix,
     pre-commit,
@@ -119,7 +118,7 @@
         overlays = with overlays; [
           additions
           modifications
-          # unstable-packages
+          unstable-packages
         ];
       };
 
@@ -136,12 +135,12 @@
         final.helix = helix.outputs.packages.${prev.system}.helix;
       };
 
-      # unstable-packages = final: _prev: {
-      #   final.unstable = import nixpkgs-unstable {
-      #     system = final.system;
-      #     config.allowUnfree = true;
-      #   };
-      # };
+      unstable-packages = final: _prev: {
+        unstable-packages = import nixpkgs-unstable {
+          system = final.system;
+          config.allowUnfree = true;
+        };
+      };
     };
 
     nixosModules = import ./modules/nixos {
