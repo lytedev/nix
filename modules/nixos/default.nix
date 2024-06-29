@@ -787,6 +787,11 @@
       daniel
     ];
 
+    programs.gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
+
     time = {
       timeZone = lib.mkDefault "America/Chicago";
     };
