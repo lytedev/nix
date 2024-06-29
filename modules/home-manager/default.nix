@@ -90,7 +90,7 @@
         gnupg
         (pkgs.buildEnv {
           name = "my-common-scripts";
-          paths = [./modules/home-manager/scripts/common];
+          paths = [./scripts/common];
         })
       ];
     };
@@ -241,8 +241,8 @@
     programs.fish = {
       enable = true;
       # I load long scripts from files for a better editing experience
-      shellInit = builtins.readFile ./modules/home-manager/fish/shellInit.fish;
-      interactiveShellInit = builtins.readFile ./modules/home-manager/fish/interactiveShellInit.fish;
+      shellInit = builtins.readFile ./fish/shellInit.fish;
+      interactiveShellInit = builtins.readFile ./fish/interactiveShellInit.fish;
       loginShellInit = "";
       functions = {
         # TODO: I think these should be loaded from fish files too for better editor experience?
@@ -1104,7 +1104,7 @@
     home.packages = [
       (pkgs.buildEnv {
         name = "my-linux-scripts";
-        paths = [./modules/home-manager/scripts/linux];
+        paths = [./scripts/linux];
       })
     ];
   };
@@ -1195,7 +1195,7 @@
     # docs: https://wezfurlong.org/wezterm/config/appearance.html#defining-your-own-colors
     programs.wezterm = with colors.withHashPrefix; {
       enable = true;
-      extraConfig = builtins.readFile ./modules/home-manager/wezterm/config.lua;
+      extraConfig = builtins.readFile ./wezterm/config.lua;
       colorSchemes = {
         catppuccin-mocha-sapphire = {
           ansi = map (x: colors.withHashPrefix.${toString x}) (pkgs.lib.lists.range 0 7);

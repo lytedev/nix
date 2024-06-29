@@ -180,7 +180,7 @@
         modules = with nixosModules; [
           common
 
-          diskoConfigurations.standard
+          outputs.diskoConfigurations.standard
           hardware.nixosModules.common-cpu-amd
           hardware.nixosModules.common-pc-ssd
 
@@ -217,7 +217,6 @@
           hardware.nixosModules.framework-13-7040-amd
 
           graphical-workstation
-          development-tools
           laptop
           gaming
 
@@ -248,11 +247,20 @@
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
           graphical-workstation
-          development-tools
           laptop
           gaming
 
           ./nixos/thablet.nix
+
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                iex
+                cargo
+                linux-desktop-environment-config
+              ];
+            };
+          }
         ];
       };
 
