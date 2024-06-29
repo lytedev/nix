@@ -264,6 +264,8 @@
     hardware.gpgSmartcards.enable = true;
 
     services.udev.packages = with pkgs; [
+      # TODO: I think these get the whole package pulled in... should find out
+      # if there's a way to get just the rules and not 4 chromes
       platformio
       openocd
       pkgs.yubikey-personalization
