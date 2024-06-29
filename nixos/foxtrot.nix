@@ -33,7 +33,6 @@
 
   environment = {
     systemPackages = with pkgs; [
-      steam
       spotify
       discord
       slack
@@ -190,8 +189,18 @@
   #   };
   # };
 
-  networking.firewall.allowedTCPPorts = [
+  networking.firewall.allowedTCPPorts = let
+    stardewValley = 24642;
+  in [
     8000 # dev stuff
+    stardewValley
+    7777
+  ];
+  networking.firewall.allowedUDPPorts = let
+    stardewValley = 24642;
+  in [
+    8000 # dev stuff
+    stardewValley
     7777
   ];
 
