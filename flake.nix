@@ -283,6 +283,34 @@
         ];
       };
 
+      grablet = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          common
+
+          outputs.diskoConfigurations.standard
+          hardware.nixosModules.common-cpu-intel-kaby-lake
+          hardware.nixosModules.common-pc-laptopp-ssd
+          graphical-workstation
+          laptop
+          gaming
+
+          ./nixos/thablet.nix
+
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                iex
+                cargo
+                linux-desktop-environment-config
+              ];
+            };
+
+            powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
+          }
+        ];
+      };
+
       thinker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
