@@ -383,6 +383,10 @@
     services.desktopManager.plasma6.enable = true;
     programs.dconf.enable = true;
 
+    services.xrdp.enable = true;
+    services.xrdp.defaultWindowManager = "plasma";
+    services.xrdp.openFirewall = false;
+
     environment.systemPackages = with pkgs; [
       wl-clipboard
       inkscape
@@ -391,24 +395,24 @@
       vlc
       wl-clipboard
 
-      libsForQt5.qt5.qtvirtualkeyboard
+      kdePackages.qtvirtualkeyboard
       maliit-keyboard
       maliit-framework
 
-      libsForQt5.kate
-      # libsForQt5.kdenlive
-      # libsForQt5.merkuro
-      libsForQt5.kcalc
-      # libsForQt5.neochat
-      libsForQt5.filelight
-      libsForQt5.krdc
-      libsForQt5.krfb
-      libsForQt5.kclock
-      libsForQt5.kweather
-      libsForQt5.ktorrent
-      # libsForQt5.kdevelop
-      # libsForQt5.kdialog
-      libsForQt5.kdeplasma-addons
+      kdePackages.kate
+      # kdePackages.kdenlive
+      # kdePackages.merkuro
+      kdePackages.kcalc
+      # kdePackages.neochat
+      kdePackages.filelight
+      kdePackages.krdc
+      kdePackages.krfb
+      kdePackages.kclock
+      kdePackages.kweather
+      kdePackages.ktorrent
+      # kdePackages.kdevelop
+      # kdePackages.kdialog
+      kdePackages.kdeplasma-addons
     ];
 
     programs.gnupg.agent = {
