@@ -385,6 +385,30 @@
 
     environment.systemPackages = with pkgs; [
       wl-clipboard
+      inkscape
+      krita
+      noto-fonts
+      vlc
+      wl-clipboard
+
+      libsForQt5.qt5.qtvirtualkeyboard
+      maliit-keyboard
+      maliit-framework
+
+      libsForQt5.kate
+      # libsForQt5.kdenlive
+      # libsForQt5.merkuro
+      libsForQt5.kcalc
+      # libsForQt5.neochat
+      libsForQt5.filelight
+      libsForQt5.krdc
+      libsForQt5.krfb
+      libsForQt5.kclock
+      libsForQt5.kweather
+      libsForQt5.ktorrent
+      # libsForQt5.kdevelop
+      # libsForQt5.kdialog
+      libsForQt5.kdeplasma-addons
     ];
 
     programs.gnupg.agent = {

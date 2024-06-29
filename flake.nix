@@ -208,6 +208,27 @@
         ];
       };
 
+      htpc = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          common
+
+          hardware.nixosModules.common-pc-ssd
+
+          graphical-workstation
+
+          ./nixos/htpc.nix
+
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                linux-desktop-environment-config
+              ];
+            };
+          }
+        ];
+      };
+
       foxtrot = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
@@ -231,7 +252,6 @@
                 cargo
                 firefox-no-tabs
                 linux-desktop-environment-config
-                slippi.homeManagerModules.default
               ];
             };
           }
