@@ -105,17 +105,18 @@
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
   boot = {
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
+
     # https://github.com/void-linux/void-packages/issues/50417#issuecomment-2131802836 fix framework 13 not shutting down
-    kernelPatches = [
-      {
-        name = "framework13shutdownfix";
-        patch = builtins.fetchurl {
-          url = "https://github.com/void-linux/void-packages/files/15445612/0001-Add-hopefully-a-solution-for-shutdown-regression.PATCH";
-          sha256 = "sha256:10zcnzy5hkam2cnxx441b978gzhvnqlcc49k7bpz9dc28xyjik50";
-        };
-      }
-    ];
+    # kernelPatches = [
+    #   {
+    #     name = "framework13shutdownfix";
+    #     patch = builtins.fetchurl {
+    #       url = "https://github.com/void-linux/void-packages/files/15445612/0001-Add-hopefully-a-solution-for-shutdown-regression.PATCH";
+    #       sha256 = "sha256:10zcnzy5hkam2cnxx441b978gzhvnqlcc49k7bpz9dc28xyjik50";
+    #     };
+    #   }
+    # ];
 
     loader = {
       efi.canTouchEfiVariables = true;
