@@ -1,5 +1,6 @@
 {
   colors,
+  lib,
   flakeInputs,
   homeManagerModules,
   home-manager,
@@ -462,7 +463,7 @@
 
     programs.helix = {
       enable = true;
-      package = helix.packages.${system}.helix;
+      package = lib.mkForce helix.packages.${system}.helix;
       languages = {
         language-server = {
           lexical = {

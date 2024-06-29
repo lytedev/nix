@@ -1,31 +1,11 @@
 {
-  inputs,
-  outputs,
   lib,
   config,
-  modulesPath,
   ...
 }: {
   networking.hostName = "thablet";
 
-  imports = with outputs.nixosModules; [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    outputs.diskoConfigurations.standard
-    inputs.hardware.nixosModules.lenovo-thinkpad-x1-yoga
-    desktop-usage
-    fonts
-    steam
-    # gnome
-    kde-plasma
-    wifi
-    flanfam
-    flanfamkiosk
-  ];
-
   home-manager.users.daniel = {
-    imports = with outputs.homeManagerModules; [
-      sway
-    ];
   };
 
   boot.loader.systemd-boot.enable = true;
@@ -71,5 +51,15 @@
     powerOnBoot = true;
   };
 
-  system.stateVersion = "23.11";
+  networking = {
+    firewall = let
+      terraria = 7777;
+      stardew-valley = 24642;
+    in {
+      allowedTCPPorts = [terraria stardew-valley];
+      allowedUDPPorts = [terraria stardew-valley];
+    };
+  };
+
+  system.stateVersion = "24.05";
 }

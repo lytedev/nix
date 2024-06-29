@@ -80,6 +80,7 @@ nix-shell --packages git --run "sudo nix run \
 # install
 nix-shell --packages git \
   --run "sudo nixos-install \
+    --no-write-lock-file \
     --flake 'git+https://git.lyte.dev/lytedev/nix#${FLAKE_ATTR}' \
     --option trusted-substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
     --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"

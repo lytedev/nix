@@ -1,32 +1,6 @@
-{
-  lib,
-  # config,
-  inputs,
-  outputs,
-  pkgs,
-  ...
-}: let
-  scale = 1.5;
-in {
+{pkgs, ...}: {
   networking.hostName = "foxtrot";
-  imports = with outputs.nixosModules; [
-    {
-      nixpkgs.overlays = [
-        outputs.overlays.modifications
-      ];
-    }
-    outputs.diskoConfigurations.standard
-    inputs.hardware.nixosModules.framework-13-7040-amd
-    desktop-usage
-    # gnome
-    printing
-    kde-plasma
-    podman
-    lutris
-    postgres
-    wifi
-    # hyprland
-    steam
+  imports = [
     {
       # laptop power management
       services.upower.enable = true;
@@ -77,13 +51,6 @@ in {
   };
 
   home-manager.users.daniel = {
-    imports = with outputs.homeManagerModules; [
-      sway
-      pass
-      firefox-no-tabs
-      # wallpaper-manager
-      # hyprland
-    ];
     home = {
       stateVersion = "24.05";
       pointerCursor = {
@@ -91,41 +58,37 @@ in {
       };
     };
 
-    wayland.windowManager.hyprland = {
-      settings = {
-        env = [
-          "EWW_BAR_MON,0"
-        ];
-        # See https://wiki.hyprland.org/Configuring/Keywords/ for more
-        monitor = [
-          "eDP-1,2256x1504@60,0x0,${toString scale}"
-        ];
-      };
-    };
+    # wayland.windowManager.hyprland = {
+    #   settings = {
+    #     env = [
+    #       "EWW_BAR_MON,0"
+    #     ];
+    #     # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+    #     monitor = [
+    #       "eDP-1,2256x1504@60,0x0,${toString scale}"
+    #     ];
+    #   };
+    # };
 
-    wayland.windowManager.sway = {
-      config = {
-        output = {
-          "BOE 0x0BCA Unknown" = {
-            mode = "2256x1504@60Hz";
-            position = "0,0";
-            scale = toString scale;
-          };
+    # wayland.windowManager.sway = {
+    #   config = {
+    #     output = {
+    #       "BOE 0x0BCA Unknown" = {
+    #         mode = "2256x1504@60Hz";
+    #         position = "0,0";
+    #         scale = toString scale;
+    #       };
 
-          "Dell Inc. DELL U2720Q D3TM623" = {
-            # desktop left vertical monitor
-            mode = "1920x1080@60Hz";
-            # transform = "90";
-            # scale = "1.5";
-            position = "${toString (builtins.floor (2256 / scale))},0";
-          };
-        };
-      };
-    };
-  };
-
-  home-manager.users.valerie = {
-    home.stateVersion = "24.05";
+    #       "Dell Inc. DELL U2720Q D3TM623" = {
+    #         # desktop left vertical monitor
+    #         mode = "1920x1080@60Hz";
+    #         # transform = "90";
+    #         # scale = "1.5";
+    #         position = "${toString (builtins.floor (2256 / scale))},0";
+    #       };
+    #     };
+    #   };
+    # };
   };
 
   hardware.opengl.extraPackages = [

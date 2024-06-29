@@ -151,6 +151,7 @@
 
     homeManagerModules = import ./modules/home-manager {
       inherit home-manager helix nixosModules homeManagerModules pubkey overlays colors;
+      inherit (nixpkgs) lib;
       flakeInputs = self.inputs;
     };
 
@@ -211,7 +212,30 @@
         system = "x86_64-linux";
         modules = with nixosModules; [
           common
+
+          outputs.diskoConfigurations.standard
+          hardware.nixosModules.framework-13-7040-amd
+
+          graphical-workstation
+          development-tools
+          laptop
+          gaming
+
           ./nixos/foxtrot.nix
+
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                pass
+                senpai
+                iex
+                cargo
+                firefox-no-tabs
+                linux-desktop-environment-config
+                slippi.homeManagerModules.default
+              ];
+            };
+          }
         ];
       };
 
@@ -219,6 +243,15 @@
         system = "x86_64-linux";
         modules = with nixosModules; [
           common
+
+          outputs.diskoConfigurations.standard
+          hardware.nixosModules.lenovo-thinkpad-x1-yoga
+
+          graphical-workstation
+          development-tools
+          laptop
+          gaming
+
           ./nixos/thablet.nix
         ];
       };
@@ -243,7 +276,7 @@
       router = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          diskoConfiguration.unencrypted
+          outputs.diskoConfiguration.unencrypted
           common
           ./nixos/router.nix
         ];
