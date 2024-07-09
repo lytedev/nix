@@ -1,4 +1,6 @@
 {
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+
   inputs.pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   inputs.pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -10,8 +12,8 @@
   }: let
     systems = ["aarch64-linux" "aarch64-darwin" "x86_64-darwin" "x86_64-linux"];
     forSystems = nixpkgs.lib.genAttrs systems;
-    pkgsFor = system: import nixpkgs {inherit system;};
-    genPkgs = f: (f (forSystems pkgsFor));
+    pkgsFor = system: (import nixpkgs {inherit system;});
+    genPkgs = func: (forSystems (system: func (pkgsFor system)));
   in {
     formatter = genPkgs (pkgs: pkgs.alejandra);
 
@@ -26,7 +28,7 @@
 
     devShells = genPkgs (pkgs: {
       nix = pkgs.mkShell {
-        buildInputs = with pkgs; [nil alejandra];
+        packages = with pkgs; [nil alejandra];
         inherit (self.outputs.checks.${pkgs.system}.pre-commit-check) shellHook;
       };
 
