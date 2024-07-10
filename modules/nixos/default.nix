@@ -160,6 +160,18 @@
     };
   };
 
+  password-manager = {pkgs, ...}: {
+    programs.goldwarden = {
+      enable = true;
+    };
+
+    home-manager.users.daniel = {
+      imports = with homeManagerModules; [
+        password-manager
+      ];
+    };
+  };
+
   tailscale = {lib, ...}: {
     services.tailscale = {
       enable = true;
@@ -371,7 +383,11 @@
     ];
   };
 
-  plasma6 = {pkgs, ...}: {
+  plasma6 = {
+    pkgs,
+    lib,
+    ...
+  }: {
     imports = with nixosModules; [
       kde-connect
       pipewire
@@ -786,8 +802,10 @@
       daniel
     ];
 
-    programs.gnupg.agent.enable = false;
-    programs.gnupg.agent.pinentryPackage = pkgs.pinentry-tty;
+    programs.gnupg.agent = {
+      enable = true;
+      pinentryPackage = lib.mkDefault pkgs.pinentry-tty;
+    };
 
     time = {
       timeZone = lib.mkDefault "America/Chicago";

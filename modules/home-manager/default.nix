@@ -1141,7 +1141,7 @@
   macos = {
     imports = with homeManagerModules; [
       desktop
-      pass
+      password-manager
     ];
   };
 
@@ -1149,15 +1149,26 @@
 
   # nnn = {};
 
+  password-manager = {pkgs, ...}: {
+    imports = with homeManagerModules; [
+      pass
+    ];
+
+    home.packages = with pkgs; [
+      passage
+      rage
+      age-plugin-yubikey
+      bitwarden-cli
+      oath-toolkit
+      bitwarden-desktop
+    ];
+  };
+
   pass = {pkgs, ...}: {
     programs.password-store = {
       enable = true;
       package = pkgs.pass.withExtensions (exts: [exts.pass-otp]);
     };
-
-    home.packages = with pkgs; [
-      pinentry-curses
-    ];
   };
 
   senpai = {config, ...}: {

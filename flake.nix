@@ -183,6 +183,7 @@
           hardware.nixosModules.common-cpu-amd
           hardware.nixosModules.common-pc-ssd
 
+          password-manager
           wifi
           graphical-workstation
           music-production
@@ -194,7 +195,6 @@
           {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
-                pass
                 senpai
                 iex
                 cargo

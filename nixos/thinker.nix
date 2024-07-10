@@ -60,7 +60,7 @@
   home-manager.users.daniel = {
     imports = with outputs.homeManagerModules; [
       sway
-      pass
+      password-manager
       firefox-no-tabs
       # wallpaper-manager
       # sway-laptop
