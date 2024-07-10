@@ -419,11 +419,7 @@
       unstable-packages.kdePackages.krdp
     ];
 
-    programs.gnupg.agent = {
-      enable = true;
-      enableSSHSupport = true;
-      pinentryPackage = pkgs.pinentry-qt;
-    };
+    programs.gnupg.agent.pinentryPackage = pkgs.pinentry-tty;
   };
 
   lutris = {pkgs, ...}: {
@@ -761,6 +757,7 @@
   # a common module that is intended to be imported by all NixOS systems
   common = {
     lib,
+    pkgs,
     modulesPath,
     ...
   }: {
@@ -789,10 +786,8 @@
       daniel
     ];
 
-    programs.gnupg.agent = {
-      enable = true;
-      enableSSHSupport = true;
-    };
+    programs.gnupg.agent.enable = false;
+    programs.gnupg.agent.pinentryPackage = pkgs.pinentry-tty;
 
     time = {
       timeZone = lib.mkDefault "America/Chicago";
