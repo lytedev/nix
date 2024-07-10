@@ -18,9 +18,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   networking.hostName = "beefcake";
 
   imports = [
-    ../modules/nixos/intel.nix
-    ../modules/nixos/fonts.nix
-
     # TODO: break these modules out someday maybe?
     {
       # hardware
