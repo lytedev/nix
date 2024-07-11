@@ -83,6 +83,7 @@
   in {
     # kind of a quirk, but package definitions are actually in the "additions"
     # overlay I did this to work around some recursion problems
+    # TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
     packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset;});
     diskoConfigurations = import ./disko;
     templates = import ./templates;
@@ -158,16 +159,17 @@
       beefcake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          common
           hardware.nixosModules.common-cpu-intel
+
+          common
           fonts
+
+          ./nixos/beefcake.nix
+
           {
             time = {
               timeZone = "America/Chicago";
             };
-          }
-          ./nixos/beefcake.nix
-          {
             services.smartd.enable = true;
             services.fwupd.enable = true;
           }
@@ -177,12 +179,11 @@
       dragon = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          common
-
           outputs.diskoConfigurations.standard
           hardware.nixosModules.common-cpu-amd
           hardware.nixosModules.common-pc-ssd
 
+          common
           password-manager
           wifi
           graphical-workstation
@@ -210,10 +211,9 @@
       htpc = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          common
-
           hardware.nixosModules.common-pc-ssd
 
+          common
           graphical-workstation
 
           ./nixos/htpc.nix
@@ -231,11 +231,10 @@
       foxtrot = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          common
-
           outputs.diskoConfigurations.standard
           hardware.nixosModules.framework-13-7040-amd
 
+          common
           graphical-workstation
           laptop
           gaming
@@ -260,37 +259,10 @@
       thablet = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          common
-
           outputs.diskoConfigurations.standard
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
-          graphical-workstation
-          laptop
-          gaming
-
-          ./nixos/thablet.nix
-
-          {
-            home-manager.users.daniel = {
-              imports = with homeManagerModules; [
-                iex
-                cargo
-                linux-desktop-environment-config
-              ];
-            };
-          }
-        ];
-      };
-
-      grablet = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = with nixosModules; [
           common
-
-          outputs.diskoConfigurations.standard
-          hardware.nixosModules.common-cpu-intel-kaby-lake
-          hardware.nixosModules.common-pc-laptopp-ssd
           graphical-workstation
           laptop
           gaming
@@ -305,11 +277,37 @@
                 linux-desktop-environment-config
               ];
             };
-
-            powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
           }
         ];
       };
+
+      # grablet = nixpkgs.lib.nixosSystem {
+      #   system = "x86_64-linux";
+      #   modules = with nixosModules; [
+      #     common
+
+      #     outputs.diskoConfigurations.standard
+      #     hardware.nixosModules.common-cpu-intel-kaby-lake
+      #     hardware.nixosModules.common-pc-laptopp-ssd
+      #     graphical-workstation
+      #     laptop
+      #     gaming
+
+      #     ./nixos/thablet.nix
+
+      #     {
+      #       home-manager.users.daniel = {
+      #         imports = with homeManagerModules; [
+      #           iex
+      #           cargo
+      #           linux-desktop-environment-config
+      #         ];
+      #       };
+
+      #       powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
+      #     }
+      #   ];
+      # };
 
       thinker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -331,7 +329,7 @@
       router = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          outputs.diskoConfiguration.unencrypted
+          # outputs.diskoConfigurations.unencrypted
           common
           ./nixos/router.nix
         ];

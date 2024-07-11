@@ -33,7 +33,13 @@ in {
   networking.domain = "h.lyte.dev";
   networking.useDHCP = false;
 
-  # TODO: perform a hardware scan
+  boot.initrd.availableKernelModules = ["xhci_pci"];
+  boot.initrd.kernelModules = [];
+  boot.kernelModules = ["kvm-intel"];
+  boot.extraModulePackages = [];
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.cpu.intel.updateMicrocode = true;
 
   boot = {
     loader = {
@@ -50,12 +56,12 @@ in {
         "net.ipv6.conf.all.use_tempaddr" = 0;
 
         "net.ipv6.conf.wan0.accept_ra" = 2;
-        # "net.ipv6.conf.wan0.autoconf" = 1;
+        "net.ipv6.conf.wan0.autoconf" = 1;
       };
     };
   };
 
-  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
   services.fail2ban.enable = true;
   services.radvd = {
@@ -179,7 +185,6 @@ in {
     ::1 localhost ip6-localhost ip6-loopback
     ff02::1 ip6-allnodes
     ff02::2 ip6-allrouters
-
   '';
 
   networking.nat.enable = true; # TODO: maybe replace some of the nftables stuff with this?
@@ -288,6 +293,7 @@ in {
       # No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
       # issues caused by guests with oneplus devices
       noarp
+
       persistent
       vendorclassid
 

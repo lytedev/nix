@@ -477,11 +477,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1717012475,
-        "narHash": "sha256-XdcAf6+7IUBOw+jH66QqcXcMBaqw8vXmtiwQywqhcI4=",
+        "lastModified": 1720625270,
+        "narHash": "sha256-7JGUXmp6LxPkinxy9kEnrdbZQPF8QGZwvRxWU/ZwJKY=",
         "owner": "lytedev",
         "repo": "slippi-nix",
-        "rev": "8c37b6cfc082e2d522544c68eefa2c3b58ca2515",
+        "rev": "e86b5e46d53a929303b9ad6539cb6e64e7a8c5b4",
         "type": "github"
       },
       "original": {

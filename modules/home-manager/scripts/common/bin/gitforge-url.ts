@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read --allow-run --allow-net
+#!/usr/bin/env -S nix shell nixpkgs#deno --command deno run --allow-read --allow-run --allow-net
 
 import * as path from "https://deno.land/std@0.181.0/path/mod.ts";
 
