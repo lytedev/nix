@@ -235,6 +235,7 @@
           hardware.nixosModules.framework-13-7040-amd
 
           common
+          password-manager
           graphical-workstation
           laptop
           gaming
@@ -244,7 +245,6 @@
           {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
-                pass
                 senpai
                 iex
                 cargo
