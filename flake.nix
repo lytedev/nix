@@ -263,6 +263,7 @@
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
           common
+          password-manager
           graphical-workstation
           laptop
           gaming
