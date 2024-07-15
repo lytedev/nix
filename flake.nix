@@ -242,7 +242,7 @@
 
           ./nixos/foxtrot.nix
 
-          {
+          ({pkgs, ...}: {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
                 senpai
@@ -252,7 +252,18 @@
                 linux-desktop-environment-config
               ];
             };
-          }
+            environment.systemPackages = [
+              (pkgs.writeShellApplication
+                {
+                  name = "reset-wifi-module";
+                  runtimeInputs = with pkgs; [kmod];
+                  text = ''
+                    modprobe -rv mt7921e
+                    modprobe -v mt7921e
+                  '';
+                })
+            ];
+          })
         ];
       };
 
