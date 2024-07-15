@@ -252,8 +252,9 @@
                 linux-desktop-environment-config
               ];
             };
-            environment.systemPackages = [
-              (pkgs.writeShellApplication
+            environment.systemPackages = with pkgs; [
+              fw-ectool
+              (writeShellApplication
                 {
                   name = "reset-wifi-module";
                   runtimeInputs = with pkgs; [kmod];
