@@ -67,7 +67,7 @@ in {
 
   services.fail2ban.enable = true;
   services.radvd = {
-    enable = true;
+    enable = false;
     # NOTE: this config is just the default arch linux config I think and may
     # need tweaking? this is what I had on the arch linux router, though :shrug:
     # config = ''
@@ -354,6 +354,13 @@ in {
   };
 
   systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
+
+  services.openssh.listenAddresses = [
+    {
+      addr = "0.0.0.0";
+      port = 2201;
+    }
+  ];
 
   systemd.network = {
     enable = true;
