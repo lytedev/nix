@@ -31,6 +31,7 @@
 in {
   imports = [
     {
+      # hardware
       boot = {
         loader = {
           efi.canTouchEfiVariables = true;
@@ -65,7 +66,7 @@ in {
     };
   };
 
-  services.fail2ban.enable = true;
+  # services.fail2ban.enable = true;
   services.radvd = {
     enable = false;
     # NOTE: this config is just the default arch linux config I think and may
@@ -123,62 +124,62 @@ in {
   #   '';
   # };
 
-  # services.dnsmasq = {
-  #   enable = true;
-  #   settings = {
-  #     # server endpoints
-  #     listen-address = "::1,127.0.0.1,${ip}";
-  #     port = "53";
+  services.dnsmasq = {
+    enable = false;
+    settings = {
+      # server endpoints
+      listen-address = "::1,127.0.0.1,${ip}";
+      port = "53";
 
-  #     # DNS cache entries
-  #     cache-size = "10000";
+      # DNS cache entries
+      cache-size = "10000";
 
-  #     # local domain entries
-  #     local = "/lan/";
-  #     domain = "lan";
-  #     expand-hosts = true;
+      # local domain entries
+      local = "/lan/";
+      domain = "lan";
+      expand-hosts = true;
 
-  #     dhcp-authoritative = true;
+      dhcp-authoritative = true;
 
-  #     conf-file = "/usr/share/dnsmasq/trust-anchors.conf";
-  #     dnssec = true;
+      conf-file = "/usr/share/dnsmasq/trust-anchors.conf";
+      dnssec = true;
 
-  #     except-interface = "${wan_if}";
-  #     interface = "${lan_if}";
+      except-interface = "${wan_if}";
+      interface = "${lan_if}";
 
-  #     enable-ra = true;
+      enable-ra = true;
 
-  #     # dhcp-option = "121,${cidr},${ip}";
+      # dhcp-option = "121,${cidr},${ip}";
 
-  #     dhcp-range = [
-  #       "lan,${dhcp_lease_space.min},${dhcp_lease_space.max},${netmask},10m"
-  #       "tag:${lan_if},::1,constructor:${lan_if},ra-names,12h"
-  #     ];
+      dhcp-range = [
+        "lan,${dhcp_lease_space.min},${dhcp_lease_space.max},${netmask},10m"
+        "tag:${lan_if},::1,constructor:${lan_if},ra-names,12h"
+      ];
 
-  #     dhcp-host = [
-  #       "${hosts.dragon.host},${hosts.dragon.ip},12h"
-  #       "${hosts.beefcake.host},${hosts.beefcake.ip},12h"
-  #     ];
+      dhcp-host = [
+        "${hosts.dragon.host},${hosts.dragon.ip},12h"
+        "${hosts.beefcake.host},${hosts.beefcake.ip},12h"
+      ];
 
-  #     # may need to go in /etc/hosts (networking.extraHosts), too?
-  #     address = [
-  #       "/video.lyte.dev/192.168.0.9"
-  #       "/git.lyte.dev/192.168.0.9"
-  #       "/bw.lyte.dev/192.168.0.9"
-  #       "/files.lyte.dev/192.168.0.9"
-  #       "/vpn.h.lyte.dev/192.168.0.9"
-  #       "/.h.lyte.dev/192.168.0.9"
-  #     ];
+      # may need to go in /etc/hosts (networking.extraHosts), too?
+      address = [
+        "/video.lyte.dev/192.168.0.9"
+        "/git.lyte.dev/192.168.0.9"
+        "/bw.lyte.dev/192.168.0.9"
+        "/files.lyte.dev/192.168.0.9"
+        "/vpn.h.lyte.dev/192.168.0.9"
+        "/.h.lyte.dev/192.168.0.9"
+      ];
 
-  #     server = [
-  #       "${ip}"
-  #       "8.8.8.8"
-  #       "8.8.4.4"
-  #       "1.1.1.1"
-  #       "1.0.0.1"
-  #     ];
-  #   };
-  # };
+      server = [
+        "${ip}"
+        "8.8.8.8"
+        "8.8.4.4"
+        "1.1.1.1"
+        "1.0.0.1"
+      ];
+    };
+  };
 
   networking = {
     hostName = "router";
@@ -187,23 +188,6 @@ in {
 
     # useDHCP = true;
     # nat.enable = true; # TODO: maybe replace some of the nftables stuff with this module?
-
-    # interfaces = {
-    #   enp2s0 = {
-    #     # should be wan0
-    #     useDHCP = true;
-    #   };
-    #   enp3s0 = {
-    #     # should be lan0
-    #     useDHCP = false;
-    #   };
-    #   wan0 = {
-    #     useDHCP = true;
-    #   };
-    #   lan0 = {
-    #     useDHCP = false;
-    #   };
-    # };
 
     extraHosts = ''
       127.0.0.1 localhost
@@ -215,9 +199,13 @@ in {
     '';
 
     firewall.enable = false;
+    firewall.allowedTCPPorts = [
+      2201
+      22
+    ];
 
     nftables = {
-      enable = true;
+      enable = false;
       flushRuleset = true;
 
       tables = {
@@ -313,7 +301,7 @@ in {
     };
 
     dhcpcd = {
-      enable = true;
+      enable = false;
       extraConfig = ''
         duid
 
@@ -358,6 +346,10 @@ in {
   services.openssh.listenAddresses = [
     {
       addr = "0.0.0.0";
+      port = 2201;
+    }
+    {
+      addr = "[::]";
       port = 2201;
     }
   ];
