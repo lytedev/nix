@@ -634,6 +634,11 @@
           rulers = [81 121];
           cursorline = true;
 
+          inline-diagnostics = {
+            cursor-line = "hint";
+            other-lines = "error";
+          };
+
           cursor-shape = {
             normal = "block";
             insert = "bar";
