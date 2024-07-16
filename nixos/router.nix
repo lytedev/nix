@@ -2,7 +2,7 @@
   lib,
   # outputs,
   # config,
-  # pkgs,
+  pkgs,
   ...
 }: let
   # NOTE: I could turn this into a cool NixOS module?
@@ -181,10 +181,15 @@ in {
     };
   };
 
+  environment.systemPackages = with pkgs; [
+    wpa_supplicant
+  ];
+
   networking = {
     hostName = "router";
     domain = "h.lyte.dev";
     useDHCP = false;
+    wireless.enable = true;
 
     # useDHCP = true;
     # nat.enable = true; # TODO: maybe replace some of the nftables stuff with this module?
@@ -198,7 +203,7 @@ in {
       ff02::2 ip6-allrouters
     '';
 
-    firewall.enable = false;
+    firewall.enable = true;
     firewall.allowedTCPPorts = [
       2201
       22
@@ -356,6 +361,18 @@ in {
 
   systemd.network = {
     enable = true;
+    networks = {
+      wan = {
+        networkConfig = {
+          DHCP = "yes";
+        };
+      };
+      lan = {
+        networkConfig = {
+          DHCP = "yes";
+        };
+      };
+    };
     links = {
       "10-${wan_if}" = {
         enable = true;
