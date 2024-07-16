@@ -753,6 +753,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
         '';
       };
+      services.caddy.virtualHosts."git.beefcake" = {
+        extraConfig = ''
+          reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
+        '';
+      };
     }
     {
       services.vaultwarden = {

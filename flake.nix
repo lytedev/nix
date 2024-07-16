@@ -329,7 +329,7 @@
       router = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
-          # outputs.diskoConfigurations.unencrypted
+          outputs.diskoConfigurations.unencrypted
           common
           ./nixos/router.nix
         ];
