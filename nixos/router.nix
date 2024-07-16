@@ -350,17 +350,17 @@ in {
 
   services.openssh.listenAddresses = [
     {
-      addr = "0.0.0.0";
+      addr = "[::]";
       port = 2201;
     }
     {
       addr = "[::]";
-      port = 2201;
+      port = 22;
     }
   ];
 
   systemd.network = {
-    enable = true;
+    enable = false;
     networks = {
       wan = {
         networkConfig = {
@@ -396,8 +396,8 @@ in {
   };
 
   services.avahi = {
-    enable = true;
-    reflector = true;
+    enable = lib.mkForce false;
+    reflector = false;
     allowInterfaces = [lan_if];
   };
 
