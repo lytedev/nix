@@ -9,8 +9,8 @@
   # TODO: review https://francis.begyn.be/blog/nixos-home-router
   ip = "192.168.0.1";
   cidr = "${ip}/16";
-  netmask = "255.255.0.0";
-  lease = {
+  netmask = "255.255.0.0"; # see cidr
+  dhcp_lease_space = {
     min = "192.168.0.5";
     max = "192.168.0.250";
   };
@@ -29,27 +29,35 @@
     };
   };
 in {
-  boot.initrd.availableKernelModules = ["xhci_pci"];
-  boot.initrd.kernelModules = [];
-  boot.kernelModules = ["kvm-intel"];
-  boot.extraModulePackages = [];
+  imports = [
+    {
+      boot = {
+        loader = {
+          efi.canTouchEfiVariables = true;
+          systemd-boot.enable = true;
+        };
+        initrd.availableKernelModules = ["xhci_pci"];
+        initrd.kernelModules = [];
+        kernelModules = ["kvm-intel"];
+        extraModulePackages = [];
+      };
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = true;
+      nixpkgs.hostPlatform = "x86_64-linux";
+      powerManagement.cpuFreqGovernor = "performance";
+      hardware.cpu.intel.updateMicrocode = true;
+    }
+  ];
 
   boot = {
-    loader = {
-      efi.canTouchEfiVariables = true;
-      systemd-boot.enable = true;
-    };
     kernel = {
       sysctl = {
         "net.ipv4.conf.all.forwarding" = true;
         "net.ipv6.conf.all.forwarding" = true;
 
-        "net.ipv6.conf.all.accept_ra" = 0;
-        "net.ipv6.conf.all.autoconf" = 0;
-        "net.ipv6.conf.all.use_tempaddr" = 0;
+        # TODO: may want to disable this once it's working
+        # "net.ipv6.conf.all.accept_ra" = 0;
+        # "net.ipv6.conf.all.autoconf" = 0;
+        # "net.ipv6.conf.all.use_tempaddr" = 0;
 
         "net.ipv6.conf.wan0.accept_ra" = 2;
         "net.ipv6.conf.wan0.autoconf" = 1;
@@ -57,146 +65,145 @@ in {
     };
   };
 
-  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
-
   services.fail2ban.enable = true;
   services.radvd = {
     enable = true;
     # NOTE: this config is just the default arch linux config I think and may
     # need tweaking? this is what I had on the arch linux router, though :shrug:
-    config = ''
-      interface lo
-      {
-      	AdvSendAdvert on;
-      	MinRtrAdvInterval 3;
-      	MaxRtrAdvInterval 10;
-      	AdvDefaultPreference low;
-      	AdvHomeAgentFlag off;
+    # config = ''
+    #   interface lo
+    #   {
+    #   	AdvSendAdvert on;
+    #   	MinRtrAdvInterval 3;
+    #   	MaxRtrAdvInterval 10;
+    #   	AdvDefaultPreference low;
+    #   	AdvHomeAgentFlag off;
 
-      	prefix 2001:db8:1:0::/64
-      	{
-      		AdvOnLink on;
-      		AdvAutonomous on;
-      		AdvRouterAddr off;
-      	};
+    #   	prefix 2001:db8:1:0::/64
+    #   	{
+    #   		AdvOnLink on;
+    #   		AdvAutonomous on;
+    #   		AdvRouterAddr off;
+    #   	};
 
-      	prefix 0:0:0:1234::/64
-      	{
-      		AdvOnLink on;
-      		AdvAutonomous on;
-      		AdvRouterAddr off;
-      		Base6to4Interface ppp0;
-      		AdvPreferredLifetime 120;
-      		AdvValidLifetime 300;
-      	};
+    #   	prefix 0:0:0:1234::/64
+    #   	{
+    #   		AdvOnLink on;
+    #   		AdvAutonomous on;
+    #   		AdvRouterAddr off;
+    #   		Base6to4Interface ppp0;
+    #   		AdvPreferredLifetime 120;
+    #   		AdvValidLifetime 300;
+    #   	};
 
-      	route 2001:db0:fff::/48
-      	{
-      		AdvRoutePreference high;
-      		AdvRouteLifetime 3600;
-      	};
+    #   	route 2001:db0:fff::/48
+    #   	{
+    #   		AdvRoutePreference high;
+    #   		AdvRouteLifetime 3600;
+    #   	};
 
-        RDNSS 2001:db8::1 2001:db8::2
-        {
-          AdvRDNSSLifetime 30;
-        };
+    #     RDNSS 2001:db8::1 2001:db8::2
+    #     {
+    #       AdvRDNSSLifetime 30;
+    #     };
 
-        DNSSL branch.example.com example.com
-        {
-          AdvDNSSLLifetime 30;
-        };
-      };
-    '';
+    #     DNSSL branch.example.com example.com
+    #     {
+    #       AdvDNSSLLifetime 30;
+    #     };
+    #   };
+    # '';
   };
 
-  services.resolved = {
-    enable = true;
-    extraConfig = ''
-      [Resolve]
-      DNSStubListener=no
-    '';
-  };
+  # services.resolved = {
+  #   enable = true;
+  #   extraConfig = ''
+  #     [Resolve]
+  #     DNSStubListener=no
+  #   '';
+  # };
 
-  services.dnsmasq = {
-    enable = true;
-    settings = {
-      # server endpoints
-      listen-address = "::1,127.0.0.1,${ip}";
-      port = "53";
+  # services.dnsmasq = {
+  #   enable = true;
+  #   settings = {
+  #     # server endpoints
+  #     listen-address = "::1,127.0.0.1,${ip}";
+  #     port = "53";
 
-      # DNS cache entries
-      cache-size = "10000";
+  #     # DNS cache entries
+  #     cache-size = "10000";
 
-      # local domain entries
-      local = "/lan/";
-      domain = "lan";
-      expand-hosts = true;
+  #     # local domain entries
+  #     local = "/lan/";
+  #     domain = "lan";
+  #     expand-hosts = true;
 
-      dhcp-authoritative = true;
+  #     dhcp-authoritative = true;
 
-      conf-file = "/usr/share/dnsmasq/trust-anchors.conf";
-      dnssec = true;
+  #     conf-file = "/usr/share/dnsmasq/trust-anchors.conf";
+  #     dnssec = true;
 
-      except-interface = "${wan_if}";
-      interface = "${lan_if}";
+  #     except-interface = "${wan_if}";
+  #     interface = "${lan_if}";
 
-      enable-ra = true;
+  #     enable-ra = true;
 
-      # dhcp-option = "121,${cidr},${ip}";
+  #     # dhcp-option = "121,${cidr},${ip}";
 
-      dhcp-range = [
-        "lan,${lease.min},${lease.max},${netmask},10m"
-        "tag:${lan_if},::1,constructor:${lan_if},ra-names,12h"
-      ];
+  #     dhcp-range = [
+  #       "lan,${dhcp_lease_space.min},${dhcp_lease_space.max},${netmask},10m"
+  #       "tag:${lan_if},::1,constructor:${lan_if},ra-names,12h"
+  #     ];
 
-      dhcp-host = [
-        "${hosts.dragon.host},${hosts.dragon.ip},12h"
-        "${hosts.beefcake.host},${hosts.beefcake.ip},12h"
-      ];
+  #     dhcp-host = [
+  #       "${hosts.dragon.host},${hosts.dragon.ip},12h"
+  #       "${hosts.beefcake.host},${hosts.beefcake.ip},12h"
+  #     ];
 
-      # may need to go in /etc/hosts (networking.extraHosts), too?
-      address = [
-        "/video.lyte.dev/192.168.0.9"
-        "/git.lyte.dev/192.168.0.9"
-        "/bw.lyte.dev/192.168.0.9"
-        "/files.lyte.dev/192.168.0.9"
-        "/vpn.h.lyte.dev/192.168.0.9"
-        "/.h.lyte.dev/192.168.0.9"
-      ];
+  #     # may need to go in /etc/hosts (networking.extraHosts), too?
+  #     address = [
+  #       "/video.lyte.dev/192.168.0.9"
+  #       "/git.lyte.dev/192.168.0.9"
+  #       "/bw.lyte.dev/192.168.0.9"
+  #       "/files.lyte.dev/192.168.0.9"
+  #       "/vpn.h.lyte.dev/192.168.0.9"
+  #       "/.h.lyte.dev/192.168.0.9"
+  #     ];
 
-      server = [
-        "${ip}"
-        "8.8.8.8"
-        "8.8.4.4"
-        "1.1.1.1"
-        "1.0.0.1"
-      ];
-    };
-  };
+  #     server = [
+  #       "${ip}"
+  #       "8.8.8.8"
+  #       "8.8.4.4"
+  #       "1.1.1.1"
+  #       "1.0.0.1"
+  #     ];
+  #   };
+  # };
 
   networking = {
-    nat.enable = true; # TODO: maybe replace some of the nftables stuff with this?
-    firewall.enable = false;
     hostName = "router";
     domain = "h.lyte.dev";
-    # useDHCP = true;
+    useDHCP = false;
 
-    interfaces = {
-      enp2s0 = {
-        # should be wan0
-        useDHCP = true;
-      };
-      enp3s0 = {
-        # should be lan0
-        useDHCP = false;
-      };
-      wan0 = {
-        useDHCP = true;
-      };
-      lan0 = {
-        useDHCP = false;
-      };
-    };
+    # useDHCP = true;
+    # nat.enable = true; # TODO: maybe replace some of the nftables stuff with this module?
+
+    # interfaces = {
+    #   enp2s0 = {
+    #     # should be wan0
+    #     useDHCP = true;
+    #   };
+    #   enp3s0 = {
+    #     # should be lan0
+    #     useDHCP = false;
+    #   };
+    #   wan0 = {
+    #     useDHCP = true;
+    #   };
+    #   lan0 = {
+    #     useDHCP = false;
+    #   };
+    # };
 
     extraHosts = ''
       127.0.0.1 localhost
@@ -206,6 +213,8 @@ in {
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters
     '';
+
+    firewall.enable = false;
 
     nftables = {
       enable = true;
@@ -349,7 +358,7 @@ in {
   systemd.network = {
     enable = true;
     links = {
-      "${wan_if}" = {
+      "10-${wan_if}" = {
         enable = true;
         matchConfig = {
           MACAddress = "00:01:2e:82:73:59";
@@ -358,7 +367,7 @@ in {
           Name = wan_if;
         };
       };
-      "${lan_if}" = {
+      "10-${lan_if}" = {
         enable = true;
         matchConfig = {
           MACAddress = "00:01:2e:82:73:5a";

@@ -1146,7 +1146,7 @@
   macos = {
     imports = with homeManagerModules; [
       desktop
-      password-manager
+      # password-manager
     ];
   };
 

@@ -295,6 +295,18 @@
         yubikey-manager
         yubico-piv-tool
       ];
+
+      programs.thunderbird = {
+        enable = true;
+
+        profiles = {
+          daniel = {
+            isDefault = true;
+            # name = "daniel";
+          };
+        };
+      };
+
       programs.nushell = {
         enable = true;
       };
@@ -341,7 +353,7 @@
     ];
   };
 
-  graphical-workstation = {
+  graphical-workstation = {pkgs, ...}: {
     imports = with nixosModules; [
       plasma6
       fonts
@@ -358,9 +370,14 @@
         driSupport = true;
       };
     };
-    environment.variables = {
-      # GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
-      # GTK_USE_PORTAL = "1";
+    environment = {
+      systemPackages = with pkgs; [
+        libnotify
+      ];
+      variables = {
+        # GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
+        # GTK_USE_PORTAL = "1";
+      };
     };
   };
 
