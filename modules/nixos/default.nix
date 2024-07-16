@@ -161,9 +161,10 @@
   };
 
   password-manager = {pkgs, ...}: {
-    programs.goldwarden = {
-      enable = true;
-    };
+    # programs.goldwarden = {
+    # NOTE: This didn't seem to work for me, but would be awesome!
+    #   enable = true;
+    # };
 
     home-manager.users.daniel = {
       imports = with homeManagerModules; [
@@ -238,6 +239,7 @@
     imports = with nixosModules; [
       postgres
       podman
+      troubleshooting-tools
     ];
 
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
@@ -334,6 +336,7 @@
       bottom
       nmap
       dogdns
+      inetutils
       dnsutils
     ];
   };
@@ -342,7 +345,6 @@
     imports = with nixosModules; [
       plasma6
       fonts
-      troubleshooting-tools
       development-tools
       printing
     ];

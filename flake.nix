@@ -235,16 +235,16 @@
           hardware.nixosModules.framework-13-7040-amd
 
           common
+          password-manager
           graphical-workstation
           laptop
           gaming
 
           ./nixos/foxtrot.nix
 
-          {
+          ({pkgs, ...}: {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
-                pass
                 senpai
                 iex
                 cargo
@@ -252,7 +252,19 @@
                 linux-desktop-environment-config
               ];
             };
-          }
+            environment.systemPackages = with pkgs; [
+              fw-ectool
+              (writeShellApplication
+                {
+                  name = "reset-wifi-module";
+                  runtimeInputs = with pkgs; [kmod];
+                  text = ''
+                    modprobe -rv mt7921e
+                    modprobe -v mt7921e
+                  '';
+                })
+            ];
+          })
         ];
       };
 
@@ -263,6 +275,7 @@
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
           common
+          password-manager
           graphical-workstation
           laptop
           gaming
