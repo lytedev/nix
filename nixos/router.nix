@@ -1,12 +1,15 @@
 {
   lib,
   # outputs,
-  # config,
+  config,
   pkgs,
   ...
 }: let
   # NOTE: I could turn this into a cool NixOS module?
   # TODO: review https://francis.begyn.be/blog/nixos-home-router
+  # TODO: more recent: https://github.com/ghostbuster91/blogposts/blob/a2374f0039f8cdf4faddeaaa0347661ffc2ec7cf/router2023-part2/main.md
+  hostname = "router";
+  domain = "h.lyte.dev";
   ip = "192.168.0.1";
   cidr = "${ip}/16";
   netmask = "255.255.0.0"; # see cidr
@@ -14,8 +17,16 @@
     min = "192.168.0.5";
     max = "192.168.0.250";
   };
-  wan_if = "wan0";
-  lan_if = "lan0";
+  interfaces = {
+    wan = {
+      name = "wan0";
+      mac = "00:01:2e:82:73:59";
+    };
+    lan = {
+      name = "lan0";
+      mac = "00:01:2e:82:73:5a";
+    };
+  };
   hosts = {
     dragon = {
       identifier = "dragon";
@@ -27,6 +38,18 @@
       host = "beefcake";
       ip = "192.168.0.9";
     };
+  };
+  sysctl-entries = {
+    "net.ipv4.conf.all.forwarding" = true;
+    "net.ipv6.conf.all.forwarding" = true;
+
+    # TODO: may want to disable this once it's working
+    # "net.ipv6.conf.all.accept_ra" = 0;
+    # "net.ipv6.conf.all.autoconf" = 0;
+    # "net.ipv6.conf.all.use_tempaddr" = 0;
+
+    # "net.ipv6.conf.${wan_if}.accept_ra" = 2;
+    # "net.ipv6.conf.${wan_if}.autoconf" = 1;
   };
 in {
   imports = [
@@ -51,20 +74,88 @@ in {
 
   boot = {
     kernel = {
-      sysctl = {
-        "net.ipv4.conf.all.forwarding" = true;
-        "net.ipv6.conf.all.forwarding" = true;
+      sysctl = sysctl-entries;
+    };
+  };
 
-        # TODO: may want to disable this once it's working
-        # "net.ipv6.conf.all.accept_ra" = 0;
-        # "net.ipv6.conf.all.autoconf" = 0;
-        # "net.ipv6.conf.all.use_tempaddr" = 0;
+  environment = {
+    systemPackages = with pkgs; [
+      wpa_supplicant
+      inetutils
+      btop
+      htop
+      bottom
+      dog
+    ];
+  };
 
-        "net.ipv6.conf.wan0.accept_ra" = 2;
-        "net.ipv6.conf.wan0.autoconf" = 1;
+  networking = {
+    hostName = hostname;
+    domain = domain;
+    useDHCP = false;
+
+    extraHosts = ''
+            127.0.0.1 localhost
+            127.0.0.2 ${hostname}.${domain} ${hostname}
+            ${ip} ${hostname}.${domain} ${hostname}
+
+            ::1 localhost ip6-localhost ip6-loopback
+            ff02::1 ip6-allnodes
+      kkkkk      ff02::2 ip6-allrouters
+    '';
+
+    firewall.enable = true;
+    firewall.allowedTCPPorts = [
+      2201
+      22
+    ];
+  };
+
+  systemd.network = {
+    enable = true;
+    wait-online.anyInterface = true;
+    networks = {
+      "30-${interfaces.lan.name}" = {
+        matchConfig.MACAddress = "${interfaces.lan.mac}";
+        linkConfig.RequiredForOnline = "enslaved";
+        networkConfig = {
+          ConfigureWithoutCarrier = true;
+        };
+      };
+      "10-${interfaces.wan.name}" = {
+        matchConfig.MACAddress = "${interfaces.wan.mac}";
+        networkConfig = {
+          DHCP = true;
+          DNSOverTLS = true;
+          DNSSEC = true;
+          IPv6PrivacyExtensions = false;
+          IPForward = true;
+        };
+        linkConfig.RequiredForOnline = "routable";
       };
     };
   };
+
+  systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
+
+  services.openssh.listenAddresses = [
+    {
+      addr = "0.0.0.0";
+      port = 2201;
+    }
+    {
+      addr = "0.0.0.0";
+      port = 22;
+    }
+    {
+      addr = "[::]";
+      port = 2201;
+    }
+    {
+      addr = "[::]";
+      port = 22;
+    }
+  ];
 
   # # services.fail2ban.enable = true;
   # services.radvd = {
@@ -181,193 +272,142 @@ in {
   #   };
   # };
 
-  environment.systemPackages = with pkgs; [
-    wpa_supplicant
-    inetutils
-  ];
+  # nftables = {
+  #   enable = false;
+  #   flushRuleset = true;
 
-  networking = {
-    hostName = "router";
-    domain = "h.lyte.dev";
-    useDHCP = true;
-    wireless.enable = true;
+  #   tables = {
+  #     filter = {
+  #       family = "inet";
+  #       content = ''
+  #         chain input {
+  #           # type filter hook input priority filter; policy accept;
+  #           type filter hook input priority 0;
 
-    # useDHCP = true;
-    # nat.enable = true; # TODO: maybe replace some of the nftables stuff with this module?
+  #           # anything from loopback interface
+  #           iifname "lo" accept
 
-    extraHosts = ''
-      127.0.0.1 localhost
-      ${ip} router.h.lyte.dev router
+  #           # accept traffic we originated
+  #           ct state { established, related } counter accept
+  #           ct state invalid counter drop
 
-      ::1 localhost ip6-localhost ip6-loopback
-      ff02::1 ip6-allnodes
-      ff02::2 ip6-allrouters
-    '';
+  #           # ICMP
+  #           ip6 nexthdr icmpv6 icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } counter accept
+  #           ip protocol icmp icmp type { echo-request, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } counter accept
+  #           ip protocol icmpv6 counter accept
+  #           ip protocol icmp counter accept
+  #           meta l4proto ipv6-icmp counter accept
 
-    firewall.enable = true;
-    firewall.allowedTCPPorts = [
-      2201
-      22
-    ];
+  #           udp dport dhcpv6-client counter accept
 
-    # nftables = {
-    #   enable = false;
-    #   flushRuleset = true;
+  #           tcp dport { 64022, 22, 53, 67, 25565 } counter accept
+  #           udp dport { 64020, 22, 53, 67 } counter accept
 
-    #   tables = {
-    #     filter = {
-    #       family = "inet";
-    #       content = ''
-    #         chain input {
-    #           # type filter hook input priority filter; policy accept;
-    #           type filter hook input priority 0;
+  #           # iifname "iot" ip saddr $iot-ip tcp dport { llmnr } counter accept
+  #           # iifname "iot" ip saddr $iot-ip udp dport { mdns, llmnr } counter accept
+  #           iifname "${lan_if}" tcp dport { llmnr } counter accept
+  #           iifname "${lan_if}" udp dport { mdns, llmnr } counter accept
 
-    #           # anything from loopback interface
-    #           iifname "lo" accept
+  #           counter drop
+  #         }
 
-    #           # accept traffic we originated
-    #           ct state { established, related } counter accept
-    #           ct state invalid counter drop
+  #         # allow all outgoing
+  #         chain output {
+  #           type filter hook output priority 0;
+  #           accept
+  #         }
 
-    #           # ICMP
-    #           ip6 nexthdr icmpv6 icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } counter accept
-    #           ip protocol icmp icmp type { echo-request, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } counter accept
-    #           ip protocol icmpv6 counter accept
-    #           ip protocol icmp counter accept
-    #           meta l4proto ipv6-icmp counter accept
+  #         chain forward {
+  #           type filter hook forward priority 0;
+  #           accept
+  #         }
+  #       '';
+  #     };
 
-    #           udp dport dhcpv6-client counter accept
+  #     nat = {
+  #       family = "ip";
+  #       content = ''
+  #         set masq_saddr {
+  #         	type ipv4_addr
+  #         	flags interval
+  #         	elements = { ${cidr} }
+  #         }
 
-    #           tcp dport { 64022, 22, 53, 67, 25565 } counter accept
-    #           udp dport { 64020, 22, 53, 67 } counter accept
+  #         map map_port_ipport {
+  #         	type inet_proto . inet_service : ipv4_addr . inet_service
+  #         }
 
-    #           # iifname "iot" ip saddr $iot-ip tcp dport { llmnr } counter accept
-    #           # iifname "iot" ip saddr $iot-ip udp dport { mdns, llmnr } counter accept
-    #           iifname "${lan_if}" tcp dport { llmnr } counter accept
-    #           iifname "${lan_if}" udp dport { mdns, llmnr } counter accept
+  #         chain prerouting {
+  #         	iifname ${lan_if} accept
 
-    #           counter drop
-    #         }
+  #         	type nat hook prerouting priority dstnat + 1; policy accept;
+  #         	fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
 
-    #         # allow all outgoing
-    #         chain output {
-    #           type filter hook output priority 0;
-    #           accept
-    #         }
+  #         	iifname ${wan_if} tcp dport { 22, 80, 443, 25565, 64022 } dnat to ${hosts.beefcake.ip}
+  #         	iifname ${wan_if} udp dport { 64020 } dnat to ${hosts.beefcake.ip}
 
-    #         chain forward {
-    #           type filter hook forward priority 0;
-    #           accept
-    #         }
-    #       '';
-    #     };
+  #         	# iifname ${wan_if} tcp dport { 25565 } dnat to 192.168.0.244
+  #         	# iifname ${wan_if} udp dport { 25565 } dnat to 192.168.0.244
 
-    #     nat = {
-    #       family = "ip";
-    #       content = ''
-    #         set masq_saddr {
-    #         	type ipv4_addr
-    #         	flags interval
-    #         	elements = { ${cidr} }
-    #         }
+  #         	# router
+  #         	iifname ${wan_if} tcp dport { 2201 } dnat to ${ip}
+  #         }
 
-    #         map map_port_ipport {
-    #         	type inet_proto . inet_service : ipv4_addr . inet_service
-    #         }
+  #         chain output {
+  #         	type nat hook output priority -99; policy accept;
+  #         	ip daddr != 127.0.0.0/8 oif "lo" dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+  #         }
 
-    #         chain prerouting {
-    #         	iifname ${lan_if} accept
+  #         chain postrouting {
+  #         	type nat hook postrouting priority srcnat + 1; policy accept;
+  #         	oifname ${lan_if} masquerade
+  #         	ip saddr @masq_saddr masquerade
+  #         }
+  #       '';
+  #     };
+  #   };
+  # };
 
-    #         	type nat hook prerouting priority dstnat + 1; policy accept;
-    #         	fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+  # dhcpcd = {
+  #   enable = false;
+  #   extraConfig = ''
+  #     duid
 
-    #         	iifname ${wan_if} tcp dport { 22, 80, 443, 25565, 64022 } dnat to ${hosts.beefcake.ip}
-    #         	iifname ${wan_if} udp dport { 64020 } dnat to ${hosts.beefcake.ip}
+  #     # No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
+  #     # issues caused by guests with oneplus devices
+  #     noarp
 
-    #         	# iifname ${wan_if} tcp dport { 25565 } dnat to 192.168.0.244
-    #         	# iifname ${wan_if} udp dport { 25565 } dnat to 192.168.0.244
+  #     persistent
+  #     vendorclassid
 
-    #         	# router
-    #         	iifname ${wan_if} tcp dport { 2201 } dnat to ${ip}
-    #         }
+  #     option domain_name_servers, domain_name, domain_search
+  #     option classless_static_routes
+  #     option interface_mtu
+  #     option host_name
+  #     #option ntp_servers
 
-    #         chain output {
-    #         	type nat hook output priority -99; policy accept;
-    #         	ip daddr != 127.0.0.0/8 oif "lo" dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
-    #         }
+  #     require dhcp_server_identifier
+  #     slaac private
+  #     noipv4ll
+  #     noipv6rs
 
-    #         chain postrouting {
-    #         	type nat hook postrouting priority srcnat + 1; policy accept;
-    #         	oifname ${lan_if} masquerade
-    #         	ip saddr @masq_saddr masquerade
-    #         }
-    #       '';
-    #     };
-    #   };
-    # };
+  #     static domain_name_servers=${ip}
 
-    # dhcpcd = {
-    #   enable = false;
-    #   extraConfig = ''
-    #     duid
+  #     interface ${wan_if}
+  #     	gateway
+  #     	ipv6rs
+  #     	iaid 1
+  #     	# option rapid_commit
+  #     	# ia_na 1
+  #     	ia_pd 1 ${lan_if}
 
-    #     # No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
-    #     # issues caused by guests with oneplus devices
-    #     noarp
-
-    #     persistent
-    #     vendorclassid
-
-    #     option domain_name_servers, domain_name, domain_search
-    #     option classless_static_routes
-    #     option interface_mtu
-    #     option host_name
-    #     #option ntp_servers
-
-    #     require dhcp_server_identifier
-    #     slaac private
-    #     noipv4ll
-    #     noipv6rs
-
-    #     static domain_name_servers=${ip}
-
-    #     interface ${wan_if}
-    #     	gateway
-    #     	ipv6rs
-    #     	iaid 1
-    #     	# option rapid_commit
-    #     	# ia_na 1
-    #     	ia_pd 1 ${lan_if}
-
-    #     interface ${lan_if}
-    #     	static ip_address=${cidr}
-    #     	static routers=${ip}
-    #     	static domain_name_servers=${ip}
-    #   '';
-    # };
-  };
-
-  systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
-
-  services.openssh.listenAddresses = [
-    {
-      addr = "0.0.0.0";
-      port = 2201;
-    }
-    {
-      addr = "0.0.0.0";
-      port = 22;
-    }
-    {
-      addr = "[::]";
-      port = 2201;
-    }
-    {
-      addr = "[::]";
-      port = 22;
-    }
-  ];
-
+  #     interface ${lan_if}
+  #     	static ip_address=${cidr}
+  #     	static routers=${ip}
+  #     	static domain_name_servers=${ip}
+  #   '';
+  # };
+  # };
   # systemd.network = {
   #   enable = false;
   #   networks = {
