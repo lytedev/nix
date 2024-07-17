@@ -21,7 +21,7 @@
     hyprland.url = "github:hyprwm/Hyprland";
     slippi.url = "github:lytedev/slippi-nix";
 
-    nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
+    # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
   };
 
   nixConfig = {
@@ -54,7 +54,7 @@
     home-manager,
     helix,
     hardware,
-    nnf,
+    # nnf,
     # hyprland,
     slippi,
     ...
@@ -347,7 +347,8 @@
         modules = with nixosModules; [
           outputs.diskoConfigurations.unencrypted
           common
-          nnf.nixosModules.default
+          linux
+          # nnf.nixosModules.default
           ./nixos/router.nix
         ];
       };

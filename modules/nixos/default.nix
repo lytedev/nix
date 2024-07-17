@@ -173,6 +173,14 @@
     };
   };
 
+  linux = {pkgs, ...}: {
+    home-manager.users.daniel = {
+      imports = with homeManagerModules; [
+        linux
+      ];
+    };
+  };
+
   tailscale = {lib, ...}: {
     services.tailscale = {
       enable = true;

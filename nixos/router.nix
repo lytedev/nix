@@ -19,11 +19,11 @@
   };
   interfaces = {
     wan = {
-      name = "wan0";
+      name = "wan";
       mac = "00:01:2e:82:73:59";
     };
     lan = {
-      name = "lan0";
+      name = "lan";
       mac = "00:01:2e:82:73:5a";
     };
   };
@@ -105,56 +105,120 @@ in {
       ff02::2 ip6-allrouters
     '';
 
-    nftables.firewall = let
-      me = config.networking.nftables.firewall.localZoneName;
+    nftables = let
+      inf = {
+        lan = interfaces.lan.name;
+        wan = interfaces.wan.name;
+      };
     in {
       enable = true;
-      snippets.nnf-common.enable = true;
+      ruleset = with inf; ''
+        table inet filter {
+        	set LANv4 {
+        		type ipv4_addr
+        		flags interval
+        		elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
+        	}
+        	set LANv6 {
+        		type ipv6_addr
+        		flags interval
+        		elements = { fd00::/8, fe80::/10 }
+        	}
+          # maybe tailnet?
 
-      zones = {
-        ${interfaces.wan.name} = {
-          interfaces = [interfaces.wan.name];
-        };
-        ${interfaces.lan.name} = {
-          parent = interfaces.wan.name;
-          ipv4Addresses = [cidr];
-        };
-        # banned = {
-        #   ingressExpression = [
-        #     "ip saddr @banlist"
-        #     "ip6 saddr @banlist6"
-        #   ];
-        #   egressExpression = [
-        #     "ip daddr @banlist"
-        #     "ip6 daddr @banlist6"
-        #   ];
-        # };
-      };
+        	chain my_input_lan {
+        		udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
+        		udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
+        	}
 
-      rules = {
-        dhcp = {
-          from = "all";
-          to = [hosts.beefcake.ip];
-          allowedTCPPorts = [67];
-          allowedUDPPorts = [67];
-        };
-        http = {
-          from = "all";
-          to = [hosts.beefcake.ip];
-          allowedTCPPorts = [80 443];
-        };
-        router-ssh = {
-          from = "all";
-          to = [me];
-          allowedTCPPorts = [2201];
-        };
-        server-ssh = {
-          from = "all";
-          to = [hosts.beefcake.ip];
-          allowedTCPPorts = [22];
-        };
-      };
+          chain input {
+            type filter hook input priority 0; policy drop;
+
+        		iif lo accept comment "Accept any localhost traffic"
+        		ct state invalid drop comment "Drop invalid connections"
+        		ct state established,related accept comment "Accept traffic originated from us"
+
+        		meta l4proto ipv6-icmp accept comment "Accept ICMPv6"
+        		meta l4proto icmp accept comment "Accept ICMP"
+        		ip protocol igmp accept comment "Accept IGMP"
+
+        		udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
+        		udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
+
+        		ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
+        		ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
+
+            iifname "${lan}" accept comment "Allow local network to access the router"
+
+            iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
+          }
+          chain forward {
+            type filter hook forward priority filter; policy drop;
+
+            iifname { "${lan}" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
+            iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
+          }
+        }
+
+        table ip nat {
+          chain postrouting {
+            type nat hook postrouting priority 100; policy accept;
+            oifname "${wan}" masquerade
+          }
+        }
+      '';
     };
+
+    # nftables.firewall = let
+    #   me = config.networking.nftables.firewall.localZoneName;
+    # in {
+    #   enable = true;
+    #   snippets.nnf-common.enable = true;
+
+    #   zones = {
+    #     ${interfaces.wan.name} = {
+    #       interfaces = [interfaces.wan.name interfaces.lan.name];
+    #     };
+    #     ${interfaces.lan.name} = {
+    #       parent = interfaces.wan.name;
+    #       ipv4Addresses = [cidr];
+    #     };
+    #     # banned = {
+    #     #   ingressExpression = [
+    #     #     "ip saddr @banlist"
+    #     #     "ip6 saddr @banlist6"
+    #     #   ];
+    #     #   egressExpression = [
+    #     #     "ip daddr @banlist"
+    #     #     "ip6 daddr @banlist6"
+    #     #   ];
+    #     # };
+    #   };
+
+    #   rules = {
+    #     dhcp = {
+    #       from = "all";
+    #       to = [hosts.beefcake.ip];
+    #       allowedTCPPorts = [67];
+    #       allowedUDPPorts = [67];
+    #     };
+    #     http = {
+    #       from = "all";
+    #       to = [me];
+    #       allowedTCPPorts = [80 443];
+    #     };
+    #     router-ssh = {
+    #       from = "all";
+    #       to = [me];
+    #       allowedTCPPorts = [2201];
+    #     };
+    #     server-ssh = {
+    #       from = "all";
+    #       to = [hosts.beefcake.ip];
+    #       allowedTCPPorts = [22];
+    #     };
+    #   };
+    # };
   };
 
   systemd.network = {
@@ -218,15 +282,23 @@ in {
   services.dnsmasq = {
     enable = true;
     settings = {
-      server = ["1.1.1.1" "9.9.9.9" "8.8.8.8"];
+      listen-address = "::,127.0.0.1,${ip}";
+      port = 53;
+
+      # dhcp-authoritative = true;
+      # dnssec = true;
+      # enable-ra = true;
+
+      server = ["::1" "127.0.0.1" "1.1.1.1" "9.9.9.9" "8.8.8.8"];
 
       domain-needed = true;
       bogus-priv = true;
       no-resolv = true;
 
-      cache-size = 1000;
+      cache-size = "10000";
 
       dhcp-range = with dhcp_lease_space; ["${interfaces.lan.name},${min},${max},${netmask},24h"];
+      except-interface = interfaces.wan.name;
       interface = interfaces.lan.name;
       dhcp-host =
         [
