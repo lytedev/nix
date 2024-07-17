@@ -126,10 +126,10 @@ in {
         	}
           # maybe tailnet?
 
-        	# chain my_input_lan {
-        	# 	udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
-        	# 	udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
-        	# }
+        	chain my_input_lan {
+        		udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
+        		udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
+        	}
 
           chain input {
             type filter hook input priority 0; policy drop;
@@ -145,8 +145,10 @@ in {
         		udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
         		udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
 
-        		# ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
-        		# ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
+        		tcp dport 2201 accept comment "Accept SSH on port 2201"
+
+        		ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
+        		ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
 
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
