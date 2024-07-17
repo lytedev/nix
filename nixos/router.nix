@@ -33,11 +33,23 @@
     };
     beefcake = {
       ip = "192.168.0.9";
+      additionalHosts = [
+        "nix.h.lyte.dev"
+        "git.lyte.dev"
+        "video.lyte.dev"
+        "bw.lyte.dev"
+        "files.lyte.dev"
+        "vpn.h.lyte.dev"
+      ];
     };
   };
   sysctl-entries = {
     "net.ipv4.conf.all.forwarding" = true;
     "net.ipv6.conf.all.forwarding" = true;
+
+    "net.ipv4.conf.default.rp_filter" = 1;
+    "net.ipv4.conf.${interfaces.wan.name}.rp_filter" = 1;
+    "net.ipv4.conf.${interfaces.lan.name}.rp_filter" = 0;
 
     # TODO: may want to disable this once it's working
     # "net.ipv6.conf.all.accept_ra" = 0;
@@ -146,6 +158,8 @@ in {
         		udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
 
         		tcp dport 2201 accept comment "Accept SSH on port 2201"
+        		tcp dport 53 accept comment "Accept DNS"
+        		udp dport 53 accept comment "Accept DNS"
 
         		ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
         		ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
@@ -163,6 +177,15 @@ in {
         }
 
         table ip nat {
+          chain prerouting {
+            type nat hook prerouting priority dstnat;
+
+          	iifname ${lan} accept
+
+            iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip} comment "Allow SSH to server"
+            iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip} comment "Allow HTTP/HTTPS to server"
+          }
+
           chain postrouting {
             type nat hook postrouting priority 100; policy accept;
             oifname "${wan}" masquerade
@@ -225,10 +248,10 @@ in {
 
   systemd.network = {
     enable = true;
-    wait-online.anyInterface = true;
+    # wait-online.anyInterface = true;
 
     links = {
-      "10-${interfaces.wan.name}" = {
+      "20-${interfaces.wan.name}" = {
         enable = true;
         matchConfig = {
           MACAddress = interfaces.wan.mac;
@@ -237,7 +260,7 @@ in {
           Name = interfaces.wan.name;
         };
       };
-      "10-${interfaces.lan.name}" = {
+      "30-${interfaces.lan.name}" = {
         enable = true;
         matchConfig = {
           MACAddress = interfaces.lan.mac;
@@ -248,7 +271,7 @@ in {
       };
     };
     networks = {
-      "30-${interfaces.lan.name}" = {
+      "50-${interfaces.lan.name}" = {
         matchConfig.Name = "${interfaces.lan.name}";
         linkConfig = {
           RequiredForOnline = "enslaved";
@@ -262,7 +285,7 @@ in {
           ConfigureWithoutCarrier = true;
         };
       };
-      "20-${interfaces.wan.name}" = {
+      "40-${interfaces.wan.name}" = {
         matchConfig.Name = "${interfaces.wan.name}";
         networkConfig = {
           DHCP = true;
@@ -291,7 +314,7 @@ in {
       # dnssec = true;
       # enable-ra = true;
 
-      server = ["::1" "127.0.0.1" "1.1.1.1" "9.9.9.9" "8.8.8.8"];
+      server = ["1.1.1.1" "9.9.9.9" "8.8.8.8"];
 
       domain-needed = true;
       bogus-priv = true;
@@ -309,6 +332,7 @@ in {
           ip,
           identifier ? name,
           time ? "12h",
+          ...
         }: "${name},${ip},${identifier},${time}")
         hosts);
 
@@ -316,12 +340,16 @@ in {
         [
           "/${hostname}.${domain}/${ip}"
         ]
-        ++ (lib.attrsets.mapAttrsToList (name: {
-          ip,
-          identifier ? name,
-          time ? "12h",
-        }: "/${name}.${domain}/${ip}")
-        hosts);
+        ++ (lib.lists.flatten (lib.attrsets.mapAttrsToList (name: {
+            ip,
+            additionalHosts ? [],
+            identifier ? name,
+            time ? "12h",
+          }: [
+            "/${name}.${domain}/${ip}"
+            (lib.lists.forEach additionalHosts (h: "/${h}/${ip}"))
+          ])
+          hosts));
 
       # local domains
       local = "/lan/";
