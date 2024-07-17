@@ -124,7 +124,7 @@ in {
         		flags interval
         		elements = { fd00::/8, fe80::/10 }
         	}
-          # maybe tailnet?
+          # TODO: maybe tailnet?
 
         	chain my_input_lan {
         		udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
@@ -153,6 +153,7 @@ in {
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
           }
+
           chain forward {
             type filter hook forward priority filter; policy drop;
 
