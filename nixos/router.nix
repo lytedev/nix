@@ -12,9 +12,9 @@
   domain = "h.lyte.dev";
   ip = "192.168.0.1";
   cidr = "${ip}/16";
-  netmask = "255.255.0.0"; # see cidr
+  netmask = "255.255.255.0"; # see cidr
   dhcp_lease_space = {
-    min = "192.168.0.5";
+    min = "192.168.0.30";
     max = "192.168.0.250";
   };
   interfaces = {
@@ -29,13 +29,9 @@
   };
   hosts = {
     dragon = {
-      identifier = "dragon";
-      host = "dragon";
       ip = "192.168.0.10";
     };
     beefcake = {
-      identifier = "beefcake";
-      host = "beefcake";
       ip = "192.168.0.9";
     };
   };
@@ -92,38 +88,116 @@ in {
   networking = {
     hostName = hostname;
     domain = domain;
+
     useDHCP = false;
+    nat.enable = false;
+    firewall.enable = false;
+
+    useNetworkd = true;
 
     extraHosts = ''
-            127.0.0.1 localhost
-            127.0.0.2 ${hostname}.${domain} ${hostname}
-            ${ip} ${hostname}.${domain} ${hostname}
+      127.0.0.1 localhost
+      127.0.0.2 ${hostname}.${domain} ${hostname}
+      ${ip} ${hostname}.${domain} ${hostname}
 
-            ::1 localhost ip6-localhost ip6-loopback
-            ff02::1 ip6-allnodes
-      kkkkk      ff02::2 ip6-allrouters
+      ::1 localhost ip6-localhost ip6-loopback
+      ff02::1 ip6-allnodes
+      ff02::2 ip6-allrouters
     '';
 
-    firewall.enable = true;
-    firewall.allowedTCPPorts = [
-      2201
-      22
-    ];
+    nftables.firewall = let
+      me = config.networking.nftables.firewall.localZoneName;
+    in {
+      enable = true;
+      snippets.nnf-common.enable = true;
+
+      zones = {
+        ${interfaces.wan.name} = {
+          interfaces = [interfaces.wan.name];
+        };
+        ${interfaces.lan.name} = {
+          parent = interfaces.wan.name;
+          ipv4Addresses = [cidr];
+        };
+        # banned = {
+        #   ingressExpression = [
+        #     "ip saddr @banlist"
+        #     "ip6 saddr @banlist6"
+        #   ];
+        #   egressExpression = [
+        #     "ip daddr @banlist"
+        #     "ip6 daddr @banlist6"
+        #   ];
+        # };
+      };
+
+      rules = {
+        dhcp = {
+          from = "all";
+          to = [hosts.beefcake.ip];
+          allowedTCPPorts = [67];
+          allowedUDPPorts = [67];
+        };
+        http = {
+          from = "all";
+          to = [hosts.beefcake.ip];
+          allowedTCPPorts = [80 443];
+        };
+        router-ssh = {
+          from = "all";
+          to = [me];
+          allowedTCPPorts = [2201];
+        };
+        server-ssh = {
+          from = "all";
+          to = [hosts.beefcake.ip];
+          allowedTCPPorts = [22];
+        };
+      };
+    };
   };
 
   systemd.network = {
     enable = true;
     wait-online.anyInterface = true;
+
+    links = {
+      "10-${interfaces.wan.name}" = {
+        enable = true;
+        matchConfig = {
+          MACAddress = interfaces.wan.mac;
+        };
+        linkConfig = {
+          Name = interfaces.wan.name;
+        };
+      };
+      "10-${interfaces.lan.name}" = {
+        enable = true;
+        matchConfig = {
+          MACAddress = interfaces.lan.mac;
+        };
+        linkConfig = {
+          Name = interfaces.lan.name;
+        };
+      };
+    };
     networks = {
       "30-${interfaces.lan.name}" = {
-        matchConfig.MACAddress = "${interfaces.lan.mac}";
-        linkConfig.RequiredForOnline = "enslaved";
+        matchConfig.Name = "${interfaces.lan.name}";
+        linkConfig = {
+          RequiredForOnline = "enslaved";
+          # Name = interfaces.lan.name;
+        };
+
+        address = [
+          cidr
+        ];
         networkConfig = {
           ConfigureWithoutCarrier = true;
         };
       };
-      "10-${interfaces.wan.name}" = {
-        matchConfig.MACAddress = "${interfaces.wan.mac}";
+      "20-${interfaces.wan.name}" = {
+        matchConfig.Name = "${interfaces.wan.name}";
         networkConfig = {
           DHCP = true;
           DNSOverTLS = true;
@@ -131,8 +205,57 @@ in {
           IPv6PrivacyExtensions = false;
           IPForward = true;
         };
-        linkConfig.RequiredForOnline = "routable";
+        linkConfig = {
+          RequiredForOnline = "routable";
+          # Name = interfaces.wan.name;
+        };
       };
+    };
+  };
+
+  services.resolved.enable = false;
+
+  services.dnsmasq = {
+    enable = true;
+    settings = {
+      server = ["1.1.1.1" "9.9.9.9" "8.8.8.8"];
+
+      domain-needed = true;
+      bogus-priv = true;
+      no-resolv = true;
+
+      cache-size = 1000;
+
+      dhcp-range = with dhcp_lease_space; ["${interfaces.lan.name},${min},${max},${netmask},24h"];
+      interface = interfaces.lan.name;
+      dhcp-host =
+        [
+        ]
+        ++ (lib.attrsets.mapAttrsToList (name: {
+          ip,
+          identifier ? name,
+          time ? "12h",
+        }: "${name},${ip},${identifier},${time}")
+        hosts);
+
+      address =
+        [
+          "/${hostname}.${domain}/${ip}"
+        ]
+        ++ (lib.attrsets.mapAttrsToList (name: {
+          ip,
+          identifier ? name,
+          time ? "12h",
+        }: "/${name}.${domain}/${ip}")
+        hosts);
+
+      # local domains
+      local = "/lan/";
+      domain = "lan";
+      expand-hosts = true;
+
+      # don't use /etc/hosts as this would advertise surfer as localhost
+      no-hosts = true;
     };
   };
 
