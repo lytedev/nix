@@ -165,6 +165,7 @@
           hardware.nixosModules.common-cpu-intel
 
           common
+          linux
           fonts
 
           ./nixos/beefcake.nix

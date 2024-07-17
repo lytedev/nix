@@ -428,7 +428,7 @@
     services.desktopManager.plasma6.enable = true;
     programs.dconf.enable = true;
 
-    services.xrdp.enable = true;
+    services.xrdp.enable = false;
     services.xrdp.defaultWindowManager = "plasma";
     services.xrdp.openFirewall = false;
 

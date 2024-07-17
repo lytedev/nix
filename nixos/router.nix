@@ -1,7 +1,7 @@
 {
   lib,
   # outputs,
-  config,
+  # config,
   pkgs,
   ...
 }: let
@@ -51,13 +51,8 @@
     "net.ipv4.conf.${interfaces.wan.name}.rp_filter" = 1;
     "net.ipv4.conf.${interfaces.lan.name}.rp_filter" = 0;
 
-    # TODO: may want to disable this once it's working
-    # "net.ipv6.conf.all.accept_ra" = 0;
-    # "net.ipv6.conf.all.autoconf" = 0;
-    # "net.ipv6.conf.all.use_tempaddr" = 0;
-
-    # "net.ipv6.conf.${wan_if}.accept_ra" = 2;
-    # "net.ipv6.conf.${wan_if}.autoconf" = 1;
+    "net.ipv6.conf.${interfaces.wan.name}.accept_ra" = 2;
+    "net.ipv6.conf.${interfaces.wan.name}.autoconf" = 1;
   };
 in {
   imports = [
@@ -154,6 +149,10 @@ in {
         		meta l4proto icmp accept comment "Accept ICMP"
         		ip protocol igmp accept comment "Accept IGMP"
 
+            ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit accept comment "Accept IPv6 router solicitation"
+            ip6 nexthdr icmpv6 icmpv6 type nd-router-advert  accept comment "Accept IPv6 router advertisements"
+            udp dport dhcpv6-client udp sport dhcpv6-server accept comment "IPv6 DHCP"
+
         		udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
         		udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
 
@@ -165,6 +164,7 @@ in {
         		ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
 
             iifname "${lan}" accept comment "Allow local network to access the router"
+            iifname "tailscale0" accept comment "Allow local network to access the router"
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
           }
 
@@ -172,6 +172,7 @@ in {
             type filter hook forward priority filter; policy drop;
 
             iifname { "${lan}" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
+            iifname { "tailscale0" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
             iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
           }
         }
@@ -181,9 +182,11 @@ in {
             type nat hook prerouting priority dstnat;
 
           	iifname ${lan} accept
+          	iifname tailscale0 accept
 
-            iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip} comment "Allow SSH to server"
-            iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip} comment "Allow HTTP/HTTPS to server"
+            iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip} comment "NAT SSH to beefcake"
+            iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip} comment "NAT HTTP/HTTPS to beefcake"
+            iifname ${wan} tcp dport {25565, 26966} dnat to ${hosts.beefcake.ip} comment "NAT minecraft servers to beefcake"
           }
 
           chain postrouting {
@@ -282,21 +285,42 @@ in {
           cidr
         ];
         networkConfig = {
+          Description = "LAN network - connection to switch in house";
           ConfigureWithoutCarrier = true;
+          IPv6AcceptRA = false;
+          IPv6SendRA = true;
         };
       };
       "40-${interfaces.wan.name}" = {
         matchConfig.Name = "${interfaces.wan.name}";
         networkConfig = {
-          DHCP = true;
-          DNSOverTLS = true;
-          DNSSEC = true;
-          IPv6PrivacyExtensions = false;
+          Description = "WAN network - connection to fiber ISP jack";
+          DHCP = "ipv4";
+          IPv6AcceptRA = true;
           IPForward = true;
+        };
+        dhcpV6Config = {
+          # ForceDHCPv6PDOtherInformation = true;
+          UseHostname = false;
+          UseDNS = false;
+          UseNTP = false;
+        };
+        dhcpV4Config = {
+          Hostname = hostname;
+          UseHostname = false;
+          UseDNS = false;
+          UseNTP = false;
+          UseSIP = false;
+          UseRoutes = false;
+          UseGateway = true;
         };
         linkConfig = {
           RequiredForOnline = "routable";
           # Name = interfaces.wan.name;
+        };
+        ipv6AcceptRAConfig = {
+          DHCPv6Client = "always";
+          UseDNS = false;
         };
       };
     };
