@@ -38,6 +38,7 @@
     beefcake = {
       ip = "192.168.0.9";
       additionalHosts = [
+        ".beefcake.lan"
         "nix.h.lyte.dev"
         "git.lyte.dev"
         "video.lyte.dev"
@@ -57,6 +58,11 @@
 
     "net.ipv6.conf.${interfaces.wan.name}.accept_ra" = 2;
     "net.ipv6.conf.${interfaces.wan.name}.autoconf" = 1;
+
+    "net.ipv6.conf.all.use_tempaddr" = 2;
+    "net.ipv6.conf.default.use_tempaddr" = lib.mkForce 2;
+    "net.ipv6.conf.${interfaces.wan.name}.use_tempaddr" = 2;
+    "net.ipv6.conf.${interfaces.wan.name}.addr_gen_mode" = 2;
   };
 in {
   imports = [
@@ -79,7 +85,10 @@ in {
     }
   ];
 
-  boot.kernel.sysctl = sysctl-entries;
+  boot.kernel.sysctl =
+    sysctl-entries
+    // {
+    };
 
   networking = {
     hostName = hostname;
@@ -114,16 +123,16 @@ in {
       enable = true;
       ruleset = with inf; ''
         table inet filter {
-        	set LANv4 {
-        		type ipv4_addr
-        		flags interval
-        		elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
-        	}
-        	set LANv6 {
-        		type ipv6_addr
-        		flags interval
-        		elements = { fd00::/8, fe80::/10 }
-        	}
+        	# set LANv4 {
+        	# 	type ipv4_addr
+        	# 	flags interval
+        	# 	elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
+        	# }
+        	# set LANv6 {
+        	# 	type ipv6_addr
+        	# 	flags interval
+        	# 	elements = { fd00::/8, fe80::/10 }
+        	# }
           # TODO: maybe tailnet?
 
         	chain my_input_lan {
@@ -142,9 +151,16 @@ in {
         		meta l4proto icmp accept comment "Accept ICMP"
         		ip protocol igmp accept comment "Accept IGMP"
 
-            ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit accept comment "Accept IPv6 router solicitation"
+            ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit accept
             ip6 nexthdr icmpv6 icmpv6 type nd-router-advert  accept comment "Accept IPv6 router advertisements"
-            udp dport dhcpv6-client udp sport dhcpv6-server accept comment "IPv6 DHCP"
+            udp dport dhcpv6-client accept comment "IPv6 DHCP"
+
+            ip6 nexthdr icmpv6 icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } accept comment "Accept IPv6 ICMP and meta stuff"
+            ip protocol icmp icmp type { echo-request, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } accept comment "Accept IPv4 ICMP and meta stuff"
+            ip protocol icmpv6 accept
+            ip protocol icmp accept
+            meta l4proto ipv6-icmp counter accept
+            udp dport dhcpv6-client counter accept
 
         		udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
         		udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
@@ -153,11 +169,16 @@ in {
         		tcp dport 53 accept comment "Accept DNS"
         		udp dport 53 accept comment "Accept DNS"
 
-        		ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
-        		ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
+            tcp dport { 80, 443 } accept comment "Allow HTTP/HTTPS to server (see nat prerouting)"
+            udp dport { 80, 443 } accept comment "Allow QUIC to server (see nat prerouting)"
+            tcp dport { 22 } accept comment "Allow SSH to server (see nat prerouting)"
 
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "tailscale0" accept comment "Allow local network to access the router"
+
+        		# ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
+        		# ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
+
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
           }
 
@@ -177,9 +198,10 @@ in {
           	iifname ${lan} accept
           	iifname tailscale0 accept
 
-            iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip} comment "NAT SSH to beefcake"
-            iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip} comment "NAT HTTP/HTTPS to beefcake"
-            iifname ${wan} tcp dport {25565, 26966} dnat to ${hosts.beefcake.ip} comment "NAT minecraft servers to beefcake"
+            iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip}
+            iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip}
+            iifname ${wan} udp dport {80, 443} dnat to ${hosts.beefcake.ip}
+            iifname ${wan} tcp dport {25565, 26966} dnat to ${hosts.beefcake.ip}
           }
 
           chain postrouting {
@@ -284,10 +306,11 @@ in {
           cidr
         ];
         networkConfig = {
-          Description = "LAN network - connection to switch in house";
+          # Description = "LAN network - connection to switch in house";
           ConfigureWithoutCarrier = true;
-          IPv6AcceptRA = false;
+          # IPv6AcceptRA = false;
           IPv6SendRA = true;
+          DHCPPrefixDelegation = true;
         };
       };
 
@@ -301,14 +324,16 @@ in {
         networkConfig = {
           Description = "WAN network - connection to fiber ISP jack";
           DHCP = true;
-          IPv6AcceptRA = true;
-          IPForward = true;
+          # IPv6AcceptRA = true;
+          # IPv6PrivacyExtensions = true;
+          # IPForward = true;
         };
         dhcpV6Config = {
           # ForceDHCPv6PDOtherInformation = true;
-          UseHostname = false;
-          UseDNS = false;
-          UseNTP = false;
+          # UseHostname = false;
+          # UseDNS = false;
+          # UseNTP = false;
+          PrefixDelegationHint = "::/56";
         };
         dhcpV4Config = {
           Hostname = hostname;
@@ -555,7 +580,6 @@ in {
   #           ip protocol icmpv6 counter accept
   #           ip protocol icmp counter accept
   #           meta l4proto ipv6-icmp counter accept
-
   #           udp dport dhcpv6-client counter accept
 
   #           tcp dport { 64022, 22, 53, 67, 25565 } counter accept
