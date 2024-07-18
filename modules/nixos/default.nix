@@ -350,14 +350,15 @@
 
   troubleshooting-tools = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
+      bottom
+      btop
+      dnsutils
+      dogdns
+      htop
+      inetutils
+      nmap
       pciutils
       usbutils
-      htop
-      bottom
-      nmap
-      dogdns
-      inetutils
-      dnsutils
     ];
   };
 

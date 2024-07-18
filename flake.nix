@@ -382,7 +382,14 @@
           outputs.diskoConfigurations.unencrypted
           common
           linux
+          troubleshooting-tools
+
+          # NOTE: maybe use this someday, but I think I need more concrete
+          # networking knowledge before I know how to use it well. Additionally,
+          # I can use my existing firewall configuration more easily if I manage
+          # it directly.
           # nnf.nixosModules.default
+
           ./nixos/router.nix
         ];
       };

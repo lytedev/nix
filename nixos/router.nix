@@ -5,6 +5,10 @@
   pkgs,
   ...
 }: let
+  # NOTE: My goal is to be able to apply most of the common tweaks to the router
+  # either live on the system for ad-hoc changes (such as forwarding a port for a
+  # multiplayer game) or to tweak these values just below without reaching deeper
+  # into the modules' implementation of these configuration values
   # NOTE: I could turn this into a cool NixOS module?
   # TODO: review https://francis.begyn.be/blog/nixos-home-router
   # TODO: more recent: https://github.com/ghostbuster91/blogposts/blob/a2374f0039f8cdf4faddeaaa0347661ffc2ec7cf/router2023-part2/main.md
@@ -75,31 +79,18 @@ in {
     }
   ];
 
-  boot = {
-    kernel = {
-      sysctl = sysctl-entries;
-    };
-  };
-
-  environment = {
-    systemPackages = with pkgs; [
-      wpa_supplicant
-      inetutils
-      btop
-      htop
-      bottom
-      dog
-    ];
-  };
+  boot.kernel.sysctl = sysctl-entries;
 
   networking = {
     hostName = hostname;
     domain = domain;
 
+    # disable some of the sane defaults
     useDHCP = false;
     nat.enable = false;
     firewall.enable = false;
 
+    # use systemd.network for network interface configuration
     useNetworkd = true;
 
     extraHosts = ''
@@ -112,6 +103,8 @@ in {
       ff02::2 ip6-allrouters
     '';
 
+    # the main meat and potatoes for most routers, the firewall configuration
+    # TODO: IPv6
     nftables = let
       inf = {
         lan = interfaces.lan.name;
@@ -197,6 +190,7 @@ in {
       '';
     };
 
+    # NOTE: see flake.nix 'nnf.nixosModules.default'
     # nftables.firewall = let
     #   me = config.networking.nftables.firewall.localZoneName;
     # in {
@@ -253,6 +247,7 @@ in {
     enable = true;
     # wait-online.anyInterface = true;
 
+    # configure known names for the network interfaces
     links = {
       "20-${interfaces.wan.name}" = {
         enable = true;
@@ -273,7 +268,11 @@ in {
         };
       };
     };
+
+    # configure networks for the interfaces
     networks = {
+      # LAN configuration is very simple and mostly forwarded between
+      # TODO: IPv6
       "50-${interfaces.lan.name}" = {
         matchConfig.Name = "${interfaces.lan.name}";
         linkConfig = {
@@ -291,11 +290,17 @@ in {
           IPv6SendRA = true;
         };
       };
+
+      # WAN configuration requires DHCP to get addresses
+      # we also disable some options to be certain we retain as much networking
+      # control as we reasonably can, such as not letting the ISP determine our
+      # hostname or DNS configuration
+      # TODO: IPv6 (prefix delegation)
       "40-${interfaces.wan.name}" = {
         matchConfig.Name = "${interfaces.wan.name}";
         networkConfig = {
           Description = "WAN network - connection to fiber ISP jack";
-          DHCP = "ipv4";
+          DHCP = true;
           IPv6AcceptRA = true;
           IPForward = true;
         };
@@ -328,6 +333,9 @@ in {
 
   services.resolved.enable = false;
 
+  # dnsmasq serves as our DHCP and DNS server
+  # almost all the configuration should be derived from the values at the top of
+  # this file
   services.dnsmasq = {
     enable = true;
     settings = {
@@ -336,7 +344,7 @@ in {
 
       # dhcp-authoritative = true;
       # dnssec = true;
-      # enable-ra = true;
+      enable-ra = true;
 
       server = ["1.1.1.1" "9.9.9.9" "8.8.8.8"];
 
@@ -385,8 +393,8 @@ in {
     };
   };
 
-  systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
-
+  # since the home network reserves port 22 for ssh to the big server and to
+  # gitea, the router uses port 2201 for ssh
   services.openssh.listenAddresses = [
     {
       addr = "0.0.0.0";
@@ -406,7 +414,14 @@ in {
     }
   ];
 
-  # # services.fail2ban.enable = true;
+  services.fail2ban.enable = true;
+
+  system.stateVersion = "24.05";
+
+  # NOTE: everything from here on is deprecated or old stuff
+
+  # TODO: may not be strictly necessary for IPv6?
+  # TODO: also may not even be the best implementation?
   # services.radvd = {
   #   enable = false;
   #   # NOTE: this config is just the default arch linux config I think and may
@@ -456,14 +471,7 @@ in {
   #   '';
   # };
 
-  # services.resolved = {
-  #   enable = false;
-  #   extraConfig = ''
-  #     [Resolve]
-  #     DNSStubListener=no
-  #   '';
-  # };
-
+  # TODO: old config, should be deleted ASAP
   # services.dnsmasq = {
   #   enable = false;
   #   settings = {
@@ -521,6 +529,7 @@ in {
   #   };
   # };
 
+  # TODO: old config, should be deleted ASAP
   # nftables = {
   #   enable = false;
   #   flushRuleset = true;
@@ -617,6 +626,8 @@ in {
   #   };
   # };
 
+  # TODO: also want to try to avoid using dhcpcd for IPv6 since systemd-networkd
+  # should be sufficient?
   # dhcpcd = {
   #   enable = false;
   #   extraConfig = ''
@@ -656,48 +667,4 @@ in {
   #     	static domain_name_servers=${ip}
   #   '';
   # };
-  # };
-  # systemd.network = {
-  #   enable = false;
-  #   networks = {
-  #     wan = {
-  #       networkConfig = {
-  #         DHCP = "yes";
-  #       };
-  #     };
-  #     lan = {
-  #       networkConfig = {
-  #         DHCP = "yes";
-  #       };
-  #     };
-  #   };
-  #   links = {
-  #     "10-${wan_if}" = {
-  #       enable = true;
-  #       matchConfig = {
-  #         MACAddress = "00:01:2e:82:73:59";
-  #       };
-  #       linkConfig = {
-  #         Name = wan_if;
-  #       };
-  #     };
-  #     "10-${lan_if}" = {
-  #       enable = true;
-  #       matchConfig = {
-  #         MACAddress = "00:01:2e:82:73:5a";
-  #       };
-  #       linkConfig = {
-  #         Name = lan_if;
-  #       };
-  #     };
-  #   };
-  # };
-
-  # services.avahi = {
-  #   enable = lib.mkForce false;
-  #   reflector = false;
-  #   allowInterfaces = [lan_if];
-  # };
-
-  system.stateVersion = "24.05";
 }
