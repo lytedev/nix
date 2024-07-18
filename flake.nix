@@ -290,9 +290,12 @@
           {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
+                senpai
                 iex
                 cargo
+                firefox-no-tabs
                 linux-desktop-environment-config
+                slippi.homeManagerModules.default
               ];
             };
           }
@@ -352,9 +355,12 @@
           {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
+                senpai
                 iex
                 cargo
+                firefox-no-tabs
                 linux-desktop-environment-config
+                slippi.homeManagerModules.default
               ];
             };
           }
