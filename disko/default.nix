@@ -1,7 +1,6 @@
 {
   standardWithHibernateSwap = {
     disks ? ["/dev/sda"],
-    extraSubvolumes ? {},
     swapSize,
     ...
   }: {
@@ -54,22 +53,20 @@
                   content = {
                     type = "btrfs";
                     extraArgs = ["-f"];
-                    subvolumes =
-                      {
-                        "/nixos" = {
-                          mountpoint = "/";
-                          mountOptions = ["compress=zstd" "noatime"];
-                        };
-                        "/home" = {
-                          mountpoint = "/home";
-                          mountOptions = ["compress=zstd" "noatime"];
-                        };
-                        "/nix" = {
-                          mountpoint = "/nix";
-                          mountOptions = ["compress=zstd" "noatime"];
-                        };
-                      }
-                      // extraSubvolumes;
+                    subvolumes = {
+                      "/nixos" = {
+                        mountpoint = "/";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                      "/home" = {
+                        mountpoint = "/home";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                      "/nix" = {
+                        mountpoint = "/nix";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                    };
                   };
                 };
               };
