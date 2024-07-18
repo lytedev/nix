@@ -336,7 +336,7 @@
               swapSize = "32G";
             };
           }
-          outputs.diskoConfigurations.standardWithHibernatSwap
+          outputs.diskoConfigurations.standardWithHibernateSwap
           inputs.hardware.nixosModules.lenovo-thinkpad-t480
           inputs.hardware.nixosModules.common-pc-laptop-ssd
 
