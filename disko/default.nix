@@ -1,4 +1,83 @@
 {
+  standardWithHibernateSwap = {
+    disks ? ["/dev/sda"],
+    swapSize,
+    ...
+  }: {
+    # this is my standard partitioning scheme for my machines which probably want hibernation capabilities
+    # a UEFI-compatible boot partition
+    # it includes an LUKS-encrypted btrfs volume
+    # a swap partition big enough to dump all the machine's RAM into
+
+    # this is my standard partitioning scheme for my machines: an LUKS-encrypted
+    # btrfs volume
+    disko.devices = {
+      disk = {
+        primary = {
+          type = "disk";
+          device = builtins.elemAt disks 0;
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = {
+                label = "EFI";
+                name = "ESP";
+                size = "1G";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = "/boot";
+                  mountOptions = [
+                    "defaults"
+                  ];
+                };
+              };
+              swap = {
+                size = swapSize;
+                content = {
+                  type = "swap";
+                  discardPolicy = "both";
+                  resumeDevice = true; # resume from hiberation from this device
+                };
+              };
+              luks = {
+                size = "100%";
+                content = {
+                  type = "luks";
+                  name = "crypted";
+                  extraOpenArgs = ["--allow-discards"];
+                  # if you want to use the key for interactive login be sure there is no trailing newline
+                  # for example use `echo -n "password" > /tmp/secret.key`
+                  keyFile = "/tmp/secret.key"; # Interactive
+                  # settings.keyFile = "/tmp/password.key";
+                  # additionalKeyFiles = ["/tmp/additionalSecret.key"];
+                  content = {
+                    type = "btrfs";
+                    extraArgs = ["-f"];
+                    subvolumes = {
+                      "/root" = {
+                        mountpoint = "/";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                      "/home" = {
+                        mountpoint = "/home";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                      "/nix" = {
+                        mountpoint = "/nix";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
   standard = {disks ? ["/dev/vda"], ...}: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume

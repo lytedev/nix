@@ -281,6 +281,7 @@
           common
           password-manager
           graphical-workstation
+          music-production
           laptop
           gaming
 
@@ -329,8 +330,28 @@
       thinker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          outputs.diskoConfigurations.standard
+          inputs.hardware.nixosModules.lenovo-thinkpad-t480
+          inputs.hardware.nixosModules.common-pc-laptop-ssd
+
+          music-production
           common
+          password-manager
+          graphical-workstation
+          laptop
+          gaming
+
           ./nixos/thinker.nix
+
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                iex
+                cargo
+                linux-desktop-environment-config
+              ];
+            };
+          }
         ];
       };
 

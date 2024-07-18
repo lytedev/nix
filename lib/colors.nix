@@ -56,7 +56,7 @@
   in {
     donokai = mkColorScheme {
       scheme-name = "donokai";
-      bg = "111111";
+      bg = "110f0a";
       bg2 = "181818";
       bg3 = "222222";
       bg4 = "292929";
