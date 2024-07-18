@@ -62,7 +62,7 @@
     "net.ipv6.conf.all.use_tempaddr" = 2;
     "net.ipv6.conf.default.use_tempaddr" = lib.mkForce 2;
     "net.ipv6.conf.${interfaces.wan.name}.use_tempaddr" = 2;
-    "net.ipv6.conf.${interfaces.wan.name}.addr_gen_mode" = 2;
+    # "net.ipv6.conf.${interfaces.wan.name}.addr_gen_mode" = 2;
   };
 in {
   imports = [
@@ -96,11 +96,13 @@ in {
 
     # disable some of the sane defaults
     useDHCP = false;
-    nat.enable = false;
     firewall.enable = false;
 
     # use systemd.network for network interface configuration
     useNetworkd = true;
+
+    # maybe we need this?
+    nat.enable = true;
 
     extraHosts = ''
       127.0.0.1 localhost
@@ -135,10 +137,10 @@ in {
         	# }
           # TODO: maybe tailnet?
 
-        	chain my_input_lan {
-        		udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
-        		udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
-        	}
+        	# chain my_input_lan {
+        	# 	udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
+        	# 	udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
+        	# }
 
           chain input {
             type filter hook input priority 0; policy drop;
@@ -182,13 +184,23 @@ in {
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
           }
 
-          chain forward {
-            type filter hook forward priority filter; policy drop;
-
-            iifname { "${lan}" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
-            iifname { "tailscale0" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
-            iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
+          chain output {
+            type filter hook output priority 0;
+            accept
           }
+
+          chain forward {
+            type filter hook forward priority 0;
+            accept
+          }
+
+          # chain forward {
+          #   type filter hook forward priority filter; policy drop;
+
+          #   iifname { "${lan}" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
+          #   iifname { "tailscale0" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
+          #   iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
+          # }
         }
 
         table ip nat {
