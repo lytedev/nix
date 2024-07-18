@@ -330,6 +330,12 @@
       thinker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          {
+            _module.args = {
+              disks = ["/dev/nvme0n1"];
+              swapSize = "32G";
+            };
+          }
           outputs.diskoConfigurations.standard
           inputs.hardware.nixosModules.lenovo-thinkpad-t480
           inputs.hardware.nixosModules.common-pc-laptop-ssd
