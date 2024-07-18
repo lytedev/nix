@@ -1,6 +1,7 @@
 {
   standardWithHibernateSwap = {
     disks ? ["/dev/sda"],
+    extraSubvolumes ? {},
     swapSize,
     ...
   }: {
@@ -9,8 +10,6 @@
     # it includes an LUKS-encrypted btrfs volume
     # a swap partition big enough to dump all the machine's RAM into
 
-    # this is my standard partitioning scheme for my machines: an LUKS-encrypted
-    # btrfs volume
     disko.devices = {
       disk = {
         primary = {
@@ -22,7 +21,7 @@
               ESP = {
                 label = "EFI";
                 name = "ESP";
-                size = "1G";
+                size = "4G";
                 type = "EF00";
                 content = {
                   type = "filesystem";
@@ -55,20 +54,22 @@
                   content = {
                     type = "btrfs";
                     extraArgs = ["-f"];
-                    subvolumes = {
-                      "/root" = {
-                        mountpoint = "/";
-                        mountOptions = ["compress=zstd" "noatime"];
-                      };
-                      "/home" = {
-                        mountpoint = "/home";
-                        mountOptions = ["compress=zstd" "noatime"];
-                      };
-                      "/nix" = {
-                        mountpoint = "/nix";
-                        mountOptions = ["compress=zstd" "noatime"];
-                      };
-                    };
+                    subvolumes =
+                      {
+                        "/nixos" = {
+                          mountpoint = "/";
+                          mountOptions = ["compress=zstd" "noatime"];
+                        };
+                        "/home" = {
+                          mountpoint = "/home";
+                          mountOptions = ["compress=zstd" "noatime"];
+                        };
+                        "/nix" = {
+                          mountpoint = "/nix";
+                          mountOptions = ["compress=zstd" "noatime"];
+                        };
+                      }
+                      // extraSubvolumes;
                   };
                 };
               };
