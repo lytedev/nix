@@ -337,8 +337,8 @@
             };
           }
           outputs.diskoConfigurations.standardWithHibernateSwap
-          inputs.hardware.nixosModules.lenovo-thinkpad-t480
-          inputs.hardware.nixosModules.common-pc-laptop-ssd
+          hardware.nixosModules.lenovo-thinkpad-t480
+          hardware.nixosModules.common-pc-laptop-ssd
 
           music-production
           common
