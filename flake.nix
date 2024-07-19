@@ -367,6 +367,41 @@
         ];
       };
 
+      musicbox = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          {
+            _module.args = {
+              disks = ["/dev/sda"];
+              # swapSize = "8G";
+            };
+          }
+          outputs.diskoConfigurations.unencrypted
+          hardware.nixosModules.common-pc-laptop-ssd
+
+          music-production
+          common
+          graphical-workstation
+          wifi
+
+          # ./nixos/musicbox.nix
+
+          {
+            boot.loader.systemd-boot.enable = true;
+            boot.loader.efi.canTouchEfiVariables = true;
+            hardware.bluetooth.enable = true;
+            networking.networkmanager.enable = true;
+
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                firefox-no-tabs
+                linux-desktop-environment-config
+              ];
+            };
+          }
+        ];
+      };
+
       rascal = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
