@@ -441,6 +441,13 @@
           end
         '';
       };
+      lag = {
+        wraps = "g";
+        body = ''
+          lA
+          g $argv
+        '';
+      };
     };
   };
 

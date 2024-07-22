@@ -35,6 +35,12 @@
     dragon = {
       ip = "192.168.0.10";
     };
+    bald = {
+      ip = "192.168.0.11";
+      additionalHosts = [
+        "ourcraft.lyte.dev"
+      ];
+    };
     beefcake = {
       ip = "192.168.0.9";
       additionalHosts = [
@@ -175,6 +181,7 @@ in {
             tcp dport { 80, 443 } accept comment "Allow HTTP/HTTPS to server (see nat prerouting)"
             udp dport { 80, 443 } accept comment "Allow QUIC to server (see nat prerouting)"
             tcp dport { 22 } accept comment "Allow SSH to server (see nat prerouting)"
+            tcp dport { 25565 } accept comment "Allow Minecraft server connections (see nat prerouting)"
 
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "tailscale0" accept comment "Allow local network to access the router"
@@ -214,7 +221,9 @@ in {
             iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip}
             iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip}
             iifname ${wan} udp dport {80, 443} dnat to ${hosts.beefcake.ip}
-            iifname ${wan} tcp dport {25565, 26966} dnat to ${hosts.beefcake.ip}
+            iifname ${wan} tcp dport {26966} dnat to ${hosts.beefcake.ip}
+            iifname ${wan} tcp dport {25565} dnat to ${hosts.bald.ip}
+            iifname ${wan} udp dport {25565} dnat to ${hosts.bald.ip}
           }
 
           chain postrouting {
