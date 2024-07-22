@@ -42,6 +42,7 @@
         "nix.h.lyte.dev"
         "git.lyte.dev"
         "video.lyte.dev"
+        "a.lyte.dev"
         "bw.lyte.dev"
         "files.lyte.dev"
         "vpn.h.lyte.dev"

@@ -243,11 +243,24 @@
     '';
   };
 
+  emacs = {pkgs, ...}: {
+    environment.systemPackages = with pkgs; [
+      emacs
+    ];
+
+    home-manager.users.daniel = {
+      imports = with homeManagerModules; [
+        emacs
+      ];
+    };
+  };
+
   development-tools = {pkgs, ...}: {
     imports = with nixosModules; [
       postgres
       podman
       troubleshooting-tools
+      emacs
     ];
 
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
