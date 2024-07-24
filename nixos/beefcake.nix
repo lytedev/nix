@@ -751,6 +751,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           enable = true;
           name = "beefcake";
           url = "https://git.lyte.dev";
+          settings = {
+            container = {
+              network = "podman";
+            };
+          };
           labels = [
             # type ":host" does not depend on docker/podman/lxc
             "podman"
@@ -1007,6 +1012,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   # should I be using btrfs subvolumes? can I capture file ownership, perimssions, and ACLs?
 
   virtualisation.oci-containers.backend = "podman";
+  virtualisation.podman = {
+    # autoPrune.enable = true;
+    defaultNetwork.settings = {
+      # this lets any podman container access host services
+      # primarily did this so runner actions running podman containers can hit git.lyte.dev
+      driver = "host";
+    };
+  };
   environment.systemPackages = with pkgs; [
     linuxquota
     htop
