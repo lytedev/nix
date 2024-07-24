@@ -115,7 +115,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "forgejo-runner.env" = {mode = "0400";};
         };
       };
-      systemd.services.gitea-runner-beefcake.serviceConfig.after = ["sops-nix.service"];
+      systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
     }
     {
       # nix binary cache
@@ -753,6 +753,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           url = "https://git.lyte.dev";
           settings = {
             container = {
+              # use the shared network which is bridged by default
+              # this lets us hit git.lyte.dev just fine
               network = "podman";
             };
           };
@@ -1014,11 +1016,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   virtualisation.oci-containers.backend = "podman";
   virtualisation.podman = {
     # autoPrune.enable = true;
-    defaultNetwork.settings = {
-      # this lets any podman container access host services
-      # primarily did this so runner actions running podman containers can hit git.lyte.dev
-      driver = "host";
-    };
+    # defaultNetwork.settings = {
+    # driver = "host";
+    # };
   };
   environment.systemPackages = with pkgs; [
     linuxquota
