@@ -609,7 +609,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           paths = [
             "/storage/files.lyte.dev"
             "/storage/daniel"
-            "/storage/gitea" # TODO: should maybe use configuration.nix's services.gitea.dump ?
+            "/storage/forgejo" # TODO: should maybe use configuration.nix's services.forgejo.dump ?
             "/storage/postgres-backups"
 
             # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
@@ -696,11 +696,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       ];
     }
     {
-      services.gitea = {
+      services.forgejo = {
         enable = true;
-        appName = "git.lyte.dev";
-        stateDir = "/storage/gitea";
+        stateDir = "/storage/forgejo";
         settings = {
+          DEFAULT = {
+            APP_NAME = "git.lyte.dev";
+          };
           server = {
             ROOT_URL = "https://git.lyte.dev";
             HTTP_ADDR = "127.0.0.1";
@@ -721,7 +723,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             LEVEL = "Debug";
           };
           ui = {
-            THEMES = "catppuccin-mocha-sapphire,gitea,arc-green,auto,pitchblack";
+            THEMES = "catppuccin-mocha-sapphire,forgejo,arc-green,auto,pitchblack";
             DEFAULT_THEME = "catppuccin-mocha-sapphire";
           };
           indexer = {
@@ -743,19 +745,19 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           type = "sqlite3";
         };
       };
-      # services.gitea-actions-runner.instances.main = {
+      # services.forgejo-actions-runner.instances.main = {
       #   # TODO: simple git-based automation would be dope? maybe especially for
       #   # mirroring to github super easy?
       #   enable = false;
       # };
       services.caddy.virtualHosts."git.lyte.dev" = {
         extraConfig = ''
-          reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
+          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
         '';
       };
       services.caddy.virtualHosts."http://git.beefcake.lan" = {
         extraConfig = ''
-          reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
+          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
         '';
       };
     }
