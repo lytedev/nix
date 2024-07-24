@@ -111,14 +111,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             owner = config.systemd.services.plausible.serviceConfig.User;
             group = config.systemd.services.plausible.serviceConfig.Group;
           };
-          nextcloud-admin-password = {
-            path = "/var/lib/nextcloud/admin-password";
-            mode = "0440";
-            # owner = config.services.nextcloud.serviceConfig.User;
-            # group = config.services.nextcloud.serviceConfig.Group;
-          };
+          nextcloud-admin-password.path = "/var/lib/nextcloud/admin-password";
+          "forgejo-runner.env" = {mode = "0400";};
         };
       };
+      systemd.services.gitea-runner-beefcake.serviceConfig.after = ["sops-nix.service"];
     }
     {
       # nix binary cache
@@ -745,11 +742,23 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           type = "sqlite3";
         };
       };
-      # services.forgejo-actions-runner.instances.main = {
-      #   # TODO: simple git-based automation would be dope? maybe especially for
-      #   # mirroring to github super easy?
-      #   enable = false;
-      # };
+      services.gitea-actions-runner = {
+        # TODO: simple git-based automation would be dope? maybe especially for
+        # mirroring to github super easy?
+        # enable = true;
+        package = pkgs.forgejo-runner;
+        instances."beefcake" = {
+          enable = true;
+          name = "beefcake";
+          url = "https://git.lyte.dev";
+          labels = [
+            # type ":host" does not depend on docker/podman/lxc
+            "native:host"
+            "podman"
+          ];
+          tokenFile = config.sops.secrets."forgejo-runner.env".path;
+        };
+      };
       services.caddy.virtualHosts."git.lyte.dev" = {
         extraConfig = ''
           reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
