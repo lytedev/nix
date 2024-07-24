@@ -753,8 +753,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           url = "https://git.lyte.dev";
           labels = [
             # type ":host" does not depend on docker/podman/lxc
-            "native:host"
-            "native:nix"
             "podman"
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
