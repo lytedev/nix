@@ -10,8 +10,8 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    pre-commit.url = "github:cachix/pre-commit-hooks.nix";
-    pre-commit.inputs.nixpkgs.follows = "nixpkgs";
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -51,7 +51,7 @@
     nixpkgs-unstable,
     disko,
     sops-nix,
-    pre-commit,
+    git-hooks,
     home-manager,
     helix,
     hardware,
@@ -93,29 +93,30 @@
     templates = import ./templates;
     formatter = genPkgs (p: p.alejandra);
 
-    checks = pkg ({system}: {
-      pre-commit-check = pre-commit.lib.${system}.run {
+    checks = genPkgs ({system, ...}: {
+      git-hooks = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
           alejandra.enable = true;
         };
       };
-    }) {};
+    });
 
-    devShells = pkg ({
+    devShells = genPkgs ({
       system,
       pkgs,
       mkShell,
+      ...
     }: {
       default = mkShell {
-        inherit (outputs.checks.${system}.pre-commit-check) shellHook;
+        inherit (outputs.checks.${system}.git-hooks) shellHook;
 
         buildInputs = with pkgs; [
           lua-language-server
           nodePackages.bash-language-server
         ];
       };
-    }) {};
+    });
 
     overlays = {
       # the default overlay composes all the other overlays together
