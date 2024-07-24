@@ -762,6 +762,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             # type ":host" does not depend on docker/podman/lxc
             "podman"
             "nix:docker://git.lyte.dev/lytedev/nix:latest"
+            "beefcake:host"
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
           hostPackages = with pkgs; [

@@ -162,6 +162,7 @@
               text = ''
                 accept-flake-config = true
                 experimental-features = nix-command flakes
+                build-users-group =
                 substituters = https://nix.h.lyte.dev https://cache.nixos.org/
                 trusted-substituters = https://nix.h.lyte.dev https://cache.nixos.org/
                 trusted-public-keys = h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
