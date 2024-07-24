@@ -766,6 +766,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
           hostPackages = with pkgs; [
+            nix
             bash
             coreutils
             curl
