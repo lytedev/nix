@@ -1,7 +1,7 @@
 on: [push]
 jobs:
   test:
-    runs-on: podman
+    runs-on: nix
     steps:
       - run: nix flake check
 

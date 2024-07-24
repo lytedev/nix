@@ -754,8 +754,19 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           labels = [
             # type ":host" does not depend on docker/podman/lxc
             "podman"
+            "nix:docker://nixos/nix:2.23.3"
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
+          hostPackages = with pkgs; [
+            sh
+            bash
+            coreutils
+            curl
+            gawk
+            gitMinimal
+            gnused
+            wget
+          ];
         };
       };
       services.caddy.virtualHosts."git.lyte.dev" = {
