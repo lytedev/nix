@@ -720,8 +720,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             LEVEL = "Debug";
           };
           ui = {
-            THEMES = "catppuccin-mocha-sapphire,forgejo,arc-green,auto,pitchblack";
-            DEFAULT_THEME = "catppuccin-mocha-sapphire";
+            THEMES = "forgejo-auto,forgejo-light,forgejo-dark,catppuccin-mocha-sapphire";
+            DEFAULT_THEME = "forgejo-auto";
           };
           indexer = {
             REPO_INDEXER_ENABLED = "true";
@@ -754,7 +754,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           labels = [
             # type ":host" does not depend on docker/podman/lxc
             "podman"
-            "nix:docker://nixos/nix:2.23.3"
+            "nix:docker://git.lyte.dev/lytedev/nix:latest"
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
           hostPackages = with pkgs; [

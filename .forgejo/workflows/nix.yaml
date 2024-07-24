@@ -4,4 +4,3 @@ jobs:
     runs-on: nix
     steps:
       - run: nix flake check
-

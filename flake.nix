@@ -88,7 +88,7 @@
     # kind of a quirk, but package definitions are actually in the "additions"
     # overlay I did this to work around some recursion problems
     # TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
-    packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset;});
+    packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset nix-base-container-image;});
     diskoConfigurations = import ./disko;
     templates = import ./templates;
     formatter = genPkgs (p: p.alejandra);
@@ -133,6 +133,59 @@
         inherit iosevkaLyteTerm;
         iosevkaLyteTermSubset = prev.callPackage ./packages/iosevkaLyteTermSubset.nix {
           inherit iosevkaLyteTerm;
+        };
+        nix-base-container-image = final.dockerTools.buildImageWithNixDb {
+          name = "git.lyte.dev/lytedev/nix";
+          tag = "latest";
+
+          copyToRoot = with final; [
+            bash
+            coreutils
+            curl
+            gawk
+            gitFull
+            git-lfs
+            gnused
+            nodejs
+            wget
+            sudo
+            nixFlakes
+            cacert
+            gnutar
+            gzip
+            openssh
+            xz
+            (pkgs.writeTextFile {
+              name = "nix.conf";
+              destination = "/etc/nix/nix.conf";
+              text = ''
+                accept-flake-config = true
+                experimental-features = nix-command flakes
+              '';
+            })
+          ];
+
+          extraCommands = ''
+            # enable /usr/bin/env for scripts
+            # mkdir -p usr
+            # ln -s ../bin usr/bin
+
+            # create HOME
+            # mkdir -vp root
+          '';
+          config = {
+            Cmd = ["/bin/bash"];
+            Env = [
+              "LANG=en_GB.UTF-8"
+              "ENV=/etc/profile.d/nix.sh"
+              "BASH_ENV=/etc/profile.d/nix.sh"
+              "NIX_BUILD_SHELL=/bin/bash"
+              "PAGER=cat"
+              "PATH=/usr/bin:/bin"
+              "SSL_CERT_FILE=${final.cacert}/etc/ssl/certs/ca-bundle.crt"
+              "USER=root"
+            ];
+          };
         };
       };
 
