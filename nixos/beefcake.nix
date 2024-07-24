@@ -766,7 +766,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
           hostPackages = with pkgs; [
-            sh
             bash
             coreutils
             curl
@@ -777,6 +776,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           ];
         };
       };
+      environment.systemPackages = with pkgs; [nodejs];
       services.caddy.virtualHosts."git.lyte.dev" = {
         extraConfig = ''
           reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}

@@ -6,19 +6,20 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
         
-    - name: Load cached nix store
-      id: cache-nix-store
-      uses: actions/cache/restore@v4
-      with:
-        path: /nix/store
-        key: ${{ runner.os }}-nix-store
+    # cache not needed since we now run on the host directly
+    # - name: Load cached nix store
+    #   id: cache-nix-store
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: /nix/store
+    #     key: ${{ runner.os }}-nix-store
 
     - name: Check nix flake
       run: |
         nix flake check
 
-    - name: Save nix store
-      uses: actions/cache/save@v4
-      with:
-        path: /nix/store
-        key: ${{ steps.cache-nix-store.outputs.cache-primary-key }}
+    # - name: Save nix store
+    #   uses: actions/cache/save@v4
+    #   with:
+    #     path: /nix/store
+    #     key: ${{ steps.cache-nix-store.outputs.cache-primary-key }}
