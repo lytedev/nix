@@ -10,8 +10,8 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    pre-commit.url = "github:cachix/pre-commit-hooks.nix";
-    pre-commit.inputs.nixpkgs.follows = "nixpkgs";
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,6 +20,7 @@
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
     slippi.url = "github:lytedev/slippi-nix";
+    # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
 
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
   };
@@ -50,7 +51,7 @@
     nixpkgs-unstable,
     disko,
     sops-nix,
-    pre-commit,
+    git-hooks,
     home-manager,
     helix,
     hardware,
@@ -87,34 +88,35 @@
     # kind of a quirk, but package definitions are actually in the "additions"
     # overlay I did this to work around some recursion problems
     # TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
-    packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset;});
+    packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset nix-base-container-image;});
     diskoConfigurations = import ./disko;
     templates = import ./templates;
     formatter = genPkgs (p: p.alejandra);
 
-    checks = pkg ({system}: {
-      pre-commit-check = pre-commit.lib.${system}.run {
+    checks = genPkgs ({system, ...}: {
+      git-hooks = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
           alejandra.enable = true;
         };
       };
-    }) {};
+    });
 
-    devShells = pkg ({
+    devShells = genPkgs ({
       system,
       pkgs,
       mkShell,
+      ...
     }: {
       default = mkShell {
-        inherit (outputs.checks.${system}.pre-commit-check) shellHook;
+        inherit (outputs.checks.${system}.git-hooks) shellHook;
 
         buildInputs = with pkgs; [
           lua-language-server
           nodePackages.bash-language-server
         ];
       };
-    }) {};
+    });
 
     overlays = {
       # the default overlay composes all the other overlays together
@@ -132,6 +134,66 @@
         inherit iosevkaLyteTerm;
         iosevkaLyteTermSubset = prev.callPackage ./packages/iosevkaLyteTermSubset.nix {
           inherit iosevkaLyteTerm;
+        };
+        nix-base-container-image = final.dockerTools.buildImageWithNixDb {
+          name = "git.lyte.dev/lytedev/nix";
+          tag = "latest";
+
+          copyToRoot = with final; [
+            bash
+            coreutils
+            curl
+            gawk
+            gitFull
+            git-lfs
+            gnused
+            nodejs
+            wget
+            sudo
+            nixFlakes
+            cacert
+            gnutar
+            gzip
+            openssh
+            xz
+            (pkgs.writeTextFile {
+              name = "nix.conf";
+              destination = "/etc/nix/nix.conf";
+              text = ''
+                accept-flake-config = true
+                experimental-features = nix-command flakes
+                build-users-group =
+                substituters = https://nix.h.lyte.dev https://cache.nixos.org/
+                trusted-substituters = https://nix.h.lyte.dev https://cache.nixos.org/
+                trusted-public-keys = h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+              '';
+            })
+          ];
+
+          extraCommands = ''
+            # enable /usr/bin/env for scripts
+            mkdir -p usr
+            ln -s ../bin usr/bin
+
+            # create /tmp
+            mkdir -p tmp
+
+            # create HOME
+            mkdir -vp root
+          '';
+          config = {
+            Cmd = ["/bin/bash"];
+            Env = [
+              "LANG=en_GB.UTF-8"
+              "ENV=/etc/profile.d/nix.sh"
+              "BASH_ENV=/etc/profile.d/nix.sh"
+              "NIX_BUILD_SHELL=/bin/bash"
+              "PAGER=cat"
+              "PATH=/usr/bin:/bin"
+              "SSL_CERT_FILE=${final.cacert}/etc/ssl/certs/ca-bundle.crt"
+              "USER=root"
+            ];
+          };
         };
       };
 

@@ -111,14 +111,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             owner = config.systemd.services.plausible.serviceConfig.User;
             group = config.systemd.services.plausible.serviceConfig.Group;
           };
-          nextcloud-admin-password = {
-            path = "/var/lib/nextcloud/admin-password";
-            mode = "0440";
-            # owner = config.services.nextcloud.serviceConfig.User;
-            # group = config.services.nextcloud.serviceConfig.Group;
-          };
+          nextcloud-admin-password.path = "/var/lib/nextcloud/admin-password";
+          "forgejo-runner.env" = {mode = "0400";};
         };
       };
+      systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
     }
     {
       # nix binary cache
@@ -609,7 +606,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           paths = [
             "/storage/files.lyte.dev"
             "/storage/daniel"
-            "/storage/gitea" # TODO: should maybe use configuration.nix's services.gitea.dump ?
+            "/storage/forgejo" # TODO: should maybe use configuration.nix's services.forgejo.dump ?
             "/storage/postgres-backups"
 
             # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
@@ -696,11 +693,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       ];
     }
     {
-      services.gitea = {
+      services.forgejo = {
         enable = true;
-        appName = "git.lyte.dev";
-        stateDir = "/storage/gitea";
+        stateDir = "/storage/forgejo";
         settings = {
+          DEFAULT = {
+            APP_NAME = "git.lyte.dev";
+          };
           server = {
             ROOT_URL = "https://git.lyte.dev";
             HTTP_ADDR = "127.0.0.1";
@@ -721,8 +720,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             LEVEL = "Debug";
           };
           ui = {
-            THEMES = "catppuccin-mocha-sapphire,gitea,arc-green,auto,pitchblack";
-            DEFAULT_THEME = "catppuccin-mocha-sapphire";
+            THEMES = "forgejo-auto,forgejo-light,forgejo-dark,catppuccin-mocha-sapphire";
+            DEFAULT_THEME = "forgejo-auto";
           };
           indexer = {
             REPO_INDEXER_ENABLED = "true";
@@ -743,19 +742,51 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           type = "sqlite3";
         };
       };
-      # services.gitea-actions-runner.instances.main = {
-      #   # TODO: simple git-based automation would be dope? maybe especially for
-      #   # mirroring to github super easy?
-      #   enable = false;
-      # };
+      services.gitea-actions-runner = {
+        # TODO: simple git-based automation would be dope? maybe especially for
+        # mirroring to github super easy?
+        # enable = true;
+        package = pkgs.forgejo-runner;
+        instances."beefcake" = {
+          enable = true;
+          name = "beefcake";
+          url = "https://git.lyte.dev";
+          settings = {
+            container = {
+              # use the shared network which is bridged by default
+              # this lets us hit git.lyte.dev just fine
+              network = "podman";
+            };
+          };
+          labels = [
+            # type ":host" does not depend on docker/podman/lxc
+            "podman"
+            "nix:docker://git.lyte.dev/lytedev/nix:latest"
+            "beefcake:host"
+          ];
+          tokenFile = config.sops.secrets."forgejo-runner.env".path;
+          hostPackages = with pkgs; [
+            nix
+            bash
+            coreutils
+            curl
+            gawk
+            gitMinimal
+            gnused
+            nodejs
+            wget
+          ];
+        };
+      };
+      # environment.systemPackages = with pkgs; [nodejs];
       services.caddy.virtualHosts."git.lyte.dev" = {
         extraConfig = ''
-          reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
+          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
         '';
       };
       services.caddy.virtualHosts."http://git.beefcake.lan" = {
         extraConfig = ''
-          reverse_proxy :${toString config.services.gitea.settings.server.HTTP_PORT}
+          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
         '';
       };
     }
@@ -986,6 +1017,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   # should I be using btrfs subvolumes? can I capture file ownership, perimssions, and ACLs?
 
   virtualisation.oci-containers.backend = "podman";
+  virtualisation.podman = {
+    # autoPrune.enable = true;
+    # defaultNetwork.settings = {
+    # driver = "host";
+    # };
+  };
   environment.systemPackages = with pkgs; [
     linuxquota
     htop

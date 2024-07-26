@@ -34,6 +34,23 @@
 
   broot = {};
 
+  emacs = {pkgs, ...}: {
+    programs.emacs = {
+      enable = true;
+      # extraConfig = ''
+      # '';
+      extraPackages = epkgs: (with epkgs; [
+        magit
+      ]);
+    };
+
+    programs.fish = {
+      shellAliases = {
+        e = "emacs";
+      };
+    };
+  };
+
   cargo = {config, ...}: {
     home.file."${config.home.homeDirectory}/.cargo/config.toml" = {
       enable = true;
