@@ -362,6 +362,15 @@
     ];
   };
 
+  music-consumption = {pkgs, ...}: {
+    environment = {
+      systemPackages = with pkgs; [
+        spotube
+        spotdl
+      ];
+    };
+  };
+
   graphical-workstation = {pkgs, ...}: {
     imports = with nixosModules; [
       plasma6
@@ -369,6 +378,7 @@
       fonts
       development-tools
       printing
+      music-consumption
     ];
 
     xdg.portal.enable = true;
