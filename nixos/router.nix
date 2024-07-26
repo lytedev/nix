@@ -51,6 +51,8 @@
         "bw.lyte.dev"
         "files.lyte.dev"
         "vpn.h.lyte.dev"
+        "atuin.h.lyte.dev"
+        "a.lyte.dev"
       ];
     };
   };
