@@ -365,6 +365,7 @@
   graphical-workstation = {pkgs, ...}: {
     imports = with nixosModules; [
       plasma6
+      enable-flatpaks-and-appimages
       fonts
       development-tools
       printing
