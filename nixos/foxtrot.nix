@@ -105,7 +105,7 @@
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_zen;
 
     # https://github.com/void-linux/void-packages/issues/50417#issuecomment-2131802836 fix framework 13 not shutting down
     # kernelPatches = [
