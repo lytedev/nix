@@ -70,6 +70,13 @@
     genPkgs = func: (forSystems (system: func (pkgsFor system)));
     pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
 
+    unstable = {
+      forSystems = nixpkgs-unstable.lib.genAttrs systems;
+      pkgsFor = system: (import nixpkgs-unstable {inherit system;}).extend overlays.default;
+      genPkgs = func: (forSystems (system: func (pkgsFor system)));
+      pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
+    };
+
     colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
 
     # font = {
@@ -294,7 +301,7 @@
         ];
       };
 
-      foxtrot = nixpkgs.lib.nixosSystem {
+      foxtrot = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
           outputs.diskoConfigurations.standard
