@@ -187,7 +187,12 @@
       enable = true;
 
       # TODO: uses nixpkgs.pass so pass otp doesn't work
-      package = pkgs.firefox.override {nativeMessagingHosts = [pkgs.passff-host];};
+      package = pkgs.firefox.override {
+        nativeMessagingHosts = [
+          pkgs.passff-host
+          pkgs.plasma-browser-integration
+        ];
+      };
 
       # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
       #   ublock-origin

@@ -1,9 +1,10 @@
 {pkgs, ...}: {
-  system.stateVersion = "24.05";
-  home-manager.users.daniel.home.stateVersion = "24.11";
-  networking.hostName = "foxtrot";
-
   imports = [
+    {
+      system.stateVersion = "24.05";
+      home-manager.users.daniel.home.stateVersion = "24.05";
+      networking.hostName = "foxtrot";
+    }
     {
       # laptop power management
       services.upower.enable = true;
