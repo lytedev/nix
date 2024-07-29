@@ -1,5 +1,8 @@
 {pkgs, ...}: {
+  system.stateVersion = "24.05";
+  home-manager.users.daniel.home.stateVersion = "24.11";
   networking.hostName = "foxtrot";
+
   imports = [
     {
       # laptop power management
@@ -33,9 +36,6 @@
 
   environment = {
     systemPackages = with pkgs; [
-      spotify
-      discord
-      slack
       godot_4
       fractal
       prismlauncher
@@ -51,7 +51,6 @@
 
   home-manager.users.daniel = {
     home = {
-      stateVersion = "24.05";
       pointerCursor = {
         size = 40;
       };
@@ -90,7 +89,7 @@
     # };
   };
 
-  hardware.opengl.extraPackages = [
+  hardware.graphics.extraPackages = [
     # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
 
@@ -204,6 +203,4 @@
     stardewValley
     7777
   ];
-
-  system.stateVersion = "24.05";
 }

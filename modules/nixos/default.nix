@@ -204,7 +204,7 @@
 
     nix = {
       nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
-      registry = lib.mapAttrs (_: value: {flake = value;}) flakeInputs;
+      # registry = lib.mapAttrs (_: value: {flake = value;}) flakeInputs;
 
       settings = {
         trusted-users = ["root" "daniel"];
@@ -280,7 +280,7 @@
       kubectl
       stern
       libresprite
-      logseq
+      # logseq
       audacity
       wol
       shellcheck
@@ -397,10 +397,10 @@
     xdg.portal.enable = true;
 
     hardware = {
-      opengl = {
+      graphics = {
         enable = true;
-        driSupport32Bit = true;
-        driSupport = true;
+        # driSupport32Bit = true;
+        # driSupport = true;
       };
     };
     environment = {

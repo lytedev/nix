@@ -15,6 +15,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   pkgs,
   ...
 }: {
+  system.stateVersion = "22.05";
+  home-manager.users.daniel.home.stateVersion = "24.05";
   networking.hostName = "beefcake";
 
   imports = [
@@ -470,7 +472,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # stuff, too?) and get good transcoding performance
 
       # jellyfin hardware encoding
-      # hardware.opengl = {
+      # hardware.graphics = {
       #   enable = true;
       #   extraPackages = with pkgs; [
       #     intel-media-driver
@@ -1073,7 +1075,4 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       to = 27100;
     }
   ];
-
-  home-manager.users.daniel.home.stateVersion = "24.05";
-  system.stateVersion = "22.05";
 }

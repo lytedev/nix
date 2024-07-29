@@ -132,7 +132,7 @@
   #   };
   # };
 
-  hardware.opengl.driSupport32Bit = lib.mkForce false;
+  hardware.graphics.driSupport32Bit = lib.mkForce false;
 
   system.stateVersion = "24.05";
 }

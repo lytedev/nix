@@ -5,9 +5,10 @@
   ...
 }: {
   system.stateVersion = "24.05";
+  home-manager.users.daniel.home.stateVersion = "24.05";
   networking.hostName = "dragon";
 
-  hardware.opengl.extraPackages = [
+  hardware.graphics.extraPackages = [
     # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
 

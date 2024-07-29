@@ -1190,7 +1190,7 @@
       age-plugin-yubikey
       bitwarden-cli
       oath-toolkit
-      bitwarden-desktop
+      # bitwarden-desktop
     ];
   };
 
