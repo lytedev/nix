@@ -136,6 +136,30 @@
     };
   };
 
+  remote-disk-key-entry-on-boot = {
+    lib,
+    pkgs,
+    ...
+  }: {
+    # https://nixos.wiki/wiki/Remote_disk_unlocking
+    # "When using DHCP, make sure your computer is always attached to the network and is able to get an IP adress, or the boot process will hang."
+    # ^ seems less than ideal
+    boot.kernelParams = ["ip=dhcp"];
+    boot.initrd = {
+      # availableKernelModules = ["r8169"]; # ethernet drivers
+      systemd.users.root.shell = "/bin/cryptsetup-askpass";
+      network = {
+        enable = true;
+        ssh = {
+          enable = true;
+          port = 22;
+          authorizedKeys = [pubkey];
+          hostKeys = ["/etc/secrets/initrd/ssh_host_rsa_key"];
+        };
+      };
+    };
+  };
+
   ssh-server = {lib, ...}: {
     # enable an ssh server and provide root access with my primary public key
 
