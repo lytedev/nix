@@ -5,6 +5,7 @@
   flakeInputs,
   homeManagerModules,
   home-manager,
+  home-manager-unstable,
   helix,
   nixosModules,
   pubkey,
@@ -26,6 +27,16 @@
     imports = [
       # enable home-manager
       home-manager.nixosModules.home-manager
+    ];
+
+    home-manager.useGlobalPkgs = true;
+    home-manager.backupFileExtension = "hm-backup";
+  };
+
+  home-manager-unstable-defaults = {
+    imports = [
+      # enable home-manager
+      home-manager-unstable.nixosModules.home-manager
     ];
 
     home-manager.useGlobalPkgs = true;
@@ -874,8 +885,6 @@
 
       my-favorite-default-system-apps
       mosh
-
-      home-manager-defaults
 
       daniel
     ];
