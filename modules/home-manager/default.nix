@@ -4,6 +4,7 @@
   flakeInputs,
   homeManagerModules,
   home-manager,
+  home-manager-unstable,
   helix,
   nixosModules,
   pubkey,

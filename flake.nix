@@ -16,6 +16,9 @@
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    home-manager-unstable.url = "github:nix-community/home-manager";
+    home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     helix.url = "github:helix-editor/helix/master";
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
@@ -53,6 +56,7 @@
     sops-nix,
     git-hooks,
     home-manager,
+    home-manager-unstable,
     helix,
     hardware,
     # nnf,
@@ -217,12 +221,12 @@
     };
 
     nixosModules = import ./modules/nixos {
-      inherit home-manager helix nixosModules homeManagerModules pubkey overlays colors sops-nix disko;
+      inherit home-manager home-manager-unstable helix nixosModules homeManagerModules pubkey overlays colors sops-nix disko;
       flakeInputs = self.inputs;
     };
 
     homeManagerModules = import ./modules/home-manager {
-      inherit home-manager helix nixosModules homeManagerModules pubkey overlays colors;
+      inherit home-manager home-manager-unstable helix nixosModules homeManagerModules pubkey overlays colors;
       inherit (nixpkgs) lib;
       flakeInputs = self.inputs;
     };
@@ -231,6 +235,8 @@
       beefcake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-defaults
+
           hardware.nixosModules.common-cpu-intel
 
           common
@@ -249,9 +255,11 @@
         ];
       };
 
-      dragon = nixpkgs.lib.nixosSystem {
+      dragon = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-unstable-defaults
+
           outputs.diskoConfigurations.standard
           hardware.nixosModules.common-cpu-amd
           hardware.nixosModules.common-pc-ssd
@@ -284,6 +292,8 @@
       htpc = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-defaults
+
           hardware.nixosModules.common-pc-ssd
 
           common
@@ -304,6 +314,8 @@
       foxtrot = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-unstable-defaults
+
           outputs.diskoConfigurations.standard
           hardware.nixosModules.framework-13-7040-amd
 
@@ -341,9 +353,10 @@
         ];
       };
 
-      thablet = nixpkgs.lib.nixosSystem {
+      thablet = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-unstable-defaults
           outputs.diskoConfigurations.standard
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
@@ -399,9 +412,11 @@
       #   ];
       # };
 
-      thinker = nixpkgs.lib.nixosSystem {
+      thinker = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-unstable-defaults
+
           {
             _module.args = {
               disks = ["/dev/nvme0n1"];
@@ -439,6 +454,8 @@
       musicbox = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-defaults
+
           {
             _module.args = {
               disks = ["/dev/sda"];
@@ -474,6 +491,7 @@
       rascal = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-defaults
           hardware.nixosModules.common-cpu-amd
           common
           ./nixos/rascal.nix
@@ -483,6 +501,7 @@
       router = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
+          home-manager-defaults
           outputs.diskoConfigurations.unencrypted
           common
           linux

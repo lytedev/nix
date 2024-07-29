@@ -4,10 +4,13 @@
   config,
   ...
 }: {
-  system.stateVersion = "24.05";
-  home-manager.users.daniel.home.stateVersion = "24.05";
-  networking.hostName = "dragon";
-
+  imports = [
+    {
+      system.stateVersion = "24.05";
+      home-manager.users.daniel.home.stateVersion = "24.05";
+      networking.hostName = "dragon";
+    }
+  ];
   hardware.graphics.extraPackages = [
     # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
@@ -17,11 +20,14 @@
     pkgs.vaapiVdpau
   ];
 
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.enable = true;
-  boot.initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci" "usbhid"];
-  boot.kernelModules = ["kvm-amd"];
-  boot.supportedFilesystems = ["ntfs"];
+  boot = {
+    kernelPackages = pkgs.linuxPackages_zen;
+    loader.efi.canTouchEfiVariables = true;
+    loader.systemd-boot.enable = true;
+    initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci" "usbhid"];
+    kernelModules = ["kvm-amd"];
+    supportedFilesystems = ["ntfs"];
+  };
 
   hardware.bluetooth = {
     enable = true;
