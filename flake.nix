@@ -22,6 +22,7 @@
     helix.url = "github:helix-editor/helix/master";
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
+
     # slippi.url = "github:lytedev/slippi-nix/fix-recursion";
     slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
     slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
