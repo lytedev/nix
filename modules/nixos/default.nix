@@ -783,6 +783,28 @@
     # networking.firewall.allowedTCPPortRanges = [ { from = 27036; to = 27037; } ];
   };
 
+  root = {
+    pkgs,
+    lib,
+    ...
+  }: {
+    users.users.root = {
+      home = "/root";
+      createHome = true;
+      openssh.authorizedKeys.keys = [pubkey];
+      shell = lib.mkForce pkgs.fish;
+    };
+    home-manager.users.root = {
+      imports = [homeManagerModules.common];
+
+      home = {
+        username = "root";
+        homeDirectory = "/root";
+        stateVersion = pkgs.lib.mkDefault "24.05";
+      };
+    };
+  };
+
   daniel = {pkgs, ...}: let
     username = "daniel";
   in {
@@ -887,6 +909,7 @@
       mosh
 
       daniel
+      root
     ];
 
     programs.gnupg.agent = {

@@ -21,10 +21,15 @@ function preprocess_pwd
         | gawk '{n=split($0,p,"/");for(i=1;i<=n;i++){if(i==n){printf "/%s",p[i]}else{printf "/%.3s",p[i]}}}'
 end
 
-function _maybe_sudo_prefix
+function _maybe_elevated_access_prefix
     if set -q SUDO_USER
         set_color -b yellow black
         printf " SUDO "
+        set_color -b normal normal
+        printf " "
+    else if test $USER = root
+        set_color -b red black
+        printf " ROOT "
         set_color -b normal normal
         printf " "
     end
@@ -111,7 +116,7 @@ function fish_prompt
     set last_cmd_status $status
     _prompt_marker
     _prompt_prefix
-    _maybe_sudo_prefix
+    _maybe_elevated_access_prefix
     _user_and_host $last_cmd_status
     _cur_work_dir
     _maybe_git_summary

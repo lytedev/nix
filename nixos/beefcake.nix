@@ -765,6 +765,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             "podman"
             "nix:docker://git.lyte.dev/lytedev/nix:latest"
             "beefcake:host"
+            "nixos-host:host"
           ];
           tokenFile = config.sops.secrets."forgejo-runner.env".path;
           hostPackages = with pkgs; [

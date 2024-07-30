@@ -1315,6 +1315,7 @@
     programs.zellij = {
       # uses home manager's toKDL generator
       enable = true;
+      # This causes fish to start zellij immediately
       # enableFishIntegration = true;
       settings = {
         pane_frames = false;
