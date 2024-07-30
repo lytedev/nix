@@ -651,6 +651,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       services.caddy = {
+        # TODO: 502 and other error pages
         enable = true;
         email = "daniel@lyte.dev";
         adapter = "caddyfile";

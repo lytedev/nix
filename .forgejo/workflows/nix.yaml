@@ -1,7 +1,7 @@
 on: [push]
 jobs:
   check:
-    runs-on: beefcake
+    runs-on: nixos-host
     steps:
     - name: Checkout
       uses: actions/checkout@v3
