@@ -67,7 +67,7 @@
   ];
 
   home-manager.users.daniel = {
-    slippi.launcher = {
+    slippi-launcher = {
       enable = true;
       isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
       launchMeleeOnPlay = false;

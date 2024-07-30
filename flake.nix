@@ -22,8 +22,10 @@
     helix.url = "github:helix-editor/helix/master";
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
-    slippi.url = "github:lytedev/slippi-nix";
-    # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
+    # slippi.url = "github:lytedev/slippi-nix/fix-recursion";
+    slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
+    slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    slippi.inputs.home-manager.follows = "home-manager-unstable";
 
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
   };
@@ -121,8 +123,7 @@
     }: {
       default = mkShell {
         inherit (outputs.checks.${system}.git-hooks) shellHook;
-
-        buildInputs = with pkgs; [
+        packages = with pkgs; [
           lua-language-server
           nodePackages.bash-language-server
         ];
