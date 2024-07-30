@@ -1,5 +1,7 @@
 # Nix
 
+[![build status](https://git.lyte.dev/lytedev/nix/badges/workflows/nix.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=nix.yaml)
+
 My grand, declarative, and unified application, service, environment, and
 machine configuration, secret, and package management in a single flake. ❤️ ❄️
 
