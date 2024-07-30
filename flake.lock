@@ -600,16 +600,17 @@
         ]
       },
       "locked": {
-        "dirtyRev": "5bfb7a3cc6c2bf124f5c1de080ee47b990674034-dirty",
-        "dirtyShortRev": "5bfb7a3-dirty",
-        "lastModified": 1722367638,
-        "narHash": "sha256-iUf05OQc/FejyhLgSfbYhAM3BDd/0TxSYe2XTF7atDU=",
-        "type": "git",
-        "url": "file:///home/daniel/code/open-source/slippi-nix"
+        "lastModified": 1722375582,
+        "narHash": "sha256-NKUQoYIr+982vUXwlDGbBFY4259CX/mngVHYH4sjL8Y=",
+        "owner": "lytedev",
+        "repo": "slippi-nix",
+        "rev": "ec418c0b7ed1191e227b2d821c02ee5b5fbe68f1",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/daniel/code/open-source/slippi-nix"
+        "owner": "lytedev",
+        "repo": "slippi-nix",
+        "type": "github"
       }
     },
     "sops-nix": {
