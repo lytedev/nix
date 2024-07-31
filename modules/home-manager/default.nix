@@ -588,6 +588,12 @@
               unit = "\t";
             };
           }
+          {
+            name = "toml";
+            file-types = ["toml"];
+            scope = "source.toml";
+            auto-format = true;
+          }
 
           # {
           #   name = "javascript";
