@@ -438,7 +438,7 @@
     xdg.portal.enable = true;
 
     hardware =
-      if builtins.hasAttr "enable" options.hardware.graphics
+      if builtins.hasAttr "graphics" options.hardware
       then {
         graphics = {
           enable = true;
