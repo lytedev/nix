@@ -419,7 +419,13 @@
     };
   };
 
-  graphical-workstation = {pkgs, ...}: {
+  graphical-workstation = {
+    pkgs,
+    lib,
+    options,
+    config,
+    ...
+  }: {
     imports = with nixosModules; [
       plasma6
       enable-flatpaks-and-appimages
@@ -431,13 +437,22 @@
 
     xdg.portal.enable = true;
 
-    hardware = {
-      graphics = {
-        enable = true;
-        # driSupport32Bit = true;
-        # driSupport = true;
+    hardware =
+      if builtins.hasAttr "enable" options.hardware.graphics
+      then {
+        graphics = {
+          enable = true;
+          # driSupport32Bit = true;
+          # driSupport = true;
+        };
+      }
+      else {
+        opengl = {
+          enable = true;
+          driSupport32Bit = true;
+          driSupport = true;
+        };
       };
-    };
     environment = {
       systemPackages = with pkgs; [
         libnotify

@@ -233,32 +233,7 @@
       flakeInputs = self.inputs;
     };
 
-    nixosConfigurations = let
-      system = {
-        nixpkgsInput,
-        modules ? [],
-        system ? "x86_64-linux",
-      }:
-        nixpkgsInput.lib.nixosSystem {
-          inherit system;
-          modules = modules ++ [nixosModules.common];
-        };
-      stableSystem = {
-        modules,
-        system ? "x86_64-linux",
-      }:
-        system {
-          nixpkgsInput = nixpkgs;
-          modules = modules ++ [nixosModules.stableCommon];
-        };
-      unstableSystem = {
-        modules,
-        system ? "x86_64-linux",
-      }:
-        nixpkgs-unstable.lib.nixosSystem {
-nixosModules.stableCommon
-        };
-    in {
+    nixosConfigurations = {
       beefcake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
