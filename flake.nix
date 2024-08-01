@@ -210,8 +210,19 @@
         };
       };
 
-      modifications = final: prev: {
-        final.helix = helix.outputs.packages.${prev.system}.helix;
+      modifications = final: prev: rec {
+        helix = helix.outputs.packages.${prev.system}.helix;
+        final.helix = helix;
+        wezterm = prev.wezterm.overrideAttrs rec {
+          version = "56a27e93a9ee50aab50ff4d78308f9b3154b5122";
+          src = prev.fetchFromGitHub {
+            owner = "wez";
+            repo = "wezterm";
+            rev = version;
+            fetchSubmodules = true;
+            hash = "sha256-zl0Me24ncrpXUCvkQHlbgUucf0zrkhFFI242wsSQKLw=";
+          };
+        };
       };
 
       unstable-packages = final: _prev: {
