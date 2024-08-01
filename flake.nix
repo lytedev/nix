@@ -390,7 +390,7 @@
                 cargo
                 firefox-no-tabs
                 linux-desktop-environment-config
-                slippi.homeManagerModules.default
+                # slippi.homeManagerModules.default
               ];
             };
           }
