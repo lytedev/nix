@@ -213,16 +213,20 @@
       modifications = final: prev: rec {
         helix = helix.outputs.packages.${prev.system}.helix;
         final.helix = helix;
-        wezterm = prev.wezterm.overrideAttrs rec {
-          version = "56a27e93a9ee50aab50ff4d78308f9b3154b5122";
-          src = prev.fetchFromGitHub {
-            owner = "wez";
-            repo = "wezterm";
-            rev = version;
-            fetchSubmodules = true;
-            hash = "sha256-zl0Me24ncrpXUCvkQHlbgUucf0zrkhFFI242wsSQKLw=";
-          };
-        };
+        # TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
+        # source: https://github.com/wez/wezterm/issues/3771
+        # wezterm = prev.wezterm.overrideAttrs rec {
+        #   version = "56a27e93a9ee50aab50ff4d78308f9b3154b5122";
+        #   src = prev.fetchFromGitHub {
+        #     owner = "wez";
+        #     repo = "wezterm";
+        #     rev = version;
+        #     fetchSubmodules = true;
+        #     hash = "sha256-zl0Me24ncrpXUCvkQHlbgUucf0zrkhFFI242wsSQKLw=";
+        #   };
+        #   cargoLockFile = null;
+        #   cargoHash = "";
+        # };
       };
 
       unstable-packages = final: _prev: {
