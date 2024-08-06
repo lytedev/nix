@@ -1066,6 +1066,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             inherit user group;
             mode = "0700";
           };
+          "${storage}/certs".d = {
+            inherit user group;
+            mode = "0700";
+          };
         };
 
         users.groups = {
@@ -1082,6 +1086,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # the kanidm module in nixpkgs was not working for me, so I rolled my own
         # loosely based off it
         systemd.services.kanidm = {
+          enable = true;
+          path = with pkgs; [openssl];
           description = "kanidm identity management daemon";
           wantedBy = ["multi-user.target"];
           after = ["network.target"];
@@ -1116,25 +1122,25 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             SystemCallFilter = ["@system-service" "~@privileged @resources @setuid @keyring"];
             MemoryDenyWriteExecute = true;
             NoNewPrivileges = true;
-            PrivateDevices = true;
-            PrivateMounts = true;
-            PrivateTmp = true;
+            # PrivateDevices = true;
+            # PrivateMounts = true;
+            # PrivateTmp = true;
             ProcSubset = "pid";
             ProtectClock = true;
             ProtectHome = true;
             ProtectHostname = true;
-            BindReadOnlyPaths = [
-              "${storage}/certs"
-            ];
-            BindPaths = [
-              "${storage}/data"
+            # BindReadOnlyPaths = [
+            #   "${storage}/certs"
+            # ];
+            # BindPaths = [
+            #   "${storage}/data"
 
-              # socket
-              "/run/${name}d:/run/${name}d"
+            #   # socket
+            #   "/run/${name}d:/run/${name}d"
 
-              # backups
-              serverSettings.online_backup.path
-            ];
+            #   # backups
+            #   serverSettings.online_backup.path
+            # ];
           };
         };
 
