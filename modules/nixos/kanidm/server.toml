@@ -1,0 +1,10 @@
+bindaddress = "[::]:8443"
+db_path = "/home/daniel/code/nix/modules/nixos/kanidm/kanidm.db"
+tls_chain = "/tmp/cert.pem"
+tls_key = "/tmp/key.pem"
+domain = "idm.foxtrot.hare-cod.ts.net"
+origin = "https://idm.foxtrot.hare-cod.ts.net:8443"
+
+[online_backup]
+path = "/tmp/kanidm/backups/"
+schedule = "00 22 * * *"

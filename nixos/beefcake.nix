@@ -999,6 +999,38 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         26966
       ];
     }
+    {
+      # kanidm
+      services.kanidm = {
+        enableClient = true;
+        enablePam = true;
+        enableServer = true;
+
+        serverSettings = {
+          bindaddress = "[::]:8443";
+          db_path = "/storage/kanidm/data/kanidm.db";
+          # TODO: these will need permissions?
+          tls_chain = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev.crt";
+          tls_key = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev.key";
+          domain = "idm.foxtrot.hare-cod.ts.net";
+          origin = "https://idm.h.lyte.dev:8443";
+
+          online_backup = {
+            path = "/storage/kanidm/backups/";
+            schedule = "00 22 * * *";
+          };
+        };
+
+        clientSettings = {
+          uri = "https://idm.h.lyte.dev";
+          # ca_path = "/tmp/cert.pem";
+        };
+      };
+
+      services.caddy.virtualHosts."idm.h.lyte.dev" = {
+        extraConfig = ''reverse_proxy :8443'';
+      };
+    }
   ];
 
   # TODO: non-root processes and services that access secrets need to be part of

@@ -52,6 +52,8 @@
         src = ./.;
         hash = pkgs.lib.fakeHash;
         cargoHash = "sha256-W7VQlMktGsRPQL9VGVmxYV6C5u2eJ48S7eTpOM+3n8U=";
+
+        RUSTFLAGS = pkgs.lib.optionalString pkgs.stdenv.isLinux "-C link-arg=-fuse-ld=mold";
       };
 
       default = outputs.packages.${pkgs.system}.my-package;
