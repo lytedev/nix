@@ -46,6 +46,7 @@
       additionalHosts = [
         ".beefcake.lan"
         "nix.h.lyte.dev"
+        "idm.h.lyte.dev"
         "git.lyte.dev"
         "video.lyte.dev"
         "a.lyte.dev"
