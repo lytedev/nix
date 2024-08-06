@@ -291,6 +291,34 @@
         ];
       };
 
+      bigtower = nixpkgs-unstable.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          home-manager-unstable-defaults
+
+          outputs.diskoConfigurations.unencrypted
+          hardware.nixosModules.common-cpu-amd
+          hardware.nixosModules.common-pc-ssd
+
+          common
+          # wifi
+          graphical-workstation
+          music-production
+          gaming
+
+          ./nixos/bigtower.nix
+
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                firefox-no-tabs
+                linux-desktop-environment-config
+              ];
+            };
+          }
+        ];
+      };
+
       htpc = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = with nixosModules; [
