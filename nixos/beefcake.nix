@@ -999,46 +999,162 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         26966
       ];
     }
-    {
+    ({options, ...}: let
+      toml = pkgs.formats.toml {};
+      package = pkgs.kanidm;
+      domain = "idm.h.lyte.dev";
+      name = "kanidm";
+      storage = "/storage/${name}";
+      cert = "${storage}/certs/idm.h.lyte.dev.crt";
+      key = "${storage}/certs/idm.h.lyte.dev.key";
+      serverSettings = {
+        inherit domain;
+        bindaddress = "localhost:8443";
+        # ldapbindaddress
+        tls_chain = cert;
+        tls_key = key;
+        origin = "https://${domain}";
+        db_path = "${storage}/data/kanidm.db";
+        log_level = "debug";
+        online_backup = {
+          path = "${storage}/backups/";
+          schedule = "00 22 * * *";
+          # versions = 7;
+        };
+      };
+      user = name;
+      group = name;
+      serverConfigFile = toml.generate "server.toml" serverSettings;
+    in {
       # kanidm
-      services.kanidm = {
-        enableClient = true;
-        enablePam = true;
-        enableServer = true;
 
-        serverSettings = {
-          bindaddress = "[::]:8443";
-          # ldapbindaddress
-          # TODO: these will need permissions?
-          tls_chain = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev.crt";
-          tls_key = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev.key";
-          domain = "idm.h.lyte.dev";
-          origin = "https://idm.h.lyte.dev";
-          # log_level
-
-          online_backup = {
-            path = "/storage/kanidm/backups/";
-            schedule = "00 22 * * *";
-            # versions = 7;
+      config = {
+        # we need a mechanism to get the certificates that caddy provisions for us
+        systemd.timers."copy-kanidm-certificates-from-caddy" = {
+          wantedBy = ["timers.target"];
+          timerConfig = {
+            OnBootSec = "10m"; # 10 minutes after booting
+            OnUnitActiveSec = "5m"; # every 5 minutes afterwards
+            Unit = "copy-kanidm-certificates-from-caddy.service";
           };
         };
 
-        unixSettings = {
-          uri = "https://idm.h.lyte.dev";
-          pam_allowed_login_groups = [];
-          # ca_path = "/path/to/ca.pem";
+        systemd.services."copy-kanidm-certificates-from-caddy" = {
+          script = ''
+            umask 077
+            install -d -m 0700 -o "${user}" -g "${group}" "${storage}/data" "${storage}/certs"
+            rsync --no-perms --no-owner --no-group /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev/idm.h.lyte.dev.crt "${cert}"
+            rsync --no-perms --no-owner --no-group /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev/idm.h.lyte.dev.key "${key}"
+            chown "${user}:${group}" "${cert}" "${key}"
+          '';
+          path = with pkgs; [rsync];
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+          };
         };
 
-        clientSettings = {
-          uri = "https://idm.h.lyte.dev";
-          # ca_path = "/tmp/cert.pem";
+        environment.systemPackages = [package];
+
+        # TODO: should I use this for /storage/kanidm/certs etc.?
+        systemd.tmpfiles.settings."10-kanidm" = {
+          "${serverSettings.online_backup.path}".d = {
+            inherit user group;
+            mode = "0700";
+          };
+          "${storage}/data".d = {
+            inherit user group;
+            mode = "0700";
+          };
+        };
+
+        users.groups = {
+          ${group} = {};
+        };
+
+        users.users.${user} = {
+          inherit group;
+          description = "kanidm server";
+          isSystemUser = true;
+          packages = [package];
+        };
+
+        # the kanidm module in nixpkgs was not working for me, so I rolled my own
+        # loosely based off it
+        systemd.services.kanidm = {
+          description = "kanidm identity management daemon";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target"];
+          requires = ["copy-kanidm-certificates-from-caddy.service"];
+          # environment.RUST_LOG = serverSettings.log_level;
+          serviceConfig = {
+            StateDirectory = name;
+            StateDirectoryMode = "0700";
+            RuntimeDirectory = "${name}d";
+            ExecStart = "${package}/bin/kanidmd server -c ${serverConfigFile}";
+            User = user;
+            Group = group;
+
+            AmbientCapabilities = ["CAP_NET_BIND_SERVICE"];
+            CapabilityBoundingSet = ["CAP_NET_BIND_SERVICE"];
+            PrivateUsers = lib.mkForce false;
+            PrivateNetwork = lib.mkForce false;
+            RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+            # TemporaryFileSystem = "/:ro";
+
+            DeviceAllow = "";
+            LockPersonality = true;
+            ProtectControlGroups = true;
+            ProtectKernelLogs = true;
+            ProtectKernelModules = true;
+            ProtectKernelTunables = true;
+            ProtectProc = "invisible";
+            RestrictNamespaces = true;
+            RestrictRealtime = true;
+            RestrictSUIDSGID = true;
+            SystemCallArchitectures = "native";
+            SystemCallFilter = ["@system-service" "~@privileged @resources @setuid @keyring"];
+            MemoryDenyWriteExecute = true;
+            NoNewPrivileges = true;
+            PrivateDevices = true;
+            PrivateMounts = true;
+            PrivateTmp = true;
+            ProcSubset = "pid";
+            ProtectClock = true;
+            ProtectHome = true;
+            ProtectHostname = true;
+            BindReadOnlyPaths = [
+              "${storage}/certs"
+            ];
+            BindPaths = [
+              "${storage}/data"
+
+              # socket
+              "/run/${name}d:/run/${name}d"
+
+              # backups
+              serverSettings.online_backup.path
+            ];
+          };
+        };
+
+        # environment.etc."kanidm/server.toml" = {
+        #   mode = "0600";
+        #   group = "kanidm";
+        #   user = "kanidm";
+        # };
+
+        # environment.etc."kanidm/config" = {
+        #   mode = "0600";
+        #   group = "kanidm";
+        #   user = "kanidm";
+        # };
+
+        services.caddy.virtualHosts."idm.h.lyte.dev" = {
+          extraConfig = ''reverse_proxy :8443'';
         };
       };
-
-      services.caddy.virtualHosts."idm.h.lyte.dev" = {
-        extraConfig = ''reverse_proxy :8443'';
-      };
-    }
+    })
   ];
 
   # TODO: non-root processes and services that access secrets need to be part of
