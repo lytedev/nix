@@ -30,9 +30,9 @@ git add -A
 
 ssh "root@$target_host" "bash -c '
   set -m
-  # sleep 5 mins
+  # sleep 15 mins
   echo \"Starting background reboot job...\"
-  (sleep 300; reboot;) &
+  (sleep 900; reboot;) &
   jobs -p
   disown
 '" &

@@ -447,7 +447,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       users.groups.daniel.members = ["daniel"];
       users.groups.nixadmin.members = ["daniel"];
       users.users.daniel = {
-        packages = [pkgs.weechat];
         extraGroups = [
           "nixadmin" # write access to /etc/nixos/ files
           "wheel" # sudo access
@@ -778,6 +777,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             gitMinimal
             gnused
             nodejs
+            gnutar # needed for cache action
             wget
           ];
         };
@@ -1008,17 +1008,25 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
         serverSettings = {
           bindaddress = "[::]:8443";
-          db_path = "/storage/kanidm/data/kanidm.db";
+          # ldapbindaddress
           # TODO: these will need permissions?
           tls_chain = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev.crt";
           tls_key = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev.key";
-          domain = "idm.foxtrot.hare-cod.ts.net";
-          origin = "https://idm.h.lyte.dev:8443";
+          domain = "idm.h.lyte.dev";
+          origin = "https://idm.h.lyte.dev";
+          # log_level
 
           online_backup = {
             path = "/storage/kanidm/backups/";
             schedule = "00 22 * * *";
+            # versions = 7;
           };
+        };
+
+        unixSettings = {
+          uri = "https://idm.h.lyte.dev";
+          pam_allowed_login_groups = [];
+          # ca_path = "/path/to/ca.pem";
         };
 
         clientSettings = {
