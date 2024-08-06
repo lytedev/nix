@@ -103,6 +103,7 @@
 
       packages = with pkgs; [
         # tools I use when editing nix code
+        kanidm
         nil
         alejandra
         gnupg
