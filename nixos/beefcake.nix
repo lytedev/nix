@@ -20,7 +20,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   networking.hostName = "beefcake";
 
   imports = [
-    # TODO: break these modules out someday maybe?
     {
       # hardware
       boot = {
@@ -1097,7 +1096,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             StateDirectory = name;
             StateDirectoryMode = "0700";
             RuntimeDirectory = "${name}d";
-            ExecStart = "${package}/bin/kanidmd server -c ${serverConfigFile}";
+            ExecStart = "bash -c 'pwd; ls -la; ls -laR /storage/kanidm; ${package}/bin/kanidmd server -c ${serverConfigFile}'";
             User = user;
             Group = group;
 
