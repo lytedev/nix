@@ -720,7 +720,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
           log = {
             # TODO: raise the log level
-            LEVEL = "Debug";
+            # LEVEL = "Debug";
           };
           ui = {
             THEMES = "forgejo-auto,forgejo-light,forgejo-dark,catppuccin-mocha-sapphire";
@@ -1017,7 +1017,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         tls_key = key;
         origin = "https://${domain}";
         db_path = "${storage}/data/kanidm.db";
-        log_level = "debug";
+        log_level = "info";
         online_backup = {
           path = "${storage}/backups/";
           schedule = "00 22 * * *";
