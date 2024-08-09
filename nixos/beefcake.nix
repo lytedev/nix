@@ -167,6 +167,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraHosts = ''
           ::1 nix.h.lyte.dev
           127.0.0.1 nix.h.lyte.dev
+          ::1 idm.h.lyte.dev
+          127.0.0.1 idm.h.lyte.dev
         '';
       };
     }
@@ -1006,9 +1008,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       storage = "/storage/${name}";
       cert = "${storage}/certs/idm.h.lyte.dev.crt";
       key = "${storage}/certs/idm.h.lyte.dev.key";
+
       serverSettings = {
         inherit domain;
-        bindaddress = "localhost:8443";
+        bindaddress = "127.0.0.1:8443";
         # ldapbindaddress
         tls_chain = cert;
         tls_key = key;
@@ -1021,9 +1024,63 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           # versions = 7;
         };
       };
+
+      unixdSettings = {
+        hsm_pin_path = "/var/cache/${name}-unixd/hsm-pin";
+        pam_allowed_login_groups = [];
+      };
+
+      clientSettings = {
+        uri = "https://idm.h.lyte.dev";
+      };
+
       user = name;
       group = name;
       serverConfigFile = toml.generate "server.toml" serverSettings;
+      unixdConfigFile = toml.generate "kanidm-unixd.toml" unixdSettings;
+      clientConfigFile = toml.generate "kanidm-config.toml" clientSettings;
+
+      defaultServiceConfig = {
+        BindReadOnlyPaths = [
+          "/nix/store"
+          "-/etc/resolv.conf"
+          "-/etc/nsswitch.conf"
+          "-/etc/hosts"
+          "-/etc/localtime"
+        ];
+        CapabilityBoundingSet = [];
+        # ProtectClock= adds DeviceAllow=char-rtc r
+        DeviceAllow = "";
+        # Implies ProtectSystem=strict, which re-mounts all paths
+        # DynamicUser = true;
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+        NoNewPrivileges = true;
+        PrivateDevices = true;
+        PrivateMounts = true;
+        PrivateNetwork = true;
+        PrivateTmp = true;
+        PrivateUsers = true;
+        ProcSubset = "pid";
+        ProtectClock = true;
+        ProtectHome = true;
+        ProtectHostname = true;
+        # Would re-mount paths ignored by temporary root
+        #ProtectSystem = "strict";
+        ProtectControlGroups = true;
+        ProtectKernelLogs = true;
+        ProtectKernelModules = true;
+        ProtectKernelTunables = true;
+        ProtectProc = "invisible";
+        RestrictAddressFamilies = [];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        SystemCallArchitectures = "native";
+        SystemCallFilter = ["@system-service" "~@privileged @resources @setuid @keyring"];
+        # Does not work well with the temporary root
+        #UMask = "0066";
+      };
     in {
       # kanidm
 
@@ -1042,9 +1099,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           script = ''
             umask 077
             install -d -m 0700 -o "${user}" -g "${group}" "${storage}/data" "${storage}/certs"
-            rsync --no-perms --no-owner --no-group /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev/idm.h.lyte.dev.crt "${cert}"
-            rsync --no-perms --no-owner --no-group /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev/idm.h.lyte.dev.key "${key}"
-            chown "${user}:${group}" "${cert}" "${key}"
+            cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
+            install -m 0700 -o "${user}" -g "${group}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
           '';
           path = with pkgs; [rsync];
           serviceConfig = {
@@ -1061,6 +1117,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             inherit user group;
             mode = "0700";
           };
+          # "${builtins.dirOf unixdSettings.hsm_pin_path}".d = {
+          #   user = "${user}-unixd";
+          #   group = "${group}-unixd";
+          #   mode = "0700";
+          # };
           "${storage}/data".d = {
             inherit user group;
             mode = "0700";
@@ -1073,6 +1134,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
         users.groups = {
           ${group} = {};
+          "${group}-unixd" = {};
         };
 
         users.users.${user} = {
@@ -1081,67 +1143,146 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           isSystemUser = true;
           packages = [package];
         };
+        users.users."${user}-unixd" = {
+          group = "${group}-unixd";
+          description = "kanidm PAM daemon";
+          isSystemUser = true;
+        };
 
         # the kanidm module in nixpkgs was not working for me, so I rolled my own
         # loosely based off it
         systemd.services.kanidm = {
           enable = true;
-          path = with pkgs; [openssl];
+          path = with pkgs; [openssl] ++ [package];
           description = "kanidm identity management daemon";
           wantedBy = ["multi-user.target"];
           after = ["network.target"];
           requires = ["copy-kanidm-certificates-from-caddy.service"];
+          script = ''
+            pwd
+            ls -la
+            ls -laR /storage/kanidm
+            ${package}/bin/kanidmd server -c ${serverConfigFile}
+          '';
           # environment.RUST_LOG = serverSettings.log_level;
-          serviceConfig = {
-            StateDirectory = name;
-            StateDirectoryMode = "0700";
-            RuntimeDirectory = "${name}d";
-            ExecStart = "bash -c 'pwd; ls -la; ls -laR /storage/kanidm; ${package}/bin/kanidmd server -c ${serverConfigFile}'";
-            User = user;
-            Group = group;
+          serviceConfig = lib.mkMerge [
+            defaultServiceConfig
+            {
+              StateDirectory = name;
+              StateDirectoryMode = "0700";
+              RuntimeDirectory = "${name}d";
+              User = user;
+              Group = group;
 
-            AmbientCapabilities = ["CAP_NET_BIND_SERVICE"];
-            CapabilityBoundingSet = ["CAP_NET_BIND_SERVICE"];
-            PrivateUsers = lib.mkForce false;
-            PrivateNetwork = lib.mkForce false;
-            RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
-            # TemporaryFileSystem = "/:ro";
+              AmbientCapabilities = ["CAP_NET_BIND_SERVICE"];
+              CapabilityBoundingSet = ["CAP_NET_BIND_SERVICE"];
+              PrivateUsers = lib.mkForce false;
+              PrivateNetwork = lib.mkForce false;
+              RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+              # TemporaryFileSystem = "/:ro";
+              BindReadOnlyPaths = [
+                "${storage}/certs"
+              ];
+              BindPaths = [
+                "${storage}/data"
 
-            DeviceAllow = "";
-            LockPersonality = true;
-            ProtectControlGroups = true;
-            ProtectKernelLogs = true;
-            ProtectKernelModules = true;
-            ProtectKernelTunables = true;
-            ProtectProc = "invisible";
-            RestrictNamespaces = true;
-            RestrictRealtime = true;
-            RestrictSUIDSGID = true;
-            SystemCallArchitectures = "native";
-            SystemCallFilter = ["@system-service" "~@privileged @resources @setuid @keyring"];
-            MemoryDenyWriteExecute = true;
-            NoNewPrivileges = true;
-            # PrivateDevices = true;
-            # PrivateMounts = true;
-            # PrivateTmp = true;
-            ProcSubset = "pid";
-            ProtectClock = true;
-            ProtectHome = true;
-            ProtectHostname = true;
-            # BindReadOnlyPaths = [
-            #   "${storage}/certs"
-            # ];
-            # BindPaths = [
-            #   "${storage}/data"
+                # socket
+                "/run/${name}d:/run/${name}d"
 
-            #   # socket
-            #   "/run/${name}d:/run/${name}d"
-
-            #   # backups
-            #   serverSettings.online_backup.path
-            # ];
-          };
+                # backups
+                serverSettings.online_backup.path
+              ];
+            }
+          ];
         };
+
+        systemd.services.kanidm-unixd = {
+          description = "Kanidm PAM daemon";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target"];
+          restartTriggers = [unixdConfigFile clientConfigFile];
+          serviceConfig = lib.mkMerge [
+            defaultServiceConfig
+            {
+              CacheDirectory = "${name}-unixd";
+              CacheDirectoryMode = "0700";
+              RuntimeDirectory = "${name}-unixd";
+              ExecStart = "${package}/bin/kanidm_unixd";
+              User = "${user}-unixd";
+              Group = "${group}-unixd";
+
+              BindReadOnlyPaths = [
+                "-/etc/kanidm"
+                "-/etc/static/kanidm"
+                "-/etc/ssl"
+                "-/etc/static/ssl"
+                "-/etc/passwd"
+                "-/etc/group"
+              ];
+
+              BindPaths = [
+                # socket
+                "/run/kanidm-unixd:/var/run/kanidm-unixd"
+              ];
+
+              # Needs to connect to kanidmd
+              PrivateNetwork = lib.mkForce false;
+              RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+              TemporaryFileSystem = "/:ro";
+            }
+          ];
+          environment.RUST_LOG = serverSettings.log_level;
+        };
+
+        systemd.services.kanidm-unixd-tasks = {
+          description = "Kanidm PAM home management daemon";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target" "kanidm-unixd.service"];
+          partOf = ["kanidm-unixd.service"];
+          restartTriggers = [unixdConfigFile clientConfigFile];
+          serviceConfig = {
+            ExecStart = "${package}/bin/kanidm_unixd_tasks";
+
+            BindReadOnlyPaths = [
+              "/nix/store"
+              "-/etc/resolv.conf"
+              "-/etc/nsswitch.conf"
+              "-/etc/hosts"
+              "-/etc/localtime"
+              "-/etc/kanidm"
+              "-/etc/static/kanidm"
+            ];
+            BindPaths = [
+              # To manage home directories
+              "/home"
+
+              # To connect to kanidm-unixd
+              "/run/kanidm-unixd:/var/run/kanidm-unixd"
+            ];
+            # CAP_DAC_OVERRIDE is needed to ignore ownership of unixd socket
+            CapabilityBoundingSet = ["CAP_CHOWN" "CAP_FOWNER" "CAP_DAC_OVERRIDE" "CAP_DAC_READ_SEARCH"];
+            IPAddressDeny = "any";
+            # Need access to users
+            PrivateUsers = false;
+            # Need access to home directories
+            ProtectHome = false;
+            RestrictAddressFamilies = ["AF_UNIX"];
+            TemporaryFileSystem = "/:ro";
+            Restart = "on-failure";
+          };
+          environment.RUST_LOG = serverSettings.log_level;
+        };
+
+        environment.etc = {
+          "kanidm/server.toml".source = serverConfigFile;
+          "kanidm/config".source = clientConfigFile;
+          "kanidm/unixd".source = unixdConfigFile;
+        };
+
+        system.nssModules = [package];
+
+        system.nssDatabases.group = [name];
+        system.nssDatabases.passwd = [name];
 
         # environment.etc."kanidm/server.toml" = {
         #   mode = "0600";
@@ -1156,7 +1297,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # };
 
         services.caddy.virtualHosts."idm.h.lyte.dev" = {
-          extraConfig = ''reverse_proxy :8443'';
+          extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
+        };
+
+        networking = {
+          extraHosts = ''
+            ::1 idm.h.lyte.dev
+            127.0.0.1 idm.h.lyte.dev
+          '';
         };
       };
     })

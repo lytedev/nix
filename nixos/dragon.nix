@@ -31,7 +31,7 @@
 
   hardware.bluetooth = {
     enable = true;
-    package = pkgs.bluez;
+    # package = pkgs.bluez;
     settings = {
       General = {
         AutoConnect = true;
