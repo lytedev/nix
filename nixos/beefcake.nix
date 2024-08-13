@@ -454,6 +454,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "caddy" # write access to /storage/files.lyte.dev
           "users" # general users group
           "jellyfin" # write access to /storage/jellyfin
+          "audiobookshelf" # write access to /storage/audiobookshelf
           "flanilla"
         ];
       };
