@@ -1145,7 +1145,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
         users.users."${user}-unixd" = {
           group = "${group}-unixd";
-          description = "kanidm PAM daemon";
+          description = lib.mkForce "kanidm PAM daemon";
           isSystemUser = true;
         };
 
@@ -1308,6 +1308,16 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
     })
+    {
+      services.audiobookshelf = {
+        enable = true;
+        # dataDir = "/storage/audiobookshelf";
+        port = 8523;
+      };
+      services.caddy.virtualHosts."audio.lyte.dev" = {
+        extraConfig = ''reverse_proxy :8523'';
+      };
+    }
   ];
 
   # TODO: non-root processes and services that access secrets need to be part of

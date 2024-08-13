@@ -49,6 +49,7 @@
         "idm.h.lyte.dev"
         "git.lyte.dev"
         "video.lyte.dev"
+        "audio.lyte.dev"
         "a.lyte.dev"
         "bw.lyte.dev"
         "files.lyte.dev"
