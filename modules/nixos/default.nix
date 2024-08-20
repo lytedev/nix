@@ -406,6 +406,8 @@
       inetutils
       nmap
       pciutils
+      hexyl
+      pkgs.unixtools.xxd
       usbutils
     ];
   };
