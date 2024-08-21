@@ -8,7 +8,7 @@
     {
       system.stateVersion = "24.05";
       home-manager.users.daniel.home.stateVersion = "24.05";
-      networking.hostName = "dragon";
+      networking.hostName = "bigtower";
     }
   ];
   hardware.graphics.extraPackages = [
@@ -39,38 +39,35 @@
       };
     };
   };
-  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
-  # dragon firewall
-  # TODO: maybe should go in the gaming module?
-  networking = {
-    firewall = let
-      terraria = 7777;
-      stardew-valley = 24642;
-      web-dev-lan = 18888;
-      ports = [
-        terraria
-        stardew-valley
-        web-dev-lan
-      ];
-    in {
-      allowedTCPPorts = ports;
-      allowedUDPPorts = ports;
-    };
-  };
+  # networking = {
+  #   firewall = let
+  #     terraria = 7777;
+  #     stardew-valley = 24642;
+  #     web-dev-lan = 18888;
+  #     ports = [
+  #       terraria
+  #       stardew-valley
+  #       web-dev-lan
+  #     ];
+  #   in {
+  #     allowedTCPPorts = ports;
+  #     allowedUDPPorts = ports;
+  #   };
+  # };
 
   environment.systemPackages = with pkgs; [
     radeontop
-    godot_4
+    # godot_4
     prismlauncher
   ];
 
   home-manager.users.daniel = {
-    slippi-launcher = {
-      enable = true;
-      isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
-      launchMeleeOnPlay = false;
-    };
+    # slippi-launcher = {
+    #   enable = true;
+    #   # isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
+    #   launchMeleeOnPlay = false;
+    # };
 
     # TODO: monitor config module?
     # wayland.windowManager.hyprland = {

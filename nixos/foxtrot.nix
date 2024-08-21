@@ -45,7 +45,6 @@
       prismlauncher
       radeontop
       sops
-      obs-studio
       xh
     ];
   };

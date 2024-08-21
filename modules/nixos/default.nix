@@ -421,6 +421,15 @@
     };
   };
 
+  video-tools = {pkgs, ...}: {
+    environment = {
+      systemPackages = with pkgs; [
+        ffmpeg-full
+        obs-studio
+      ];
+    };
+  };
+
   graphical-workstation = {
     pkgs,
     lib,
@@ -435,6 +444,7 @@
       development-tools
       printing
       music-consumption
+      video-tools
     ];
 
     xdg.portal.enable = true;
