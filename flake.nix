@@ -576,7 +576,7 @@
               home = {
                 homeDirectory = "/home/deck";
                 username = "deck";
-                stateVersion = "24.05";
+                stateVersion = "24.11";
               };
             }
             {
