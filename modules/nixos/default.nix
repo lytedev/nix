@@ -562,15 +562,19 @@
     };
   };
 
-  gaming = {
+  gaming = {pkgs, ...}: {
     imports = with nixosModules; [
       lutris
       steam
-
-      ludusavi
-      # ludusavi uses rclone
-      rclone
     ];
+
+    environment = {
+      systemPackages = with pkgs; [
+        ludusavi
+        # ludusavi uses rclone
+        rclone
+      ];
+    };
   };
 
   pipewire = {
