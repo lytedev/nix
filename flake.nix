@@ -566,9 +566,10 @@
     homeConfigurations = {
       "deck" = let
         system = "x86_64-linux";
+        pkgs = pkgsFor system;
       in
         home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor system;
+          inherit pkgs;
           modules = with homeManagerModules; [
             common
             {
