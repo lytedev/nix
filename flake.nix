@@ -568,7 +568,7 @@
         system = "x86_64-linux";
         pkgs = pkgsFor system;
       in
-        home-manager.lib.homeManagerConfiguration {
+        home-manager-unstable.lib.homeManagerConfiguration {
           inherit pkgs;
           modules = with homeManagerModules; [
             common
