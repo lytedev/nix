@@ -566,6 +566,10 @@
     imports = with nixosModules; [
       lutris
       steam
+
+      ludusavi
+      # ludusavi uses rclone
+      rclone
     ];
   };
 

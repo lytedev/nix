@@ -563,42 +563,31 @@
       };
     };
 
-    # TODO: homeconfigs?
-    # homeConfigurations = {
-    #   # TODO: non-system-specific home configurations?
-    #   "deck" = let
-    #     system = "x86_64-linux";
-    #   in
-    #     home-manager.lib.homeManagerConfiguration {
-    #       pkgs = pkgsFor system;
-    #       extraSpecialArgs = moduleArgs;
-    #       modules = with homeManagerModules; [
-    #         common
-    #         {
-    #           home.homeDirectory = "/home/deck";
-    #           home.username = "deck";
-    #           home.stateVersion = "24.05";
-    #         }
-    #         linux
-    #       ];
-    #     };
-    #   workm1 = let
-    #     system = "aarch64-darwin";
-    #   in
-    #     home-manager.lib.homeManagerConfiguration {
-    #       pkgs = pkgsFor system;
-    #       extraSpecialArgs = moduleArgs;
-    #       modules = with homeManagerModules; [
-    #         common
-    #         {
-    #           home.homeDirectory = "/Users/daniel.flanagan";
-    #           home.username = "daniel.flanagan";
-    #           home.stateVersion = "24.05";
-    #         }
-    #         macos
-    #       ];
-    #     };
-    # };
+    homeConfigurations = {
+      "deck" = let
+        system = "x86_64-linux";
+      in
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgsFor system;
+          modules = with homeManagerModules; [
+            common
+            {
+              home = {
+                homeDirectory = "/home/deck";
+                username = "deck";
+                stateVersion = "24.05";
+              };
+            }
+            {
+              home.packages = with pkgs; [
+                ludusavi
+                rclone
+              ];
+            }
+            linux
+          ];
+        };
+    };
 
     # TODO: nix-on-droid for phone terminal usage?
     # TODO: nix-darwin for work?
