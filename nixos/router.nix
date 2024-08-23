@@ -134,6 +134,7 @@ in {
       };
     in {
       enable = true;
+      checkRuleset = true;
       ruleset = with inf; ''
         table inet filter {
         	# set LANv4 {

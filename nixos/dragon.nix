@@ -21,7 +21,7 @@
   ];
 
   boot = {
-    # kernelPackages = pkgs.linuxPackages_zen;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader.efi.canTouchEfiVariables = true;
     loader.systemd-boot.enable = true;
     initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci" "usbhid"];

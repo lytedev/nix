@@ -943,6 +943,13 @@
       root
     ];
 
+    boot.tmp.useTmpfs = true;
+    systemd.services.nix-daemon = {
+      environment.TMPDIR = "/var/tmp";
+    };
+    boot.tmp.cleanOnBoot = true;
+    services.irqbalance.enable = true;
+
     services.kanidm = {
       enableClient = true;
       enablePam = true;
