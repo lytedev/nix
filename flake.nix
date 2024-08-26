@@ -566,7 +566,7 @@
     homeConfigurations = {
       "deck" = let
         system = "x86_64-linux";
-        pkgs = pkgsFor system;
+        pkgs = unstable.pkgsFor system;
       in
         home-manager-unstable.lib.homeManagerConfiguration {
           inherit pkgs;
