@@ -468,6 +468,7 @@
     environment = {
       systemPackages = with pkgs; [
         libnotify
+        slides
       ];
       variables = {
         # GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";

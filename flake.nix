@@ -23,6 +23,9 @@
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
 
+    wezterm.url = "github:wez/wezterm?dir=nix";
+    wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     slippi.url = "github:lytedev/slippi-nix";
     # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
     slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -58,6 +61,7 @@
     disko,
     sops-nix,
     git-hooks,
+    wezterm,
     home-manager,
     home-manager-unstable,
     helix,
@@ -210,23 +214,15 @@
         };
       };
 
-      modifications = final: prev: rec {
+      modifications = final: prev: let
+        wezterm-input = wezterm;
+      in rec {
         helix = helix.outputs.packages.${prev.system}.helix;
         final.helix = helix;
         # TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
         # source: https://github.com/wez/wezterm/issues/3771
-        # wezterm = prev.wezterm.overrideAttrs rec {
-        #   version = "56a27e93a9ee50aab50ff4d78308f9b3154b5122";
-        #   src = prev.fetchFromGitHub {
-        #     owner = "wez";
-        #     repo = "wezterm";
-        #     rev = version;
-        #     fetchSubmodules = true;
-        #     hash = "sha256-zl0Me24ncrpXUCvkQHlbgUucf0zrkhFFI242wsSQKLw=";
-        #   };
-        #   cargoLockFile = null;
-        #   cargoHash = "";
-        # };
+        wezterm = wezterm-input.outputs.packages.${prev.system}.default;
+        final.wezterm = wezterm;
       };
 
       unstable-packages = final: _prev: {

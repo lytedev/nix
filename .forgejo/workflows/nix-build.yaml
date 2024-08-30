@@ -1,0 +1,37 @@
+on: [push]
+jobs:
+  check:
+    runs-on: nixos-host
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+        
+    # cache not needed since we now run on the host directly
+    # - name: Load cached nix store
+    #   id: cache-nix-store
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: /nix/store
+    #     key: ${{ runner.os }}-nix-store
+
+    - name: Build server
+      run: |
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#beefcake
+
+    - name: Build router
+      run: |
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#router
+
+    - name: Build desktop
+      run: |
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#dragon
+
+    - name: Build laptop
+      run: |
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#foxtrot
+
+    # - name: Save nix store
+    #   uses: actions/cache/save@v4
+    #   with:
+    #     path: /nix/store
+    #     key: ${{ steps.cache-nix-store.outputs.cache-primary-key }}
