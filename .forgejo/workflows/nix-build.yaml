@@ -16,19 +16,19 @@ jobs:
 
     - name: Build server
       run: |
-        nixos-rebuild .#beefcake
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild .#beefcake
 
     - name: Build router
       run: |
-        nixos-rebuild .#router
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild .#router
 
     - name: Build desktop
       run: |
-        nixos-rebuild .#dragon
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild .#dragon
 
     - name: Build laptop
       run: |
-        nixos-rebuild .#foxtrot
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild .#foxtrot
 
     # - name: Save nix store
     #   uses: actions/cache/save@v4
