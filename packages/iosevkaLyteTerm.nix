@@ -12,7 +12,7 @@ in ((iosevka.override {
 
       [buildPlans.Iosevka${set}.ligations]
       inherits = "dlig"
-      disables = [ "exeqeqeq", "exeqeq", "exeqeq-dl", "exeq", "ineq", "connected-underscore", "connected-tilde-as-wave" ]
+      disables = [ "exeqeqeq", "exeqeq", "eqexeq-dl", "exeq", "tildeeq" ]
 
       [buildPlans.Iosevka${set}.weights.regular]
       shape = 400
