@@ -342,6 +342,7 @@
           hardware.nixosModules.common-pc-ssd
 
           common
+          gaming
           graphical-workstation
 
           ./nixos/htpc.nix
