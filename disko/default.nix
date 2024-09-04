@@ -1,5 +1,5 @@
 {lib, ...}: let
-  inherit (lib.attrSets) mapAttrs' filterAttrs;
+  inherit (lib.attrsets) mapAttrs' filterAttrs;
 in {
   standardWithHibernateSwap = {
     disks ? ["/dev/sda"],
@@ -191,7 +191,7 @@ in {
       };
     };
   };
-  beefcake = {disks, ...}: let
+  beefcake = let
     zpools = {
       zroot = {
         name = "zroot";
@@ -344,6 +344,7 @@ in {
         name = "m";
       };
       "/dev/sdn" = {
+        # TODO: this is my holding cell for random stuff right now
         enable = false;
         name = "n";
       };
@@ -368,7 +369,7 @@ in {
     }) (filterAttrs (_: {enable, ...}: enable) storageDisks);
   in {
     disko.devices = {
-      disk = diskoBoot / diskoStorage;
+      disk = diskoBoot // diskoStorage;
       zpool = {
         zroot = zpools.zroot.config;
       };

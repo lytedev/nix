@@ -115,6 +115,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           # };
           # nextcloud-admin-password.path = "/var/lib/nextcloud/admin-password";
           "forgejo-runner.env" = {mode = "0400";};
+          restic-rascal-passphrase = {
+            mode = "0400";
+          };
+          restic-rascal-ssh-private-key = {
+            mode = "0400";
+          };
         };
       };
       systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
@@ -1348,6 +1354,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     # };
   };
   environment.systemPackages = with pkgs; [
+    restic
     btrfs-progs
     zfs
     smartmontools

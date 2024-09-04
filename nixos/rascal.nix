@@ -28,11 +28,13 @@
   users.users = {
     beefcake = {
       # used for restic backups
+      # TODO: can this be a system user?
       isNormalUser = true;
       openssh.authorizedKeys.keys =
         config.users.users.daniel.openssh.authorizedKeys.keys
         ++ [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOEI82VdbyR1RYqSnFtlffHBtHFdXO0v9RmQH7GkfXo restic@beefcake"
         ];
     };
 
@@ -59,6 +61,8 @@
       allowedTCPPorts = [22];
     };
   };
+
+  services.tailscale.useRoutingFeatures = "server";
 
   system.stateVersion = "24.05";
 }
