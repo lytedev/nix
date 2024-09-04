@@ -532,6 +532,7 @@
           home-manager-defaults
           hardware.nixosModules.common-cpu-amd
           common
+          linux
           ./nixos/rascal.nix
         ];
       };
