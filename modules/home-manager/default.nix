@@ -1249,7 +1249,7 @@
     # docs: https://wezfurlong.org/wezterm/config/appearance.html#defining-your-own-colors
     programs.wezterm = with colors.withHashPrefix; {
       enable = true;
-      package = pkgs.wezterm;
+      # package = pkgs.wezterm;
       extraConfig = builtins.readFile ./wezterm/config.lua;
       colorSchemes = {
         catppuccin-mocha-sapphire = {

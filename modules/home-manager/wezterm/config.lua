@@ -22,6 +22,8 @@ config.window_background_opacity = 1.0
 config.enable_kitty_keyboard = true
 config.show_new_tab_button_in_tab_bar = true
 
+-- config.front_end = "WebGpu"
+
 local function tab_title(tab_info)
   local title = tab_info.tab_title
   if title and #title > 0 then

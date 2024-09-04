@@ -41,7 +41,7 @@
       "https://cache.nixos.org/"
       "https://helix.cachix.org"
       "https://nix-community.cachix.org"
-      "https://nix.h.lyte.dev"
+      # "https://nix.h.lyte.dev"
       "https://hyprland.cachix.org"
     ];
 
@@ -221,6 +221,8 @@
         final.helix = helix;
         # TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
         # source: https://github.com/wez/wezterm/issues/3771
+        # not-yet-merged (abandoned?): https://github.com/wez/wezterm/pull/4737
+        # I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
         wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         final.wezterm = wezterm;
       };
@@ -250,21 +252,15 @@
         modules = with nixosModules; [
           home-manager-defaults
 
+          # TODO: disko?
           hardware.nixosModules.common-cpu-intel
 
           common
+          troubleshooting-tools
           linux
           fonts
 
           ./nixos/beefcake.nix
-
-          {
-            time = {
-              timeZone = "America/Chicago";
-            };
-            services.smartd.enable = true;
-            services.fwupd.enable = true;
-          }
         ];
       };
 

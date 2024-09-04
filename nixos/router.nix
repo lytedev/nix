@@ -337,7 +337,7 @@ in {
           ConfigureWithoutCarrier = true;
           # IPv6AcceptRA = false;
           IPv6SendRA = true;
-          DHCPPrefixDelegation = true;
+          DHCPv6PrefixDelegation = true;
         };
       };
 
@@ -406,7 +406,10 @@ in {
 
       cache-size = "10000";
 
-      dhcp-range = with dhcp_lease_space; ["${interfaces.lan.name},${min},${max},${netmask},24h"];
+      dhcp-range = with dhcp_lease_space; [
+        "${interfaces.lan.name},${min},${max},${netmask},24h"
+        "::,constructor:${interfaces.lan.name},ra-stateless,ra-names,4h"
+      ];
       except-interface = interfaces.wan.name;
       interface = interfaces.lan.name;
       dhcp-host =
