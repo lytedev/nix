@@ -107,7 +107,7 @@
     # overlay I did this to work around some recursion problems
     # TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
     packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset nix-base-container-image;});
-    diskoConfigurations = import ./disko;
+    diskoConfigurations = import ./disko {inherit (nixpkgs) lib;};
     templates = import ./templates;
     formatter = genPkgs (p: p.alejandra);
 

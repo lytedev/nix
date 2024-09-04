@@ -15,7 +15,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   pkgs,
   ...
 }: {
-  system.stateVersion = "22.05";
+  system.stateVersion = "24.05";
   home-manager.users.daniel.home.stateVersion = "24.05";
   networking.hostName = "beefcake";
 
@@ -48,6 +48,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       #     "space_cache=v2"
       #   ];
       # };
+    }
+    {
+      boot.kernelParams = ["nohibernate"];
     }
     {
       # sops secrets stuff
@@ -1345,6 +1348,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     # };
   };
   environment.systemPackages = with pkgs; [
+    btrfs-progs
+    zfs
+    smartmontools
     htop
     bottom
     curl
