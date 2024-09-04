@@ -120,7 +120,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # nix binary cache
       # TODO: move /nix to a big drive?
       services.nix-serve = {
-        enable = true;
+        enable = false; # TODO: true
         secretKeyFile = "/var/cache-priv-key.pem";
       };
       services.caddy.virtualHosts."nix.h.lyte.dev" = {
