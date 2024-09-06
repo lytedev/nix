@@ -907,29 +907,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraConfig = ''reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}'';
       };
     }
-    # {
-    #   # TODO: make the client declarative? right now I think it's manually git
-    #   # clone'd to /root
-    #   systemd.services.deno-netlify-ddns-client = {
-    #     serviceConfig.Type = "oneshot";
-    #     path = with pkgs; [curl bash];
-    #     environment = {
-    #       NETLIFY_DDNS_RC_FILE = "/root/deno-netlify-ddns-client/.env";
-    #     };
-    #     script = ''
-    #       bash /root/deno-netlify-ddns-client/netlify-ddns-client.sh
-    #     '';
-    #   };
-    #   systemd.timers.deno-netlify-ddns-client = {
-    #     wantedBy = ["timers.target"];
-    #     partOf = ["deno-netlify-ddns-client.service"];
-    #     timerConfig = {
-    #       OnBootSec = "10sec";
-    #       OnUnitActiveSec = "5min";
-    #       Unit = "deno-netlify-ddns-client.service";
-    #     };
-    #   };
-    # }
     {
       services.postgresql = {
         ensureDatabases = ["atuin"];
@@ -1415,16 +1392,41 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #     };
     #   };
     # })
-    # {
-    #   services.audiobookshelf = {
-    #     enable = true;
-    #     # dataDir = "/storage/audiobookshelf";
-    #     port = 8523;
-    #   };
-    #   services.caddy.virtualHosts."audio.lyte.dev" = {
-    #     extraConfig = ''reverse_proxy :8523'';
-    #   };
-    # }
+    {
+      systemd.tmpfiles.settings = {
+        "10-audiobookshelf" = {
+          "/storage/audiobookshelf" = {
+            "d" = {
+              mode = "0770";
+              user = "audiobookshelf";
+              group = "wheel";
+            };
+          };
+          "/storage/audiobookshelf/audiobooks" = {
+            "d" = {
+              mode = "0770";
+              user = "audiobookshelf";
+              group = "wheel";
+            };
+          };
+          "/storage/audiobookshelf/podcasts" = {
+            "d" = {
+              mode = "0770";
+              user = "audiobookshelf";
+              group = "wheel";
+            };
+          };
+        };
+      };
+      services.audiobookshelf = {
+        enable = true;
+        dataDir = "/storage/audiobookshelf";
+        port = 8523;
+      };
+      services.caddy.virtualHosts."audio.lyte.dev" = {
+        extraConfig = ''reverse_proxy :8523'';
+      };
+    }
   ];
 
   # TODO: non-root processes and services that access secrets need to be part of
