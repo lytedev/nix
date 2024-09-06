@@ -22,7 +22,18 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   imports = [
     {
       # hardware
+      networking.hostId = "541ede55";
       boot = {
+        zfs = {
+          extraPools = ["zstorage"];
+        };
+        supportedFilesystems = {
+          zfs = true;
+        };
+        initrd.supportedFilesystems = {
+          zfs = true;
+        };
+        kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
         initrd.availableKernelModules = ["ehci_pci" "mpt3sas" "usbhid" "sd_mod"];
         kernelModules = ["kvm-intel"];
         loader.systemd-boot.enable = true;
@@ -40,14 +51,22 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         options = ["fmask=0022" "dmask=0022"];
       };
 
+      # should be mounted by auto-import; see boot.zfs.extraPools
       # fileSystems."/storage" = {
-      #   device = "/dev/disk/by-uuid/ea8258d7-54d1-430e-93b3-e15d33231063";
-      #   fsType = "btrfs";
-      #   options = [
-      #     "compress=zstd:5"
-      #     "space_cache=v2"
-      #   ];
+      #   device = "zstorage/storage";
+      #   fsType = "zfs";
       # };
+
+      fileSystems."/nix" = {
+        device = "zstorage/nix";
+        fsType = "zfs";
+      };
+
+      services.zfs.autoScrub.enable = true;
+      services.zfs.autoSnapshot.enable = true;
+
+      # TODO: nfs with zfs?
+      # services.nfs.server.enable = true;
     }
     {
       boot.kernelParams = ["nohibernate"];
