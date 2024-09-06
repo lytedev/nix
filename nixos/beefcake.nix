@@ -805,7 +805,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # mirroring to github super easy?
         package = pkgs.forgejo-runner;
         instances."beefcake" = {
-          enable = false;
+          enable = true;
           name = "beefcake";
           url = "https://git.lyte.dev";
           settings = {
