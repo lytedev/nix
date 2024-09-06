@@ -802,7 +802,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       services.gitea-actions-runner = {
         # TODO: simple git-based automation would be dope? maybe especially for
         # mirroring to github super easy?
-        # enable = true;
         package = pkgs.forgejo-runner;
         instances."beefcake" = {
           enable = false;
@@ -849,20 +848,20 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         '';
       };
     }
-    # {
-    #   services.vaultwarden = {
-    #     enable = true;
-    #     config = {
-    #       DOMAIN = "https://bw.lyte.dev";
-    #       SIGNUPS_ALLOWED = "false";
-    #       ROCKET_ADDRESS = "127.0.0.1";
-    #       ROCKET_PORT = 8222;
-    #     };
-    #   };
-    #   services.caddy.virtualHosts."bw.lyte.dev" = {
-    #     extraConfig = ''reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}'';
-    #   };
-    # }
+    {
+      services.vaultwarden = {
+        enable = true;
+        config = {
+          DOMAIN = "https://bw.lyte.dev";
+          SIGNUPS_ALLOWED = "false";
+          ROCKET_ADDRESS = "127.0.0.1";
+          ROCKET_PORT = 8222;
+        };
+      };
+      services.caddy.virtualHosts."bw.lyte.dev" = {
+        extraConfig = ''reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}'';
+      };
+    }
     # {
     #   # TODO: make the client declarative? right now I think it's manually git
     #   # clone'd to /root
@@ -1384,22 +1383,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   # or
   # users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
 
-  # TODO: directory attributes for /storage subdirectories?
-  # example: user daniel should be able to write to /storage/files.lyte.dev and
-  # caddy should be able to serve it
-
   # TODO: declarative directory quotas? for storage/$USER and /home/$USER
 
-  # TODO: would be nice to get ALL the storage stuff declared in here
-  # should I be using btrfs subvolumes? can I capture file ownership, perimssions, and ACLs?
-
-  virtualisation.oci-containers.backend = "podman";
-  virtualisation.podman = {
-    # autoPrune.enable = true;
-    # defaultNetwork.settings = {
-    # driver = "host";
-    # };
-  };
   environment.systemPackages = with pkgs; [
     restic
     btrfs-progs

@@ -267,6 +267,7 @@
           }
 
           common
+          podman
           troubleshooting-tools
           linux
           fonts
