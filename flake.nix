@@ -49,7 +49,7 @@
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+      "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
   };
@@ -254,6 +254,17 @@
 
           # TODO: disko?
           hardware.nixosModules.common-cpu-intel
+
+          outputs.nixosModules.deno-netlify-ddns-client
+
+          {
+            services.deno-netlify-ddns-client = {
+              enable = true;
+              username = "beefcake.h";
+              # TODO: router doesn't even do ipv6 yet...
+              ipv6 = false;
+            };
+          }
 
           common
           troubleshooting-tools

@@ -133,7 +133,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           #   group = config.systemd.services.plausible.serviceConfig.Group;
           # };
           # nextcloud-admin-password.path = "/var/lib/nextcloud/admin-password";
+          restic-ssh-priv-key-benland = {mode = "0400";};
           "forgejo-runner.env" = {mode = "0400";};
+          netlify-ddns-password = {mode = "0400";};
           restic-rascal-passphrase = {
             mode = "0400";
           };
@@ -145,11 +147,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
     }
     {
+      services.deno-netlify-ddns-client = {
+        passwordFile = config.sops.secrets.netlify-ddns-password.path;
+      };
+    }
+    {
       # nix binary cache
-      # TODO: move /nix to a big drive?
       services.nix-serve = {
         enable = false; # TODO: true
-        secretKeyFile = "/var/cache-priv-key.pem";
+        secretKeyFile = config.sops.secrets.nix-cache-priv-key.path;
       };
       services.caddy.virtualHosts."nix.h.lyte.dev" = {
         extraConfig = ''
@@ -615,112 +621,123 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #     group = "flanilla";
     #   };
     # }
-    # {
-    #   # restic backups
-    #   users.users.restic = {
-    #     # used for other machines to backup to
-    #     isNormalUser = true;
-    #     openssh.authorizedKeys.keys =
-    #       [
-    #         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbPqzKB09U+i4Kqu136yOjflLZ/J7pYsNulTAd4x903 root@chromebox.h.lyte.dev"
-    #       ]
-    #       ++ config.users.users.daniel.openssh.authorizedKeys.keys;
-    #   };
-    #   # TODO: move previous backups over and put here
-    #   # clickhouse and plausible analytics once they're up and running?
-    #   services.restic.backups = let
-    #     defaults = {
-    #       passwordFile = "/root/restic-remotebackup-password";
-    #       paths = [
-    #         "/storage/files.lyte.dev"
-    #         "/storage/daniel"
-    #         "/storage/forgejo" # TODO: should maybe use configuration.nix's services.forgejo.dump ?
-    #         "/storage/postgres-backups"
+    {
+      systemd.tmpfiles.settings = {
+        "10-backups" = {
+          "/storage/daniel" = {
+            "d" = {
+              mode = "0700";
+              user = "daniel";
+              group = "nogroup";
+            };
+          };
+          "/storage/daniel/critical" = {
+            "d" = {
+              mode = "0700";
+              user = "daniel";
+              group = "nogroup";
+            };
+          };
+        };
+      };
+      # restic backups
+      users.groups.restic = {};
+      users.users.restic = {
+        # used for other machines to backup to
+        isSystemUser = true;
+        group = "restic";
+        openssh.authorizedKeys.keys = [] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
+      };
+      #   # TODO: move previous backups over and put here
+      #   # clickhouse and plausible analytics once they're up and running?
+      #   services.restic.backups = let
+      #     defaults = {
+      #       passwordFile = "/root/restic-remotebackup-password";
+      #       paths = [
+      #         "/storage/files.lyte.dev"
+      #         "/storage/daniel"
+      #         "/storage/forgejo" # TODO: should maybe use configuration.nix's services.forgejo.dump ?
+      #         "/storage/postgres-backups"
 
-    #         # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
-    #         # specifically, https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault#sqlite-database-files
-    #         "/var/lib/bitwarden_rs" # does this need any sqlite preprocessing?
+      #         # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
+      #         # specifically, https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault#sqlite-database-files
+      #         "/var/lib/bitwarden_rs" # does this need any sqlite preprocessing?
 
-    #         # TODO: backup *arr configs?
-    #       ];
-    #       initialize = true;
-    #       exclude = [];
-    #       timerConfig = {
-    #         OnCalendar = ["04:45" "17:45"];
-    #       };
-    #     };
-    #   in {
-    #     local =
-    #       defaults
-    #       // {
-    #         passwordFile = "/root/restic-localbackup-password";
-    #         repository = "/storage/backups/local";
-    #       };
-    #     rascal =
-    #       defaults
-    #       // {
-    #         extraOptions = [
-    #           "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
-    #         ];
-    #         repository = "sftp://beefcake@rascal://storage/backups/beefcake";
-    #       };
-    #     # TODO: add ruby?
-    #     benland =
-    #       defaults
-    #       // {
-    #         extraOptions = [
-    #           "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
-    #         ];
-    #         repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
-    #       };
-    #   };
-    # }
-    # {
-    #   services.caddy = {
-    #     # TODO: 502 and other error pages
-    #     enable = true;
-    #     email = "daniel@lyte.dev";
-    #     adapter = "caddyfile";
-    #     virtualHosts = {
-    #       "dev.h.lyte.dev" = {
-    #         extraConfig = ''
-    #           reverse_proxy :8000
-    #         '';
-    #       };
-    #       "files.lyte.dev" = {
-    #         # TODO: customize the files.lyte.dev template?
-    #         extraConfig = ''
-    #           # @options {
-    #           #   method OPTIONS
-    #           # }
-    #           # @corsOrigin {
-    #           #   header_regexp Origin ^https?://([a-zA-Z0-9-]+\.)*lyte\.dev$
-    #           # }
-    #           header {
-    #             Access-Control-Allow-Origin "{http.request.header.Origin}"
-    #             Access-Control-Allow-Credentials true
-    #             Access-Control-Allow-Methods *
-    #             Access-Control-Allow-Headers *
-    #             Vary Origin
-    #             defer
-    #           }
-    #           # reverse_proxy shuwashuwa:8848 {
-    #           #   header_down -Access-Control-Allow-Origin
-    #           # }
-    #           file_server browse {
-    #             # browse template
-    #             # hide .*
-    #             root /storage/files.lyte.dev
-    #           }
-    #         '';
-    #       };
-    #     };
-    #     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
-    #   };
-    #   networking.firewall.allowedTCPPorts = [
-    #     8000 # random development stuff
-    #   ];
-    # }
+      #         # TODO: backup *arr configs?
+      #       ];
+      #       initialize = true;
+      #       exclude = [];
+      #       timerConfig = {
+      #         OnCalendar = ["04:45" "17:45"];
+      #       };
+      #     };
+      #   in {
+      #     local =
+      #       defaults
+      #       // {
+      #         passwordFile = "/root/restic-localbackup-password";
+      #         repository = "/storage/backups/local";
+      #       };
+      #     rascal =
+      #       defaults
+      #       // {
+      #         extraOptions = [
+      #           "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
+      #         ];
+      #         repository = "sftp://beefcake@rascal://storage/backups/beefcake";
+      #       };
+      #     # TODO: add ruby?
+      #     benland =
+      #       defaults
+      #       // {
+      #         passwordFile = config.sops.secrets.restic-ssh-priv-key-benland.path;
+      #         extraOptions = [
+      #           "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
+      #         ];
+      #         repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
+      #       };
+      #   };
+    }
+    {
+      systemd.tmpfiles.settings = {
+        "10-caddy" = {
+          "/storage/files.lyte.dev" = {
+            "d" = {
+              mode = "2775";
+              user = "root";
+              group = "wheel";
+            };
+          };
+        };
+      };
+      services.caddy = {
+        # TODO: 502 and other error pages
+        enable = true;
+        email = "daniel@lyte.dev";
+        adapter = "caddyfile";
+        virtualHosts = {
+          "files.lyte.dev" = {
+            # TODO: customize the files.lyte.dev template?
+            extraConfig = ''
+              header {
+                Access-Control-Allow-Origin "{http.request.header.Origin}"
+                Access-Control-Allow-Credentials true
+                Access-Control-Allow-Methods *
+                Access-Control-Allow-Headers *
+                Vary Origin
+                defer
+              }
+              file_server browse {
+                # browse template
+                # hide .*
+                root /storage/files.lyte.dev
+              }
+            '';
+          };
+        };
+        # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+      };
+    }
     # {
     #   services.forgejo = {
     #     enable = true;

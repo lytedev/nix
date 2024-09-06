@@ -66,14 +66,14 @@ in {
         ${optionalString cfg.ipv4 ''
           ${pkgs.curl}/bin/curl -4 -s \
             -X POST \
-            --max-time ${cfg.requestTimeout} \
+            --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
             -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records"
         ''}
         ${optionalString cfg.ipv6 ''
           ${pkgs.curl}/bin/curl -6 -s \
             -X POST \
-            --max-time ${cfg.requestTimeout} \
+            --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
             -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records"
         ''}
