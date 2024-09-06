@@ -191,13 +191,17 @@ in {
       };
     };
   };
+
   beefcake = let
     zpools = {
       zroot = {
+        # TODO: at the time of writing, disko does not support draid6
+        # so I'm building/managing the array manually for the time being
+        # the root pool is just a single disk right now
         name = "zroot";
         config = {
           type = "zpool";
-          mode = "mirror";
+          # mode = "draid6";
           rootFsOptions = {
             compression = "zstd";
             "com.sun:auto-snapshot" = "false";
