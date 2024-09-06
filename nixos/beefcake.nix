@@ -170,32 +170,32 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       # regularly build this flake so we have stuff in the cache
       # TODO: schedule this for nightly builds instead of intervals based on boot time
-      # systemd.timers."build-lytedev-flake" = {
-      #   wantedBy = ["timers.target"];
-      #   timerConfig = {
-      #     OnBootSec = "30m"; # 30 minutes after booting
-      #     OnUnitActiveSec = "1d"; # every day afterwards
-      #     Unit = "build-lytedev-flake.service";
-      #   };
-      # };
+      systemd.timers."build-lytedev-flake" = {
+        wantedBy = ["timers.target"];
+        timerConfig = {
+          OnBootSec = "30m"; # 30 minutes after booting
+          OnUnitActiveSec = "1d"; # every day afterwards
+          Unit = "build-lytedev-flake.service";
+        };
+      };
 
-      # systemd.services."build-lytedev-flake" = {
-      #   script = ''
-      #     # build self (main server) configuration
-      #     nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git --accept-flake-config
-      #     # build desktop configuration
-      #     nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#dragon --accept-flake-config
-      #     # build main laptop configuration
-      #     nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#foxtrot --accept-flake-config
-      #   '';
-      #   path = with pkgs; [openssh git nixos-rebuild];
-      #   serviceConfig = {
-      #     # TODO: mkdir -p...?
-      #     WorkingDirectory = "/home/daniel/.home/nightly-flake-builds";
-      #     Type = "oneshot";
-      #     User = "daniel"; # might have to run as me for git ssh access to the repo
-      #   };
-      # };
+      systemd.services."build-lytedev-flake" = {
+        script = ''
+          # build self (main server) configuration
+          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git --accept-flake-config
+          # build desktop configuration
+          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#dragon --accept-flake-config
+          # build main laptop configuration
+          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#foxtrot --accept-flake-config
+        '';
+        path = with pkgs; [openssh git nixos-rebuild];
+        serviceConfig = {
+          # TODO: mkdir -p...?
+          WorkingDirectory = "/home/daniel/.home/nightly-flake-builds";
+          Type = "oneshot";
+          User = "daniel"; # might have to run as me for git ssh access to the repo
+        };
+      };
 
       networking = {
         extraHosts = ''
