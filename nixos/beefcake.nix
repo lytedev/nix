@@ -362,6 +362,17 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #   };
     # }
     {
+      # services.postgresql = {
+      #   ensureDatabases = [
+      #     "nextcloud"
+      #   ];
+      #   ensureUsers = [
+      #     {
+      #       name = "nextcloud";
+      #       ensureDBOwnership = true;
+      #     }
+      #   ];
+      # };
       # nextcloud
       # users.users.nextcloud = {
       #   isSystemUser = true;
@@ -369,77 +380,84 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       #   group = "nextcloud";
       # };
     }
-    # {
-    #   # plausible
-    #   users.users.plausible = {
-    #     isSystemUser = true;
-    #     createHome = false;
-    #     group = "plausible";
-    #   };
-    #   users.extraGroups = {
-    #     "plausible" = {};
-    #   };
-    #   services.plausible = {
-    #     # TODO: enable
-    #     enable = true;
-    #     database = {
-    #       clickhouse.setup = true;
-    #       postgres = {
-    #         setup = false;
-    #         dbname = "plausible";
-    #       };
-    #     };
-    #     server = {
-    #       baseUrl = "https://a.lyte.dev";
-    #       disableRegistration = true;
-    #       port = 8899;
-    #       secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
-    #     };
-    #     adminUser = {
-    #       activate = false;
-    #       email = "daniel@lyte.dev";
-    #       passwordFile = config.sops.secrets.plausible-admin-password.path;
-    #     };
-    #   };
-    #   systemd.services.plausible = let
-    #     cfg = config.services.plausible;
-    #   in {
-    #     serviceConfig.User = "plausible";
-    #     serviceConfig.Group = "plausible";
-    #     # since createdb is not gated behind postgres.setup, this breaks
-    #     script = lib.mkForce ''
-    #       # Elixir does not start up if `RELEASE_COOKIE` is not set,
-    #       # even though we set `RELEASE_DISTRIBUTION=none` so the cookie should be unused.
-    #       # Thus, make a random one, which should then be ignored.
-    #       export RELEASE_COOKIE=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 20)
-    #       export ADMIN_USER_PWD="$(< $CREDENTIALS_DIRECTORY/ADMIN_USER_PWD )"
-    #       export SECRET_KEY_BASE="$(< $CREDENTIALS_DIRECTORY/SECRET_KEY_BASE )"
+    {
+      # plausible
+      # ensureDatabases = ["plausible"];
+      # ensureUsers = [
+      #   {
+      #     name = "plausible";
+      #     ensureDBOwnership = true;
+      #   }
+      # ];
+      #   users.users.plausible = {
+      #     isSystemUser = true;
+      #     createHome = false;
+      #     group = "plausible";
+      #   };
+      #   users.extraGroups = {
+      #     "plausible" = {};
+      #   };
+      #   services.plausible = {
+      #     # TODO: enable
+      #     enable = true;
+      #     database = {
+      #       clickhouse.setup = true;
+      #       postgres = {
+      #         setup = false;
+      #         dbname = "plausible";
+      #       };
+      #     };
+      #     server = {
+      #       baseUrl = "https://a.lyte.dev";
+      #       disableRegistration = true;
+      #       port = 8899;
+      #       secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
+      #     };
+      #     adminUser = {
+      #       activate = false;
+      #       email = "daniel@lyte.dev";
+      #       passwordFile = config.sops.secrets.plausible-admin-password.path;
+      #     };
+      #   };
+      #   systemd.services.plausible = let
+      #     cfg = config.services.plausible;
+      #   in {
+      #     serviceConfig.User = "plausible";
+      #     serviceConfig.Group = "plausible";
+      #     # since createdb is not gated behind postgres.setup, this breaks
+      #     script = lib.mkForce ''
+      #       # Elixir does not start up if `RELEASE_COOKIE` is not set,
+      #       # even though we set `RELEASE_DISTRIBUTION=none` so the cookie should be unused.
+      #       # Thus, make a random one, which should then be ignored.
+      #       export RELEASE_COOKIE=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 20)
+      #       export ADMIN_USER_PWD="$(< $CREDENTIALS_DIRECTORY/ADMIN_USER_PWD )"
+      #       export SECRET_KEY_BASE="$(< $CREDENTIALS_DIRECTORY/SECRET_KEY_BASE )"
 
-    #       ${lib.optionalString (cfg.mail.smtp.passwordFile != null)
-    #         ''export SMTP_USER_PWD="$(< $CREDENTIALS_DIRECTORY/SMTP_USER_PWD )"''}
+      #       ${lib.optionalString (cfg.mail.smtp.passwordFile != null)
+      #         ''export SMTP_USER_PWD="$(< $CREDENTIALS_DIRECTORY/SMTP_USER_PWD )"''}
 
-    #       # setup
-    #       ${
-    #         if cfg.database.postgres.setup
-    #         then "${cfg.package}/createdb.sh"
-    #         else ""
-    #       }
-    #       ${cfg.package}/migrate.sh
-    #       export IP_GEOLOCATION_DB=${pkgs.dbip-country-lite}/share/dbip/dbip-country-lite.mmdb
-    #       ${cfg.package}/bin/plausible eval "(Plausible.Release.prepare() ; Plausible.Auth.create_user(\"$ADMIN_USER_NAME\", \"$ADMIN_USER_EMAIL\", \"$ADMIN_USER_PWD\"))"
-    #       ${lib.optionalString cfg.adminUser.activate ''
-    #         psql -d plausible <<< "UPDATE users SET email_verified=true where email = '$ADMIN_USER_EMAIL';"
-    #       ''}
+      #       # setup
+      #       ${
+      #         if cfg.database.postgres.setup
+      #         then "${cfg.package}/createdb.sh"
+      #         else ""
+      #       }
+      #       ${cfg.package}/migrate.sh
+      #       export IP_GEOLOCATION_DB=${pkgs.dbip-country-lite}/share/dbip/dbip-country-lite.mmdb
+      #       ${cfg.package}/bin/plausible eval "(Plausible.Release.prepare() ; Plausible.Auth.create_user(\"$ADMIN_USER_NAME\", \"$ADMIN_USER_EMAIL\", \"$ADMIN_USER_PWD\"))"
+      #       ${lib.optionalString cfg.adminUser.activate ''
+      #         psql -d plausible <<< "UPDATE users SET email_verified=true where email = '$ADMIN_USER_EMAIL';"
+      #       ''}
 
-    #       exec plausible start
-    #     '';
-    #   };
-    #   services.caddy.virtualHosts."a.lyte.dev" = {
-    #     extraConfig = ''
-    #       reverse_proxy :${toString config.services.plausible.server.port}
-    #     '';
-    #   };
-    # }
+      #       exec plausible start
+      #     '';
+      #   };
+      #   services.caddy.virtualHosts."a.lyte.dev" = {
+      #     extraConfig = ''
+      #       reverse_proxy :${toString config.services.plausible.server.port}
+      #     '';
+      #   };
+    }
     # {
     #   # clickhouse
     #   environment.etc = {
@@ -562,46 +580,31 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # };
     }
     {
+      systemd.tmpfiles.settings = {
+        "10-backups" = {
+          "/storage/postgres" = {
+            "d" = {
+              mode = "0770";
+              user = "postgres";
+              group = "postgres";
+            };
+          };
+        };
+      };
       services.postgresql = {
         enable = true;
-        ensureDatabases = [
-          "daniel"
-          "plausible"
-          "nextcloud"
-          "atuin"
-        ];
-        ensureUsers = [
-          {
-            name = "daniel";
-            ensureDBOwnership = true;
-          }
-          {
-            name = "plausible";
-            ensureDBOwnership = true;
-          }
-          {
-            name = "nextcloud";
-            ensureDBOwnership = true;
-          }
-          {
-            name = "atuin";
-            ensureDBOwnership = true;
-          }
-        ];
         dataDir = "/storage/postgres";
         enableTCPIP = true;
 
         package = pkgs.postgresql_15;
 
         # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
+        # TODO: enable the "daniel" user to access all databases
         authentication = pkgs.lib.mkOverride 10 ''
           #type database  user      auth-method    auth-options
           local all       postgres  peer           map=superuser_map
           local all       daniel    peer           map=superuser_map
           local sameuser  all       peer           map=superuser_map
-          # local plausible plausible peer
-          # local nextcloud nextcloud peer
-          # local atuin     atuin     peer
 
           # lan ipv4
           host  all       daniel    192.168.0.0/16 trust
@@ -927,19 +930,28 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #     };
     #   };
     # }
-    # {
-    #   services.atuin = {
-    #     enable = true;
-    #     database = {
-    #       createLocally = true;
-    #       # uri = "postgresql://atuin@localhost:5432/atuin";
-    #     };
-    #     openRegistration = false;
-    #   };
-    #   services.caddy.virtualHosts."atuin.h.lyte.dev" = {
-    #     extraConfig = ''reverse_proxy :${toString config.services.atuin.port}'';
-    #   };
-    # }
+    {
+      services.postgresql = {
+        ensureDatabases = ["atuin"];
+        ensureUsers = [
+          {
+            name = "atuin";
+            ensureDBOwnership = true;
+          }
+        ];
+      };
+      services.atuin = {
+        enable = true;
+        database = {
+          createLocally = false;
+          uri = "postgresql://atuin@localhost:5432/atuin";
+        };
+        openRegistration = false;
+      };
+      services.caddy.virtualHosts."atuin.h.lyte.dev" = {
+        extraConfig = ''reverse_proxy :${toString config.services.atuin.port}'';
+      };
+    }
     # {
     #   # jland minecraft server
     #   users.groups.jland = {
