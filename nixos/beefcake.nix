@@ -658,15 +658,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #     64020
     #   ];
     # }
-    # {
-    #   # flanilla family minecraft server
-    #   users.groups.flanilla = {};
-    #   users.users.flanilla = {
-    #     isSystemUser = true;
-    #     createHome = false;
-    #     group = "flanilla";
-    #   };
-    # }
     {
       systemd.tmpfiles.settings = {
         "10-backups" = {
@@ -921,7 +912,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         enable = true;
         database = {
           createLocally = false;
-          uri = "postgresql://atuin@localhost:5432/atuin";
+          # uri = "postgresql://atuin@localhost:5432/atuin";
         };
         openRegistration = false;
       };
@@ -1045,6 +1036,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #   ];
     # }
     # {
+    #   # flanilla family minecraft server
+    #   users.groups.flanilla = {};
+    #   users.users.flanilla = {
+    #     isSystemUser = true;
+    #     createHome = false;
+    #     group = "flanilla";
+    #   };
     #   virtualisation.oci-containers.containers.minecraft-flanilla = {
     #     autoStart = true;
 
