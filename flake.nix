@@ -49,7 +49,7 @@
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
+      "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
   };
@@ -107,7 +107,7 @@
     # overlay I did this to work around some recursion problems
     # TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
     packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset nix-base-container-image;});
-    diskoConfigurations = import ./disko;
+    diskoConfigurations = import ./disko {inherit (nixpkgs) lib;};
     templates = import ./templates;
     formatter = genPkgs (p: p.alejandra);
 
@@ -221,6 +221,8 @@
         final.helix = helix;
         # TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
         # source: https://github.com/wez/wezterm/issues/3771
+        # not-yet-merged (abandoned?): https://github.com/wez/wezterm/pull/4737
+        # I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
         wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         final.wezterm = wezterm;
       };
@@ -250,21 +252,27 @@
         modules = with nixosModules; [
           home-manager-defaults
 
+          # TODO: disko?
           hardware.nixosModules.common-cpu-intel
 
+          outputs.nixosModules.deno-netlify-ddns-client
+
+          {
+            services.deno-netlify-ddns-client = {
+              enable = true;
+              username = "beefcake.h";
+              # TODO: router doesn't even do ipv6 yet...
+              ipv6 = false;
+            };
+          }
+
           common
+          podman
+          troubleshooting-tools
           linux
           fonts
 
           ./nixos/beefcake.nix
-
-          {
-            time = {
-              timeZone = "America/Chicago";
-            };
-            services.smartd.enable = true;
-            services.fwupd.enable = true;
-          }
         ];
       };
 
@@ -338,6 +346,7 @@
           hardware.nixosModules.common-pc-ssd
 
           common
+          gaming
           graphical-workstation
 
           ./nixos/htpc.nix
@@ -535,6 +544,7 @@
           home-manager-defaults
           hardware.nixosModules.common-cpu-amd
           common
+          linux
           ./nixos/rascal.nix
         ];
       };

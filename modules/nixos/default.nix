@@ -11,6 +11,8 @@
   pubkey,
   overlays,
 }: {
+  deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
+
   fallback-hostname = {lib, ...}: {
     networking.hostName = lib.mkDefault "set-a-hostname-dingus";
   };
