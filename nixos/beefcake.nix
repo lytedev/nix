@@ -204,43 +204,43 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         '';
       };
     }
-    # {
-    #   services.headscale = {
-    #     enable = true;
-    #     address = "127.0.0.1";
-    #     port = 7777;
-    #     settings = {
-    #       server_url = "https://tailscale.vpn.h.lyte.dev";
-    #       db_type = "sqlite3";
-    #       db_path = "/var/lib/headscale/db.sqlite";
+    {
+      services.headscale = {
+        enable = false;
+        address = "127.0.0.1";
+        port = 7777;
+        settings = {
+          server_url = "https://tailscale.vpn.h.lyte.dev";
+          db_type = "sqlite3";
+          db_path = "/var/lib/headscale/db.sqlite";
 
-    #       derp.server = {
-    #         enable = true;
-    #         region_id = 999;
-    #         stun_listen_addr = "0.0.0.0:3478";
-    #       };
+          derp.server = {
+            enable = true;
+            region_id = 999;
+            stun_listen_addr = "0.0.0.0:3478";
+          };
 
-    #       dns_config = {
-    #         magic_dns = true;
-    #         base_domain = "vpn.h.lyte.dev";
-    #         domains = [
-    #           "ts.vpn.h.lyte.dev"
-    #         ];
-    #         nameservers = [
-    #           "1.1.1.1"
-    #           # "192.168.0.1"
-    #         ];
-    #         override_local_dns = true;
-    #       };
-    #     };
-    #   };
-    #   services.caddy.virtualHosts."tailscale.vpn.h.lyte.dev" = {
-    #     extraConfig = ''
-    #       reverse_proxy http://localhost:${toString config.services.headscale.port}
-    #     '';
-    #   };
-    #   networking.firewall.allowedUDPPorts = [3478];
-    # }
+          dns_config = {
+            magic_dns = true;
+            base_domain = "vpn.h.lyte.dev";
+            domains = [
+              "ts.vpn.h.lyte.dev"
+            ];
+            nameservers = [
+              "1.1.1.1"
+              # "192.168.0.1"
+            ];
+            override_local_dns = true;
+          };
+        };
+      };
+      services.caddy.virtualHosts."tailscale.vpn.h.lyte.dev" = lib.mkIf config.services.headscale.enable {
+        extraConfig = ''
+          reverse_proxy http://localhost:${toString config.services.headscale.port}
+        '';
+      };
+      networking.firewall.allowedUDPPorts = lib.mkIf config.services.headscale.enable [3478];
+    }
     {
       services.soju = {
         enable = true;
@@ -491,104 +491,145 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "forgejo"
         ];
       };
+      services.postgresql = {
+        ensureDatabases = ["daniel"];
+        ensureUsers = [
+          {
+            name = "daniel";
+            ensureDBOwnership = true;
+          }
+        ];
+      };
     }
-    # {
-    #   services.jellyfin = {
-    #     enable = true;
-    #     openFirewall = false;
-    #     # uses port 8096 by default, configurable from admin UI
-    #   };
-    #   services.caddy.virtualHosts."video.lyte.dev" = {
-    #     extraConfig = ''reverse_proxy :8096'';
-    #   };
-    #   # NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general
-    #   # but I can probably throw in a crappy GPU (or a big, cheap ebay GPU for ML
-    #   # stuff, too?) and get good transcoding performance
+    {
+      systemd.tmpfiles.settings = {
+        "10-jellyfin" = {
+          "/storage/jellyfin" = {
+            "d" = {
+              mode = "0770";
+              user = "jellyfin";
+              group = "wheel";
+            };
+          };
+          "/storage/jellyfin/movies" = {
+            "d" = {
+              mode = "0770";
+              user = "jellyfin";
+              group = "wheel";
+            };
+          };
+          "/storage/jellyfin/tv" = {
+            "d" = {
+              mode = "0770";
+              user = "jellyfin";
+              group = "wheel";
+            };
+          };
+          "/storage/jellyfin/music" = {
+            "d" = {
+              mode = "0770";
+              user = "jellyfin";
+              group = "wheel";
+            };
+          };
+        };
+      };
+      services.jellyfin = {
+        enable = true;
+        openFirewall = false;
+        # uses port 8096 by default, configurable from admin UI
+      };
+      services.caddy.virtualHosts."video.lyte.dev" = {
+        extraConfig = ''reverse_proxy :8096'';
+      };
+      # NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general
+      # but I can probably throw in a crappy GPU (or a big, cheap ebay GPU for ML
+      # stuff, too?) and get good transcoding performance
 
-    #   # jellyfin hardware encoding
-    #   # hardware.graphics = {
-    #   #   enable = true;
-    #   #   extraPackages = with pkgs; [
-    #   #     intel-media-driver
-    #   #     vaapiIntel
-    #   #     vaapiVdpau
-    #   #     libvdpau-va-gl
-    #   #     intel-compute-runtime
-    #   #   ];
-    #   # };
-    #   # nixpkgs.config.packageOverrides = pkgs: {
-    #   #   vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-    #   # };
-    # }
-    # {
-    #   services.postgresql = {
-    #     enable = true;
-    #     ensureDatabases = [
-    #       "daniel"
-    #       "plausible"
-    #       "nextcloud"
-    #       # "atuin"
-    #     ];
-    #     ensureUsers = [
-    #       {
-    #         name = "daniel";
-    #         ensureDBOwnership = true;
-    #       }
-    #       {
-    #         name = "plausible";
-    #         ensureDBOwnership = true;
-    #       }
-    #       {
-    #         name = "nextcloud";
-    #         ensureDBOwnership = true;
-    #       }
-    #       # {
-    #       #   name = "atuin";
-    #       #   ensureDBOwnership = true;
-    #       # }
-    #     ];
-    #     dataDir = "/storage/postgres";
-    #     enableTCPIP = true;
+      # jellyfin hardware encoding
+      # hardware.graphics = {
+      #   enable = true;
+      #   extraPackages = with pkgs; [
+      #     intel-media-driver
+      #     vaapiIntel
+      #     vaapiVdpau
+      #     libvdpau-va-gl
+      #     intel-compute-runtime
+      #   ];
+      # };
+      # nixpkgs.config.packageOverrides = pkgs: {
+      #   vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+      # };
+    }
+    {
+      services.postgresql = {
+        enable = true;
+        ensureDatabases = [
+          "daniel"
+          "plausible"
+          "nextcloud"
+          "atuin"
+        ];
+        ensureUsers = [
+          {
+            name = "daniel";
+            ensureDBOwnership = true;
+          }
+          {
+            name = "plausible";
+            ensureDBOwnership = true;
+          }
+          {
+            name = "nextcloud";
+            ensureDBOwnership = true;
+          }
+          {
+            name = "atuin";
+            ensureDBOwnership = true;
+          }
+        ];
+        dataDir = "/storage/postgres";
+        enableTCPIP = true;
 
-    #     package = pkgs.postgresql_15;
+        package = pkgs.postgresql_15;
 
-    #     # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
-    #     authentication = pkgs.lib.mkOverride 10 ''
-    #       #type database  user      auth-method    auth-options
-    #       local all       postgres  peer           map=superuser_map
-    #       local all       daniel    peer           map=superuser_map
-    #       local sameuser  all       peer           map=superuser_map
-    #       # local plausible plausible peer
-    #       # local nextcloud nextcloud peer
-    #       # local atuin     atuin     peer
+        # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
+        authentication = pkgs.lib.mkOverride 10 ''
+          #type database  user      auth-method    auth-options
+          local all       postgres  peer           map=superuser_map
+          local all       daniel    peer           map=superuser_map
+          local sameuser  all       peer           map=superuser_map
+          # local plausible plausible peer
+          # local nextcloud nextcloud peer
+          # local atuin     atuin     peer
 
-    #       # lan ipv4
-    #       host  all       daniel    192.168.0.0/16 trust
-    #       host  all       daniel    10.0.0.0/24    trust
+          # lan ipv4
+          host  all       daniel    192.168.0.0/16 trust
+          host  all       daniel    10.0.0.0/24    trust
 
-    #       # tailnet ipv4
-    #       host  all       daniel    100.64.0.0/10 trust
-    #     '';
+          # tailnet ipv4
+          host  all       daniel    100.64.0.0/10 trust
+        '';
 
-    #     identMap = ''
-    #       # map            system_user db_user
-    #       superuser_map    root        postgres
-    #       superuser_map    postgres    postgres
-    #       superuser_map    daniel      postgres
+        identMap = ''
+          # map            system_user db_user
+          superuser_map    root        postgres
+          superuser_map    postgres    postgres
+          superuser_map    daniel      postgres
 
-    #       # Let other names login as themselves
-    #       superuser_map    /^(.*)$     \1
-    #     '';
-    #   };
+          # Let other names login as themselves
+          superuser_map    /^(.*)$     \1
+        '';
+      };
 
-    #   services.postgresqlBackup = {
-    #     enable = true;
-    #     backupAll = true;
-    #     compression = "none"; # hoping for deduplication here?
-    #     location = "/storage/postgres-backups";
-    #     startAt = "*-*-* 03:00:00";
-    #   };
-    # }
+      services.postgresqlBackup = {
+        enable = true;
+        backupAll = true;
+        compression = "none"; # hoping for deduplication here?
+        location = "/storage/postgres-backups";
+        startAt = "*-*-* 03:00:00";
+      };
+    }
     # {
     #   # friends
     #   users.users.ben = {
