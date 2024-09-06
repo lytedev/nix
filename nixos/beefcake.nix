@@ -739,106 +739,116 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
       };
     }
-    # {
-    #   services.forgejo = {
-    #     enable = true;
-    #     stateDir = "/storage/forgejo";
-    #     settings = {
-    #       DEFAULT = {
-    #         APP_NAME = "git.lyte.dev";
-    #       };
-    #       server = {
-    #         ROOT_URL = "https://git.lyte.dev";
-    #         HTTP_ADDR = "127.0.0.1";
-    #         HTTP_PORT = 3088;
-    #         DOMAIN = "git.lyte.dev";
-    #       };
-    #       actions = {
-    #         ENABLED = true;
-    #       };
-    #       service = {
-    #         DISABLE_REGISTRATION = true;
-    #       };
-    #       session = {
-    #         COOKIE_SECURE = true;
-    #       };
-    #       log = {
-    #         # TODO: raise the log level
-    #         # LEVEL = "Debug";
-    #       };
-    #       ui = {
-    #         THEMES = "forgejo-auto,forgejo-light,forgejo-dark,catppuccin-mocha-sapphire";
-    #         DEFAULT_THEME = "forgejo-auto";
-    #       };
-    #       indexer = {
-    #         REPO_INDEXER_ENABLED = "true";
-    #         REPO_INDEXER_PATH = "indexers/repos.bleve";
-    #         MAX_FILE_SIZE = "1048576";
-    #         # REPO_INDEXER_INCLUDE =
-    #         REPO_INDEXER_EXCLUDE = "resources/bin/**";
-    #       };
-    #     };
-    #     lfs = {
-    #       enable = true;
-    #     };
-    #     dump = {
-    #       enable = true;
-    #     };
-    #     database = {
-    #       # TODO: move to postgres?
-    #       type = "sqlite3";
-    #     };
-    #   };
-    #   services.gitea-actions-runner = {
-    #     # TODO: simple git-based automation would be dope? maybe especially for
-    #     # mirroring to github super easy?
-    #     # enable = true;
-    #     package = pkgs.forgejo-runner;
-    #     instances."beefcake" = {
-    #       enable = true;
-    #       name = "beefcake";
-    #       url = "https://git.lyte.dev";
-    #       settings = {
-    #         container = {
-    #           # use the shared network which is bridged by default
-    #           # this lets us hit git.lyte.dev just fine
-    #           network = "podman";
-    #         };
-    #       };
-    #       labels = [
-    #         # type ":host" does not depend on docker/podman/lxc
-    #         "podman"
-    #         "nix:docker://git.lyte.dev/lytedev/nix:latest"
-    #         "beefcake:host"
-    #         "nixos-host:host"
-    #       ];
-    #       tokenFile = config.sops.secrets."forgejo-runner.env".path;
-    #       hostPackages = with pkgs; [
-    #         nix
-    #         bash
-    #         coreutils
-    #         curl
-    #         gawk
-    #         gitMinimal
-    #         gnused
-    #         nodejs
-    #         gnutar # needed for cache action
-    #         wget
-    #       ];
-    #     };
-    #   };
-    #   # environment.systemPackages = with pkgs; [nodejs];
-    #   services.caddy.virtualHosts."git.lyte.dev" = {
-    #     extraConfig = ''
-    #       reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
-    #     '';
-    #   };
-    #   services.caddy.virtualHosts."http://git.beefcake.lan" = {
-    #     extraConfig = ''
-    #       reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
-    #     '';
-    #   };
-    # }
+    {
+      systemd.tmpfiles.settings = {
+        "10-backups" = {
+          "/storage/forgejo" = {
+            "d" = {
+              mode = "0700";
+              user = "forgejo";
+              group = "nogroup";
+            };
+          };
+        };
+      };
+      services.forgejo = {
+        enable = false;
+        stateDir = "/storage/forgejo";
+        settings = {
+          DEFAULT = {
+            APP_NAME = "git.lyte.dev";
+          };
+          server = {
+            ROOT_URL = "https://git.lyte.dev";
+            HTTP_ADDR = "127.0.0.1";
+            HTTP_PORT = 3088;
+            DOMAIN = "git.lyte.dev";
+          };
+          actions = {
+            ENABLED = true;
+          };
+          service = {
+            DISABLE_REGISTRATION = true;
+          };
+          session = {
+            COOKIE_SECURE = true;
+          };
+          log = {
+            # LEVEL = "Debug";
+          };
+          ui = {
+            THEMES = "forgejo-auto,forgejo-light,forgejo-dark";
+            DEFAULT_THEME = "forgejo-auto";
+          };
+          indexer = {
+            REPO_INDEXER_ENABLED = "true";
+            REPO_INDEXER_PATH = "indexers/repos.bleve";
+            MAX_FILE_SIZE = "1048576";
+            # REPO_INDEXER_INCLUDE =
+            REPO_INDEXER_EXCLUDE = "resources/bin/**";
+          };
+        };
+        lfs = {
+          enable = true;
+        };
+        dump = {
+          enable = true;
+        };
+        database = {
+          # TODO: move to postgres?
+          type = "sqlite3";
+        };
+      };
+      services.gitea-actions-runner = {
+        # TODO: simple git-based automation would be dope? maybe especially for
+        # mirroring to github super easy?
+        # enable = true;
+        package = pkgs.forgejo-runner;
+        instances."beefcake" = {
+          enable = false;
+          name = "beefcake";
+          url = "https://git.lyte.dev";
+          settings = {
+            container = {
+              # use the shared network which is bridged by default
+              # this lets us hit git.lyte.dev just fine
+              network = "podman";
+            };
+          };
+          labels = [
+            # type ":host" does not depend on docker/podman/lxc
+            "podman"
+            "nix:docker://git.lyte.dev/lytedev/nix:latest"
+            "beefcake:host"
+            "nixos-host:host"
+          ];
+          tokenFile = config.sops.secrets."forgejo-runner.env".path;
+          hostPackages = with pkgs; [
+            nix
+            bash
+            coreutils
+            curl
+            gawk
+            gitMinimal
+            gnused
+            nodejs
+            gnutar # needed for cache action
+            wget
+          ];
+        };
+      };
+      # environment.systemPackages = with pkgs; [nodejs];
+      services.caddy.virtualHosts."git.lyte.dev" = {
+        extraConfig = ''
+          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
+        '';
+      };
+      services.caddy.virtualHosts."http://git.beefcake.lan" = {
+        extraConfig = ''
+          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
+        '';
+      };
+    }
     # {
     #   services.vaultwarden = {
     #     enable = true;
