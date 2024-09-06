@@ -136,6 +136,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           restic-ssh-priv-key-benland = {mode = "0400";};
           "forgejo-runner.env" = {mode = "0400";};
           netlify-ddns-password = {mode = "0400";};
+          nix-cache-priv-key = {mode = "0400";};
           restic-rascal-passphrase = {
             mode = "0400";
           };
