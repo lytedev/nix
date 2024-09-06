@@ -488,6 +488,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "jellyfin" # write access to jellyfin files
           "audiobookshelf" # write access to audiobookshelf files
           "flanilla" # minecraft server manager
+          "forgejo"
         ];
       };
     }
@@ -741,7 +742,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       systemd.tmpfiles.settings = {
-        "10-backups" = {
+        "10-forgejo" = {
           "/storage/forgejo" = {
             "d" = {
               mode = "0700";
@@ -752,7 +753,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
       services.forgejo = {
-        enable = false;
+        enable = true;
         stateDir = "/storage/forgejo";
         settings = {
           DEFAULT = {
