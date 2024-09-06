@@ -154,7 +154,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # nix binary cache
       services.nix-serve = {
-        enable = false; # TODO: true
+        enable = true; # TODO: true
         secretKeyFile = config.sops.secrets.nix-cache-priv-key.path;
       };
       services.caddy.virtualHosts."nix.h.lyte.dev" = {
