@@ -1416,13 +1416,24 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
       };
+      users.groups.audiobookshelf = {};
+      users.users.audiobookshelf = {
+        isSystemUser = true;
+        group = "audiobookshelf";
+      };
       services.audiobookshelf = {
         enable = true;
         dataDir = "/storage/audiobookshelf";
         port = 8523;
       };
+      systemd.services.audiobookshelf.serviceConfig = {
+        WorkingDirectory = lib.mkForce config.services.audiobookshelf.dataDir;
+        StateDirectory = lib.mkForce config.services.audiobookshelf.dataDir;
+        Group = "audiobookshelf";
+        User = "audiobookshelf";
+      };
       services.caddy.virtualHosts."audio.lyte.dev" = {
-        extraConfig = ''reverse_proxy :8523'';
+        extraConfig = ''reverse_proxy :${toString config.services.audiobookshelf.port}'';
       };
     }
   ];
@@ -1440,6 +1451,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   # TODO: declarative directory quotas? for storage/$USER and /home/$USER
 
   environment.systemPackages = with pkgs; [
+    aria2
     restic
     btrfs-progs
     zfs
