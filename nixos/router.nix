@@ -337,7 +337,7 @@ in {
           ConfigureWithoutCarrier = true;
           # IPv6AcceptRA = false;
           IPv6SendRA = true;
-          DHCPv6PrefixDelegation = true;
+          DHCPPrefixDelegation = true;
         };
       };
 
