@@ -96,6 +96,10 @@ in {
     }
   ];
 
+  environment.systemPackages = with pkgs; [
+    iftop
+  ];
+
   boot.kernel.sysctl =
     sysctl-entries
     // {
