@@ -688,7 +688,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       services.restic.backups = let
         defaults = {
-          passwordFile = config.sops.secrets.restic-rascal-passphrase;
+          passwordFile = config.sops.secrets.restic-rascal-passphrase.path;
           paths =
             config.services.restic.commonPaths
             ++ [
