@@ -400,6 +400,7 @@
 
   troubleshooting-tools = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
+      iftop
       bottom
       btop
       dnsutils

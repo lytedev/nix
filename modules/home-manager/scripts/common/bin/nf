@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 
+umask 0077
 SUBDIR="${2:-./}"
 mkdir -p "$NOTES_PATH/$SUBDIR"
 cd "$NOTES_PATH/$SUBDIR" || exit 1
