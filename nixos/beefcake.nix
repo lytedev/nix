@@ -896,6 +896,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           SIGNUPS_ALLOWED = "false";
           ROCKET_ADDRESS = "127.0.0.1";
           ROCKET_PORT = 8222;
+          # TODO: smtp setup?
+          # right now, I think I configured this manually by temporarily setting ADMIN_TOKEN
+          # and then configuring in https://bw.lyte.dev/admin
         };
       };
       services.caddy.virtualHosts."bw.lyte.dev" = {
@@ -1452,16 +1455,34 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         checkConfig = true;
         listenAddress = "127.0.0.1";
         port = 9090;
+        scrapeConfigs = [
+          {
+            job_name = "beefcake";
+            static_configs = [
+              {
+                targets = let inherit (config.services.prometheus.exporters.node) port listenAddress; in ["${listenAddress}:${toString port}"];
+              }
+            ];
+          }
+        ];
         exporters = {
           postgres = {
             enable = true;
             # runAsLocalSuperUser = true;
           };
+          node = {
+            enable = true;
+            listenAddress = "127.0.0.1";
+            port = 9100;
+            enabledCollectors = [
+              "systemd"
+            ];
+          };
+          zfs = {
+            enable = true;
+          };
         };
-        # alertmanager.enable = true; # grafana for alerts?
       };
-      # services.node-exporter.enable = true; # TODO: node-exporter?
-      # TODO: exporters.zfs?
       # TODO: promtail?
       # idrac exporter?
       # restic exporter?
@@ -1494,16 +1515,40 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           group = "grafana";
           mode = "0400";
         };
+        grafana-smtp-password = {
+          owner = "grafana";
+          group = "grafana";
+          mode = "0400";
+        };
       };
       services.grafana = {
         enable = true;
         dataDir = "/storage/grafana";
         provision = {
           enable = true;
+          datasources = {
+            settings = {
+              datasources = [
+                {
+                  name = "Prometheus";
+                  type = "prometheus";
+                  access = "proxy";
+                  url = "http://localhost:${toString config.services.prometheus.port}";
+                  isDefault = true;
+                }
+              ];
+            };
+          };
         };
         settings = {
           server = {
             http_port = 3814;
+          };
+          smtp = {
+            enabled = true;
+            from_address = "grafana@lyte.dev";
+            host = "smtp.mailgun.org";
+            password = ''$__file{${config.sops.secrets.grafana-smtp-password.path}}'';
           };
           security = {
             admin_email = "daniel@lyte.dev";
