@@ -589,7 +589,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         "10-backups" = {
           "/storage/postgres" = {
             "d" = {
-              mode = "0770";
+              mode = "0750";
               user = "postgres";
               group = "postgres";
             };
@@ -675,9 +675,20 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         group = "restic";
         openssh.authorizedKeys.keys = [] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
       };
+      systemd.tmpfiles.settings = {
+        "10-caddy" = {
+          "/storage/backups/local" = {
+            "d" = {
+              mode = "0750";
+              user = "root";
+              group = "wheel";
+            };
+          };
+        };
+      };
       services.restic.backups = let
         defaults = {
-          passwordFile = "/root/restic-remotebackup-password";
+          passwordFile = config.sops.secrets.restic-rascal-passphrase;
           paths =
             config.services.restic.commonPaths
             ++ [
@@ -692,7 +703,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         local =
           defaults
           // {
-            passwordFile = "/root/restic-localbackup-password";
             repository = "/storage/backups/local";
           };
         rascal =
