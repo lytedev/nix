@@ -1486,9 +1486,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
       services.restic.commonPaths = [
-        # TODO: do I want this backed up?
-        # "/storage/grafana"
+        "/storage/grafana"
       ];
+      sops.secrets = {
+        grafana-admin-password = {
+          owner = "grafana";
+          group = "grafana";
+          mode = "0400";
+        };
+      };
       services.grafana = {
         enable = true;
         dataDir = "/storage/grafana";
@@ -1499,6 +1505,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           server = {
             http_port = 3814;
           };
+          security = {
+            admin_email = "daniel@lyte.dev";
+            admin_user = "lytedev";
+            admin_file = ''$__file{${config.sops.secrets.grafana-admin-password.path}}'';
+          };
+          # database = {
+          # };
         };
       };
       networking.firewall.allowedTCPPorts = [
