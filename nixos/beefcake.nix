@@ -906,6 +906,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
     }
     {
+      users.users.atuin = {
+        isSystemUser = true;
+        createHome = false;
+        group = "atuin";
+      };
+      users.extraGroups = {
+        "atuin" = {};
+      };
       services.postgresql = {
         ensureDatabases = ["atuin"];
         ensureUsers = [
@@ -923,6 +931,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           # uri = "postgresql://atuin@localhost:5432/atuin";
         };
         openRegistration = false;
+        # TODO: would be neat to have a way to "force" a registration on the server
+      };
+      systemd.services.atuin.serviceConfig = {
+        Group = "atuin";
+        User = "atuin";
       };
       services.caddy.virtualHosts."atuin.h.lyte.dev" = {
         extraConfig = ''reverse_proxy :${toString config.services.atuin.port}'';
@@ -1462,24 +1475,31 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
               {
                 targets = let inherit (config.services.prometheus.exporters.node) port listenAddress; in ["${listenAddress}:${toString port}"];
               }
+              {
+                targets = let inherit (config.services.prometheus.exporters.zfs) port listenAddress; in ["${listenAddress}:${toString port}"];
+              }
+              {
+                targets = let inherit (config.services.prometheus.exporters.postgres) port listenAddress; in ["${listenAddress}:${toString port}"];
+              }
             ];
           }
         ];
         exporters = {
           postgres = {
             enable = true;
-            # runAsLocalSuperUser = true;
+            listenAddress = "127.0.0.1";
+            runAsLocalSuperUser = true;
           };
           node = {
             enable = true;
             listenAddress = "127.0.0.1";
-            port = 9100;
             enabledCollectors = [
               "systemd"
             ];
           };
           zfs = {
             enable = true;
+            listenAddress = "127.0.0.1";
           };
         };
       };
