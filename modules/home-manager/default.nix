@@ -1218,7 +1218,7 @@
     programs.senpai = {
       enable = true;
       config = {
-        address = "irc+insecure://beefcake:6667";
+        address = "irc+insecure://beefcake.hare-cod.ts.net:6667";
         nickname = "lytedev";
         password-cmd = ["pass" "soju"];
       };

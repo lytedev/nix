@@ -999,7 +999,7 @@
     };
 
     time = {
-      timeZone = lib.mkDefault "America/Chicago";
+      timeZone = "America/Chicago";
     };
 
     i18n = {

@@ -21,7 +21,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
   imports = [
     {
-      # hardware
+      # hardware and boot module
       networking.hostId = "541ede55";
       boot = {
         zfs = {
@@ -36,6 +36,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
         initrd.availableKernelModules = ["ehci_pci" "mpt3sas" "usbhid" "sd_mod"];
         kernelModules = ["kvm-intel"];
+        kernelParams = ["nohibernate"];
         loader.systemd-boot.enable = true;
         loader.efi.canTouchEfiVariables = true;
       };
@@ -68,11 +69,30 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # TODO: nfs with zfs?
       # services.nfs.server.enable = true;
     }
+    ({
+      options,
+      config,
+      ...
+    }: let
+      inherit (lib) mkOption types;
+    in {
+      options.services.restic.commonPaths = mkOption {
+        type = types.nullOr (types.listOf types.str);
+        default = [];
+        description = ''
+          Which paths to backup, in addition to ones specified via
+          `dynamicFilesFrom`.  If null or an empty array and
+          `dynamicFilesFrom` is also null, no backup command will be run.
+           This can be used to create a prune-only job.
+        '';
+        example = [
+          "/var/lib/postgresql"
+          "/home/user/backup"
+        ];
+      };
+    })
     {
-      boot.kernelParams = ["nohibernate"];
-    }
-    {
-      # sops secrets stuff
+      # sops secrets config
       sops = {
         defaultSopsFile = ../secrets/beefcake/secrets.yml;
         age = {
@@ -80,80 +100,21 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           keyFile = "/var/lib/sops-nix/key.txt";
           generateKey = true;
         };
-        secrets = {
-          # example-key = {
-          #   # see these and other options' documentation here:
-          #   # https://github.com/Mic92/sops-nix#set-secret-permissionowner-and-allow-services-to-access-it
-
-          #   # set permissions:
-          #   # mode = "0440";
-          #   # owner = config.users.users.nobody.name;
-          #   # group = config.users.users.nobody.group;
-
-          #   # restart service when a secret changes or is newly initialized
-          #   # restartUnits = [ "home-assistant.service" ];
-
-          #   # symlink to certain directories
-          #   path = "/var/lib/my-example-key/secrets.yaml";
-
-          #   # for use as a user password
-          #   # neededForUsers = true;
-          # };
-
-          # subdirectory
-          # "myservice/my_subdir/my_secret" = { };
-
-          # "jland.env" = {
-          #   path = "/var/lib/jland/jland.env";
-          #   # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
-          #   mode = "0440";
-          #   owner = config.users.users.daniel.name;
-          #   group = config.users.groups.daniel.name;
-          # };
-
-          # "dawncraft.env" = {
-          #   path = "/var/lib/dawncraft/dawncraft.env";
-          #   # TODO: would be cool to assert that it's correctly-formatted JSON? probably should be done in a pre-commit hook?
-          #   mode = "0440";
-          #   owner = config.users.users.daniel.name;
-          #   group = config.users.groups.daniel.name;
-          # };
-
-          # plausible-admin-password = {
-          #   # TODO: path = "${config.systemd.services.plausible.serviceConfig.WorkingDirectory}/plausible-admin-password.txt";
-          #   path = "/var/lib/plausible/plausible-admin-password";
-          #   mode = "0440";
-          #   owner = config.systemd.services.plausible.serviceConfig.User;
-          #   group = config.systemd.services.plausible.serviceConfig.Group;
-          # };
-          # plausible-secret-key-base = {
-          #   path = "/var/lib/plausible/plausible-secret-key-base";
-          #   mode = "0440";
-          #   owner = config.systemd.services.plausible.serviceConfig.User;
-          #   group = config.systemd.services.plausible.serviceConfig.Group;
-          # };
-          # nextcloud-admin-password.path = "/var/lib/nextcloud/admin-password";
-          restic-ssh-priv-key-benland = {mode = "0400";};
-          "forgejo-runner.env" = {mode = "0400";};
-          netlify-ddns-password = {mode = "0400";};
-          nix-cache-priv-key = {mode = "0400";};
-          restic-rascal-passphrase = {
-            mode = "0400";
-          };
-          restic-rascal-ssh-private-key = {
-            mode = "0400";
-          };
-        };
       };
-      systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
     }
     {
+      sops.secrets = {
+        netlify-ddns-password = {mode = "0400";};
+      };
       services.deno-netlify-ddns-client = {
         passwordFile = config.sops.secrets.netlify-ddns-password.path;
       };
     }
     {
       # nix binary cache
+      sops.secrets = {
+        nix-cache-priv-key = {mode = "0400";};
+      };
       services.nix-serve = {
         enable = true; # TODO: true
         secretKeyFile = config.sops.secrets.nix-cache-priv-key.path;
@@ -180,6 +141,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
 
       systemd.services."build-lytedev-flake" = {
+        # TODO: might want to add root for the most recent results?
         script = ''
           # build self (main server) configuration
           nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git --accept-flake-config
@@ -193,7 +155,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           # TODO: mkdir -p...?
           WorkingDirectory = "/home/daniel/.home/nightly-flake-builds";
           Type = "oneshot";
-          User = "daniel"; # might have to run as me for git ssh access to the repo
+          User = "daniel";
         };
       };
 
@@ -206,7 +168,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       services.headscale = {
-        enable = false;
+        enable = false; # TODO: setup headscale?
         address = "127.0.0.1";
         port = 7777;
         settings = {
@@ -242,6 +204,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       networking.firewall.allowedUDPPorts = lib.mkIf config.services.headscale.enable [3478];
     }
     {
+      # TODO: I think I need to setup my account? wondering if this can be done in nix as well
+
+      services.restic.commonPaths = ["/var/lib/soju" "/var/lib/private/soju"];
       services.soju = {
         enable = true;
         listen = ["irc+insecure://:6667"];
@@ -362,6 +327,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     #   };
     # }
     {
+      # nextcloud
+      # TODO: investigate https://carlosvaz.com/posts/the-holy-grail-nextcloud-setup-made-easy-by-nixos/
       # services.postgresql = {
       #   ensureDatabases = [
       #     "nextcloud"
@@ -382,119 +349,153 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       # plausible
-      # ensureDatabases = ["plausible"];
-      # ensureUsers = [
-      #   {
-      #     name = "plausible";
-      #     ensureDBOwnership = true;
-      #   }
-      # ];
-      #   users.users.plausible = {
-      #     isSystemUser = true;
-      #     createHome = false;
-      #     group = "plausible";
-      #   };
-      #   users.extraGroups = {
-      #     "plausible" = {};
-      #   };
-      #   services.plausible = {
-      #     # TODO: enable
-      #     enable = true;
-      #     database = {
-      #       clickhouse.setup = true;
-      #       postgres = {
-      #         setup = false;
-      #         dbname = "plausible";
-      #       };
-      #     };
-      #     server = {
-      #       baseUrl = "https://a.lyte.dev";
-      #       disableRegistration = true;
-      #       port = 8899;
-      #       secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
-      #     };
-      #     adminUser = {
-      #       activate = false;
-      #       email = "daniel@lyte.dev";
-      #       passwordFile = config.sops.secrets.plausible-admin-password.path;
-      #     };
-      #   };
-      #   systemd.services.plausible = let
-      #     cfg = config.services.plausible;
-      #   in {
-      #     serviceConfig.User = "plausible";
-      #     serviceConfig.Group = "plausible";
-      #     # since createdb is not gated behind postgres.setup, this breaks
-      #     script = lib.mkForce ''
-      #       # Elixir does not start up if `RELEASE_COOKIE` is not set,
-      #       # even though we set `RELEASE_DISTRIBUTION=none` so the cookie should be unused.
-      #       # Thus, make a random one, which should then be ignored.
-      #       export RELEASE_COOKIE=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 20)
-      #       export ADMIN_USER_PWD="$(< $CREDENTIALS_DIRECTORY/ADMIN_USER_PWD )"
-      #       export SECRET_KEY_BASE="$(< $CREDENTIALS_DIRECTORY/SECRET_KEY_BASE )"
-
-      #       ${lib.optionalString (cfg.mail.smtp.passwordFile != null)
-      #         ''export SMTP_USER_PWD="$(< $CREDENTIALS_DIRECTORY/SMTP_USER_PWD )"''}
-
-      #       # setup
-      #       ${
-      #         if cfg.database.postgres.setup
-      #         then "${cfg.package}/createdb.sh"
-      #         else ""
-      #       }
-      #       ${cfg.package}/migrate.sh
-      #       export IP_GEOLOCATION_DB=${pkgs.dbip-country-lite}/share/dbip/dbip-country-lite.mmdb
-      #       ${cfg.package}/bin/plausible eval "(Plausible.Release.prepare() ; Plausible.Auth.create_user(\"$ADMIN_USER_NAME\", \"$ADMIN_USER_EMAIL\", \"$ADMIN_USER_PWD\"))"
-      #       ${lib.optionalString cfg.adminUser.activate ''
-      #         psql -d plausible <<< "UPDATE users SET email_verified=true where email = '$ADMIN_USER_EMAIL';"
-      #       ''}
-
-      #       exec plausible start
-      #     '';
-      #   };
-      #   services.caddy.virtualHosts."a.lyte.dev" = {
-      #     extraConfig = ''
-      #       reverse_proxy :${toString config.services.plausible.server.port}
-      #     '';
-      #   };
+      services.postgresql = {
+        ensureDatabases = ["plausible"];
+        ensureUsers = [
+          {
+            name = "plausible";
+            ensureDBOwnership = true;
+          }
+        ];
+      };
+      users.users.plausible = {
+        isSystemUser = true;
+        createHome = false;
+        group = "plausible";
+      };
+      users.extraGroups = {
+        "plausible" = {};
+      };
+      services.plausible = {
+        enable = true;
+        database = {
+          clickhouse.setup = true;
+          postgres = {
+            setup = false;
+            dbname = "plausible";
+          };
+        };
+        server = {
+          baseUrl = "https://a.lyte.dev";
+          disableRegistration = true;
+          port = 8899;
+          secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
+        };
+        adminUser = {
+          activate = false;
+          email = "daniel@lyte.dev";
+          passwordFile = config.sops.secrets.plausible-admin-password.path;
+        };
+      };
+      sops.secrets = {
+        plausible-secret-key-base = {
+          owner = "plausible";
+          group = "plausible";
+        };
+        plausible-admin-password = {
+          owner = "plausible";
+          group = "plausible";
+        };
+      };
+      systemd.services.plausible = {
+        serviceConfig.User = "plausible";
+        serviceConfig.Group = "plausible";
+      };
+      services.caddy.virtualHosts."a.lyte.dev" = {
+        extraConfig = ''
+          reverse_proxy :${toString config.services.plausible.server.port}
+        '';
+      };
     }
-    # {
-    #   # clickhouse
-    #   environment.etc = {
-    #     "clickhouse-server/users.d/disable-logging-query.xml" = {
-    #       text = ''
-    #         <clickhouse>
-    #           <profiles>
-    #             <default>
-    #               <log_queries>0</log_queries>
-    #               <log_query_threads>0</log_query_threads>
-    #             </default>
-    #           </profiles>
-    #         </clickhouse>
-    #       '';
-    #     };
-    #     "clickhouse-server/config.d/reduce-logging.xml" = {
-    #       text = ''
-    #         <clickhouse>
-    #           <logger>
-    #             <level>warning</level>
-    #             <console>true</console>
-    #           </logger>
-    #           <query_thread_log remove="remove"/>
-    #           <query_log remove="remove"/>
-    #           <text_log remove="remove"/>
-    #           <trace_log remove="remove"/>
-    #           <metric_log remove="remove"/>
-    #           <asynchronous_metric_log remove="remove"/>
-    #           <session_log remove="remove"/>
-    #           <part_log remove="remove"/>
-    #         </clickhouse>
-    #       '';
-    #     };
-    #   };
-    # }
+    {
+      # clickhouse
+      environment.etc = {
+        "clickhouse-server/users.d/disable-logging-query.xml" = {
+          text = ''
+            <clickhouse>
+              <profiles>
+                <default>
+                  <log_queries>0</log_queries>
+                  <log_query_threads>0</log_query_threads>
+                </default>
+              </profiles>
+            </clickhouse>
+          '';
+        };
+        "clickhouse-server/config.d/reduce-logging.xml" = {
+          text = ''
+            <clickhouse>
+              <logger>
+                <level>warning</level>
+                <console>true</console>
+              </logger>
+              <query_thread_log remove="remove"/>
+              <query_log remove="remove"/>
+              <text_log remove="remove"/>
+              <trace_log remove="remove"/>
+              <metric_log remove="remove"/>
+              <asynchronous_metric_log remove="remove"/>
+              <session_log remove="remove"/>
+              <part_log remove="remove"/>
+            </clickhouse>
+          '';
+        };
+      };
+      services.restic.commonPaths = [
+        # "/var/lib/clickhouse"
+      ];
+    }
+    {
+      # family storage
+      systemd.tmpfiles.settings = {
+        "10-backups" = {
+          "/storage/family" = {
+            "d" = {
+              mode = "0770";
+              user = "root";
+              group = "family";
+            };
+          };
+          "/storage/family/valerie" = {
+            "d" = {
+              mode = "0750";
+              user = "valerie";
+              group = "family";
+            };
+          };
+          "/storage/family/daniel" = {
+            "d" = {
+              mode = "0750";
+              user = "daniel";
+              group = "family";
+            };
+          };
+        };
+      };
+      services.restic.commonPaths = [
+        "/storage/family"
+      ];
+    }
     {
       # daniel augments
+      systemd.tmpfiles.settings = {
+        "10-backups" = {
+          "/storage/daniel" = {
+            "d" = {
+              mode = "0700";
+              user = "daniel";
+              group = "nogroup";
+            };
+          };
+          "/storage/daniel/critical" = {
+            "d" = {
+              mode = "0700";
+              user = "daniel";
+              group = "nogroup";
+            };
+          };
+        };
+      };
       users.groups.daniel.members = ["daniel"];
       users.groups.nixadmin.members = ["daniel"];
       users.users.daniel = {
@@ -509,6 +510,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "forgejo"
         ];
       };
+      services.restic.commonPaths = [
+        "/storage/daniel"
+      ];
+
       services.postgresql = {
         ensureDatabases = ["daniel"];
         ensureUsers = [
@@ -599,7 +604,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         package = pkgs.postgresql_15;
 
         # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
-        # TODO: enable the "daniel" user to access all databases
+        # TODO: give the "daniel" user access to all databases
         authentication = pkgs.lib.mkOverride 10 ''
           #type database  user      auth-method    auth-options
           local all       postgres  peer           map=superuser_map
@@ -628,56 +633,41 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       services.postgresqlBackup = {
         enable = true;
         backupAll = true;
-        compression = "none"; # hoping for deduplication here?
+        compression = "none"; # hoping for restic deduplication here?
         location = "/storage/postgres-backups";
         startAt = "*-*-* 03:00:00";
       };
+      services.restic.commonPaths = [
+        "/storage/postgres-backups"
+      ];
     }
-    # {
-    #   # friends
-    #   users.users.ben = {
-    #     isNormalUser = true;
-    #     packages = [pkgs.vim];
-    #     openssh.authorizedKeys.keys = [
-    #       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUfLZ+IX85p9355Po2zP1H2tAxiE0rE6IYb8Sf+eF9T ben@benhany.com"
-    #     ];
-    #   };
-
-    #   users.users.alan = {
-    #     isNormalUser = true;
-    #     packages = [pkgs.vim];
-    #     openssh.authorizedKeys.keys = [
-    #       ""
-    #     ];
-    #   };
-
-    #   networking.firewall.allowedTCPPorts = [
-    #     64022
-    #   ];
-    #   networking.firewall.allowedUDPPorts = [
-    #     64020
-    #   ];
-    # }
     {
-      systemd.tmpfiles.settings = {
-        "10-backups" = {
-          "/storage/daniel" = {
-            "d" = {
-              mode = "0700";
-              user = "daniel";
-              group = "nogroup";
-            };
-          };
-          "/storage/daniel/critical" = {
-            "d" = {
-              mode = "0700";
-              user = "daniel";
-              group = "nogroup";
-            };
-          };
+      # friends
+      users.users.ben = {
+        isNormalUser = true;
+        packages = [pkgs.vim];
+        openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUfLZ+IX85p9355Po2zP1H2tAxiE0rE6IYb8Sf+eF9T ben@benhany.com"
+        ];
+      };
+
+      users.users.alan = {
+        isNormalUser = true;
+        packages = [pkgs.vim];
+        # openssh.authorizedKeys.keys = [];
+      };
+    }
+    {
+      # restic backups
+      sops.secrets = {
+        restic-ssh-priv-key-benland = {mode = "0400";};
+        restic-rascal-passphrase = {
+          mode = "0400";
+        };
+        restic-rascal-ssh-private-key = {
+          mode = "0400";
         };
       };
-      # restic backups
       users.groups.restic = {};
       users.users.restic = {
         # used for other machines to backup to
@@ -685,55 +675,45 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         group = "restic";
         openssh.authorizedKeys.keys = [] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
       };
-      #   # TODO: move previous backups over and put here
-      #   # clickhouse and plausible analytics once they're up and running?
-      #   services.restic.backups = let
-      #     defaults = {
-      #       passwordFile = "/root/restic-remotebackup-password";
-      #       paths = [
-      #         "/storage/files.lyte.dev"
-      #         "/storage/daniel"
-      #         "/storage/forgejo" # TODO: should maybe use configuration.nix's services.forgejo.dump ?
-      #         "/storage/postgres-backups"
-
-      #         # https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault
-      #         # specifically, https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault#sqlite-database-files
-      #         "/var/lib/bitwarden_rs" # does this need any sqlite preprocessing?
-
-      #         # TODO: backup *arr configs?
-      #       ];
-      #       initialize = true;
-      #       exclude = [];
-      #       timerConfig = {
-      #         OnCalendar = ["04:45" "17:45"];
-      #       };
-      #     };
-      #   in {
-      #     local =
-      #       defaults
-      #       // {
-      #         passwordFile = "/root/restic-localbackup-password";
-      #         repository = "/storage/backups/local";
-      #       };
-      #     rascal =
-      #       defaults
-      #       // {
-      #         extraOptions = [
-      #           "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
-      #         ];
-      #         repository = "sftp://beefcake@rascal://storage/backups/beefcake";
-      #       };
-      #     # TODO: add ruby?
-      #     benland =
-      #       defaults
-      #       // {
-      #         passwordFile = config.sops.secrets.restic-ssh-priv-key-benland.path;
-      #         extraOptions = [
-      #           "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
-      #         ];
-      #         repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
-      #       };
-      #   };
+      services.restic.backups = let
+        defaults = {
+          passwordFile = "/root/restic-remotebackup-password";
+          paths =
+            config.services.restic.commonPaths
+            ++ [
+            ];
+          initialize = true;
+          exclude = [];
+          timerConfig = {
+            OnCalendar = ["04:45" "17:45"];
+          };
+        };
+      in {
+        local =
+          defaults
+          // {
+            passwordFile = "/root/restic-localbackup-password";
+            repository = "/storage/backups/local";
+          };
+        rascal =
+          defaults
+          // {
+            extraOptions = [
+              "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
+            ];
+            repository = "sftp://beefcake@rascal://storage/backups/beefcake";
+          };
+        # TODO: add ruby?
+        benland =
+          defaults
+          // {
+            passwordFile = config.sops.secrets.restic-ssh-priv-key-benland.path;
+            extraOptions = [
+              "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
+            ];
+            repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
+          };
+      };
     }
     {
       systemd.tmpfiles.settings = {
@@ -747,6 +727,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
       };
+      services.restic.commonPaths = [
+        "/storage/files.lyte.dev"
+      ];
       services.caddy = {
         # TODO: 502 and other error pages
         enable = true;
@@ -828,13 +811,20 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           enable = true;
         };
         dump = {
-          enable = true;
+          enable = false;
         };
         database = {
           # TODO: move to postgres?
           type = "sqlite3";
         };
       };
+      services.restic.commonPaths = [
+        config.services.forgejo.stateDir
+      ];
+      sops.secrets = {
+        "forgejo-runner.env" = {mode = "0400";};
+      };
+      systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
       services.gitea-actions-runner = {
         # TODO: simple git-based automation would be dope? maybe especially for
         # mirroring to github super easy?
@@ -885,8 +875,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
     }
     {
+      services.restic.commonPaths = [
+        config.services.vaultwarden.backupDir
+      ];
       services.vaultwarden = {
         enable = true;
+        backupDir = "/storage/vaultwarden/backups";
         config = {
           DOMAIN = "https://bw.lyte.dev";
           SIGNUPS_ALLOWED = "false";
@@ -912,6 +906,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         enable = true;
         database = {
           createLocally = false;
+          # NOTE: this uses postgres over the unix domain socket by default
           # uri = "postgresql://atuin@localhost:5432/atuin";
         };
         openRegistration = false;
