@@ -1547,7 +1547,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           smtp = {
             enabled = true;
             from_address = "grafana@lyte.dev";
-            host = "smtp.mailgun.org";
+            user = "grafana@lyte.dev";
+            host = "smtp.mailgun.org:587";
             password = ''$__file{${config.sops.secrets.grafana-smtp-password.path}}'';
           };
           security = {
