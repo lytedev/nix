@@ -55,6 +55,8 @@
         "files.lyte.dev"
         "vpn.h.lyte.dev"
         "atuin.h.lyte.dev"
+        "grafana.h.lyte.dev"
+        "prometheus.h.lyte.dev"
         "a.lyte.dev"
       ];
     };

@@ -448,7 +448,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # family storage
       systemd.tmpfiles.settings = {
-        "10-backups" = {
+        "10-family" = {
           "/storage/family" = {
             "d" = {
               mode = "0770";
@@ -479,7 +479,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # daniel augments
       systemd.tmpfiles.settings = {
-        "10-backups" = {
+        "10-daniel" = {
           "/storage/daniel" = {
             "d" = {
               mode = "0700";
@@ -586,7 +586,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       systemd.tmpfiles.settings = {
-        "10-backups" = {
+        "10-postgres" = {
           "/storage/postgres" = {
             "d" = {
               mode = "0750";
@@ -676,7 +676,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         openssh.authorizedKeys.keys = [] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
       };
       systemd.tmpfiles.settings = {
-        "10-caddy" = {
+        "10-backups-local" = {
           "/storage/backups/local" = {
             "d" = {
               mode = "0750";
@@ -1439,6 +1439,73 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       services.caddy.virtualHosts."audio.lyte.dev" = {
         extraConfig = ''reverse_proxy :${toString config.services.audiobookshelf.port}'';
+      };
+    }
+    {
+      # prometheus
+      services.restic.commonPaths = [
+        # TODO: do I want this backed up?
+        # "/var/lib/prometheus"
+      ];
+      services.prometheus = {
+        enable = true;
+        checkConfig = true;
+        listenAddress = "127.0.0.1";
+        port = 9090;
+        exporters = {
+          postgres = {
+            enable = true;
+            # runAsLocalSuperUser = true;
+          };
+        };
+        # alertmanager.enable = true; # grafana for alerts?
+      };
+      # services.node-exporter.enable = true; # TODO: node-exporter?
+      # TODO: exporters.zfs?
+      # TODO: promtail?
+      # idrac exporter?
+      # restic exporter?
+      # smartctl exporter?
+      # systemd exporter?
+      # NOTE: we probably don't want this exposed
+      # services.caddy.virtualHosts."prometheus.h.lyte.dev" = {
+      #   extraConfig = ''reverse_proxy :${toString config.services.prometheus.port}'';
+      # };
+    }
+    {
+      # grafana
+      systemd.tmpfiles.settings = {
+        "10-grafana" = {
+          "/storage/grafana" = {
+            "d" = {
+              mode = "0750";
+              user = "root";
+              group = "family";
+            };
+          };
+        };
+      };
+      services.restic.commonPaths = [
+        # TODO: do I want this backed up?
+        # "/storage/grafana"
+      ];
+      services.grafana = {
+        enable = true;
+        dataDir = "/storage/grafana";
+        provision = {
+          enable = true;
+        };
+        settings = {
+          server = {
+            http_port = 3814;
+          };
+        };
+      };
+      networking.firewall.allowedTCPPorts = [
+        9000
+      ];
+      services.caddy.virtualHosts."grafana.h.lyte.dev" = {
+        extraConfig = ''reverse_proxy :${toString config.services.grafana.settings.server.http_port}'';
       };
     }
   ];
