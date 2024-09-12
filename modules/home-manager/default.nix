@@ -1,5 +1,5 @@
 {
-  colors,
+  style,
   lib,
   flakeInputs,
   homeManagerModules,
@@ -752,7 +752,7 @@
         };
       };
 
-      themes = with colors.withHashPrefix; {
+      themes = with style.colors.withHashPrefix; {
         custom = {
           "type" = orange;
 
@@ -1188,7 +1188,7 @@
     ];
   };
 
-  # mako = {};
+  mako = {};
 
   # nnn = {};
 
@@ -1234,7 +1234,19 @@
     };
   };
 
-  # sway = {};
+  sway = {
+    imports = [
+      {
+        _module.args = {
+          inherit style;
+        };
+      }
+      ./waybar.nix
+      ./mako.nix
+      ./swaylock.nix
+      ./sway.nix
+    ];
+  };
   # sway-laptop = {};
   # swaylock = {};
   # tmux = {};
@@ -1247,14 +1259,14 @@
     ...
   }: {
     # docs: https://wezfurlong.org/wezterm/config/appearance.html#defining-your-own-colors
-    programs.wezterm = with colors.withHashPrefix; {
+    programs.wezterm = with style.colors.withHashPrefix; {
       enable = true;
       # package = pkgs.wezterm;
       extraConfig = builtins.readFile ./wezterm/config.lua;
       colorSchemes = {
         catppuccin-mocha-sapphire = {
-          ansi = map (x: colors.withHashPrefix.${toString x}) (pkgs.lib.lists.range 0 7);
-          brights = map (x: colors.withHashPrefix.${toString (x + 8)}) (pkgs.lib.lists.range 0 7);
+          ansi = map (x: style.colors.withHashPrefix.${toString x}) (pkgs.lib.lists.range 0 7);
+          brights = map (x: style.colors.withHashPrefix.${toString (x + 8)}) (pkgs.lib.lists.range 0 7);
 
           foreground = fg;
           background = bg;
@@ -1791,7 +1803,7 @@
         theme = "match";
 
         themes = {
-          match = with colors.withHashPrefix; {
+          match = with style.colors.withHashPrefix; {
             fg = fg;
             bg = bg;
 

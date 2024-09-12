@@ -1,14 +1,10 @@
-{
-  font,
-  # colors,
-  ...
-}: {
+{style, ...}: {
   programs.swaylock = {
     enable = true;
     settings = {
       color = "ffffffff";
       image = "~/.wallpaper";
-      font = font.name;
+      font = style.font.name;
       show-failed-attempts = true;
       ignore-empty-password = true;
 

@@ -1,9 +1,5 @@
-{
-  colors,
-  font,
-  ...
-}: {
-  services.mako = with colors.withHashPrefix; {
+{style, ...}: {
+  services.mako = with style.colors.withHashPrefix; {
     enable = false;
 
     anchor = "top-right";

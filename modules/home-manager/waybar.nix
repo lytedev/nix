@@ -1,8 +1,4 @@
-{
-  colors,
-  font,
-  ...
-}: {
+{style, ...}: {
   programs.waybar = {
     enable = true;
     settings = {
@@ -136,10 +132,10 @@
     style = let
       border-width = "0px";
     in
-      with colors.withHashPrefix; ''
+      with style.colors.withHashPrefix; ''
         * {
         	border-radius: 0;
-        	font-family: "${font.name}", "Symbols Nerd Font Mono", sans-serif;
+        	font-family: "${style.font.name}", "Symbols Nerd Font Mono", sans-serif;
         	font-size: 16px;
         }
 

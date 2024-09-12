@@ -1,29 +1,21 @@
 {
-  colors,
+  style,
   lib,
   config,
   pkgs,
-  font,
   ...
 }: {
-  imports = [
-    ./waybar.nix
-    # ./mako.nix
-    ./swaylock.nix
-    ./linux-desktop.nix
-  ];
-
   programs.foot = {
     enable = true;
   };
 
   home.file."${config.xdg.configHome}/mako/config" = {
     enable = true;
-    text = with colors.withHashPrefix; ''
+    text = with style.colors.withHashPrefix; ''
       border-size=1
       max-visible=5
       default-timeout=15000
-      font=Symbols Nerd Font ${toString font.size},${font.name} ${toString font.size}
+      font=Symbols Nerd Font ${toString style.font.size},${style.font.name} ${toString style.font.size}
       anchor=top-right
 
       background-color=${bg}
@@ -162,9 +154,9 @@
             "timeout 600  'swaymsg \"output * dpms off\"' resume 'swaymsg \"output * dpms on\" & maybe-good-morning &'"
           ];
         }
-        # {command = "mako";}
-        # {command = "firefox";}
-        # {command = "wezterm";}
+        {command = "mako";}
+        {command = "firefox";}
+        {command = "wezterm";}
       ];
 
       modes = {
@@ -334,7 +326,7 @@
       };
       assigns = {};
       bars = [];
-      colors = with colors; {
+      colors = with style.colors; {
         background = bg;
         focused = {
           background = bg;

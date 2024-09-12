@@ -8,7 +8,7 @@
 }: {
   imports = [
     ./ewwbar.nix
-    # ./mako.nix
+    ./mako.nix
     ./swaylock.nix
     # TODO: figure out how to import this for this module _and_ for the sway module?
     ./linux-desktop.nix
@@ -45,7 +45,7 @@
 
       exec-once = [
         "hyprpaper"
-        # "mako"
+        "mako"
         "swayosd-server"
         "eww daemon && eww open bar$EWW_BAR_MON"
         "firefox"

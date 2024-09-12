@@ -1,7 +1,7 @@
 {
   disko,
   sops-nix,
-  colors,
+  style,
   flakeInputs,
   homeManagerModules,
   home-manager,
@@ -11,6 +11,121 @@
   pubkey,
   overlays,
 }: {
+  ewwbar = {pkgs, ...}: {
+    # imports = with nixosModules;  [];
+    environment.systemPackages = with pkgs; [eww upower jq];
+
+    # TODO: include the home-manager modules for daniel?
+  };
+
+  hyprland = {pkgs, ...}: {
+    imports = with nixosModules; [
+      ewwbar
+      pipewire
+    ];
+
+    programs.hyprland = {
+      enable = true;
+    };
+    environment.systemPackages = with pkgs; [hyprpaper xwaylandvideobridge socat];
+
+    programs.hyprland = {
+      package = flakeInputs.hyprland.packages.${pkgs.system}.hyprland;
+    };
+
+    # TODO: include the home-manager modules for daniel?
+  };
+
+  sway = {pkgs, ...}: {
+    imports = with nixosModules; [
+      pipewire
+    ];
+
+    home-manager.users.daniel = {
+      imports = with homeManagerModules; [
+        sway
+      ];
+    };
+
+    programs.sway = {
+      enable = true;
+      wrapperFeatures.gtk = true;
+    };
+
+    # services.xserver.libinput.enable = true;
+
+    # TODO: a lot of this probably needs de-duping with hyprland?
+
+    services.gnome.gnome-keyring.enable = true;
+
+    xdg.portal = {
+      enable = true;
+      wlr.enable = true;
+
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-wlr
+      ];
+    };
+
+    services.dbus.enable = true;
+
+    programs.thunar = {
+      enable = true;
+      plugins = with pkgs.xfce; [thunar-archive-plugin thunar-volman];
+    };
+
+    services.gvfs = {
+      enable = true;
+    };
+
+    environment = {
+      variables = {
+        GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
+        VISUAL = "hx";
+        PAGER = "less";
+        MANPAGER = "less";
+      };
+
+      systemPackages = with pkgs; [
+        brightnessctl
+        feh
+        # gimp
+        grim
+        # inkscape
+        # krita
+        libinput
+        libinput-gestures
+        libnotify
+        mako
+        # lutris
+        # nil
+        # nixpkgs-fmt
+        noto-fonts
+        pamixer
+        # pavucontrol
+        playerctl
+        pulseaudio
+        pulsemixer
+        # rclone
+        # restic
+        slurp
+        # steam
+        swaybg
+        swayidle
+        swaylock
+        swayosd
+        tofi
+        # vlc
+        # vulkan-tools
+        waybar
+        # weechat
+        # wine
+        wl-clipboard
+        zathura
+      ];
+    };
+  };
+
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
 
   fallback-hostname = {lib, ...}: {
@@ -442,6 +557,8 @@
   }: {
     imports = with nixosModules; [
       plasma6
+      sway
+      # hyprland
       enable-flatpaks-and-appimages
       fonts
       development-tools
@@ -480,9 +597,7 @@
     };
   };
 
-  # ewwbar = {};
   # gnome = {};
-  # hyprland = {};
   # intel = {};
 
   kde-connect = {
@@ -772,8 +887,6 @@
     services.printing.drivers = [pkgs.gutenprint];
   };
 
-  sway = {};
-
   enable-flatpaks-and-appimages = {
     services.flatpak.enable = true;
     programs.appimage.binfmt = true;
@@ -1023,7 +1136,7 @@
       useXkbConfig = lib.mkDefault true;
       earlySetup = lib.mkDefault true;
 
-      colors = with colors; [
+      colors = with style.colors; [
         bg
         red
         green

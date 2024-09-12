@@ -88,15 +88,17 @@
       pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
     };
 
-    colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
+    style = {
+      colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
 
-    # font = {
-    #   name = "IosevkaLyteTerm";
-    #   size = 12;
-    # };
+      font = {
+        name = "IosevkaLyteTerm";
+        size = 12;
+      };
+    };
 
     # moduleArgs = {
-    #   # inherit colors font;
+    #   # inherit style;
     #   inherit helix slippi hyprland hardware disko home-manager;
     #   inherit (outputs) nixosModules homeManagerModules diskoConfigurations overlays;
     # };
@@ -236,12 +238,12 @@
     };
 
     nixosModules = import ./modules/nixos {
-      inherit home-manager home-manager-unstable helix nixosModules homeManagerModules pubkey overlays colors sops-nix disko;
+      inherit home-manager home-manager-unstable helix nixosModules homeManagerModules pubkey overlays style sops-nix disko;
       flakeInputs = self.inputs;
     };
 
     homeManagerModules = import ./modules/home-manager {
-      inherit home-manager home-manager-unstable helix nixosModules homeManagerModules pubkey overlays colors;
+      inherit home-manager home-manager-unstable helix nixosModules homeManagerModules pubkey overlays style;
       inherit (nixpkgs) lib;
       flakeInputs = self.inputs;
     };
