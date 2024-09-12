@@ -11,9 +11,11 @@
       swapDevices = [
         # TODO: move this to disko?
         # NOTE(oninstall):
-        # sudo btrfs subvolume create /swap
-        # sudo btrfs filesystem mkswapfile --size 32g --uuid clear /swap/swapfile
-        # sudo swapon /swap/swapfile
+        /*
+        sudo btrfs subvolume create /swap
+        sudo btrfs filesystem mkswapfile --size 32g --uuid clear /swap/swapfile
+        sudo swapon /swap/swapfile
+        */
         {device = "/swap/swapfile";}
       ];
       # findmnt -no UUID -T /swap/swapfile
@@ -23,15 +25,17 @@
       services.fwupd.extraRemotes = ["lvfs-testing"];
 
       # NOTE: I'm letting plasma settings handle this I guess?
-      # services.logind = {
-      #   lidSwitch = "suspend-then-hibernate";
-      #   # HandleLidSwitchDocked=ignore
-      #   extraConfig = ''
-      #     HandlePowerKey=suspend-then-hibernate
-      #     IdleActionSec=10m
-      #     IdleAction=suspend-then-hibernate
-      #   '';
-      # };
+      /*
+      services.logind = {
+        lidSwitch = "suspend-then-hibernate";
+        # HandleLidSwitchDocked=ignore
+        extraConfig = ''
+          HandlePowerKey=suspend-then-hibernate
+          IdleActionSec=10m
+          IdleAction=suspend-then-hibernate
+        '';
+      };
+      */
     }
   ];
 
@@ -56,37 +60,41 @@
       };
     };
 
-    # wayland.windowManager.hyprland = {
-    #   settings = {
-    #     env = [
-    #       "EWW_BAR_MON,0"
-    #     ];
-    #     # See https://wiki.hyprland.org/Configuring/Keywords/ for more
-    #     monitor = [
-    #       "eDP-1,2256x1504@60,0x0,${toString scale}"
-    #     ];
-    #   };
-    # };
+    /*
+    wayland.windowManager.hyprland = {
+      settings = {
+        env = [
+          "EWW_BAR_MON,0"
+        ];
+        # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+        monitor = [
+          "eDP-1,2256x1504@60,0x0,${toString scale}"
+        ];
+      };
+    };
+    */
 
-    # wayland.windowManager.sway = {
-    #   config = {
-    #     output = {
-    #       "BOE 0x0BCA Unknown" = {
-    #         mode = "2256x1504@60Hz";
-    #         position = "0,0";
-    #         scale = toString scale;
-    #       };
+    /*
+    wayland.windowManager.sway = {
+      config = {
+        output = {
+          "BOE 0x0BCA Unknown" = {
+            mode = "2256x1504@60Hz";
+            position = "0,0";
+            scale = toString scale;
+          };
 
-    #       "Dell Inc. DELL U2720Q D3TM623" = {
-    #         # desktop left vertical monitor
-    #         mode = "1920x1080@60Hz";
-    #         # transform = "90";
-    #         # scale = "1.5";
-    #         position = "${toString (builtins.floor (2256 / scale))},0";
-    #       };
-    #     };
-    #   };
-    # };
+          "Dell Inc. DELL U2720Q D3TM623" = {
+            # desktop left vertical monitor
+            mode = "1920x1080@60Hz";
+            # transform = "90";
+            # scale = "1.5";
+            position = "${toString (builtins.floor (2256 / scale))},0";
+          };
+        };
+      };
+    };
+    */
   };
 
   hardware.graphics.extraPackages = [
@@ -107,15 +115,17 @@
     kernelPackages = pkgs.linuxPackages_latest;
 
     # https://github.com/void-linux/void-packages/issues/50417#issuecomment-2131802836 fix framework 13 not shutting down
-    # kernelPatches = [
-    #   {
-    #     name = "framework13shutdownfix";
-    #     patch = builtins.fetchurl {
-    #       url = "https://github.com/void-linux/void-packages/files/15445612/0001-Add-hopefully-a-solution-for-shutdown-regression.PATCH";
-    #       sha256 = "sha256:10zcnzy5hkam2cnxx441b978gzhvnqlcc49k7bpz9dc28xyjik50";
-    #     };
-    #   }
-    # ];
+    /*
+    kernelPatches = [
+      {
+        name = "framework13shutdownfix";
+        patch = builtins.fetchurl {
+          url = "https://github.com/void-linux/void-packages/files/15445612/0001-Add-hopefully-a-solution-for-shutdown-regression.PATCH";
+          sha256 = "sha256:10zcnzy5hkam2cnxx441b978gzhvnqlcc49k7bpz9dc28xyjik50";
+        };
+      }
+    ];
+    */
 
     loader = {
       efi.canTouchEfiVariables = true;
@@ -123,11 +133,12 @@
     };
 
     # NOTE(oninstall):
-    # sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
-    # the above won't work for btrfs, instead you need
-    # btrfs inspect-internal map-swapfile -r /swap/swapfile
-    # https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
-    # many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
+    /*
+    sudo filefrag -v /swap/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
+    the above won't work for btrfs, instead you need btrfs inspect-internal map-swapfile -r /swap/swapfile
+    https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file
+    many of these come from https://wiki.archlinux.org/title/Framework_Laptop_13#Suspend
+    */
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
       "amdgpu.sg_display=0"
@@ -151,10 +162,12 @@
     powerOnBoot = false;
   };
   powerManagement.cpuFreqGovernor = "ondemand";
-  # powerManagement.resumeCommands = ''
-  #   modprobe -rv mt7921e
-  #   modprobe -v mt7921e
-  # '';
+  /*
+  powerManagement.resumeCommands = ''
+    modprobe -rv mt7921e
+    modprobe -v mt7921e
+  '';
+  */
 
   services.power-profiles-daemon = {
     enable = true;
@@ -170,24 +183,24 @@
         "fprintd:TestPamFprintd"
       ];
     };
-    # tod.enable = true;
-    # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
 
-  # services.tlp = {
-  #   enable = true;
-  #   settings = {
-  #     CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
-  #     CPU_SCALING_GOVERNOR_ON_BAT = "ondemand";
-  #     CPU_MIN_PERF_ON_BAT = 0;
-  #     CPU_MAX_PERF_ON_BAT = 80;
+  /*
+  services.tlp = {
+    enable = true;
+    settings = {
+      CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+      CPU_SCALING_GOVERNOR_ON_BAT = "ondemand";
+      CPU_MIN_PERF_ON_BAT = 0;
+      CPU_MAX_PERF_ON_BAT = 80;
 
-  #     CPU_SCALING_GOVERNOR_ON_AC = "performance";
-  #     CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-  #     CPU_MIN_PERF_ON_AC = 0;
-  #     CPU_MAX_PERF_ON_AC = 100;
-  #   };
-  # };
+      CPU_SCALING_GOVERNOR_ON_AC = "performance";
+      CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
+      CPU_MIN_PERF_ON_AC = 0;
+      CPU_MAX_PERF_ON_AC = 100;
+    };
+  };
+  */
 
   networking.firewall.allowedTCPPorts = let
     stardewValley = 24642;

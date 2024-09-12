@@ -88,9 +88,12 @@
       input = {
         kb_layout = "us";
         kb_options = "ctrl:nocaps";
-        # kb_variant =
-        # kb_model =
-        # kb_rules =
+
+        /*
+        kb_variant =
+        kb_model =
+        kb_rules =
+        */
 
         follow_mouse = 2;
 
@@ -131,10 +134,13 @@
 
       decoration = {
         rounding = 3;
-        # blur = "no";
-        # blur_size = 3
-        # blur_passes = 1
-        # blur_new_optimizations = on
+
+        /*
+        blur = "no";
+        blur_size = 3
+        blur_passes = 1
+        blur_new_optimizations = on
+        */
 
         drop_shadow = "yes";
         shadow_range = 4;
@@ -147,8 +153,10 @@
       "$mod" = "SUPER";
       bind = [
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
-        # "$mod, return, exec, wezterm"
-        # "$mod SHIFT, return, exec, wezterm"
+        /*
+        "$mod, return, exec, wezterm"
+        "$mod SHIFT, return, exec, wezterm"
+        */
         "$mod, return, exec, wezterm"
         "$mod SHIFT, return, exec, kitty"
         "$mod, U, exec, firefox"
@@ -264,13 +272,13 @@
         workspace_swipe = on
       }
 
-      # Example per-device config
-      # See https://wiki.hyprland.org/Configuring/Keywords/#executing for more
-      # device:epic-mouse-v1 {
-      #     sensitivity = -0.5
-      # }
+      ## Example per-device config
+      ## See https://wiki.hyprland.org/Configuring/Keywords/#executing for more
+      ## device:epic-mouse-v1 {
+      ##     sensitivity = -0.5
+      ## }
 
-      # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
+      ## See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
       windowrulev2 = idleinhibit,class:^.*([Ss]lippi).*$
       windowrulev2 = float,class:^.*([Kk]itty|[Ff]irefox|[Ww]ezterm|[Dd]iscord|[Ss]potify|[Ss]lack).*$
       windowrulev2 = opacity 1.0 0.9,floating:1

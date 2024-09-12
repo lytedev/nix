@@ -13,12 +13,12 @@
           "mpris"
           "idle_inhibitor"
           "bluetooth"
-          # "wireplumber",
+          "wireplumber"
           "pulseaudio"
-          # "network",
+          "network"
           "cpu"
           "memory"
-          # "temperature",
+          "temperature"
           "backlight"
           "battery"
           "tray"
@@ -27,17 +27,17 @@
           "format" = "<span</span>";
           "format-connected" = "<span></span>";
           "format-connected-battery" = "<span></span>";
-          # "format-device-preference" = [ "device1", "device2" ], # preference list deciding the displayed devic;
+          # "format-device-preference" = [ "device1", "device2" ]; # preference list deciding the displayed device
           "tooltip-format" = "{controller_alias}@{controller_address} ({num_connections} connected)";
           "tooltip-format-connected" = "{controller_alias}@{controller_address} ({num_connections} connected)\n{device_enumerate}";
           "tooltip-format-enumerate-connected" = "{device_alias}@{device_address}";
           "tooltip-format-enumerate-connected-battery" = "{device_alias}@{device_address} (󰁹 {device_battery_percentage}%)";
         };
-        # "wireplumber" = ;
-        #     "format" = "{volume}% {icon}";
-        #     "format-muted" = "";
-        #     "on-click" = "helvum;
-        # },
+        "wireplumber" = {
+          "format" = "{volume}% {icon}";
+          "format-muted" = "";
+          "on-click" = "helvum";
+        };
         "sway/workspaces" = {
           "disable-scroll" = false;
           "persistent_workspaces" = {
@@ -69,10 +69,12 @@
           "format" = "{} 󰍛";
         };
         "temperature" = {
-          # "thermal-zone" = 2;
-          # "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
+          /*
+          "thermal-zone" = 2;
+          "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
+          "format-critical" = "{temperatureC}°C {icon}";
+          */
           "critical-threshold" = 80;
-          # "format-critical" = "{temperatureC}°C {icon}";
           "format" = "{temperatureC}°C {icon}";
           "format-icons" = ["" "" ""];
         };
@@ -106,12 +108,14 @@
           "format" = "{title} by {artist}";
         };
         "pulseaudio" = {
-          # "scroll-step" = 1, # %, can be a floa;
+          /*
+          "scroll-step" = 1, # %, can be a floa;
+          "format" = "{volume}% {icon} {format_source}";
+          "format-bluetooth" = "{volume}% {icon} {format_source}";
+          "format-bluetooth-muted" = " {icon} {format_source}";
+          "format-muted" = " {format_source}";
+          */
           "format" = "{volume} {icon} <span>{format_source}</span>";
-          #"format" = "{volume}% {icon} {format_source}";
-          #"format-bluetooth" = "{volume}% {icon} {format_source}";
-          #"format-bluetooth-muted" = " {icon} {format_source}";
-          #"format-muted" = " {format_source}";
           "format-muted" = "󰝟  {format_source}";
           "format-source" = "";
           "format-source-muted" = "";

@@ -291,34 +291,36 @@
         "XF86AudioMute" = "exec swayosd-client --output-volume mute-toggle";
         "XF86AudioMicMute" = "exec swayosd-client --input-volume mute-toggle";
         "${mod}+shift+v" = "exec swayosd-client --input-volume mute-toggle";
-        # "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume 15";
-        # "XF86AudioLowerVolume" = "exec swayosd-client --output-volume -15";
-        # "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume raise --max-volume 120";
-        # "XF86AudioLowerVolume" = "exec swayosd-client --output-volume lower --max-volume 120";
-        # "XF86AudioRaiseVolume" = "exec  swayosd-client --output-volume +10 --device alsa_output.pci-0000_11_00.4.analog-stereo.monitor";
-        # "XF86AudioLowerVolume" = "exec  swayosd-client --output-volume -10 --device alsa_output.pci-0000_11_00.4.analog-stereo.monitor";
         "XF86MonBrightnessUp" = "exec swayosd-client --brightness raise";
         "XF86MonBrightnessDown" = "exec swayosd-client --brightness lower";
-        # "XF86MonBrightnessUp" = " exec swayosd-client --brightness 10";
-        # "XF86MonBrightnessDown" = "exec swayosd-client --brightness -10";
-
-        # "XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
-        # "XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
         "control+XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +1%";
         "control+XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -1%";
-        # "XF86AudioMute" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "${mod}+F1" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
-        # "XF86AudioMicMute" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
-        # "XF86MonBrightnessDown" = "exec brightnessctl set 10%-";
-        # "XF86MonBrightnessUp" = "exec brightnessctl set +10%";
-        # "shift+XF86MonBrightnessDown" = "exec brightnessctl set 1%";
-        # "shift+XF86MonBrightnessUp" = "exec brightnessctl set 100%";
-        # "control+XF86MonBrightnessDown" = "exec brightnessctl set 1%-";
-        # "control+XF86MonBrightnessUp" = "exec brightnessctl set +1%";
         "XF86AudioPlay" = "exec playerctl play-pause";
         "XF86AudioNext" = "exec playerctl next";
         "XF86AudioPrev" = "exec playerctl previous";
-        # "${mod}+shift+v" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+
+        /*
+        "XF86MonBrightnessUp" = " exec swayosd-client --brightness 10";
+        "XF86MonBrightnessDown" = "exec swayosd-client --brightness -10";
+        "XF86AudioMute" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        "XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
+        "XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
+        "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume 15";
+        "XF86AudioLowerVolume" = "exec swayosd-client --output-volume -15";
+        "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume raise --max-volume 120";
+        "XF86AudioLowerVolume" = "exec swayosd-client --output-volume lower --max-volume 120";
+        "XF86AudioRaiseVolume" = "exec  swayosd-client --output-volume +10 --device alsa_output.pci-0000_11_00.4.analog-stereo.monitor";
+        "XF86AudioLowerVolume" = "exec  swayosd-client --output-volume -10 --device alsa_output.pci-0000_11_00.4.analog-stereo.monitor";
+        "XF86AudioMicMute" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        "XF86MonBrightnessDown" = "exec brightnessctl set 10%-";
+        "XF86MonBrightnessUp" = "exec brightnessctl set +10%";
+        "shift+XF86MonBrightnessDown" = "exec brightnessctl set 1%";
+        "shift+XF86MonBrightnessUp" = "exec brightnessctl set 100%";
+        "control+XF86MonBrightnessDown" = "exec brightnessctl set 1%-";
+        "control+XF86MonBrightnessUp" = "exec brightnessctl set +1%";
+        "${mod}+shift+v" = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        */
 
         "${mod}+control+shift+l" = "exec swaylock";
 

@@ -47,19 +47,21 @@
       src = ./.;
       pname = "api.lyte.dev";
     in {
-      # this-package = mixRelease {
-      #   inherit pname version src;
-      #   mixFodDeps = fetchMixDeps {
-      #     inherit version src;
-      #     pname = "mix-deps-${pname}";
-      #     hash = pkgs.lib.fakeSha256;
-      #   };
-      #   buildInputs = with pkgs; [sqlite];
-      #   HOME = "$(pwd)";
-      #   MIX_XDG = "$HOME";
-      # };
+      /*
+      this-package = mixRelease {
+        inherit pname version src;
+        mixFodDeps = fetchMixDeps {
+          inherit version src;
+          pname = "mix-deps-${pname}";
+          hash = pkgs.lib.fakeSha256;
+        };
+        buildInputs = with pkgs; [sqlite];
+        HOME = "$(pwd)";
+        MIX_XDG = "$HOME";
+      };
 
-      # default = outputs.packages.${system}.this-package;
+      default = outputs.packages.${system}.this-package;
+      */
     });
 
     devShells = forAllSystems (system: let

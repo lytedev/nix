@@ -16,16 +16,18 @@
       config = {
         theme = "ansi";
       };
-      # themes = {
-      #   "Catppuccin-mocha" = builtins.readFile (pkgs.fetchFromGitHub
-      #     {
-      #       owner = "catppuccin";
-      #       repo = "bat";
-      #       rev = "477622171ec0529505b0ca3cada68fc9433648c6";
-      #       sha256 = "6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
-      #     }
-      #     + "/Catppuccin-mocha.tmTheme");
-      # };
+      /*
+      themes = {
+        "Catppuccin-mocha" = builtins.readFile (pkgs.fetchFromGitHub
+          {
+            owner = "catppuccin";
+            repo = "bat";
+            rev = "477622171ec0529505b0ca3cada68fc9433648c6";
+            sha256 = "6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
+          }
+          + "/Catppuccin-mocha.tmTheme");
+      };
+      */
     };
 
     home.shellAliases = {
@@ -38,8 +40,10 @@
   emacs = {pkgs, ...}: {
     programs.emacs = {
       enable = true;
-      # extraConfig = ''
-      # '';
+      /*
+      extraConfig = ''
+      '';
+      */
       extraPackages = epkgs: (with epkgs; [
         magit
       ]);
@@ -61,9 +65,11 @@
       '';
     };
 
-    # home.sessionVariables = {
-    #   RUSTDOCFLAGS = "--default-theme=ayu";
-    # };
+    /*
+    home.sessionVariables = {
+      RUSTDOCFLAGS = "--default-theme=ayu";
+    };
+    */
   };
 
   common = {
@@ -79,10 +85,13 @@
       homeManagerModules.helix
       git
       zellij
-      # broot
-      # nnn
       htop
-      # tmux
+
+      /*
+      broot
+      nnn
+      tmux
+      */
     ];
 
     programs.home-manager.enable = true;
@@ -158,10 +167,12 @@
     programs.fzf = {
       # using good ol' fzf until skim sucks less out of the box I guess
       enable = true;
-      # enableFishIntegration = true;
-      # defaultCommand = "fd --type f";
-      # defaultOptions = ["--height 40%"];
-      # fileWidgetOptions = ["--preview 'head {}'"];
+      /*
+      enableFishIntegration = true;
+      defaultCommand = "fd --type f";
+      defaultOptions = ["--height 40%"];
+      fileWidgetOptions = ["--preview 'head {}'"];
+      */
     };
 
     # TODO: regular cron or something?
@@ -184,8 +195,10 @@
 
   firefox = {pkgs, ...}: {
     programs.firefox = {
-      # TODO: this should be able to work on macos, no?
-      # TODO: enable dark theme by default
+      /*
+      TODO: this should be able to work on macos, no?
+      TODO: enable color scheme/theme by default
+      */
       enable = true;
 
       # TODO: uses nixpkgs.pass so pass otp doesn't work
@@ -196,9 +209,11 @@
         ];
       };
 
-      # extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-      #   ublock-origin
-      # ]; # TODO: would be nice to have _all_ my firefox stuff managed here instead of Firefox Sync maybe?
+      /*
+      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+        ublock-origin
+      ]; # TODO: would be nice to have _all_ my firefox stuff managed here instead of Firefox Sync maybe?
+      */
 
       profiles = {
         daniel = {
@@ -221,8 +236,10 @@
             }
           '';
 
-          # userContent = ''
-          # '';
+          /*
+          userContent = ''
+          '';
+          */
         };
       };
     };
@@ -360,10 +377,12 @@
         enable = true;
       };
 
-      # signing = {
-      # signByDefault = false;
-      # key = ~/.ssh/personal-ed25519;
-      # };
+      /*
+      signing = {
+        signByDefault = false;
+        key = ~/.ssh/personal-ed25519;
+      };
+      */
 
       aliases = {
         a = "add -A";
@@ -487,11 +506,13 @@
       '';
     };
 
-    # NOTE: Currently, helix crashes when editing markdown in certain scenarios,
-    # presumably due to an old markdown treesitter grammar
-    # https://github.com/helix-editor/helix/issues/9011
-    # https://github.com/helix-editor/helix/issues/8821
-    # https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/114
+    /*
+    NOTE: Currently, helix crashes when editing markdown in certain scenarios,
+    presumably due to an old markdown treesitter grammar
+    https://github.com/helix-editor/helix/issues/9011
+    https://github.com/helix-editor/helix/issues/8821
+    https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/114
+    */
 
     programs.helix = {
       enable = true;
@@ -503,41 +524,45 @@
             args = ["start"];
           };
 
-          # next-ls = {
-          #   command = "next-ls";
-          #   args = ["--stdout"];
-          # };
+          /*
+          next-ls = {
+            command = "next-ls";
+            args = ["--stdout"];
+          };
 
-          # deno = {
-          #   command = "deno";
-          #   args = ["lsp"];
-          #   config = {
-          #     enable = true;
-          #     lint = true;
-          #     unstable = true;
-          #   };
-          # };
+          deno = {
+            command = "deno";
+            args = ["lsp"];
+            config = {
+              enable = true;
+              lint = true;
+              unstable = true;
+            };
+          };
+          */
         };
 
         language = [
-          # {
-          #   name = "heex";
-          #   scope = "source.heex";
-          #   injection-regex = "heex";
-          #   language-servers = ["lexical"]; # "lexical" "next-ls" ?
-          #   auto-format = true;
-          #   file-types = ["heex"];
-          #   roots = ["mix.exs" "mix.lock"];
-          #   indent = {
-          #     tab-width = 2;
-          #     unit = "  ";
-          #   };
-          # }
-          # {
-          #   name = "elixir";
-          #   language-servers = ["lexical"]; # "lexical" "next-ls" ?
-          #   auto-format = true;
-          # }
+          /*
+          {
+            name = "heex";
+            scope = "source.heex";
+            injection-regex = "heex";
+            language-servers = ["lexical"]; # "lexical" "next-ls" ?
+            auto-format = true;
+            file-types = ["heex"];
+            roots = ["mix.exs" "mix.lock"];
+            indent = {
+              tab-width = 2;
+              unit = "  ";
+            };
+          }
+          {
+            name = "elixir";
+            language-servers = ["lexical"]; # "lexical" "next-ls" ?
+            auto-format = true;
+          }
+          */
           {
             name = "rust";
 
@@ -596,65 +621,67 @@
             auto-format = true;
           }
 
-          # {
-          #   name = "javascript";
-          #   language-id = "javascript";
-          #   grammar = "javascript";
-          #   scope = "source.js";
-          #   injection-regex = "^(js|javascript)$";
-          #   file-types = ["js" "mjs"];
-          #   shebangs = ["deno"];
-          #   language-servers = ["deno"];
-          #   roots = ["deno.jsonc" "deno.json"];
-          #   formatter = {
-          #     command = "deno";
-          #     args = ["fmt"];
-          #   };
-          #   auto-format = true;
-          #   comment-token = "//";
-          #   indent = {
-          #     tab-width = 2;
-          #     unit = "\t";
-          #   };
-          # }
+          /*
+          {
+            name = "javascript";
+            language-id = "javascript";
+            grammar = "javascript";
+            scope = "source.js";
+            injection-regex = "^(js|javascript)$";
+            file-types = ["js" "mjs"];
+            shebangs = ["deno"];
+            language-servers = ["deno"];
+            roots = ["deno.jsonc" "deno.json"];
+            formatter = {
+              command = "deno";
+              args = ["fmt"];
+            };
+            auto-format = true;
+            comment-token = "//";
+            indent = {
+              tab-width = 2;
+              unit = "\t";
+            };
+          }
 
-          # {
-          #   name = "typescript";
-          #   language-id = "typescript";
-          #   grammar = "typescript";
-          #   scope = "source.ts";
-          #   injection-regex = "^(ts|typescript)$";
-          #   file-types = ["ts"];
-          #   shebangs = ["deno"];
-          #   language-servers = ["deno"];
-          #   roots = ["deno.jsonc" "deno.json"];
-          #   formatter = {
-          #     command = "deno";
-          #     args = ["fmt"];
-          #   };
-          #   auto-format = true;
-          #   comment-token = "//";
-          #   indent = {
-          #     tab-width = 2;
-          #     unit = "\t";
-          #   };
-          # }
+          {
+            name = "typescript";
+            language-id = "typescript";
+            grammar = "typescript";
+            scope = "source.ts";
+            injection-regex = "^(ts|typescript)$";
+            file-types = ["ts"];
+            shebangs = ["deno"];
+            language-servers = ["deno"];
+            roots = ["deno.jsonc" "deno.json"];
+            formatter = {
+              command = "deno";
+              args = ["fmt"];
+            };
+            auto-format = true;
+            comment-token = "//";
+            indent = {
+              tab-width = 2;
+              unit = "\t";
+            };
+          }
 
-          # {
-          #   name = "jsonc";
-          #   language-id = "json";
-          #   grammar = "jsonc";
-          #   scope = "source.jsonc";
-          #   injection-regex = "^(jsonc)$";
-          #   roots = ["deno.jsonc" "deno.json"];
-          #   file-types = ["jsonc"];
-          #   language-servers = ["deno"];
-          #   indent = {
-          #     tab-width = 2;
-          #     unit = "  ";
-          #   };
-          #   auto-format = true;
-          # }
+          {
+            name = "jsonc";
+            language-id = "json";
+            grammar = "jsonc";
+            scope = "source.jsonc";
+            injection-regex = "^(jsonc)$";
+            roots = ["deno.jsonc" "deno.json"];
+            file-types = ["jsonc"];
+            language-servers = ["deno"];
+            indent = {
+              tab-width = 2;
+              unit = "  ";
+            };
+            auto-format = true;
+          }
+          */
         ];
       };
 
@@ -664,13 +691,16 @@
         editor = {
           soft-wrap.enable = true;
           auto-pairs = false;
-          # auto-save = false;
-          # completion-trigger-len = 1;
-          # color-modes = false;
           bufferline = "multiple";
-          # scrolloff = 8;
           rulers = [81 121];
           cursorline = true;
+
+          /*
+          auto-save = false;
+          completion-trigger-len = 1;
+          color-modes = false;
+          scrolloff = 8;
+          */
 
           inline-diagnostics = {
             cursor-line = "hint";
@@ -703,18 +733,21 @@
             left = [
               "file-name"
               "mode"
-              # "selections"
-              # "primary-selection-length"
-              # "position"
-              # "position-percentage"
+              /*
+              "selections"
+              "primary-selection-length"
+              "position"
+              "position-percentage"
+              */
               "spinner"
               "diagnostics"
               "workspace-diagnostics"
             ];
+            /*
+            center = ["file-name"];
+            right = ["version-control" "total-line-numbers" "file-encoding"];
+            */
           };
-          #   center = ["file-name"];
-          # right = ["version-control" "total-line-numbers" "file-encoding"];
-          # };
         };
         keys = {
           insert = {
@@ -984,8 +1017,10 @@
             fg = fgdim;
           };
 
-          # "ui.cursorline.primary" = { bg = "default" }
-          # "ui.cursorline.secondary" = { bg = "default" }
+          /*
+          "ui.cursorline.primary" = { bg = "default" }
+          "ui.cursorline.secondary" = { bg = "default" }
+          */
           "ui.cursorcolumn.primary" = {bg = bg3;};
           "ui.cursorcolumn.secondary" = {bg = bg3;};
 
@@ -1006,15 +1041,17 @@
     programs.htop = {
       enable = true;
       settings = {
-        #   hide_kernel_threads = 1;
-        #   hide_userland_threads = 1;
-        #   show_program_path = 0;
-        #   header_margin = 0;
-        #   show_cpu_frequency = 1;
-        #   highlight_base_name = 1;
-        #   tree_view = 0;
-        # htop_version = "3.2.2";
-        # config_reader_min_version = 3;
+        /*
+        hide_kernel_threads = 1;
+        hide_userland_threads = 1;
+        show_program_path = 0;
+        header_margin = 0;
+        show_cpu_frequency = 1;
+        highlight_base_name = 1;
+        tree_view = 0;
+        htop_version = "3.2.2";
+        config_reader_min_version = 3;
+        */
         fields = "0 48 17 18 38 39 40 2 46 47 49 1";
         hide_kernel_threads = 1;
         hide_userland_threads = 1;
@@ -1057,22 +1094,26 @@
         tree_sort_direction = 1;
         tree_view_always_by_pid = 0;
         all_branches_collapsed = 0;
-        # screen:Main=PID USER PRIORITY NICE M_VIRT M_RESIDENT M_SHARE STATE PERCENT_CPU PERCENT_MEM TIME Command
-        # .sort_key=PERCENT_MEM
-        # .tree_sort_key=PID
-        # .tree_view=0
-        # .tree_view_always_by_pid=0
-        # .sort_direction=-1
-        # .tree_sort_direction=1
-        # .all_branches_collapsed=0
-        # screen:I/O=PID USER IO_PRIORITY IO_RATE IO_READ_RATE IO_WRITE_RATE Command
-        # .sort_key=IO_RATE
-        # .tree_sort_key=PID
-        # .tree_view=0
-        # .tree_view_always_by_pid=0
-        # .sort_direction=-1
-        # .tree_sort_direction=1
-        # .all_branches_collapsed=0
+
+        /*
+        screen:Main=PID USER PRIORITY NICE M_VIRT M_RESIDENT M_SHARE STATE PERCENT_CPU PERCENT_MEM TIME Command
+        .sort_key=PERCENT_MEM
+        .tree_sort_key=PID
+        .tree_view=0
+        .tree_view_always_by_pid=0
+        .sort_direction=-1
+        .tree_sort_direction=1
+        .all_branches_collapsed=0
+
+        screen:I/O=PID USER IO_PRIORITY IO_RATE IO_READ_RATE IO_WRITE_RATE Command
+        .sort_key=IO_RATE
+        .tree_sort_key=PID
+        .tree_view=0
+        .tree_view_always_by_pid=0
+        .sort_direction=-1
+        .tree_sort_direction=1
+        .all_branches_collapsed=0
+        */
       };
     };
   };
@@ -1247,11 +1288,14 @@
       ./sway.nix
     ];
   };
-  # sway-laptop = {};
-  # swaylock = {};
-  # tmux = {};
-  # wallpaper-manager = {};
-  # waybar = {};
+
+  /*
+  sway-laptop = {};
+  swaylock = {};
+  tmux = {};
+  wallpaper-manager = {};
+  waybar = {};
+  */
 
   wezterm = {
     pkgs,
@@ -1315,15 +1359,17 @@
 
           compose_cursor = orange;
 
-          # copy_mode_active_highlight_bg = { Color = '#000000' },
-          # copy_mode_active_highlight_fg = { AnsiColor = 'Black' },
-          # copy_mode_inactive_highlight_bg = { Color = '#52ad70' },
-          # copy_mode_inactive_highlight_fg = { AnsiColor = 'White' },
+          /*
+          copy_mode_active_highlight_bg = { Color = '#000000' },
+          copy_mode_active_highlight_fg = { AnsiColor = 'Black' },
+          copy_mode_inactive_highlight_bg = { Color = '#52ad70' },
+          copy_mode_inactive_highlight_fg = { AnsiColor = 'White' },
 
-          # quick_select_label_bg = { Color = 'peru' },
-          # quick_select_label_fg = { Color = '#ffffff' },
-          # quick_select_match_bg = { AnsiColor = 'Navy' },
-          # quick_select_match_fg = { Color = '#ffffff' },
+          quick_select_label_bg = { Color = 'peru' },
+          quick_select_label_fg = { Color = '#ffffff' },
+          quick_select_match_bg = { AnsiColor = 'Navy' },
+          quick_select_match_fg = { Color = '#ffffff' },
+          */
         };
       };
     };
@@ -1822,8 +1868,10 @@
         # TODO: port config
 
         plugins = {
-          # tab-bar = {path = "tab-bar";};
-          # compact-bar = {path = "compact-bar";};
+          /*
+          tab-bar = {path = "tab-bar";};
+          compact-bar = {path = "compact-bar";};
+          */
         };
 
         ui = {

@@ -5,13 +5,15 @@
   pkgs,
   ...
 }: let
-  # NOTE: My goal is to be able to apply most of the common tweaks to the router
-  # either live on the system for ad-hoc changes (such as forwarding a port for a
-  # multiplayer game) or to tweak these values just below without reaching deeper
-  # into the modules' implementation of these configuration values
-  # NOTE: I could turn this into a cool NixOS module?
-  # TODO: review https://francis.begyn.be/blog/nixos-home-router
-  # TODO: more recent: https://github.com/ghostbuster91/blogposts/blob/a2374f0039f8cdf4faddeaaa0347661ffc2ec7cf/router2023-part2/main.md
+  /*
+  NOTE: My goal is to be able to apply most of the common tweaks to the router
+  either live on the system for ad-hoc changes (such as forwarding a port for a
+  multiplayer game) or to tweak these values just below without reaching deeper
+  into the modules' implementation of these configuration values
+  NOTE: I could turn this into a cool NixOS module?
+  TODO: review https://francis.begyn.be/blog/nixos-home-router
+  TODO: more recent: https://github.com/ghostbuster91/blogposts/blob/a2374f0039f8cdf4faddeaaa0347661ffc2ec7cf/router2023-part2/main.md
+  */
   hostname = "router";
   domain = "h.lyte.dev";
   ip = "192.168.0.1";
@@ -246,56 +248,58 @@ in {
     };
 
     # NOTE: see flake.nix 'nnf.nixosModules.default'
-    # nftables.firewall = let
-    #   me = config.networking.nftables.firewall.localZoneName;
-    # in {
-    #   enable = true;
-    #   snippets.nnf-common.enable = true;
+    /*
+    nftables.firewall = let
+      me = config.networking.nftables.firewall.localZoneName;
+    in {
+      enable = true;
+      snippets.nnf-common.enable = true;
 
-    #   zones = {
-    #     ${interfaces.wan.name} = {
-    #       interfaces = [interfaces.wan.name interfaces.lan.name];
-    #     };
-    #     ${interfaces.lan.name} = {
-    #       parent = interfaces.wan.name;
-    #       ipv4Addresses = [cidr];
-    #     };
-    #     # banned = {
-    #     #   ingressExpression = [
-    #     #     "ip saddr @banlist"
-    #     #     "ip6 saddr @banlist6"
-    #     #   ];
-    #     #   egressExpression = [
-    #     #     "ip daddr @banlist"
-    #     #     "ip6 daddr @banlist6"
-    #     #   ];
-    #     # };
-    #   };
+      zones = {
+        ${interfaces.wan.name} = {
+          interfaces = [interfaces.wan.name interfaces.lan.name];
+        };
+        ${interfaces.lan.name} = {
+          parent = interfaces.wan.name;
+          ipv4Addresses = [cidr];
+        };
+        # banned = {
+        #   ingressExpression = [
+        #     "ip saddr @banlist"
+        #     "ip6 saddr @banlist6"
+        #   ];
+        #   egressExpression = [
+        #     "ip daddr @banlist"
+        #     "ip6 daddr @banlist6"
+        #   ];
+        # };
+      };
 
-    #   rules = {
-    #     dhcp = {
-    #       from = "all";
-    #       to = [hosts.beefcake.ip];
-    #       allowedTCPPorts = [67];
-    #       allowedUDPPorts = [67];
-    #     };
-    #     http = {
-    #       from = "all";
-    #       to = [me];
-    #       allowedTCPPorts = [80 443];
-    #     };
-    #     router-ssh = {
-    #       from = "all";
-    #       to = [me];
-    #       allowedTCPPorts = [2201];
-    #     };
-    #     server-ssh = {
-    #       from = "all";
-    #       to = [hosts.beefcake.ip];
-    #       allowedTCPPorts = [22];
-    #     };
-    #   };
-    # };
+      rules = {
+        dhcp = {
+          from = "all";
+          to = [hosts.beefcake.ip];
+          allowedTCPPorts = [67];
+          allowedUDPPorts = [67];
+        };
+        http = {
+          from = "all";
+          to = [me];
+          allowedTCPPorts = [80 443];
+        };
+        router-ssh = {
+          from = "all";
+          to = [me];
+          allowedTCPPorts = [2201];
+        };
+        server-ssh = {
+          from = "all";
+          to = [hosts.beefcake.ip];
+          allowedTCPPorts = [22];
+        };
+      };
+    };
+    */
   };
 
   systemd.network = {
@@ -347,25 +351,31 @@ in {
         };
       };
 
-      # WAN configuration requires DHCP to get addresses
-      # we also disable some options to be certain we retain as much networking
-      # control as we reasonably can, such as not letting the ISP determine our
-      # hostname or DNS configuration
-      # TODO: IPv6 (prefix delegation)
+      /*
+      WAN configuration requires DHCP to get addresses
+      we also disable some options to be certain we retain as much networking
+      control as we reasonably can, such as not letting the ISP determine our
+      hostname or DNS configuration
+      TODO: IPv6 (prefix delegation)
+      */
       "40-${interfaces.wan.name}" = {
         matchConfig.Name = "${interfaces.wan.name}";
         networkConfig = {
           Description = "WAN network - connection to fiber ISP jack";
           DHCP = true;
-          # IPv6AcceptRA = true;
-          # IPv6PrivacyExtensions = true;
-          # IPForward = true;
+          /*
+          IPv6AcceptRA = true;
+          IPv6PrivacyExtensions = true;
+          IPForward = true;
+          */
         };
         dhcpV6Config = {
-          # ForceDHCPv6PDOtherInformation = true;
-          # UseHostname = false;
-          # UseDNS = false;
-          # UseNTP = false;
+          /*
+          ForceDHCPv6PDOtherInformation = true;
+          UseHostname = false;
+          UseDNS = false;
+          UseNTP = false;
+          */
           PrefixDelegationHint = "::/56";
         };
         dhcpV4Config = {
@@ -391,17 +401,21 @@ in {
 
   services.resolved.enable = false;
 
-  # dnsmasq serves as our DHCP and DNS server
-  # almost all the configuration should be derived from the values at the top of
-  # this file
+  /*
+  dnsmasq serves as our DHCP and DNS server
+  almost all the configuration should be derived from the values at the top of
+  this file
+  */
   services.dnsmasq = {
     enable = true;
     settings = {
       listen-address = "::,127.0.0.1,${ip}";
       port = 53;
 
-      # dhcp-authoritative = true;
-      # dnssec = true;
+      /*
+      dhcp-authoritative = true;
+      dnssec = true;
+      */
       enable-ra = true;
 
       server = ["1.1.1.1" "9.9.9.9" "8.8.8.8"];
@@ -454,8 +468,10 @@ in {
     };
   };
 
-  # since the home network reserves port 22 for ssh to the big server and to
-  # gitea, the router uses port 2201 for ssh
+  /*
+  since the home network reserves port 22 for ssh to the big server and to
+  gitea, the router uses port 2201 for ssh
+  */
   services.openssh.listenAddresses = [
     {
       addr = "0.0.0.0";
@@ -479,252 +495,254 @@ in {
 
   system.stateVersion = "24.05";
 
-  # NOTE: everything from here on is deprecated or old stuff
+  /*
+  NOTE: everything from here on is deprecated or old stuff
 
-  # TODO: may not be strictly necessary for IPv6?
-  # TODO: also may not even be the best implementation?
-  # services.radvd = {
-  #   enable = false;
-  #   # NOTE: this config is just the default arch linux config I think and may
-  #   # need tweaking? this is what I had on the arch linux router, though :shrug:
-  #   config = ''
-  #     interface lo
-  #     {
-  #     	AdvSendAdvert on;
-  #     	MinRtrAdvInterval 3;
-  #     	MaxRtrAdvInterval 10;
-  #     	AdvDefaultPreference low;
-  #     	AdvHomeAgentFlag off;
+  TODO: may not be strictly necessary for IPv6?
+  TODO: also may not even be the best implementation?
+  services.radvd = {
+    enable = false;
+    ## NOTE: this config is just the default arch linux config I think and may
+    ## need tweaking? this is what I had on the arch linux router, though :shrug:
+    config = ''
+      interface lo
+      {
+      	AdvSendAdvert on;
+      	MinRtrAdvInterval 3;
+      	MaxRtrAdvInterval 10;
+      	AdvDefaultPreference low;
+      	AdvHomeAgentFlag off;
 
-  #     	prefix 2001:db8:1:0::/64
-  #     	{
-  #     		AdvOnLink on;
-  #     		AdvAutonomous on;
-  #     		AdvRouterAddr off;
-  #     	};
+      	prefix 2001:db8:1:0::/64
+      	{
+      		AdvOnLink on;
+      		AdvAutonomous on;
+      		AdvRouterAddr off;
+      	};
 
-  #     	prefix 0:0:0:1234::/64
-  #     	{
-  #     		AdvOnLink on;
-  #     		AdvAutonomous on;
-  #     		AdvRouterAddr off;
-  #     		Base6to4Interface ppp0;
-  #     		AdvPreferredLifetime 120;
-  #     		AdvValidLifetime 300;
-  #     	};
+      	prefix 0:0:0:1234::/64
+      	{
+      		AdvOnLink on;
+      		AdvAutonomous on;
+      		AdvRouterAddr off;
+      		Base6to4Interface ppp0;
+      		AdvPreferredLifetime 120;
+      		AdvValidLifetime 300;
+      	};
 
-  #     	route 2001:db0:fff::/48
-  #     	{
-  #     		AdvRoutePreference high;
-  #     		AdvRouteLifetime 3600;
-  #     	};
+      	route 2001:db0:fff::/48
+      	{
+      		AdvRoutePreference high;
+      		AdvRouteLifetime 3600;
+      	};
 
-  #       RDNSS 2001:db8::1 2001:db8::2
-  #       {
-  #         AdvRDNSSLifetime 30;
-  #       };
+        RDNSS 2001:db8::1 2001:db8::2
+        {
+          AdvRDNSSLifetime 30;
+        };
 
-  #       DNSSL branch.example.com example.com
-  #       {
-  #         AdvDNSSLLifetime 30;
-  #       };
-  #     };
-  #   '';
-  # };
+        DNSSL branch.example.com example.com
+        {
+          AdvDNSSLLifetime 30;
+        };
+      };
+    '';
+  };
 
-  # TODO: old config, should be deleted ASAP
-  # services.dnsmasq = {
-  #   enable = false;
-  #   settings = {
-  #     # server endpoints
-  #     listen-address = "::1,127.0.0.1,${ip}";
-  #     port = "53";
+  TODO: old config, should be deleted ASAP
+  services.dnsmasq = {
+    enable = false;
+    settings = {
+      # server endpoints
+      listen-address = "::1,127.0.0.1,${ip}";
+      port = "53";
 
-  #     # DNS cache entries
-  #     cache-size = "10000";
+      # DNS cache entries
+      cache-size = "10000";
 
-  #     # local domain entries
-  #     local = "/lan/";
-  #     domain = "lan";
-  #     expand-hosts = true;
+      # local domain entries
+      local = "/lan/";
+      domain = "lan";
+      expand-hosts = true;
 
-  #     dhcp-authoritative = true;
+      dhcp-authoritative = true;
 
-  #     conf-file = "/usr/share/dnsmasq/trust-anchors.conf";
-  #     dnssec = true;
+      conf-file = "/usr/share/dnsmasq/trust-anchors.conf";
+      dnssec = true;
 
-  #     except-interface = "${wan_if}";
-  #     interface = "${lan_if}";
+      except-interface = "${wan_if}";
+      interface = "${lan_if}";
 
-  #     enable-ra = true;
+      enable-ra = true;
 
-  #     # dhcp-option = "121,${cidr},${ip}";
+      # dhcp-option = "121,${cidr},${ip}";
 
-  #     dhcp-range = [
-  #       "lan,${dhcp_lease_space.min},${dhcp_lease_space.max},${netmask},10m"
-  #       "tag:${lan_if},::1,constructor:${lan_if},ra-names,12h"
-  #     ];
+      dhcp-range = [
+        "lan,${dhcp_lease_space.min},${dhcp_lease_space.max},${netmask},10m"
+        "tag:${lan_if},::1,constructor:${lan_if},ra-names,12h"
+      ];
 
-  #     dhcp-host = [
-  #       "${hosts.dragon.host},${hosts.dragon.ip},12h"
-  #       "${hosts.beefcake.host},${hosts.beefcake.ip},12h"
-  #     ];
+      dhcp-host = [
+        "${hosts.dragon.host},${hosts.dragon.ip},12h"
+        "${hosts.beefcake.host},${hosts.beefcake.ip},12h"
+      ];
 
-  #     # may need to go in /etc/hosts (networking.extraHosts), too?
-  #     address = [
-  #       "/video.lyte.dev/192.168.0.9"
-  #       "/git.lyte.dev/192.168.0.9"
-  #       "/bw.lyte.dev/192.168.0.9"
-  #       "/files.lyte.dev/192.168.0.9"
-  #       "/vpn.h.lyte.dev/192.168.0.9"
-  #       "/.h.lyte.dev/192.168.0.9"
-  #     ];
+      # may need to go in /etc/hosts (networking.extraHosts), too?
+      address = [
+        "/video.lyte.dev/192.168.0.9"
+        "/git.lyte.dev/192.168.0.9"
+        "/bw.lyte.dev/192.168.0.9"
+        "/files.lyte.dev/192.168.0.9"
+        "/vpn.h.lyte.dev/192.168.0.9"
+        "/.h.lyte.dev/192.168.0.9"
+      ];
 
-  #     server = [
-  #       "${ip}"
-  #       "8.8.8.8"
-  #       "8.8.4.4"
-  #       "1.1.1.1"
-  #       "1.0.0.1"
-  #     ];
-  #   };
-  # };
+      server = [
+        "${ip}"
+        "8.8.8.8"
+        "8.8.4.4"
+        "1.1.1.1"
+        "1.0.0.1"
+      ];
+    };
+  };
 
-  # TODO: old config, should be deleted ASAP
-  # nftables = {
-  #   enable = false;
-  #   flushRuleset = true;
+  TODO: old config, should be deleted ASAP
+  nftables = {
+    enable = false;
+    flushRuleset = true;
 
-  #   tables = {
-  #     filter = {
-  #       family = "inet";
-  #       content = ''
-  #         chain input {
-  #           # type filter hook input priority filter; policy accept;
-  #           type filter hook input priority 0;
+    tables = {
+      filter = {
+        family = "inet";
+        content = ''
+          chain input {
+            # type filter hook input priority filter; policy accept;
+            type filter hook input priority 0;
 
-  #           # anything from loopback interface
-  #           iifname "lo" accept
+            # anything from loopback interface
+            iifname "lo" accept
 
-  #           # accept traffic we originated
-  #           ct state { established, related } counter accept
-  #           ct state invalid counter drop
+            # accept traffic we originated
+            ct state { established, related } counter accept
+            ct state invalid counter drop
 
-  #           # ICMP
-  #           ip6 nexthdr icmpv6 icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } counter accept
-  #           ip protocol icmp icmp type { echo-request, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } counter accept
-  #           ip protocol icmpv6 counter accept
-  #           ip protocol icmp counter accept
-  #           meta l4proto ipv6-icmp counter accept
-  #           udp dport dhcpv6-client counter accept
+            # ICMP
+            ip6 nexthdr icmpv6 icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } counter accept
+            ip protocol icmp icmp type { echo-request, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } counter accept
+            ip protocol icmpv6 counter accept
+            ip protocol icmp counter accept
+            meta l4proto ipv6-icmp counter accept
+            udp dport dhcpv6-client counter accept
 
-  #           tcp dport { 64022, 22, 53, 67, 25565 } counter accept
-  #           udp dport { 64020, 22, 53, 67 } counter accept
+            tcp dport { 64022, 22, 53, 67, 25565 } counter accept
+            udp dport { 64020, 22, 53, 67 } counter accept
 
-  #           # iifname "iot" ip saddr $iot-ip tcp dport { llmnr } counter accept
-  #           # iifname "iot" ip saddr $iot-ip udp dport { mdns, llmnr } counter accept
-  #           iifname "${lan_if}" tcp dport { llmnr } counter accept
-  #           iifname "${lan_if}" udp dport { mdns, llmnr } counter accept
+            ## iifname "iot" ip saddr $iot-ip tcp dport { llmnr } counter accept
+            ## iifname "iot" ip saddr $iot-ip udp dport { mdns, llmnr } counter accept
+            iifname "${lan_if}" tcp dport { llmnr } counter accept
+            iifname "${lan_if}" udp dport { mdns, llmnr } counter accept
 
-  #           counter drop
-  #         }
+            counter drop
+          }
 
-  #         # allow all outgoing
-  #         chain output {
-  #           type filter hook output priority 0;
-  #           accept
-  #         }
+          # allow all outgoing
+          chain output {
+            type filter hook output priority 0;
+            accept
+          }
 
-  #         chain forward {
-  #           type filter hook forward priority 0;
-  #           accept
-  #         }
-  #       '';
-  #     };
+          chain forward {
+            type filter hook forward priority 0;
+            accept
+          }
+        '';
+      };
 
-  #     nat = {
-  #       family = "ip";
-  #       content = ''
-  #         set masq_saddr {
-  #         	type ipv4_addr
-  #         	flags interval
-  #         	elements = { ${cidr} }
-  #         }
+      nat = {
+        family = "ip";
+        content = ''
+          set masq_saddr {
+          	type ipv4_addr
+          	flags interval
+          	elements = { ${cidr} }
+          }
 
-  #         map map_port_ipport {
-  #         	type inet_proto . inet_service : ipv4_addr . inet_service
-  #         }
+          map map_port_ipport {
+          	type inet_proto . inet_service : ipv4_addr . inet_service
+          }
 
-  #         chain prerouting {
-  #         	iifname ${lan_if} accept
+          chain prerouting {
+          	iifname ${lan_if} accept
 
-  #         	type nat hook prerouting priority dstnat + 1; policy accept;
-  #         	fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+          	type nat hook prerouting priority dstnat + 1; policy accept;
+          	fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
 
-  #         	iifname ${wan_if} tcp dport { 22, 80, 443, 25565, 64022 } dnat to ${hosts.beefcake.ip}
-  #         	iifname ${wan_if} udp dport { 64020 } dnat to ${hosts.beefcake.ip}
+          	iifname ${wan_if} tcp dport { 22, 80, 443, 25565, 64022 } dnat to ${hosts.beefcake.ip}
+          	iifname ${wan_if} udp dport { 64020 } dnat to ${hosts.beefcake.ip}
 
-  #         	# iifname ${wan_if} tcp dport { 25565 } dnat to 192.168.0.244
-  #         	# iifname ${wan_if} udp dport { 25565 } dnat to 192.168.0.244
+          	## iifname ${wan_if} tcp dport { 25565 } dnat to 192.168.0.244
+          	## iifname ${wan_if} udp dport { 25565 } dnat to 192.168.0.244
 
-  #         	# router
-  #         	iifname ${wan_if} tcp dport { 2201 } dnat to ${ip}
-  #         }
+          	## router
+          	iifname ${wan_if} tcp dport { 2201 } dnat to ${ip}
+          }
 
-  #         chain output {
-  #         	type nat hook output priority -99; policy accept;
-  #         	ip daddr != 127.0.0.0/8 oif "lo" dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
-  #         }
+          chain output {
+          	type nat hook output priority -99; policy accept;
+          	ip daddr != 127.0.0.0/8 oif "lo" dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+          }
 
-  #         chain postrouting {
-  #         	type nat hook postrouting priority srcnat + 1; policy accept;
-  #         	oifname ${lan_if} masquerade
-  #         	ip saddr @masq_saddr masquerade
-  #         }
-  #       '';
-  #     };
-  #   };
-  # };
+          chain postrouting {
+          	type nat hook postrouting priority srcnat + 1; policy accept;
+          	oifname ${lan_if} masquerade
+          	ip saddr @masq_saddr masquerade
+          }
+        '';
+      };
+    };
+  };
 
-  # TODO: also want to try to avoid using dhcpcd for IPv6 since systemd-networkd
-  # should be sufficient?
-  # dhcpcd = {
-  #   enable = false;
-  #   extraConfig = ''
-  #     duid
+  TODO: also want to try to avoid using dhcpcd for IPv6 since systemd-networkd
+  should be sufficient?
+  dhcpcd = {
+    enable = false;
+    extraConfig = ''
+      duid
 
-  #     # No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
-  #     # issues caused by guests with oneplus devices
-  #     noarp
+      ## No way.... https://github.com/NetworkConfiguration/dhcpcd/issues/36#issuecomment-954777644
+      ## issues caused by guests with oneplus devices
+      noarp
 
-  #     persistent
-  #     vendorclassid
+      persistent
+      vendorclassid
 
-  #     option domain_name_servers, domain_name, domain_search
-  #     option classless_static_routes
-  #     option interface_mtu
-  #     option host_name
-  #     #option ntp_servers
+      option domain_name_servers, domain_name, domain_search
+      option classless_static_routes
+      option interface_mtu
+      option host_name
+      #option ntp_servers
 
-  #     require dhcp_server_identifier
-  #     slaac private
-  #     noipv4ll
-  #     noipv6rs
+      require dhcp_server_identifier
+      slaac private
+      noipv4ll
+      noipv6rs
 
-  #     static domain_name_servers=${ip}
+      static domain_name_servers=${ip}
 
-  #     interface ${wan_if}
-  #     	gateway
-  #     	ipv6rs
-  #     	iaid 1
-  #     	# option rapid_commit
-  #     	# ia_na 1
-  #     	ia_pd 1 ${lan_if}
+      interface ${wan_if}
+      	gateway
+      	ipv6rs
+      	iaid 1
+      	## option rapid_commit
+      	## ia_na 1
+      	ia_pd 1 ${lan_if}
 
-  #     interface ${lan_if}
-  #     	static ip_address=${cidr}
-  #     	static routers=${ip}
-  #     	static domain_name_servers=${ip}
-  #   '';
-  # };
+      interface ${lan_if}
+      	static ip_address=${cidr}
+      	static routers=${ip}
+      	static domain_name_servers=${ip}
+    '';
+  };
+  */
 }

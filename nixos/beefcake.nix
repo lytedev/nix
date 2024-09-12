@@ -8,8 +8,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
-  # inputs,
-  # outputs,
+  /*
+  inputs,
+  outputs,
+  */
   lib,
   config,
   pkgs,
@@ -52,11 +54,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         options = ["fmask=0022" "dmask=0022"];
       };
 
+      /*
       # should be mounted by auto-import; see boot.zfs.extraPools
-      # fileSystems."/storage" = {
-      #   device = "zstorage/storage";
-      #   fsType = "zfs";
-      # };
+      fileSystems."/storage" = {
+        device = "zstorage/storage";
+        fsType = "zfs";
+      };
+      */
 
       fileSystems."/nix" = {
         device = "zstorage/nix";
@@ -227,137 +231,141 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         6667
       ];
     }
-    # {
-    #   # samba
-    #   users.users.guest = {
-    #     # used for anonymous samba access
-    #     isSystemUser = true;
-    #     group = "users";
-    #     createHome = true;
-    #   };
-    #   users.users.scannerupload = {
-    #     # used for scanner samba access
-    #     isSystemUser = true;
-    #     group = "users";
-    #     createHome = true;
-    #   };
-    #   systemd.tmpfiles.rules = [
-    #     "d /var/spool/samba 1777 root root -"
-    #   ];
-    #   services.samba-wsdd = {
-    #     enable = true;
-    #   };
-    #   services.samba = {
-    #     enable = true;
-    #     openFirewall = true;
-    #     securityType = "user";
+    {
+      /*
+      # samba
+      users.users.guest = {
+        # used for anonymous samba access
+        isSystemUser = true;
+        group = "users";
+        createHome = true;
+      };
+      users.users.scannerupload = {
+        # used for scanner samba access
+        isSystemUser = true;
+        group = "users";
+        createHome = true;
+      };
+      systemd.tmpfiles.rules = [
+        "d /var/spool/samba 1777 root root -"
+      ];
+      services.samba-wsdd = {
+        enable = true;
+      };
+      services.samba = {
+        enable = true;
+        openFirewall = true;
+        securityType = "user";
 
-    #     # not needed since I don't think I use printer sharing?
-    #     # https://nixos.wiki/wiki/Samba#Printer_sharing
-    #     # package = pkgs.sambaFull; # broken last I checked in nixpkgs?
+        ## not needed since I don't think I use printer sharing?
+        ## https://nixos.wiki/wiki/Samba#Printer_sharing
+        ## package = pkgs.sambaFull; # broken last I checked in nixpkgs?
 
-    #     extraConfig = ''
-    #       workgroup = WORKGROUP
-    #       server string = beefcake
-    #       netbios name = beefcake
-    #       security = user
-    #       #use sendfile = yes
-    #       #max protocol = smb2
-    #       # note: localhost is the ipv6 localhost ::1
-    #       hosts allow = 100.64.0.0/10 192.168.0.0/16 127.0.0.1 localhost
-    #       hosts deny = 0.0.0.0/0
-    #       guest account = guest
-    #       map to guest = never
-    #       # load printers = yes
-    #       # printing = cups
-    #       # printcap name = cups
-    #     '';
-    #     shares = {
-    #       libre = {
-    #         path = "/storage/libre";
-    #         browseable = "yes";
-    #         "read only" = "no";
-    #         "guest ok" = "yes";
-    #         "create mask" = "0666";
-    #         "directory mask" = "0777";
-    #         # "force user" = "nobody";
-    #         # "force group" = "users";
-    #       };
-    #       public = {
-    #         path = "/storage/public";
-    #         browseable = "yes";
-    #         "read only" = "no";
-    #         "guest ok" = "yes";
-    #         "create mask" = "0664";
-    #         "directory mask" = "0775";
-    #         # "force user" = "nobody";
-    #         # "force group" = "users";
-    #       };
-    #       family = {
-    #         path = "/storage/family";
-    #         browseable = "yes";
-    #         "read only" = "no";
-    #         "guest ok" = "no";
-    #         "create mask" = "0660";
-    #         "directory mask" = "0770";
-    #         # "force user" = "nobody";
-    #         # "force group" = "family";
-    #       };
-    #       scannerdocs = {
-    #         path = "/storage/scannerdocs";
-    #         browseable = "yes";
-    #         "read only" = "no";
-    #         "guest ok" = "no";
-    #         "create mask" = "0600";
-    #         "directory mask" = "0700";
-    #         "valid users" = "scannerupload";
-    #         "force user" = "scannerupload";
-    #         "force group" = "users";
-    #       };
-    #       daniel = {
-    #         path = "/storage/daniel";
-    #         browseable = "yes";
-    #         "read only" = "no";
-    #         "guest ok" = "no";
-    #         "create mask" = "0600";
-    #         "directory mask" = "0700";
-    #         # "force user" = "daniel";
-    #         # "force group" = "users";
-    #       };
-    #       # printers = {
-    #       #   comment = "All Printers";
-    #       #   path = "/var/spool/samba";
-    #       #   public = "yes";
-    #       #   browseable = "yes";
-    #       #   # to allow user 'guest account' to print.
-    #       #   "guest ok" = "yes";
-    #       #   writable = "no";
-    #       #   printable = "yes";
-    #       #   "create mode" = 0700;
-    #       # };
-    #     };
-    #   };
-    # }
+        extraConfig = ''
+          workgroup = WORKGROUP
+          server string = beefcake
+          netbios name = beefcake
+          security = user
+          ## use sendfile = yes
+          ## max protocol = smb2
+          ## note: localhost is the ipv6 localhost ::1
+          hosts allow = 100.64.0.0/10 192.168.0.0/16 127.0.0.1 localhost
+          hosts deny = 0.0.0.0/0
+          guest account = guest
+          map to guest = never
+          ## load printers = yes
+          ## printing = cups
+          ## printcap name = cups
+        '';
+        shares = {
+          libre = {
+            path = "/storage/libre";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "yes";
+            "create mask" = "0666";
+            "directory mask" = "0777";
+            # "force user" = "nobody";
+            # "force group" = "users";
+          };
+          public = {
+            path = "/storage/public";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "yes";
+            "create mask" = "0664";
+            "directory mask" = "0775";
+            # "force user" = "nobody";
+            # "force group" = "users";
+          };
+          family = {
+            path = "/storage/family";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "no";
+            "create mask" = "0660";
+            "directory mask" = "0770";
+            # "force user" = "nobody";
+            # "force group" = "family";
+          };
+          scannerdocs = {
+            path = "/storage/scannerdocs";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "no";
+            "create mask" = "0600";
+            "directory mask" = "0700";
+            "valid users" = "scannerupload";
+            "force user" = "scannerupload";
+            "force group" = "users";
+          };
+          daniel = {
+            path = "/storage/daniel";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "no";
+            "create mask" = "0600";
+            "directory mask" = "0700";
+            # "force user" = "daniel";
+            # "force group" = "users";
+          };
+          ## printers = {
+          ##   comment = "All Printers";
+          ##   path = "/var/spool/samba";
+          ##   public = "yes";
+          ##   browseable = "yes";
+          ##   # to allow user 'guest account' to print.
+          ##   "guest ok" = "yes";
+          ##   writable = "no";
+          ##   printable = "yes";
+          ##   "create mode" = 0700;
+          ## };
+        };
+      };
+      */
+    }
     {
       # nextcloud
       # TODO: investigate https://carlosvaz.com/posts/the-holy-grail-nextcloud-setup-made-easy-by-nixos/
-      # services.postgresql = {
-      #   ensureDatabases = [
-      #     "nextcloud"
-      #   ];
-      #   ensureUsers = [
-      #     {
-      #       name = "nextcloud";
-      #       ensureDBOwnership = true;
-      #     }
-      #   ];
-      # };
-      # nextcloud
-      # users.users.nextcloud = {
-      #   isSystemUser = true;
-      #   createHome = false;
-      #   group = "nextcloud";
-      # };
+      /*
+      services.postgresql = {
+        ensureDatabases = [
+          "nextcloud"
+        ];
+        ensureUsers = [
+          {
+            name = "nextcloud";
+            ensureDBOwnership = true;
+          }
+        ];
+      };
+      nextcloud
+      users.users.nextcloud = {
+        isSystemUser = true;
+        createHome = false;
+        group = "nextcloud";
+      };
+      */
     }
     {
       # plausible
@@ -580,24 +588,28 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       services.caddy.virtualHosts."video.lyte.dev" = {
         extraConfig = ''reverse_proxy :8096'';
       };
-      # NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general
-      # but I can probably throw in a crappy GPU (or a big, cheap ebay GPU for ML
-      # stuff, too?) and get good transcoding performance
+      /*
+      NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general
+      but I can probably throw in a crappy GPU (or a big, cheap ebay GPU for ML
+      stuff, too?) and get good transcoding performance
+      */
 
       # jellyfin hardware encoding
-      # hardware.graphics = {
-      #   enable = true;
-      #   extraPackages = with pkgs; [
-      #     intel-media-driver
-      #     vaapiIntel
-      #     vaapiVdpau
-      #     libvdpau-va-gl
-      #     intel-compute-runtime
-      #   ];
-      # };
-      # nixpkgs.config.packageOverrides = pkgs: {
-      #   vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-      # };
+      /*
+      hardware.graphics = {
+        enable = true;
+        extraPackages = with pkgs; [
+          intel-media-driver
+          vaapiIntel
+          vaapiVdpau
+          libvdpau-va-gl
+          intel-compute-runtime
+        ];
+      };
+      nixpkgs.config.packageOverrides = pkgs: {
+        vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+      };
+      */
     }
     {
       systemd.tmpfiles.settings = {
@@ -772,9 +784,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
                 Vary Origin
                 defer
               }
+
               file_server browse {
-                # browse template
-                # hide .*
+                ## browse template
+                ## hide .*
                 root /storage/files.lyte.dev
               }
             '';
@@ -911,9 +924,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           SIGNUPS_ALLOWED = "false";
           ROCKET_ADDRESS = "127.0.0.1";
           ROCKET_PORT = 8222;
-          # TODO: smtp setup?
-          # right now, I think I configured this manually by temporarily setting ADMIN_TOKEN
-          # and then configuring in https://bw.lyte.dev/admin
+          /*
+          TODO: smtp setup?
+          right now, I think I configured this manually by temporarily setting ADMIN_TOKEN
+          and then configuring in https://bw.lyte.dev/admin
+          */
         };
       };
       services.caddy.virtualHosts."bw.lyte.dev" = {
@@ -956,476 +971,483 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraConfig = ''reverse_proxy :${toString config.services.atuin.port}'';
       };
     }
-    # {
-    #   # jland minecraft server
-    #   users.groups.jland = {
-    #     gid = 982;
-    #   };
-    #   users.users.jland = {
-    #     uid = 986;
-    #     isSystemUser = true;
-    #     createHome = false;
-    #     group = "jland";
-    #   };
-    #   virtualisation.oci-containers.containers.minecraft-jland = {
-    #     autoStart = false;
+    {
+      # jland minecraft server
+      /*
+        users.groups.jland = {
+          gid = 982;
+        };
+        users.users.jland = {
+          uid = 986;
+          isSystemUser = true;
+          createHome = false;
+          group = "jland";
+        };
+        virtualisation.oci-containers.containers.minecraft-jland = {
+          autoStart = false;
 
-    #     # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
-    #     image = "docker.io/itzg/minecraft-server";
-    #     # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
-    #     extraOptions = [
-    #       "--tty"
-    #       "--interactive"
-    #     ];
-    #     environment = {
-    #       EULA = "true";
-    #       # UID = toString config.users.users.jland.uid;
-    #       # GID = toString config.users.groups.jland.gid;
-    #       STOP_SERVER_ANNOUNCE_DELAY = "20";
-    #       TZ = "America/Chicago";
-    #       VERSION = "1.20.1";
-    #       MEMORY = "8G";
-    #       MAX_MEMORY = "16G";
-    #       TYPE = "FORGE";
-    #       FORGE_VERSION = "47.1.3";
-    #       ALLOW_FLIGHT = "true";
-    #       ENABLE_QUERY = "true";
+          # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+          image = "docker.io/itzg/minecraft-server";
+          # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
+          extraOptions = [
+            "--tty"
+            "--interactive"
+          ];
+          environment = {
+            EULA = "true";
+            ## UID = toString config.users.users.jland.uid;
+            ## GID = toString config.users.groups.jland.gid;
+            STOP_SERVER_ANNOUNCE_DELAY = "20";
+            TZ = "America/Chicago";
+            VERSION = "1.20.1";
+            MEMORY = "8G";
+            MAX_MEMORY = "16G";
+            TYPE = "FORGE";
+            FORGE_VERSION = "47.1.3";
+            ALLOW_FLIGHT = "true";
+            ENABLE_QUERY = "true";
 
-    #       MODPACK = "/data/origination-files/Server-Files-0.2.14.zip";
+            MODPACK = "/data/origination-files/Server-Files-0.2.14.zip";
 
-    #       # TYPE = "AUTO_CURSEFORGE";
-    #       # CF_SLUG = "monumental-experience";
-    #       # CF_FILE_ID = "4826863"; # 2.2.53
+            ## TYPE = "AUTO_CURSEFORGE";
+            ## CF_SLUG = "monumental-experience";
+            ## CF_FILE_ID = "4826863"; # 2.2.53
 
-    #       # due to
-    #       # Nov 02 13:45:22 beefcake minecraft-jland[2738672]: me.itzg.helpers.errors.GenericException: The modpack authors have indicated this file is not allowed for project distribution. Please download the client zip file from https://www.curseforge.com/minecraft/modpacks/monumental-experience and pass via CF_MODPACK_ZIP environment variable or place indownloads repo directory.
-    #       # we must upload manually
-    #       # CF_MODPACK_ZIP = "/data/origination-files/Monumental+Experience-2.2.53.zip";
+            ## due to
+            ## Nov 02 13:45:22 beefcake minecraft-jland[2738672]: me.itzg.helpers.errors.GenericException: The modpack authors have indicated this file is not allowed for project distribution. Please download the client zip file from https://www.curseforge.com/minecraft/modpacks/monumental-experience and pass via CF_MODPACK_ZIP environment variable or place indownloads repo directory.
+            ## we must upload manually
+            ## CF_MODPACK_ZIP = "/data/origination-files/Monumental+Experience-2.2.53.zip";
 
-    #       # ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
-    #       # May also have mod/loader incompatibilities?
-    #       # https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
-    #     };
-    #     environmentFiles = [
-    #       # config.sops.secrets."jland.env".path
-    #     ];
-    #     ports = ["26965:25565"];
-    #     volumes = [
-    #       "/storage/jland/data:/data"
-    #       "/storage/jland/worlds:/worlds"
-    #     ];
-    #   };
-    #   networking.firewall.allowedTCPPorts = [
-    #     26965
-    #   ];
-    # }
-    # {
-    #   # dawncraft minecraft server
-    #   systemd.tmpfiles.rules = [
-    #     "d /storage/dawncraft/ 0770 1000 1000 -"
-    #     "d /storage/dawncraft/data/ 0770 1000 1000 -"
-    #     "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
-    #     "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
-    #   ];
-    #   virtualisation.oci-containers.containers.minecraft-dawncraft = {
-    #     autoStart = false;
+            ## ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
+            ## May also have mod/loader incompatibilities?
+            ## https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
+          };
+          environmentFiles = [
+            # config.sops.secrets."jland.env".path
+          ];
+          ports = ["26965:25565"];
+          volumes = [
+            "/storage/jland/data:/data"
+            "/storage/jland/worlds:/worlds"
+          ];
+        };
+        networking.firewall.allowedTCPPorts = [
+          26965
+        ];
+      }
+      {
+        # dawncraft minecraft server
+        systemd.tmpfiles.rules = [
+          "d /storage/dawncraft/ 0770 1000 1000 -"
+          "d /storage/dawncraft/data/ 0770 1000 1000 -"
+          "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
+          "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
+        ];
+        virtualisation.oci-containers.containers.minecraft-dawncraft = {
+          autoStart = false;
 
-    #     # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
-    #     image = "docker.io/itzg/minecraft-server";
-    #     extraOptions = [
-    #       "--tty"
-    #       "--interactive"
-    #     ];
-    #     environment = {
-    #       EULA = "true";
+          # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+          image = "docker.io/itzg/minecraft-server";
+          extraOptions = [
+            "--tty"
+            "--interactive"
+          ];
+          environment = {
+            EULA = "true";
 
-    #       STOP_SERVER_ANNOUNCE_DELAY = "20";
-    #       TZ = "America/Chicago";
-    #       VERSION = "1.18.2";
-    #       MEMORY = "8G";
-    #       MAX_MEMORY = "32G";
+            STOP_SERVER_ANNOUNCE_DELAY = "20";
+            TZ = "America/Chicago";
+            VERSION = "1.18.2";
+            MEMORY = "8G";
+            MAX_MEMORY = "32G";
 
-    #       ALLOW_FLIGHT = "true";
-    #       ENABLE_QUERY = "true";
-    #       SERVER_PORT = "26968";
-    #       QUERY_PORT = "26968";
+            ALLOW_FLIGHT = "true";
+            ENABLE_QUERY = "true";
+            SERVER_PORT = "26968";
+            QUERY_PORT = "26968";
 
-    #       TYPE = "AUTO_CURSEFORGE";
-    #       CF_SLUG = "dawn-craft";
+            TYPE = "AUTO_CURSEFORGE";
+            CF_SLUG = "dawn-craft";
 
-    #       CF_EXCLUDE_MODS = "368398";
-    #       CF_FORCE_SYNCHRONIZE = "true";
-    #       # CF_FILE_ID = "5247696"; # 2.0.7 server
-    #     };
-    #     environmentFiles = [
-    #       config.sops.secrets."dawncraft.env".path
-    #     ];
-    #     ports = ["26968:26968/tcp" "26968:26968/udp"];
-    #     volumes = [
-    #       "/storage/dawncraft/data:/data"
-    #       "/storage/dawncraft/worlds:/worlds"
-    #       "/storage/dawncraft/downloads:/downloads"
-    #     ];
-    #   };
-    #   networking.firewall.allowedTCPPorts = [
-    #     26968
-    #   ];
-    # }
-    # {
-    #   # flanilla family minecraft server
-    #   users.groups.flanilla = {};
-    #   users.users.flanilla = {
-    #     isSystemUser = true;
-    #     createHome = false;
-    #     group = "flanilla";
-    #   };
-    #   virtualisation.oci-containers.containers.minecraft-flanilla = {
-    #     autoStart = true;
+            CF_EXCLUDE_MODS = "368398";
+            CF_FORCE_SYNCHRONIZE = "true";
+            # CF_FILE_ID = "5247696"; # 2.0.7 server
+          };
+          environmentFiles = [
+            config.sops.secrets."dawncraft.env".path
+          ];
+          ports = ["26968:26968/tcp" "26968:26968/udp"];
+          volumes = [
+            "/storage/dawncraft/data:/data"
+            "/storage/dawncraft/worlds:/worlds"
+            "/storage/dawncraft/downloads:/downloads"
+          ];
+        };
+        networking.firewall.allowedTCPPorts = [
+          26968
+        ];
+      */
+    }
+    {
+      # flanilla family minecraft server
+      /*
+      users.groups.flanilla = {};
+      users.users.flanilla = {
+        isSystemUser = true;
+        createHome = false;
+        group = "flanilla";
+      };
+      virtualisation.oci-containers.containers.minecraft-flanilla = {
+        autoStart = true;
 
-    #     image = "docker.io/itzg/minecraft-server";
-    #     user = "${toString config.users.users.flanilla.uid}:${toString config.users.groups.flanilla.gid}";
-    #     extraOptions = ["--tty" "--interactive"];
-    #     environment = {
-    #       EULA = "true";
-    #       UID = toString config.users.users.flanilla.uid;
-    #       GID = toString config.users.groups.flanilla.gid;
-    #       STOP_SERVER_ANNOUNCE_DELAY = "20";
-    #       TZ = "America/Chicago";
-    #       VERSION = "1.20.4";
-    #       OPS = "lytedev";
-    #       MODE = "creative";
-    #       DIFFICULTY = "peaceful";
-    #       ONLINE_MODE = "false";
-    #       MEMORY = "8G";
-    #       MAX_MEMORY = "16G";
-    #       ALLOW_FLIGHT = "true";
-    #       ENABLE_QUERY = "true";
-    #       ENABLE_COMMAND_BLOCK = "true";
-    #     };
+        image = "docker.io/itzg/minecraft-server";
+        user = "${toString config.users.users.flanilla.uid}:${toString config.users.groups.flanilla.gid}";
+        extraOptions = ["--tty" "--interactive"];
+        environment = {
+          EULA = "true";
+          UID = toString config.users.users.flanilla.uid;
+          GID = toString config.users.groups.flanilla.gid;
+          STOP_SERVER_ANNOUNCE_DELAY = "20";
+          TZ = "America/Chicago";
+          VERSION = "1.20.4";
+          OPS = "lytedev";
+          MODE = "creative";
+          DIFFICULTY = "peaceful";
+          ONLINE_MODE = "false";
+          MEMORY = "8G";
+          MAX_MEMORY = "16G";
+          ALLOW_FLIGHT = "true";
+          ENABLE_QUERY = "true";
+          ENABLE_COMMAND_BLOCK = "true";
+        };
 
-    #     environmentFiles = [
-    #       # config.sops.secrets."flanilla.env".path
-    #     ];
+        environmentFiles = [
+          # config.sops.secrets."flanilla.env".path
+        ];
 
-    #     ports = ["26966:25565"];
+        ports = ["26966:25565"];
 
-    #     volumes = [
-    #       "/storage/flanilla/data:/data"
-    #       "/storage/flanilla/worlds:/worlds"
-    #     ];
-    #   };
-    #   networking.firewall.allowedTCPPorts = [
-    #     26966
-    #   ];
-    # }
-    # ({options, ...}: let
-    #   toml = pkgs.formats.toml {};
-    #   package = pkgs.kanidm;
-    #   domain = "idm.h.lyte.dev";
-    #   name = "kanidm";
-    #   storage = "/storage/${name}";
-    #   cert = "${storage}/certs/idm.h.lyte.dev.crt";
-    #   key = "${storage}/certs/idm.h.lyte.dev.key";
+        volumes = [
+          "/storage/flanilla/data:/data"
+          "/storage/flanilla/worlds:/worlds"
+        ];
+      };
+      networking.firewall.allowedTCPPorts = [
+        26966
+      ];
+      */
+    }
+    ({options, ...}: let
+      /*
+      toml = pkgs.formats.toml {};
+      package = pkgs.kanidm;
+      domain = "idm.h.lyte.dev";
+      name = "kanidm";
+      storage = "/storage/${name}";
+      cert = "${storage}/certs/idm.h.lyte.dev.crt";
+      key = "${storage}/certs/idm.h.lyte.dev.key";
 
-    #   serverSettings = {
-    #     inherit domain;
-    #     bindaddress = "127.0.0.1:8443";
-    #     # ldapbindaddress
-    #     tls_chain = cert;
-    #     tls_key = key;
-    #     origin = "https://${domain}";
-    #     db_path = "${storage}/data/kanidm.db";
-    #     log_level = "info";
-    #     online_backup = {
-    #       path = "${storage}/backups/";
-    #       schedule = "00 22 * * *";
-    #       # versions = 7;
-    #     };
-    #   };
+      serverSettings = {
+        inherit domain;
+        bindaddress = "127.0.0.1:8443";
+        # ldapbindaddress
+        tls_chain = cert;
+        tls_key = key;
+        origin = "https://${domain}";
+        db_path = "${storage}/data/kanidm.db";
+        log_level = "info";
+        online_backup = {
+          path = "${storage}/backups/";
+          schedule = "00 22 * * *";
+          # versions = 7;
+        };
+      };
 
-    #   unixdSettings = {
-    #     hsm_pin_path = "/var/cache/${name}-unixd/hsm-pin";
-    #     pam_allowed_login_groups = [];
-    #   };
+      unixdSettings = {
+        hsm_pin_path = "/var/cache/${name}-unixd/hsm-pin";
+        pam_allowed_login_groups = [];
+      };
 
-    #   clientSettings = {
-    #     uri = "https://idm.h.lyte.dev";
-    #   };
+      clientSettings = {
+        uri = "https://idm.h.lyte.dev";
+      };
 
-    #   user = name;
-    #   group = name;
-    #   serverConfigFile = toml.generate "server.toml" serverSettings;
-    #   unixdConfigFile = toml.generate "kanidm-unixd.toml" unixdSettings;
-    #   clientConfigFile = toml.generate "kanidm-config.toml" clientSettings;
+      user = name;
+      group = name;
+      serverConfigFile = toml.generate "server.toml" serverSettings;
+      unixdConfigFile = toml.generate "kanidm-unixd.toml" unixdSettings;
+      clientConfigFile = toml.generate "kanidm-config.toml" clientSettings;
 
-    #   defaultServiceConfig = {
-    #     BindReadOnlyPaths = [
-    #       "/nix/store"
-    #       "-/etc/resolv.conf"
-    #       "-/etc/nsswitch.conf"
-    #       "-/etc/hosts"
-    #       "-/etc/localtime"
-    #     ];
-    #     CapabilityBoundingSet = [];
-    #     # ProtectClock= adds DeviceAllow=char-rtc r
-    #     DeviceAllow = "";
-    #     # Implies ProtectSystem=strict, which re-mounts all paths
-    #     # DynamicUser = true;
-    #     LockPersonality = true;
-    #     MemoryDenyWriteExecute = true;
-    #     NoNewPrivileges = true;
-    #     PrivateDevices = true;
-    #     PrivateMounts = true;
-    #     PrivateNetwork = true;
-    #     PrivateTmp = true;
-    #     PrivateUsers = true;
-    #     ProcSubset = "pid";
-    #     ProtectClock = true;
-    #     ProtectHome = true;
-    #     ProtectHostname = true;
-    #     # Would re-mount paths ignored by temporary root
-    #     #ProtectSystem = "strict";
-    #     ProtectControlGroups = true;
-    #     ProtectKernelLogs = true;
-    #     ProtectKernelModules = true;
-    #     ProtectKernelTunables = true;
-    #     ProtectProc = "invisible";
-    #     RestrictAddressFamilies = [];
-    #     RestrictNamespaces = true;
-    #     RestrictRealtime = true;
-    #     RestrictSUIDSGID = true;
-    #     SystemCallArchitectures = "native";
-    #     SystemCallFilter = ["@system-service" "~@privileged @resources @setuid @keyring"];
-    #     # Does not work well with the temporary root
-    #     #UMask = "0066";
-    #   };
-    # in {
-    #   # kanidm
+      defaultServiceConfig = {
+        BindReadOnlyPaths = [
+          "/nix/store"
+          "-/etc/resolv.conf"
+          "-/etc/nsswitch.conf"
+          "-/etc/hosts"
+          "-/etc/localtime"
+        ];
+        CapabilityBoundingSet = [];
+        # ProtectClock= adds DeviceAllow=char-rtc r
+        DeviceAllow = "";
+        # Implies ProtectSystem=strict, which re-mounts all paths
+        # DynamicUser = true;
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+        NoNewPrivileges = true;
+        PrivateDevices = true;
+        PrivateMounts = true;
+        PrivateNetwork = true;
+        PrivateTmp = true;
+        PrivateUsers = true;
+        ProcSubset = "pid";
+        ProtectClock = true;
+        ProtectHome = true;
+        ProtectHostname = true;
+        # Would re-mount paths ignored by temporary root
+        #ProtectSystem = "strict";
+        ProtectControlGroups = true;
+        ProtectKernelLogs = true;
+        ProtectKernelModules = true;
+        ProtectKernelTunables = true;
+        ProtectProc = "invisible";
+        RestrictAddressFamilies = [];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        SystemCallArchitectures = "native";
+        SystemCallFilter = ["@system-service" "~@privileged @resources @setuid @keyring"];
+        # Does not work well with the temporary root
+        #UMask = "0066";
+      };
+      */
+    in {
+      # kanidm
+      /*
+      config = {
+        # we need a mechanism to get the certificates that caddy provisions for us
+        systemd.timers."copy-kanidm-certificates-from-caddy" = {
+          wantedBy = ["timers.target"];
+          timerConfig = {
+            OnBootSec = "10m"; # 10 minutes after booting
+            OnUnitActiveSec = "5m"; # every 5 minutes afterwards
+            Unit = "copy-kanidm-certificates-from-caddy.service";
+          };
+        };
 
-    #   config = {
-    #     # we need a mechanism to get the certificates that caddy provisions for us
-    #     systemd.timers."copy-kanidm-certificates-from-caddy" = {
-    #       wantedBy = ["timers.target"];
-    #       timerConfig = {
-    #         OnBootSec = "10m"; # 10 minutes after booting
-    #         OnUnitActiveSec = "5m"; # every 5 minutes afterwards
-    #         Unit = "copy-kanidm-certificates-from-caddy.service";
-    #       };
-    #     };
+        systemd.services."copy-kanidm-certificates-from-caddy" = {
+          script = ''
+            umask 077
+            install -d -m 0700 -o "${user}" -g "${group}" "${storage}/data" "${storage}/certs"
+            cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
+            install -m 0700 -o "${user}" -g "${group}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
+          '';
+          path = with pkgs; [rsync];
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+          };
+        };
 
-    #     systemd.services."copy-kanidm-certificates-from-caddy" = {
-    #       script = ''
-    #         umask 077
-    #         install -d -m 0700 -o "${user}" -g "${group}" "${storage}/data" "${storage}/certs"
-    #         cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
-    #         install -m 0700 -o "${user}" -g "${group}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
-    #       '';
-    #       path = with pkgs; [rsync];
-    #       serviceConfig = {
-    #         Type = "oneshot";
-    #         User = "root";
-    #       };
-    #     };
+        environment.systemPackages = [package];
 
-    #     environment.systemPackages = [package];
+        # TODO: should I use this for /storage/kanidm/certs etc.?
+        systemd.tmpfiles.settings."10-kanidm" = {
+          "${serverSettings.online_backup.path}".d = {
+            inherit user group;
+            mode = "0700";
+          };
+          ## "${builtins.dirOf unixdSettings.hsm_pin_path}".d = {
+          ##   user = "${user}-unixd";
+          ##   group = "${group}-unixd";
+          ##   mode = "0700";
+          ## };
+          "${storage}/data".d = {
+            inherit user group;
+            mode = "0700";
+          };
+          "${storage}/certs".d = {
+            inherit user group;
+            mode = "0700";
+          };
+        };
 
-    #     # TODO: should I use this for /storage/kanidm/certs etc.?
-    #     systemd.tmpfiles.settings."10-kanidm" = {
-    #       "${serverSettings.online_backup.path}".d = {
-    #         inherit user group;
-    #         mode = "0700";
-    #       };
-    #       # "${builtins.dirOf unixdSettings.hsm_pin_path}".d = {
-    #       #   user = "${user}-unixd";
-    #       #   group = "${group}-unixd";
-    #       #   mode = "0700";
-    #       # };
-    #       "${storage}/data".d = {
-    #         inherit user group;
-    #         mode = "0700";
-    #       };
-    #       "${storage}/certs".d = {
-    #         inherit user group;
-    #         mode = "0700";
-    #       };
-    #     };
+        users.groups = {
+          ${group} = {};
+          "${group}-unixd" = {};
+        };
 
-    #     users.groups = {
-    #       ${group} = {};
-    #       "${group}-unixd" = {};
-    #     };
+        users.users.${user} = {
+          inherit group;
+          description = "kanidm server";
+          isSystemUser = true;
+          packages = [package];
+        };
+        users.users."${user}-unixd" = {
+          group = "${group}-unixd";
+          description = lib.mkForce "kanidm PAM daemon";
+          isSystemUser = true;
+        };
 
-    #     users.users.${user} = {
-    #       inherit group;
-    #       description = "kanidm server";
-    #       isSystemUser = true;
-    #       packages = [package];
-    #     };
-    #     users.users."${user}-unixd" = {
-    #       group = "${group}-unixd";
-    #       description = lib.mkForce "kanidm PAM daemon";
-    #       isSystemUser = true;
-    #     };
+        # the kanidm module in nixpkgs was not working for me, so I rolled my own
+        # loosely based off it
+        systemd.services.kanidm = {
+          enable = true;
+          path = with pkgs; [openssl] ++ [package];
+          description = "kanidm identity management daemon";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target"];
+          requires = ["copy-kanidm-certificates-from-caddy.service"];
+          script = ''
+            pwd
+            ls -la
+            ls -laR /storage/kanidm
+            ${package}/bin/kanidmd server -c ${serverConfigFile}
+          '';
+          # environment.RUST_LOG = serverSettings.log_level;
+          serviceConfig = lib.mkMerge [
+            defaultServiceConfig
+            {
+              StateDirectory = name;
+              StateDirectoryMode = "0700";
+              RuntimeDirectory = "${name}d";
+              User = user;
+              Group = group;
 
-    #     # the kanidm module in nixpkgs was not working for me, so I rolled my own
-    #     # loosely based off it
-    #     systemd.services.kanidm = {
-    #       enable = true;
-    #       path = with pkgs; [openssl] ++ [package];
-    #       description = "kanidm identity management daemon";
-    #       wantedBy = ["multi-user.target"];
-    #       after = ["network.target"];
-    #       requires = ["copy-kanidm-certificates-from-caddy.service"];
-    #       script = ''
-    #         pwd
-    #         ls -la
-    #         ls -laR /storage/kanidm
-    #         ${package}/bin/kanidmd server -c ${serverConfigFile}
-    #       '';
-    #       # environment.RUST_LOG = serverSettings.log_level;
-    #       serviceConfig = lib.mkMerge [
-    #         defaultServiceConfig
-    #         {
-    #           StateDirectory = name;
-    #           StateDirectoryMode = "0700";
-    #           RuntimeDirectory = "${name}d";
-    #           User = user;
-    #           Group = group;
+              AmbientCapabilities = ["CAP_NET_BIND_SERVICE"];
+              CapabilityBoundingSet = ["CAP_NET_BIND_SERVICE"];
+              PrivateUsers = lib.mkForce false;
+              PrivateNetwork = lib.mkForce false;
+              RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+              # TemporaryFileSystem = "/:ro";
+              BindReadOnlyPaths = [
+                "${storage}/certs"
+              ];
+              BindPaths = [
+                "${storage}/data"
 
-    #           AmbientCapabilities = ["CAP_NET_BIND_SERVICE"];
-    #           CapabilityBoundingSet = ["CAP_NET_BIND_SERVICE"];
-    #           PrivateUsers = lib.mkForce false;
-    #           PrivateNetwork = lib.mkForce false;
-    #           RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
-    #           # TemporaryFileSystem = "/:ro";
-    #           BindReadOnlyPaths = [
-    #             "${storage}/certs"
-    #           ];
-    #           BindPaths = [
-    #             "${storage}/data"
+                # socket
+                "/run/${name}d:/run/${name}d"
 
-    #             # socket
-    #             "/run/${name}d:/run/${name}d"
+                # backups
+                serverSettings.online_backup.path
+              ];
+            }
+          ];
+        };
 
-    #             # backups
-    #             serverSettings.online_backup.path
-    #           ];
-    #         }
-    #       ];
-    #     };
+        systemd.services.kanidm-unixd = {
+          description = "Kanidm PAM daemon";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target"];
+          restartTriggers = [unixdConfigFile clientConfigFile];
+          serviceConfig = lib.mkMerge [
+            defaultServiceConfig
+            {
+              CacheDirectory = "${name}-unixd";
+              CacheDirectoryMode = "0700";
+              RuntimeDirectory = "${name}-unixd";
+              ExecStart = "${package}/bin/kanidm_unixd";
+              User = "${user}-unixd";
+              Group = "${group}-unixd";
 
-    #     systemd.services.kanidm-unixd = {
-    #       description = "Kanidm PAM daemon";
-    #       wantedBy = ["multi-user.target"];
-    #       after = ["network.target"];
-    #       restartTriggers = [unixdConfigFile clientConfigFile];
-    #       serviceConfig = lib.mkMerge [
-    #         defaultServiceConfig
-    #         {
-    #           CacheDirectory = "${name}-unixd";
-    #           CacheDirectoryMode = "0700";
-    #           RuntimeDirectory = "${name}-unixd";
-    #           ExecStart = "${package}/bin/kanidm_unixd";
-    #           User = "${user}-unixd";
-    #           Group = "${group}-unixd";
+              BindReadOnlyPaths = [
+                "-/etc/kanidm"
+                "-/etc/static/kanidm"
+                "-/etc/ssl"
+                "-/etc/static/ssl"
+                "-/etc/passwd"
+                "-/etc/group"
+              ];
 
-    #           BindReadOnlyPaths = [
-    #             "-/etc/kanidm"
-    #             "-/etc/static/kanidm"
-    #             "-/etc/ssl"
-    #             "-/etc/static/ssl"
-    #             "-/etc/passwd"
-    #             "-/etc/group"
-    #           ];
+              BindPaths = [
+                # socket
+                "/run/kanidm-unixd:/var/run/kanidm-unixd"
+              ];
 
-    #           BindPaths = [
-    #             # socket
-    #             "/run/kanidm-unixd:/var/run/kanidm-unixd"
-    #           ];
+              # Needs to connect to kanidmd
+              PrivateNetwork = lib.mkForce false;
+              RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+              TemporaryFileSystem = "/:ro";
+            }
+          ];
+          environment.RUST_LOG = serverSettings.log_level;
+        };
 
-    #           # Needs to connect to kanidmd
-    #           PrivateNetwork = lib.mkForce false;
-    #           RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
-    #           TemporaryFileSystem = "/:ro";
-    #         }
-    #       ];
-    #       environment.RUST_LOG = serverSettings.log_level;
-    #     };
+        systemd.services.kanidm-unixd-tasks = {
+          description = "Kanidm PAM home management daemon";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target" "kanidm-unixd.service"];
+          partOf = ["kanidm-unixd.service"];
+          restartTriggers = [unixdConfigFile clientConfigFile];
+          serviceConfig = {
+            ExecStart = "${package}/bin/kanidm_unixd_tasks";
 
-    #     systemd.services.kanidm-unixd-tasks = {
-    #       description = "Kanidm PAM home management daemon";
-    #       wantedBy = ["multi-user.target"];
-    #       after = ["network.target" "kanidm-unixd.service"];
-    #       partOf = ["kanidm-unixd.service"];
-    #       restartTriggers = [unixdConfigFile clientConfigFile];
-    #       serviceConfig = {
-    #         ExecStart = "${package}/bin/kanidm_unixd_tasks";
+            BindReadOnlyPaths = [
+              "/nix/store"
+              "-/etc/resolv.conf"
+              "-/etc/nsswitch.conf"
+              "-/etc/hosts"
+              "-/etc/localtime"
+              "-/etc/kanidm"
+              "-/etc/static/kanidm"
+            ];
+            BindPaths = [
+              # To manage home directories
+              "/home"
 
-    #         BindReadOnlyPaths = [
-    #           "/nix/store"
-    #           "-/etc/resolv.conf"
-    #           "-/etc/nsswitch.conf"
-    #           "-/etc/hosts"
-    #           "-/etc/localtime"
-    #           "-/etc/kanidm"
-    #           "-/etc/static/kanidm"
-    #         ];
-    #         BindPaths = [
-    #           # To manage home directories
-    #           "/home"
+              # To connect to kanidm-unixd
+              "/run/kanidm-unixd:/var/run/kanidm-unixd"
+            ];
+            # CAP_DAC_OVERRIDE is needed to ignore ownership of unixd socket
+            CapabilityBoundingSet = ["CAP_CHOWN" "CAP_FOWNER" "CAP_DAC_OVERRIDE" "CAP_DAC_READ_SEARCH"];
+            IPAddressDeny = "any";
+            # Need access to users
+            PrivateUsers = false;
+            # Need access to home directories
+            ProtectHome = false;
+            RestrictAddressFamilies = ["AF_UNIX"];
+            TemporaryFileSystem = "/:ro";
+            Restart = "on-failure";
+          };
+          environment.RUST_LOG = serverSettings.log_level;
+        };
 
-    #           # To connect to kanidm-unixd
-    #           "/run/kanidm-unixd:/var/run/kanidm-unixd"
-    #         ];
-    #         # CAP_DAC_OVERRIDE is needed to ignore ownership of unixd socket
-    #         CapabilityBoundingSet = ["CAP_CHOWN" "CAP_FOWNER" "CAP_DAC_OVERRIDE" "CAP_DAC_READ_SEARCH"];
-    #         IPAddressDeny = "any";
-    #         # Need access to users
-    #         PrivateUsers = false;
-    #         # Need access to home directories
-    #         ProtectHome = false;
-    #         RestrictAddressFamilies = ["AF_UNIX"];
-    #         TemporaryFileSystem = "/:ro";
-    #         Restart = "on-failure";
-    #       };
-    #       environment.RUST_LOG = serverSettings.log_level;
-    #     };
+        environment.etc = {
+          "kanidm/server.toml".source = serverConfigFile;
+          "kanidm/config".source = clientConfigFile;
+          "kanidm/unixd".source = unixdConfigFile;
+        };
 
-    #     environment.etc = {
-    #       "kanidm/server.toml".source = serverConfigFile;
-    #       "kanidm/config".source = clientConfigFile;
-    #       "kanidm/unixd".source = unixdConfigFile;
-    #     };
+        system.nssModules = [package];
 
-    #     system.nssModules = [package];
+        system.nssDatabases.group = [name];
+        system.nssDatabases.passwd = [name];
 
-    #     system.nssDatabases.group = [name];
-    #     system.nssDatabases.passwd = [name];
+        ## environment.etc."kanidm/server.toml" = {
+        ##   mode = "0600";
+        ##   group = "kanidm";
+        ##   user = "kanidm";
+        ## };
 
-    #     # environment.etc."kanidm/server.toml" = {
-    #     #   mode = "0600";
-    #     #   group = "kanidm";
-    #     #   user = "kanidm";
-    #     # };
+        ## environment.etc."kanidm/config" = {
+        ##   mode = "0600";
+        ##   group = "kanidm";
+        ##   user = "kanidm";
+        ## };
 
-    #     # environment.etc."kanidm/config" = {
-    #     #   mode = "0600";
-    #     #   group = "kanidm";
-    #     #   user = "kanidm";
-    #     # };
+        services.caddy.virtualHosts."idm.h.lyte.dev" = {
+          extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
+        };
 
-    #     services.caddy.virtualHosts."idm.h.lyte.dev" = {
-    #       extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
-    #     };
-
-    #     networking = {
-    #       extraHosts = ''
-    #         ::1 idm.h.lyte.dev
-    #         127.0.0.1 idm.h.lyte.dev
-    #       '';
-    #     };
-    #   };
-    # })
+        networking = {
+          extraHosts = ''
+            ::1 idm.h.lyte.dev
+            127.0.0.1 idm.h.lyte.dev
+          '';
+        };
+      };
+      */
+    })
     {
       systemd.tmpfiles.settings = {
         "10-audiobookshelf" = {
@@ -1518,15 +1540,17 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
       };
-      # TODO: promtail?
-      # idrac exporter?
-      # restic exporter?
-      # smartctl exporter?
-      # systemd exporter?
-      # NOTE: we probably don't want this exposed
-      # services.caddy.virtualHosts."prometheus.h.lyte.dev" = {
-      #   extraConfig = ''reverse_proxy :${toString config.services.prometheus.port}'';
-      # };
+      /*
+      TODO: promtail?
+      idrac exporter?
+      restic exporter?
+      smartctl exporter?
+      systemd exporter?
+      NOTE: we probably don't want this exposed
+      services.caddy.virtualHosts."prometheus.h.lyte.dev" = {
+        extraConfig = ''reverse_proxy :${toString config.services.prometheus.port}'';
+      };
+      */
     }
     {
       # grafana
@@ -1604,17 +1628,19 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
   ];
 
-  # TODO: non-root processes and services that access secrets need to be part of
-  # the 'keys' group
-  # maybe this will fix plausible?
+  /*
+  TODO: non-root processes and services that access secrets need to be part of
+  the 'keys' group
+  maybe this will fix plausible?
 
-  # systemd.services.some-service = {
-  #   serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
-  # };
-  # or
-  # users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
+  systemd.services.some-service = {
+    serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
+  };
+  or
+  users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
 
-  # TODO: declarative directory quotas? for storage/$USER and /home/$USER
+  TODO: declarative directory quotas? for storage/$USER and /home/$USER
+  */
 
   environment.systemPackages = with pkgs; [
     aria2
@@ -1630,33 +1656,35 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
   services.tailscale.useRoutingFeatures = "server";
 
+  /*
   # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
-  # services.lidarr = {
-  #   enable = true;
-  #   dataDir = "/storage/lidarr";
-  # };
+  services.lidarr = {
+    enable = true;
+    dataDir = "/storage/lidarr";
+  };
 
-  # services.radarr = {
-  #   enable = true;
-  #   dataDir = "/storage/radarr";
-  # };
+  services.radarr = {
+    enable = true;
+    dataDir = "/storage/radarr";
+  };
 
-  # services.sonarr = {
-  #   enable = true;
-  #   dataDir = "/storage/sonarr";
-  # };
+  services.sonarr = {
+    enable = true;
+    dataDir = "/storage/sonarr";
+  };
 
-  # services.bazarr = {
-  #   enable = true;
-  #   listenPort = 6767;
-  # };
+  services.bazarr = {
+    enable = true;
+    listenPort = 6767;
+  };
 
-  # networking.firewall.allowedTCPPorts = [9876 9877];
-  # networking.firewall.allowedUDPPorts = [9876 9877];
-  # networking.firewall.allowedUDPPortRanges = [
-  #   {
-  #     from = 27000;
-  #     to = 27100;
-  #   }
-  # ];
+  networking.firewall.allowedTCPPorts = [9876 9877];
+  networking.firewall.allowedUDPPorts = [9876 9877];
+  networking.firewall.allowedUDPPortRanges = [
+    {
+      from = 27000;
+      to = 27100;
+    }
+  ];
+  */
 }

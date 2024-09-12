@@ -35,12 +35,14 @@
       default = self.outputs.devShells.${pkgs.system}.nix;
     });
 
-    # packages = genPkgs (pkgs: import ./pkgs {inherit pkgs;});
-    # overlays = import ./overlays self;
-    # nixosModules = import ./modules/nixos;
-    # homeManagerModules = import ./modules/home-manager;
-    # nixosConfigurations = import ./nixos;
-    # homeConfigurations = import ./home
-    # templates = import ./templates;
+    /*
+    packages = genPkgs (pkgs: import ./pkgs {inherit pkgs;});
+    overlays = import ./overlays self;
+    nixosModules = import ./modules/nixos;
+    homeManagerModules = import ./modules/home-manager;
+    nixosConfigurations = import ./nixos;
+    homeConfigurations = import ./home
+    templates = import ./templates;
+    */
   };
 }

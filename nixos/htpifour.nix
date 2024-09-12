@@ -58,15 +58,19 @@
   hardware.raspberry-pi."4".audio.enable = true;
 
   nixpkgs.overlays = [
-    # nixos-22.05
-    # (self: super: { libcec = super.libcec.override { inherit (self) libraspberrypi; }; })
-    # nixos-22.11
-    # (self: super: {libcec = super.libcec.override {withLibraspberrypi = true;};})
+    /*
+    nixos-22.05
+    (self: super: { libcec = super.libcec.override { inherit (self) libraspberrypi; }; })
+    nixos-22.11
+    (self: super: {libcec = super.libcec.override {withLibraspberrypi = true;};})
+    */
   ];
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  # systemd.services."getty@tty1".enable = false;
-  # systemd.services."autovt@tty1".enable = false;
+  /*
+  systemd.services."getty@tty1".enable = false;
+  systemd.services."autovt@tty1".enable = false;
+  */
 
   # hardware
   systemd.targets.sleep.enable = false;
@@ -99,38 +103,40 @@
     };
   };
 
-  # services.udev.extraRules = ''
-  #   # allow access to raspi cec device for video group (and optionally register it as a systemd device, used below)
-  #   SUBSYSTEM=="vchiq", GROUP="video", MODE="0660", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/vchiq"
-  # '';
+  /*
+  services.udev.extraRules = ''
+    # allow access to raspi cec device for video group (and optionally register it as a systemd device, used below)
+    SUBSYSTEM=="vchiq", GROUP="video", MODE="0660", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/vchiq"
+  '';
 
-  # powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
 
-  # optional: attach a persisted cec-client to `/run/cec.fifo`, to avoid the CEC ~1s startup delay per command
-  # scan for devices: `echo 'scan' &gt; /run/cec.fifo ; journalctl -u cec-client.service`
-  # set pi as active source: `echo 'as' &gt; /run/cec.fifo`
-  # systemd.sockets."cec-client" = {
-  #   after = ["dev-vchiq.device"];
-  #   bindsTo = ["dev-vchiq.device"];
-  #   wantedBy = ["sockets.target"];
-  #   socketConfig = {
-  #     ListenFIFO = "/run/cec.fifo";
-  #     SocketGroup = "video";
-  #     SocketMode = "0660";
-  #   };
-  # };
-  # systemd.services."cec-client" = {
-  #   after = ["dev-vchiq.device"];
-  #   bindsTo = ["dev-vchiq.device"];
-  #   wantedBy = ["multi-user.target"];
-  #   serviceConfig = {
-  #     ExecStart = ''${pkgs.libcec}/bin/cec-client -d 1'';
-  #     ExecStop = ''/bin/sh -c "echo q &gt; /run/cec.fifo"'';
-  #     StandardInput = "socket";
-  #     StandardOutput = "journal";
-  #     Restart = "no";
-  #   };
-  # };
+  optional: attach a persisted cec-client to `/run/cec.fifo`, to avoid the CEC ~1s startup delay per command
+  scan for devices: `echo 'scan' &gt; /run/cec.fifo ; journalctl -u cec-client.service`
+  set pi as active source: `echo 'as' &gt; /run/cec.fifo`
+  systemd.sockets."cec-client" = {
+    after = ["dev-vchiq.device"];
+    bindsTo = ["dev-vchiq.device"];
+    wantedBy = ["sockets.target"];
+    socketConfig = {
+      ListenFIFO = "/run/cec.fifo";
+      SocketGroup = "video";
+      SocketMode = "0660";
+    };
+  };
+  systemd.services."cec-client" = {
+    after = ["dev-vchiq.device"];
+    bindsTo = ["dev-vchiq.device"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      ExecStart = ''${pkgs.libcec}/bin/cec-client -d 1'';
+      ExecStop = ''/bin/sh -c "echo q &gt; /run/cec.fifo"'';
+      StandardInput = "socket";
+      StandardOutput = "journal";
+      Restart = "no";
+    };
+  };
+  */
 
   hardware.graphics.driSupport32Bit = lib.mkForce false;
 

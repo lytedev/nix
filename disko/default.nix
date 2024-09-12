@@ -6,10 +6,12 @@ in {
     swapSize,
     ...
   }: {
-    # this is my standard partitioning scheme for my machines which probably want hibernation capabilities
-    # a UEFI-compatible boot partition
-    # it includes an LUKS-encrypted btrfs volume
-    # a swap partition big enough to dump all the machine's RAM into
+    /*
+    this is my standard partitioning scheme for my machines which probably want hibernation capabilities
+    a UEFI-compatible boot partition
+    it includes an LUKS-encrypted btrfs volume
+    a swap partition big enough to dump all the machine's RAM into
+    */
 
     disko.devices = {
       disk = {
@@ -195,9 +197,11 @@ in {
   beefcake = let
     zpools = {
       zroot = {
-        # TODO: at the time of writing, disko does not support draid6
-        # so I'm building/managing the array manually for the time being
-        # the root pool is just a single disk right now
+        /*
+        TODO: at the time of writing, disko does not support draid6
+        so I'm building/managing the array manually for the time being
+        the root pool is just a single disk right now
+        */
         name = "zroot";
         config = {
           type = "zpool";
@@ -242,9 +246,11 @@ in {
                 keylocation = "file:///tmp/secret.key";
               };
               # use this to read the key during boot
-              # postCreateHook = ''
-              #   zfs set keylocation="prompt" "zroot/$name";
-              # '';
+              /*
+              postCreateHook = ''
+                zfs set keylocation="prompt" "zroot/$name";
+              '';
+              */
             };
             "encrypted/test" = {
               type = "zfs_fs";
@@ -254,9 +260,11 @@ in {
         };
       };
       zstorage = {
-        # PARITY_COUNT=3 NUM_DRIVES=8 HOT_SPARES=2 sudo -E zpool create -f -O mountpoint=none -O compression=on -O xattr=sa -O acltype=posixacl -o ashift=12 -O atime=off -O recordsize=64K zstorage draid{$PARITY_COUNT}:{$NUM_DRIVES}c:{$HOT_SPARES}s /dev/disk/by-id/scsi-35000039548cb637c /dev/disk/by-id/scsi-35000039548cb7c8c /dev/disk/by-id/scsi-35000039548cb85c8 /dev/disk/by-id/scsi-35000039548d9b504 /dev/disk/by-id/scsi-35000039548da2b08 /dev/disk/by-id/scsi-35000039548dad2fc /dev/disk/by-id/scsi-350000399384be921 /dev/disk/by-id/scsi-35000039548db096c
-        # sudo zfs create -o mountpoint=legacy zstorage/nix
-        # sudo zfs create -o canmount=on -o mountpoint=/storage zstorage/storage
+        /*
+        PARITY_COUNT=3 NUM_DRIVES=8 HOT_SPARES=2 sudo -E zpool create -f -O mountpoint=none -O compression=on -O xattr=sa -O acltype=posixacl -o ashift=12 -O atime=off -O recordsize=64K zstorage draid{$PARITY_COUNT}:{$NUM_DRIVES}c:{$HOT_SPARES}s /dev/disk/by-id/scsi-35000039548cb637c /dev/disk/by-id/scsi-35000039548cb7c8c /dev/disk/by-id/scsi-35000039548cb85c8 /dev/disk/by-id/scsi-35000039548d9b504 /dev/disk/by-id/scsi-35000039548da2b08 /dev/disk/by-id/scsi-35000039548dad2fc /dev/disk/by-id/scsi-350000399384be921 /dev/disk/by-id/scsi-35000039548db096c
+        sudo zfs create -o mountpoint=legacy zstorage/nix
+        sudo zfs create -o canmount=on -o mountpoint=/storage zstorage/storage
+        */
         name = "zstorage";
         config = {};
       };
