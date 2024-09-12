@@ -97,17 +97,21 @@
       };
     };
 
-    # moduleArgs = {
-    #   # inherit style;
-    #   inherit helix slippi hyprland hardware disko home-manager;
-    #   inherit (outputs) nixosModules homeManagerModules diskoConfigurations overlays;
-    # };
+    /*
+    moduleArgs = {
+      # inherit style;
+      inherit helix slippi hyprland hardware disko home-manager;
+      inherit (outputs) nixosModules homeManagerModules diskoConfigurations overlays;
+    };
+    */
 
     pubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev";
   in {
-    # kind of a quirk, but package definitions are actually in the "additions"
-    # overlay I did this to work around some recursion problems
-    # TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
+    /*
+    kind of a quirk, but package definitions are actually in the "additions"
+    overlay I did this to work around some recursion problems
+    TODO: https://discourse.nixos.org/t/infinite-recursion-getting-started-with-overlays/48880
+    */
     packages = genPkgs (pkgs: {inherit (pkgs) iosevkaLyteTerm iosevkaLyteTermSubset nix-base-container-image;});
     diskoConfigurations = import ./disko {inherit (nixpkgs) lib;};
     templates = import ./templates;
@@ -221,10 +225,12 @@
       in rec {
         helix = helix.outputs.packages.${prev.system}.helix;
         final.helix = helix;
-        # TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
-        # source: https://github.com/wez/wezterm/issues/3771
-        # not-yet-merged (abandoned?): https://github.com/wez/wezterm/pull/4737
-        # I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
+        /*
+        TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
+        source: https://github.com/wez/wezterm/issues/3771
+        not-yet-merged (abandoned?): https://github.com/wez/wezterm/pull/4737
+        I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
+        */
         wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         final.wezterm = wezterm;
       };
@@ -437,33 +443,35 @@
         ];
       };
 
-      # grablet = nixpkgs.lib.nixosSystem {
-      #   system = "x86_64-linux";
-      #   modules = with nixosModules; [
-      #     common
+      /*
+      grablet = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          common
 
-      #     outputs.diskoConfigurations.standard
-      #     hardware.nixosModules.common-cpu-intel-kaby-lake
-      #     hardware.nixosModules.common-pc-laptopp-ssd
-      #     graphical-workstation
-      #     laptop
-      #     gaming
+          outputs.diskoConfigurations.standard
+          hardware.nixosModules.common-cpu-intel-kaby-lake
+          hardware.nixosModules.common-pc-laptopp-ssd
+          graphical-workstation
+          laptop
+          gaming
 
-      #     ./nixos/thablet.nix
+          ./nixos/thablet.nix
 
-      #     {
-      #       home-manager.users.daniel = {
-      #         imports = with homeManagerModules; [
-      #           iex
-      #           cargo
-      #           linux-desktop-environment-config
-      #         ];
-      #       };
+          {
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                iex
+                cargo
+                linux-desktop-environment-config
+              ];
+            };
 
-      #       powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
-      #     }
-      #   ];
-      # };
+            powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
+          }
+        ];
+      };
+      */
 
       thinker = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
@@ -561,11 +569,13 @@
           linux
           troubleshooting-tools
 
-          # NOTE: maybe use this someday, but I think I need more concrete
-          # networking knowledge before I know how to use it well. Additionally,
-          # I can use my existing firewall configuration more easily if I manage
-          # it directly.
-          # nnf.nixosModules.default
+          /*
+          NOTE: maybe use this someday, but I think I need more concrete
+          networking knowledge before I know how to use it well. Additionally,
+          I can use my existing firewall configuration more easily if I manage
+          it directly.
+          nnf.nixosModules.default
+          */
 
           ./nixos/router.nix
         ];
@@ -599,8 +609,10 @@
         };
     };
 
-    # TODO: nix-on-droid for phone terminal usage?
-    # TODO: nix-darwin for work?
-    # TODO: nixos ISO?
+    /*
+    TODO: nix-on-droid for phone terminal usage?
+    TODO: nix-darwin for work?
+    TODO: nixos ISO?
+    */
   };
 }

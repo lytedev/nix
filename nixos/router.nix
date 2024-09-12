@@ -145,22 +145,22 @@ in {
       checkRuleset = true;
       ruleset = with inf; ''
         table inet filter {
-        	# set LANv4 {
-        	# 	type ipv4_addr
-        	# 	flags interval
-        	# 	elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
-        	# }
-        	# set LANv6 {
-        	# 	type ipv6_addr
-        	# 	flags interval
-        	# 	elements = { fd00::/8, fe80::/10 }
-        	# }
-          # TODO: maybe tailnet?
+        	## set LANv4 {
+        	## 	type ipv4_addr
+        	## 	flags interval
+        	## 	elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
+        	## }
+        	## set LANv6 {
+        	## 	type ipv6_addr
+        	## 	flags interval
+        	## 	elements = { fd00::/8, fe80::/10 }
+        	## }
+          ## TODO: maybe tailnet?
 
-        	# chain my_input_lan {
-        	# 	udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
-        	# 	udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
-        	# }
+        	## chain my_input_lan {
+        	## 	udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
+        	## 	udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
+        	## }
 
           chain input {
             type filter hook input priority 0; policy drop;
@@ -199,8 +199,8 @@ in {
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "tailscale0" accept comment "Allow local network to access the router"
 
-        		# ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
-        		# ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
+        		## ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
+        		## ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
 
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
           }
@@ -215,13 +215,13 @@ in {
             accept
           }
 
-          # chain forward {
-          #   type filter hook forward priority filter; policy drop;
+          ## chain forward {
+          ##   type filter hook forward priority filter; policy drop;
 
-          #   iifname { "${lan}" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
-          #   iifname { "tailscale0" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
-          #   iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
-          # }
+          ##   iifname { "${lan}" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
+          ##   iifname { "tailscale0" } oifname { "${wan}" } accept comment "Allow trusted LAN to WAN"
+          ##   iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
+          ## }
         }
 
         table ip nat {
@@ -263,16 +263,16 @@ in {
           parent = interfaces.wan.name;
           ipv4Addresses = [cidr];
         };
-        # banned = {
-        #   ingressExpression = [
-        #     "ip saddr @banlist"
-        #     "ip6 saddr @banlist6"
-        #   ];
-        #   egressExpression = [
-        #     "ip daddr @banlist"
-        #     "ip6 daddr @banlist6"
-        #   ];
-        # };
+        ## banned = {
+        ##   ingressExpression = [
+        ##     "ip saddr @banlist"
+        ##     "ip6 saddr @banlist6"
+        ##   ];
+        ##   egressExpression = [
+        ##     "ip daddr @banlist"
+        ##     "ip6 daddr @banlist6"
+        ##   ];
+        ## };
       };
 
       rules = {

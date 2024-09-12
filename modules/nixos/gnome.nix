@@ -50,36 +50,35 @@
       gnome.gnome-power-manager
       brightnessctl
       feh
-      # gimp
       grim
-      # inkscape
-      # krita
       libinput
       libinput-gestures
       libnotify
-      # lutris
-      # nil
-      # nixpkgs-fmt
       noto-fonts
       pamixer
-      # pavucontrol
       playerctl
-      # pulseaudio
       pulsemixer
-      # rclone
-      # restic
       slurp
-      # steam
       swaybg
       swayidle
       swaylock
-      # vlc
-      # vulkan-tools
       waybar
-      # weechat
-      # wine
       wl-clipboard
       zathura
+      /*
+      gimp
+      inkscape
+      krita
+      pavucontrol
+      pulseaudio
+      rclone
+      restic
+      steam
+      vlc
+      vulkan-tools
+      weechat
+      wine
+      */
     ];
   };
 }

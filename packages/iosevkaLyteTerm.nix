@@ -34,10 +34,10 @@ in ((iosevka.override {
       menu  = 900
       css   = 900
 
-      # [[buildPlans.Iosevka${set}.compatibility-ligatures]]
-      # unicode = 57600 # 0xE100
-      # featureTag = 'calt'
-      # kequence = '<*>'
+      ## [[buildPlans.Iosevka${set}.compatibility-ligatures]]
+      ## unicode = 57600 # 0xE100
+      ## featureTag = 'calt'
+      ## kequence = '<*>'
 
       [buildPlans.Iosevka${set}.variants]
       inherits = "ss01"

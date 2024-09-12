@@ -89,39 +89,41 @@
       systemPackages = with pkgs; [
         brightnessctl
         feh
-        # gimp
         grim
-        # inkscape
-        # krita
         libinput
         libinput-gestures
         libnotify
         mako
-        # lutris
-        # nil
-        # nixpkgs-fmt
         noto-fonts
         pamixer
-        # pavucontrol
         playerctl
         pulseaudio
         pulsemixer
-        # rclone
-        # restic
         slurp
-        # steam
         swaybg
         swayidle
         swaylock
         swayosd
         tofi
-        # vlc
-        # vulkan-tools
         waybar
-        # weechat
-        # wine
         wl-clipboard
         zathura
+        /*
+        gimp
+        inkscape
+        krita
+        lutris
+        nil
+        nixpkgs-fmt
+        pavucontrol
+        rclone
+        restic
+        steam
+        vlc
+        vulkan-tools
+        weechat
+        wine
+        */
       ];
     };
   };
@@ -238,9 +240,11 @@
       file
       iputils
       nettools
-      # nodePackages.bash-language-server # just pull in as needed?
-      # shellcheck
-      # shfmt
+      /*
+      nodePackages.bash-language-server # just pull in as needed?
+      shellcheck
+      shfmt
+      */
       killall
       ripgrep
       rsync
@@ -269,9 +273,11 @@
     pkgs,
     ...
   }: {
-    # https://nixos.wiki/wiki/Remote_disk_unlocking
-    # "When using DHCP, make sure your computer is always attached to the network and is able to get an IP adress, or the boot process will hang."
-    # ^ seems less than ideal
+    /*
+    https://nixos.wiki/wiki/Remote_disk_unlocking
+    "When using DHCP, make sure your computer is always attached to the network and is able to get an IP adress, or the boot process will hang."
+    ^ seems less than ideal
+    */
     boot.kernelParams = ["ip=dhcp"];
     boot.initrd = {
       # availableKernelModules = ["r8169"]; # ethernet drivers
@@ -306,17 +312,21 @@
 
       openFirewall = lib.mkDefault true;
 
-      # listenAddresses = [
-      #   { addr = "0.0.0.0"; port = 22; }
-      # ];
+      /*
+      listenAddresses = [
+        { addr = "0.0.0.0"; port = 22; }
+      ];
+      */
     };
   };
 
   password-manager = {pkgs, ...}: {
-    # programs.goldwarden = {
-    # NOTE: This didn't seem to work for me, but would be awesome!
-    #   enable = true;
-    # };
+    /*
+    programs.goldwarden = {
+      ## NOTE: This didn't seem to work for me, but would be awesome! (but I can't remember why?)
+      enable = true;
+    };
+    */
 
     home-manager.users.daniel = {
       imports = with homeManagerModules; [
@@ -418,9 +428,11 @@
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
     programs.neovim = {
       enable = true;
-      # plugins = [
-      #   pkgs.vimPlugins.nvim-treesitter.withAllGrammars
-      # ];
+      /*
+      plugins = [
+        pkgs.vimPlugins.nvim-treesitter.withAllGrammars
+      ];
+      */
     };
 
     environment.systemPackages = with pkgs; [
@@ -574,8 +586,10 @@
       then {
         graphics = {
           enable = true;
-          # driSupport32Bit = true;
-          # driSupport = true;
+          /*
+          driSupport32Bit = true;
+          driSupport = true;
+          */
         };
       }
       else {
@@ -591,8 +605,10 @@
         slides
       ];
       variables = {
-        # GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
-        # GTK_USE_PORTAL = "1";
+        /*
+        GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
+        GTK_USE_PORTAL = "1";
+        */
       };
     };
   };
@@ -603,10 +619,12 @@
   kde-connect = {
     programs.kdeconnect.enable = true;
 
-    # networking.firewall = {
-    # allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
-    # allowedUDPPortRanges = [ { from = 1714; to = 1764; } ];
-    # };
+    /*
+    networking.firewall = {
+    allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
+    allowedUDPPortRanges = [ { from = 1714; to = 1764; } ];
+    };
+    */
   };
 
   fonts = {pkgs, ...}: {
@@ -651,21 +669,24 @@
       maliit-framework
 
       kdePackages.kate
-      # kdePackages.kdenlive
-      # kdePackages.merkuro
       kdePackages.kcalc
-      # kdePackages.neochat
       kdePackages.filelight
       kdePackages.krdc
       kdePackages.krfb
       kdePackages.kclock
       kdePackages.kweather
       kdePackages.ktorrent
-      # kdePackages.kdevelop
-      # kdePackages.kdialog
       kdePackages.kdeplasma-addons
 
       unstable-packages.kdePackages.krdp
+
+      /*
+      kdePackages.kdenlive
+      kdePackages.merkuro
+      kdePackages.neochat
+      kdePackages.kdevelop
+      kdePackages.kdialog
+      */
     ];
 
     programs.gnupg.agent.pinentryPackage = pkgs.pinentry-tty;
@@ -746,50 +767,56 @@
           }
         ];
       };
-      # extraConfig.pipewire."92-low-latency" = {
-      # context.properties = {
-      # default.clock.rate = 48000;
-      # default.clock.quantum = 32;
-      # default.clock.min-quantum = 32;
-      # default.clock.max-quantum = 32;
-      # };
-      # };
+      /*
+      extraConfig.pipewire."92-low-latency" = {
+      context.properties = {
+      default.clock.rate = 48000;
+      default.clock.quantum = 32;
+      default.clock.min-quantum = 32;
+      default.clock.max-quantum = 32;
+      };
+      };
+      */
     };
 
     # recommended by https://nixos.wiki/wiki/PipeWire
     security.rtkit.enable = true;
 
-    # services.pipewire = {
-    #   enable = true;
+    /*
+    services.pipewire = {
+      enable = true;
 
-    #   wireplumber.enable = true;
-    #   pulse.enable = true;
-    #   jack.enable = true;
+      wireplumber.enable = true;
+      pulse.enable = true;
+      jack.enable = true;
 
-    #   alsa = {
-    #     enable = true;
-    #     support32Bit = true;
-    #   };
-    # };
+      alsa = {
+        enable = true;
+        support32Bit = true;
+      };
+    };
 
-    # hardware = {
-    #   pulseaudio = {
-    #     enable = false;
-    #     support32Bit = true;
-    #   };
-    # };
+    hardware = {
+      pulseaudio = {
+        enable = false;
+        support32Bit = true;
+      };
+    };
 
-    # security = {
-    #   # I forget why I need these exactly...
-    #   polkit.enable = true;
+    security = {
+      # I forget why I need these exactly...
+      polkit.enable = true;
 
-    #   rtkit.enable = true;
-    # };
+      rtkit.enable = true;
+    };
+    */
   };
 
   music-production = {pkgs, ...}: {
-    # TODO: may want to force nixpkgs-stable for a more-stable music production
-    # environment?
+    /*
+    TODO: may want to force nixpkgs-stable for a more-stable music production
+    environment?
+    */
     imports = [
       {
         environment.systemPackages = with pkgs; [
@@ -800,11 +827,12 @@
       }
     ];
 
-    # TODO: things to look into for music production:
-    # - https://linuxmusicians.com/viewtopic.php?t=27016
-    # - KXStudio?
-    # - falktx (https://github.com/DISTRHO/Cardinal)
-    # -
+    /*
+    TODO: things to look into for music production:
+    - https://linuxmusicians.com/viewtopic.php?t=27016
+    - KXStudio?
+    - falktx (https://github.com/DISTRHO/Cardinal)
+    */
   };
 
   podman = {pkgs, ...}: {
@@ -898,9 +926,11 @@
     networking.networkmanager.enable = mkDefault true;
     systemd.services.NetworkManager-wait-online.enable = mkDefault false;
 
-    # TODO: networking.networkmanager.wifi.backend = "iwd"; ?
-    # TODO: powersave?
-    # TODO: can I pre-configure my usual wifi networks with SSIDs and PSKs loaded from secrets?
+    /*
+    TODO: networking.networkmanager.wifi.backend = "iwd"; ?
+    TODO: powersave?
+    TODO: can I pre-configure my usual wifi networks with SSIDs and PSKs loaded from secrets?
+    */
   };
 
   steam = {pkgs, ...}: {
@@ -908,12 +938,15 @@
 
     programs.steam = {
       enable = true;
-      # extest.enable = true;
-      # gamescopeSession.enable = true;
 
-      # extraPackages = with pkgs; [
-      # gamescope
-      # ];
+      /*
+      extest.enable = true;
+      gamescopeSession.enable = true;
+
+      extraPackages = with pkgs; [
+      gamescope
+      ];
+      */
 
       extraCompatPackages = with pkgs; [
         proton-ge-bin
@@ -931,8 +964,10 @@
     ];
 
     # remote play ports - should be unnecessary due to programs.steam.remotePlay.openFirewall = true;
-    # networking.firewall.allowedUDPPortRanges = [ { from = 27031; to = 27036; } ];
-    # networking.firewall.allowedTCPPortRanges = [ { from = 27036; to = 27037; } ];
+    /*
+    networking.firewall.allowedUDPPortRanges = [ { from = 27031; to = 27036; } ];
+    networking.firewall.allowedTCPPortRanges = [ { from = 27036; to = 27037; } ];
+    */
   };
 
   root = {
@@ -1089,12 +1124,14 @@
 
     # module has the incorrect file permissions out of the box
     environment.etc = {
-      # "kanidm" = {
-      # enable = true;
-      #   user = "nobody";
-      #   group = "users";
-      #   mode = "0755";
-      # };
+      /*
+      "kanidm" = {
+      enable = true;
+        user = "nobody";
+        group = "users";
+        mode = "0755";
+      };
+      */
       "kanidm/unixd" = {
         user = "kanidm-unixd";
         group = "kanidm-unixd";
