@@ -27,9 +27,10 @@
 
   users.users = {
     beefcake = {
-      # used for restic backups
-      # TODO: can this be a system user?
-      isNormalUser = true;
+      isSystemUser = true;
+      createHome = true;
+      home = "/storage/backups/beefcake";
+      extraGroups = ["sftponly"];
       openssh.authorizedKeys.keys =
         config.users.users.daniel.openssh.authorizedKeys.keys
         ++ [
@@ -51,6 +52,13 @@
       openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
     };
   };
+
+  services.openssh.extraConfig = ''
+    Match Group sftponly
+      ChrootDirectory /storage/backups/%u
+      ForceCommand internal-sftp
+      AllowTcpForwarding no
+  '';
 
   networking = {
     hostName = "rascal";

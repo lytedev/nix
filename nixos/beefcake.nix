@@ -699,9 +699,18 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       users.users.restic = {
         # used for other machines to backup to
         isSystemUser = true;
+        createHome = true;
+        home = "/storage/backups/restic";
         group = "restic";
+        extraGroups = ["sftponly"];
         openssh.authorizedKeys.keys = [] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
       };
+      services.openssh.extraConfig = ''
+        Match Group sftponly
+          ChrootDirectory /storage/backups/%u
+          ForceCommand internal-sftp
+          AllowTcpForwarding no
+      '';
       systemd.tmpfiles.settings = {
         "10-backups-local" = {
           "/storage/backups/local" = {
@@ -714,6 +723,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
       services.restic.backups = let
+        # TODO: How do I set things up so that a compromised server doesn't have access to my backups so that it can corrupt or ransomware them?
         defaults = {
           passwordFile = config.sops.secrets.restic-rascal-passphrase.path;
           paths =
@@ -736,7 +746,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           defaults
           // {
             extraOptions = [
-              "sftp.command='ssh beefcake@rascal -i /root/.ssh/id_ed25519 -s sftp'"
+              ''sftp.command="ssh beefcake@rascal -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
             ];
             repository = "sftp://beefcake@rascal://storage/backups/beefcake";
           };
