@@ -140,6 +140,18 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
 
+      systemd.tmpfiles.settings = {
+        "10-daniel-nightly-flake-build" = {
+          "/home/daniel/.home/.cache/nightly-flake-builds" = {
+            "d" = {
+              mode = "0750";
+              user = "daniel";
+              group = "daniel";
+            };
+          };
+        };
+      };
+
       systemd.services."build-lytedev-flake" = {
         # TODO: might want to add root for the most recent results?
         script = ''
@@ -153,7 +165,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         path = with pkgs; [openssh git nixos-rebuild];
         serviceConfig = {
           # TODO: mkdir -p...?
-          WorkingDirectory = "/home/daniel/.home/nightly-flake-builds";
+          WorkingDirectory = "/home/daniel/.home/.cache/nightly-flake-builds";
           Type = "oneshot";
           User = "daniel";
         };
@@ -447,6 +459,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       # family storage
+      users.extraGroups = {
+        "family" = {};
+      };
       systemd.tmpfiles.settings = {
         "10-family" = {
           "/storage/family" = {

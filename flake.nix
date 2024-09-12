@@ -266,6 +266,7 @@
             };
           }
 
+          family-users
           common
           podman
           troubleshooting-tools
