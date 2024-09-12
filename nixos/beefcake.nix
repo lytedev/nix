@@ -232,119 +232,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       ];
     }
     {
-      /*
-      # samba
-      users.users.guest = {
-        # used for anonymous samba access
-        isSystemUser = true;
-        group = "users";
-        createHome = true;
-      };
-      users.users.scannerupload = {
-        # used for scanner samba access
-        isSystemUser = true;
-        group = "users";
-        createHome = true;
-      };
-      systemd.tmpfiles.rules = [
-        "d /var/spool/samba 1777 root root -"
-      ];
-      services.samba-wsdd = {
-        enable = true;
-      };
-      services.samba = {
-        enable = true;
-        openFirewall = true;
-        securityType = "user";
-
-        ## not needed since I don't think I use printer sharing?
-        ## https://nixos.wiki/wiki/Samba#Printer_sharing
-        ## package = pkgs.sambaFull; # broken last I checked in nixpkgs?
-
-        extraConfig = ''
-          workgroup = WORKGROUP
-          server string = beefcake
-          netbios name = beefcake
-          security = user
-          ## use sendfile = yes
-          ## max protocol = smb2
-          ## note: localhost is the ipv6 localhost ::1
-          hosts allow = 100.64.0.0/10 192.168.0.0/16 127.0.0.1 localhost
-          hosts deny = 0.0.0.0/0
-          guest account = guest
-          map to guest = never
-          ## load printers = yes
-          ## printing = cups
-          ## printcap name = cups
-        '';
-        shares = {
-          libre = {
-            path = "/storage/libre";
-            browseable = "yes";
-            "read only" = "no";
-            "guest ok" = "yes";
-            "create mask" = "0666";
-            "directory mask" = "0777";
-            # "force user" = "nobody";
-            # "force group" = "users";
-          };
-          public = {
-            path = "/storage/public";
-            browseable = "yes";
-            "read only" = "no";
-            "guest ok" = "yes";
-            "create mask" = "0664";
-            "directory mask" = "0775";
-            # "force user" = "nobody";
-            # "force group" = "users";
-          };
-          family = {
-            path = "/storage/family";
-            browseable = "yes";
-            "read only" = "no";
-            "guest ok" = "no";
-            "create mask" = "0660";
-            "directory mask" = "0770";
-            # "force user" = "nobody";
-            # "force group" = "family";
-          };
-          scannerdocs = {
-            path = "/storage/scannerdocs";
-            browseable = "yes";
-            "read only" = "no";
-            "guest ok" = "no";
-            "create mask" = "0600";
-            "directory mask" = "0700";
-            "valid users" = "scannerupload";
-            "force user" = "scannerupload";
-            "force group" = "users";
-          };
-          daniel = {
-            path = "/storage/daniel";
-            browseable = "yes";
-            "read only" = "no";
-            "guest ok" = "no";
-            "create mask" = "0600";
-            "directory mask" = "0700";
-            # "force user" = "daniel";
-            # "force group" = "users";
-          };
-          ## printers = {
-          ##   comment = "All Printers";
-          ##   path = "/var/spool/samba";
-          ##   public = "yes";
-          ##   browseable = "yes";
-          ##   # to allow user 'guest account' to print.
-          ##   "guest ok" = "yes";
-          ##   writable = "no";
-          ##   printable = "yes";
-          ##   "create mode" = 0700;
-          ## };
-        };
-      };
-      */
-    }
-    {
       # nextcloud
       # TODO: investigate https://carlosvaz.com/posts/the-holy-grail-nextcloud-setup-made-easy-by-nixos/
       /*
@@ -479,17 +366,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
               group = "family";
             };
           };
-          "/storage/family/valerie" = {
+          "/storage/valerie" = {
             "d" = {
-              mode = "0750";
+              mode = "0700";
               user = "valerie";
-              group = "family";
-            };
-          };
-          "/storage/family/daniel" = {
-            "d" = {
-              mode = "0750";
-              user = "daniel";
               group = "family";
             };
           };
@@ -497,6 +377,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       services.restic.commonPaths = [
         "/storage/family"
+        "/storage/valerie"
       ];
     }
     {
