@@ -1,4 +1,8 @@
-{style, ...}: {
+{
+  pkgs,
+  style,
+  ...
+}: {
   programs.waybar = {
     enable = true;
     settings = {
@@ -6,36 +10,37 @@
         "layer" = "top";
         "position" = "bottom";
         "output" = ["eDP-1" "DP-3"];
-        "height" = 32;
-        "modules-left" = ["clock" "sway/window"];
-        "modules-center" = ["sway/workspaces"];
+        "height" = 50;
+        "modules-left" = [
+          "idle_inhibitor"
+          "sway/workspaces"
+          "sway/window"
+        ];
+        "modules-center" = [];
         "modules-right" = [
           "mpris"
-          "idle_inhibitor"
-          "bluetooth"
-          "wireplumber"
-          "pulseaudio"
           "network"
+          ## "disk"
+          ## TODO: will need a custom module for Disk IO
+
+          ## "wireplumber" # pulseaudio module is more featureful
+          "pulseaudio"
           "cpu"
           "memory"
           "temperature"
           "backlight"
           "battery"
+
+          "bluetooth"
           "tray"
+          "clock"
         ];
         "bluetooth" = {
           "format" = "<span</span>";
-          "format-connected" = "<span></span>";
-          "format-connected-battery" = "<span></span>";
-          # "format-device-preference" = [ "device1", "device2" ]; # preference list deciding the displayed device
-          "tooltip-format" = "{controller_alias}@{controller_address} ({num_connections} connected)";
-          "tooltip-format-connected" = "{controller_alias}@{controller_address} ({num_connections} connected)\n{device_enumerate}";
-          "tooltip-format-enumerate-connected" = "{device_alias}@{device_address}";
-          "tooltip-format-enumerate-connected-battery" = "{device_alias}@{device_address} (󰁹 {device_battery_percentage}%)";
+          "on-click" = "${pkgs.blueman}/bin/blueman-manager";
         };
         "wireplumber" = {
           "format" = "{volume}% {icon}";
-          "format-muted" = "";
           "on-click" = "helvum";
         };
         "sway/workspaces" = {
@@ -58,15 +63,20 @@
         };
         "clock" = {
           "interval" = 1;
-          "format" = "{:%a %b %d %H:%M:%S}";
+          "format" = "{:%a %b %d\n%H:%M:%S}";
+          "justify" = "center";
         };
         "cpu" = {
-          "format" = "{usage} <span></span>";
+          "format" = "CPU\n{usage}%";
           "tooltip" = true;
-          "interval" = 3;
+          "interval" = 5;
+          "justify" = "center";
         };
         "memory" = {
-          "format" = "{} 󰍛";
+          "format" = "RAM\n{}%";
+          "tooltip" = true;
+          "interval" = 5;
+          "justify" = "center";
         };
         "temperature" = {
           /*
@@ -75,8 +85,8 @@
           "format-critical" = "{temperatureC}°C {icon}";
           */
           "critical-threshold" = 80;
-          "format" = "{temperatureC}°C {icon}";
-          "format-icons" = ["" "" ""];
+          "format" = "{temperatureC}\n°C";
+          "justify" = "center";
         };
         "backlight" = {
           # "device" = "acpi_video1";
@@ -98,14 +108,17 @@
           "format-icons" = ["󰂎" "󰁻" "󰁽" "󰁿" "󰂂"];
         };
         "network" = {
-          "format-wifi" = "{essid} ({signalStrength}%) ";
-          "format-ethernet" = "{ifname}: {ipaddr}/{cidr} ";
-          "format-linked" = "{ifname} (No IP) ";
-          "format-disconnected" = "Disconnected ⚠";
-          "format-alt" = "{ifname}: {ipaddr}/{cidr}";
+          "format-wifi" = "{bandwidthUpBits} up  \n{bandwidthDownBits} down";
+          "format-ethernet" = "{bandwidthUpBits} up  \n{bandwidthDownBits} down";
+          "format-linked" = "{bandwidthUpBits} up  \n{bandwidthDownBits} down";
+          "format-disconnected" = "No Network {icon}";
+          "format-alt" = "{bandwidthUpBits} up  \n{bandwidthDownBits} down";
+          "interval" = 5;
+          "justify" = "right";
         };
         "mpris" = {
-          "format" = "{title} by {artist}";
+          "format" = "{title}\nby {artist}";
+          "justify" = "center";
         };
         "pulseaudio" = {
           /*
@@ -115,21 +128,13 @@
           "format-bluetooth-muted" = " {icon} {format_source}";
           "format-muted" = " {format_source}";
           */
-          "format" = "{volume} {icon} <span>{format_source}</span>";
-          "format-muted" = "󰝟  {format_source}";
-          "format-source" = "";
-          "format-source-muted" = "";
-          "format-icons" = {
-            "headphones" = "";
-            "handsfree" = "󱥋";
-            "headset" = "󰋎";
-            "phone" = "";
-            "portable" = "";
-            "car" = "";
-            "default" = ["" "" ""];
-          };
+          "format" = "{volume}%\n{format_source}";
+          "format-muted" = "MUTE\n{format_source}";
+          "format-source" = "HOT";
+          "format-source-muted" = "OFF";
           # TODO: toggle mute?
-          "on-click" = "pavucontrol";
+          "on-click" = "${pkgs.pavucontrol}/bin/pavucontrol";
+          "justify" = "center";
         };
       };
     };

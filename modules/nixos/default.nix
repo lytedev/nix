@@ -80,7 +80,6 @@
 
     environment = {
       variables = {
-        GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
         VISUAL = "hx";
         PAGER = "less";
         MANPAGER = "less";
@@ -108,6 +107,7 @@
         waybar
         wl-clipboard
         zathura
+
         /*
         gimp
         inkscape

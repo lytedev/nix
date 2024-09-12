@@ -51,7 +51,7 @@
 
   wayland.windowManager.sway = {
     /*
-       TODO:
+    TODO:
     + Super+r should rotate the selected group of windows.
     + Super+Control+{1-9} should control the size of the preselect space.
     + Super+Shift+b should balance the size of all selected nodes.
@@ -181,13 +181,13 @@
       input = {
         "type:keyboard" = {
           xkb_options = "ctrl:nocaps";
-          repeat_delay = "200";
-          repeat_rate = "60";
+          repeat_delay = "180";
+          repeat_rate = "100";
         };
 
         "type:pointer" = {
           accel_profile = "flat";
-          pointer_accel = "0";
+          pointer_accel = "0.5";
         };
 
         "type:touchpad" = {
@@ -211,6 +211,7 @@
         "${mod}+c" = "kill";
         "${mod}+shift+c" = "kill # TODO: kill -9?";
         "${mod}+alt+space" = "exec wofi --show drun";
+        "${mod}" = "exec ${menu}";
         "${mod}+space" = "exec ${menu}";
         "${mod}+shift+s" = "exec clipshot";
         "${mod}+e" = "exec thunar";
