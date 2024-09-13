@@ -70,13 +70,13 @@
           "justify" = "center";
         };
         "cpu" = {
-          "format" = "CPU\n{usage}%";
+          "format" = "{usage}%\nCPU";
           "tooltip" = true;
           "interval" = 5;
           "justify" = "center";
         };
         "memory" = {
-          "format" = "RAM\n{}%";
+          "format" = "{}%\nRAM";
           "tooltip" = true;
           "interval" = 5;
           "justify" = "center";
@@ -103,12 +103,13 @@
             "warning" = 30;
             "critical" = 1;
           };
+          "tooltip-format" = "{timeTo}\n{power} watts\n{health}% health\n{cycles} cycles";
           "format" = "{icon}{capacity}%-\n{time}";
           "format-charging" = "{capacity}%+\n{time}";
           "format-plugged" = "{capacity}%=\n{time}";
           "format-alt" = "{capacity}%";
           "format-good" = ""; # An empty format will hide the module
-          "format-time" = "{H}:{M}";
+          "format-time" = "{H}:{m}";
           "justify" = "center";
         };
         "network" = {
@@ -128,12 +129,12 @@
           /*
           "scroll-step" = 1, # %, can be a floa;
           "format" = "{volume}% {icon} {format_source}";
-          "format-bluetooth" = "{volume}% {icon} {format_source}";
-          "format-bluetooth-muted" = " {icon} {format_source}";
           "format-muted" = " {format_source}";
           */
           "format" = "{volume}%\n{format_source}";
           "format-muted" = "MUTE\n{format_source}";
+          "format-bluetooth" = "{volume}%\n{format_source}";
+          "format-bluetooth-muted" = "MUTE\n{format_source}";
           "format-source" = "MIC ON";
           "format-source-muted" = "MIC OFF";
           # TODO: toggle mute?
