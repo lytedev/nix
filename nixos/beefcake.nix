@@ -1577,8 +1577,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "/storage/grafana" = {
             "d" = {
               mode = "0750";
-              user = "root";
-              group = "family";
+              user = "grafana";
+              group = "grafana";
             };
           };
         };
