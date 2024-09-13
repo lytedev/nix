@@ -569,6 +569,17 @@
           linux
           troubleshooting-tools
 
+          outputs.nixosModules.deno-netlify-ddns-client
+
+          {
+            services.deno-netlify-ddns-client = {
+              enable = true;
+              username = "router.h";
+              # TODO: ipv6
+              ipv6 = false;
+            };
+          }
+
           /*
           NOTE: maybe use this someday, but I think I need more concrete
           networking knowledge before I know how to use it well. Additionally,

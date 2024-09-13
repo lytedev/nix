@@ -1,7 +1,7 @@
 {
+  config,
   lib,
   # outputs,
-  # config,
   pkgs,
   ...
 }: let
@@ -51,6 +51,7 @@
         "idm.h.lyte.dev"
         "git.lyte.dev"
         "video.lyte.dev"
+        "paperless.h.lyte.dev"
         "audio.lyte.dev"
         "a.lyte.dev"
         "bw.lyte.dev"
@@ -106,6 +107,21 @@ in {
   environment.systemPackages = with pkgs; [
     iftop
   ];
+
+  sops = {
+    defaultSopsFile = ../secrets/router/secrets.yml;
+    age = {
+      sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+      keyFile = "/var/lib/sops-nix/key.txt";
+      generateKey = true;
+    };
+    secrets = {
+      netlify-ddns-password = {mode = "0400";};
+    };
+  };
+  services.deno-netlify-ddns-client = {
+    passwordFile = config.sops.secrets.netlify-ddns-password.path;
+  };
 
   boot.kernel.sysctl =
     sysctl-entries
