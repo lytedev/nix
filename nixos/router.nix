@@ -59,6 +59,8 @@
         "atuin.h.lyte.dev"
         "grafana.h.lyte.dev"
         "prometheus.h.lyte.dev"
+        "nextcloud.h.lyte.dev"
+        "onlyoffice.h.lyte.dev"
         "a.lyte.dev"
       ];
     };
