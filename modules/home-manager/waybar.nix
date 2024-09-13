@@ -18,13 +18,15 @@
         ];
         "modules-center" = [];
         "modules-right" = [
+          "privacy"
+          "power-profiles-daemon"
           "mpris"
-          "network"
           ## "disk"
           ## TODO: will need a custom module for Disk IO
 
           ## "wireplumber" # pulseaudio module is more featureful
           "pulseaudio"
+          "network"
           "cpu"
           "memory"
           "temperature"
@@ -60,6 +62,7 @@
         "tray" = {
           "icon-size" = 24;
           "spacing" = 4;
+          "show-passive-items" = true;
         };
         "clock" = {
           "interval" = 1;
@@ -90,8 +93,9 @@
         };
         "backlight" = {
           # "device" = "acpi_video1";
-          "format" = "{percent}% {icon}";
+          "format" = "{percent}%\n{icon}";
           "format-icons" = ["" ""];
+          "justify" = "center";
         };
         "battery" = {
           "states" = {
@@ -99,13 +103,13 @@
             "warning" = 30;
             "critical" = 1;
           };
-          "format" = "{capacity}% {time} {icon}";
-          "format-charging" = "{capacity}% {time} 󱐋";
-          "format-plugged" = "{capacity}% {time} 󰚥";
-          "format-alt" = "{capacity}% {icon}";
+          "format" = "{icon}{capacity}%-\n{time}";
+          "format-charging" = "{capacity}%+\n{time}";
+          "format-plugged" = "{capacity}%=\n{time}";
+          "format-alt" = "{capacity}%";
           "format-good" = ""; # An empty format will hide the module
-          "format-full" = "󰁹";
-          "format-icons" = ["󰂎" "󰁻" "󰁽" "󰁿" "󰂂"];
+          "format-time" = "{H}:{M}";
+          "justify" = "center";
         };
         "network" = {
           "format-wifi" = "{bandwidthUpBits} up  \n{bandwidthDownBits} down";
@@ -130,8 +134,8 @@
           */
           "format" = "{volume}%\n{format_source}";
           "format-muted" = "MUTE\n{format_source}";
-          "format-source" = "HOT";
-          "format-source-muted" = "OFF";
+          "format-source" = "MIC ON";
+          "format-source-muted" = "MIC OFF";
           # TODO: toggle mute?
           "on-click" = "${pkgs.pavucontrol}/bin/pavucontrol";
           "justify" = "center";
