@@ -1660,7 +1660,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
       services.restic.commonPaths = [
-        "/storage/grafana"
+        "/storage/actual"
       ];
 
       virtualisation.oci-containers = {
