@@ -1644,6 +1644,38 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraConfig = ''reverse_proxy :${toString config.services.grafana.settings.server.http_port}'';
       };
     }
+    {
+      # TODO: paperless-ngx
+    }
+    {
+      systemd.tmpfiles.settings = {
+        "10-actual" = {
+          "/storage/actual" = {
+            "d" = {
+              mode = "0750";
+              user = "root";
+              group = "family";
+            };
+          };
+        };
+      };
+      services.restic.commonPaths = [
+        "/storage/grafana"
+      ];
+
+      virtualisation.oci-containers = {
+        containers.actual = {
+          image = "docker.io/actualbudget/actual-server:latest";
+          autoStart = true;
+          ports = ["5006:5006"];
+          volumes = ["/storage/actual:/data"];
+        };
+      };
+
+      services.caddy.virtualHosts."finances.h.lyte.dev" = {
+        extraConfig = ''reverse_proxy :5006'';
+      };
+    }
   ];
 
   /*
