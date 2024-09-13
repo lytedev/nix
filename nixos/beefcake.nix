@@ -1620,6 +1620,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         settings = {
           server = {
             http_port = 3814;
+            root_url = "https://grafana.h.lyte.dev";
           };
           smtp = {
             enabled = true;
