@@ -95,14 +95,6 @@
         */
       ];
 
-      output = {
-        /*
-        "*" = {
-          background = "$HOME/.wallpaper fill";
-        };
-        */
-      };
-
       # TODO: popup_during_fullscreen smart
       focus = {
         wrapping = "no"; # maybe workspace?
@@ -127,6 +119,9 @@
       };
 
       startup = [
+        {
+          command = "swaybg -i $HOME/.wallpaper";
+        }
         {
           command = "swayosd-server";
         }
