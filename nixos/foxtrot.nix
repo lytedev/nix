@@ -74,10 +74,16 @@
     };
     */
 
-    /*
     wayland.windowManager.sway = {
       config = {
         output = {
+          "BOE NE135A1M-NY1 Unknown" = {
+            mode = "2880x1920@120Hz";
+            position = "0,0";
+            scale = toString 1.75;
+          };
+
+          /*
           "BOE 0x0BCA Unknown" = {
             mode = "2256x1504@60Hz";
             position = "0,0";
@@ -91,10 +97,10 @@
             # scale = "1.5";
             position = "${toString (builtins.floor (2256 / scale))},0";
           };
+          */
         };
       };
     };
-    */
   };
 
   hardware.graphics.extraPackages = [
