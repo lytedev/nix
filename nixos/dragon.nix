@@ -10,6 +10,26 @@
       home-manager.users.daniel.home.stateVersion = "24.05";
       networking.hostName = "dragon";
     }
+
+    {
+      # sops secrets config
+      sops = {
+        defaultSopsFile = ../secrets/dragon/secrets.yml;
+        age = {
+          sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+          keyFile = "/var/lib/sops-nix/key.txt";
+          generateKey = true;
+        };
+      };
+    }
+    {
+      sops.secrets = {
+        ddns-pass = {mode = "0400";};
+      };
+      services.deno-netlify-ddns-client = {
+        passwordFile = config.sops.secrets.ddns-pass.path;
+      };
+    }
   ];
   hardware.graphics.extraPackages = [
     # pkgs.rocmPackages.clr.icd

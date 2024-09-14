@@ -302,6 +302,17 @@
           gaming
           slippi.nixosModules.default
 
+          outputs.nixosModules.deno-netlify-ddns-client
+
+          {
+            services.deno-netlify-ddns-client = {
+              enable = true;
+              username = "dragon.h";
+              # TODO: router doesn't even do ipv6 yet...
+              ipv6 = false;
+            };
+          }
+
           ./nixos/dragon.nix
 
           {
