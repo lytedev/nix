@@ -1,9 +1,18 @@
 keys:
-  # after updating this, you will need to `sops updatekeys secrets.file` for any files that need the new key(s)
-  - &daniel age1stdue5q5teskee057ced6rh9pzzr93xsy66w4sc3zu49rgxl7cjshztt45 # pass age-key | rg '# pub'
-  - &sshd-at-beefcake age1etv56f7kf78a55lxqtydrdd32dpmsjnxndf4u28qezxn6p7xt9esqvqdq7 # ssh beefcake "nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
-  - &sshd-at-router age1zd7c3g5d20shdftq8ghqm0r92488dg4pdp4gulur7ex3zx2yq35ssxawpn # ssh router "nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
-  - &sshd-at-dragon age1ez4why08hdx0qf940cjzs6ep4q5rk2gqq7lp99pe58fktpwv65esx4xrht # ssh dragon "nix shell nixpkgs#ssh-to-age -c $SHELL -c 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
+  # list any public keys here
+
+  # pass age-key | rg '# pub'
+  - &daniel age1stdue5q5teskee057ced6rh9pzzr93xsy66w4sc3zu49rgxl7cjshztt45 
+
+  # per-host keys can be derived from a target host's ssh keys like so:
+  # ssh host "nix shell nixpkgs#ssh-to-age -c $SHELL -c 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
+  - &sshd-at-beefcake age1etv56f7kf78a55lxqtydrdd32dpmsjnxndf4u28qezxn6p7xt9esqvqdq7 
+  - &sshd-at-router age1zd7c3g5d20shdftq8ghqm0r92488dg4pdp4gulur7ex3zx2yq35ssxawpn
+  - &sshd-at-dragon age1ez4why08hdx0qf940cjzs6ep4q5rk2gqq7lp99pe58fktpwv65esx4xrht
+  - &ssh-foxtrot age1njnet9ltjuxasqv3ckn67r5natke6xgd8wlx8psf64pyc4duvurqhedw80
+
+  # after updating this file, you may need to update the keys for any associated files like so:
+  # sops updatekeys secrets.file
 
 creation_rules:
   - path_regex: secrets/[^/]+\.(ya?ml|json|env|ini)$
@@ -25,3 +34,8 @@ creation_rules:
     - age:
       - *daniel
       - *sshd-at-dragon
+  - path_regex: secrets/foxtrot/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *ssh-foxtrot
