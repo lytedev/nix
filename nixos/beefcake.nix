@@ -762,9 +762,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         benland =
           defaults
           // {
-            passwordFile = config.sops.secrets.restic-ssh-priv-key-benland.path;
             extraOptions = [
-              "sftp.command='ssh daniel@n.benhaney.com -p 10022 -i /root/.ssh/id_ed25519 -s sftp'"
+              ''sftp.command="ssh daniel@n.benhaney.com -p 10022 -i ${config.sops.secrets.restic-ssh-priv-key-benland.path} -s sftp"''
             ];
             repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
           };
