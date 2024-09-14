@@ -3,6 +3,8 @@ keys:
   - &daniel age1stdue5q5teskee057ced6rh9pzzr93xsy66w4sc3zu49rgxl7cjshztt45 # pass age-key | rg '# pub'
   - &sshd-at-beefcake age1etv56f7kf78a55lxqtydrdd32dpmsjnxndf4u28qezxn6p7xt9esqvqdq7 # ssh beefcake "nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
   - &sshd-at-router age1zd7c3g5d20shdftq8ghqm0r92488dg4pdp4gulur7ex3zx2yq35ssxawpn # ssh router "nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
+  - &sshd-at-dragon age1ez4why08hdx0qf940cjzs6ep4q5rk2gqq7lp99pe58fktpwv65esx4xrht # ssh dragon "nix shell nixpkgs#ssh-to-age -c $SHELL -c 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
+
 creation_rules:
   - path_regex: secrets/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
@@ -18,3 +20,8 @@ creation_rules:
     - age:
       - *daniel
       - *sshd-at-router
+  - path_regex: secrets/dragon/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *sshd-at-dragon
