@@ -31,7 +31,7 @@ in {
     requestTimeout = mkOption {
       type = types.int;
       description = "The maximum number of seconds before the HTTP request times out.";
-      default = 30;
+      default = 180;
     };
     afterBootTime = mkOption {
       type = types.str;
