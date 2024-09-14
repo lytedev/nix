@@ -70,7 +70,8 @@ in {
             --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
             -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" \
-            | "${pkgs.ripgrep}/bin/ripgrep" --fixed-strings "''${password}" -r "[REDACTED]"
+            | "${pkgs.sd}/bin/sd" --fixed-strings "''${password}" "[REDACTED]" \
+            | "${pkgs.sd}/bin/sd" -f i "Authorization: .*" "Authorization: [REST OF LINE REDACTED]"
         ''}
         ${optionalString cfg.ipv6 ''
           ${pkgs.curl}/bin/curl -6 -s \
@@ -79,7 +80,8 @@ in {
             --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
             -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" \
-            | "${pkgs.ripgrep}/bin/ripgrep" --fixed-strings "''${password}" -r "[REDACTED]"
+            | "${pkgs.sd}/bin/sd" --fixed-strings "''${password}" "[REDACTED]" \
+            | "${pkgs.sd}/bin/sd" -f i "Authorization: .*" "Authorization: [REST OF LINE REDACTED]"
         ''}
       '';
       serviceConfig = {

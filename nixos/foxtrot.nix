@@ -24,18 +24,16 @@
       services.fwupd.enable = true;
       services.fwupd.extraRemotes = ["lvfs-testing"];
 
-      # NOTE: I'm letting plasma settings handle this I guess?
-      /*
+      # NOTE: I previously let plasma settings handle this
       services.logind = {
         lidSwitch = "suspend-then-hibernate";
-        # HandleLidSwitchDocked=ignore
         extraConfig = ''
+          HandleLidSwitchDocked=ignore
           HandlePowerKey=suspend-then-hibernate
-          IdleActionSec=10m
+          IdleActionSec=11m
           IdleAction=suspend-then-hibernate
         '';
       };
-      */
     }
   ];
 
