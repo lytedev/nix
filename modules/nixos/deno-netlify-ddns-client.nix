@@ -69,7 +69,7 @@ in {
             -X POST \
             --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
-            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" \
+            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" 2>&1 \
             | "${pkgs.sd}/bin/sd" --fixed-strings "''${password}" "[REDACTED]" \
             | "${pkgs.sd}/bin/sd" -f i "Authorization: .*" "Authorization: [REST OF LINE REDACTED]"
         ''}
@@ -79,7 +79,7 @@ in {
             -X POST \
             --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
-            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" \
+            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" 2>&1 \
             | "${pkgs.sd}/bin/sd" --fixed-strings "''${password}" "[REDACTED]" \
             | "${pkgs.sd}/bin/sd" -f i "Authorization: .*" "Authorization: [REST OF LINE REDACTED]"
         ''}
