@@ -64,18 +64,22 @@ in {
         set -eu
         password="$(cat "${cfg.passwordFile}")"
         ${optionalString cfg.ipv4 ''
-          ${pkgs.curl}/bin/curl -4 -s \
+          "${pkgs.curl}/bin/curl" -4 -s \
+            -vvv \
             -X POST \
             --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
-            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records"
+            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" \
+            | "${pkgs.ripgrep}/bin/ripgrep" --fixed-strings "''${password}" -r "[REDACTED]"
         ''}
         ${optionalString cfg.ipv6 ''
           ${pkgs.curl}/bin/curl -6 -s \
+            -vvv \
             -X POST \
             --max-time ${toString cfg.requestTimeout} \
             -u "${cfg.username}:''${password}" \
-            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records"
+            -L "${cfg.endpoint}/v1/netlify-ddns/replace-all-relevant-user-dns-records" \
+            | "${pkgs.ripgrep}/bin/ripgrep" --fixed-strings "''${password}" -r "[REDACTED]"
         ''}
       '';
       serviceConfig = {
