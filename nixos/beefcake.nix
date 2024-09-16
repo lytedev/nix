@@ -838,6 +838,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             HTTP_PORT = 3088;
             DOMAIN = "git.lyte.dev";
           };
+          migrations = {
+            ALLOWED_DOMAINS = "*.github.com,github.com,gitlab.com,*.gitlab.com";
+          };
           actions = {
             ENABLED = true;
           };
