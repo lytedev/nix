@@ -25,11 +25,13 @@
     device = "/dev/sda";
   };
 
+  users.groups.beefcake = {};
   users.users = {
     beefcake = {
       isSystemUser = true;
       createHome = true;
       home = "/storage/backups/beefcake";
+      group = "beefcake";
       extraGroups = ["sftponly"];
       openssh.authorizedKeys.keys =
         config.users.users.daniel.openssh.authorizedKeys.keys

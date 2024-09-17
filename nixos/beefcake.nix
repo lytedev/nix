@@ -754,9 +754,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           defaults
           // {
             extraOptions = [
-              ''sftp.command="ssh beefcake@rascal -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
+              ''sftp.command="ssh beefcake@rascal.hare-cod.ts.net -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
             ];
-            repository = "sftp://beefcake@rascal://storage/backups/beefcake";
+            repository = "sftp://beefcake@rascal.hare-cod.ts.net://storage/backups/beefcake";
           };
         # TODO: add ruby?
         benland =
@@ -837,6 +837,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             HTTP_ADDR = "127.0.0.1";
             HTTP_PORT = 3088;
             DOMAIN = "git.lyte.dev";
+          };
+          migrations = {
+            ALLOWED_DOMAINS = "*.github.com,github.com,gitlab.com,*.gitlab.com";
           };
           actions = {
             ENABLED = true;
