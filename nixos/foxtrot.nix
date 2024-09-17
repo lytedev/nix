@@ -20,7 +20,7 @@
       ];
       # findmnt -no UUID -T /swap/swapfile
       boot.resumeDevice = "/dev/disk/by-uuid/81c3354a-f629-4b6b-a249-7705aeb9f0d5";
-      systemd.sleep.extraConfig = "HibernateDelaySec=30m";
+      systemd.sleep.extraConfig = "HibernateDelaySec=121m";
       services.fwupd.enable = true;
       services.fwupd.extraRemotes = ["lvfs-testing"];
 
@@ -178,7 +178,7 @@
   };
 
   services.fprintd = {
-    enable = true;
+    enable = false;
     package = pkgs.fprintd.overrideAttrs {
       # Source: https://github.com/NixOS/nixpkgs/commit/87ca2dc071581aea0e691c730d6844f1beb07c9f
       mesonCheckFlags = [
