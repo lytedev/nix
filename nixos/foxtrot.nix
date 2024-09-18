@@ -317,8 +317,13 @@ in
         output = {
           "BOE NE135A1M-NY1 Unknown" = {
             mode = "2880x1920@120Hz";
-            position = "0,0";
+            position = "1092,2160";
             scale = toString 1.75;
+          };
+
+          "Dell Inc. DELL U2720Q CWTM623" = {
+            mode = "3840x2160@60Hz";
+            position = "0,0";
           };
 
           /*
