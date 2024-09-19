@@ -527,6 +527,7 @@
 
   troubleshooting-tools = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
+      comma
       iftop
       bottom
       btop
