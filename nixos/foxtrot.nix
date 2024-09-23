@@ -246,8 +246,6 @@ in
       networking.hostName = "foxtrot";
     }
     {
-      # laptop power management
-      services.upower.enable = true;
       swapDevices = [
         # TODO: move this to disko?
         # NOTE(oninstall):
@@ -263,17 +261,6 @@ in
       systemd.sleep.extraConfig = "HibernateDelaySec=121m";
       services.fwupd.enable = true;
       services.fwupd.extraRemotes = ["lvfs-testing"];
-
-      # NOTE: I previously let plasma settings handle this
-      services.logind = {
-        lidSwitch = "suspend-then-hibernate";
-        extraConfig = ''
-          HandleLidSwitchDocked=ignore
-          HandlePowerKey=suspend-then-hibernate
-          IdleActionSec=11m
-          IdleAction=suspend-then-hibernate
-        '';
-      };
     }
   ];
 
@@ -356,7 +343,6 @@ in
   ];
 
   networking.networkmanager.wifi.powersave = false;
-  hardware.wirelessRegulatoryDatabase = true;
 
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
@@ -400,9 +386,6 @@ in
     ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
-    extraModprobeConfig = ''
-      options cfg80211 ieee80211_regdom="US"
-    '';
   };
   hardware.bluetooth = {
     enable = true;

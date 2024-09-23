@@ -152,8 +152,8 @@
           ];
         }
         {command = "mako";}
-        {command = "firefox";}
-        {command = "wezterm";}
+        # {command = "firefox";}
+        # {command = "wezterm";}
       ];
 
       modes = {

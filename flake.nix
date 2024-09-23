@@ -364,10 +364,10 @@
           home-manager-defaults
 
           hardware.nixosModules.common-pc-ssd
-
           common
           gaming
           graphical-workstation
+          plasma6
 
           ./nixos/htpc.nix
 
