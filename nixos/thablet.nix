@@ -5,9 +5,6 @@
 }: {
   networking.hostName = "thablet";
 
-  home-manager.users.daniel = {
-  };
-
   boot.loader.systemd-boot.enable = true;
 
   services.fprintd = {
@@ -48,7 +45,11 @@
 
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
+    powerOnBoot = false;
+  };
+
+  services.power-profiles-daemon = {
+    enable = true;
   };
 
   networking = {
@@ -58,6 +59,20 @@
     in {
       allowedTCPPorts = [terraria stardew-valley];
       allowedUDPPorts = [terraria stardew-valley];
+    };
+  };
+
+  home-manager.users.daniel = {
+    wayland.windowManager.sway = {
+      config = {
+        output = {
+          "AU Optronics 0x2236 Unknown" = {
+            mode = "2560x1440@60Hz";
+            position = "0,0";
+            scale = toString 1.25;
+          };
+        };
+      };
     };
   };
 

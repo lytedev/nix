@@ -42,6 +42,8 @@ if has_command skim
     set --export --universal SKIM_CTRL_T_COMMAND "fd --hidden"
 end
 
+set --export --universal NEWT_COLORS "root=black,black:border=black,blue"
+
 # colors
 set -U fish_color_normal normal # default color
 set -U fish_color_command white # base command being run (>ls< -la)

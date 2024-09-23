@@ -152,8 +152,8 @@
           ];
         }
         {command = "mako";}
-        {command = "firefox";}
-        {command = "wezterm";}
+        # {command = "firefox";}
+        # {command = "wezterm";}
       ];
 
       modes = {
@@ -284,19 +284,32 @@
         # TODO: this should also reset the horizontal and vertical gaps?
         "${mod}+control+equal" = "gaps inner current set 0";
 
+        "${mod}+shift+v" = "exec swayosd-client --input-volume mute-toggle";
+        "${mod}+F1" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "XF86AudioRaiseVolume" = "exec swayosd-client --output-volume raise";
         "XF86AudioLowerVolume" = "exec swayosd-client --output-volume lower";
         "XF86AudioMute" = "exec swayosd-client --output-volume mute-toggle";
         "XF86AudioMicMute" = "exec swayosd-client --input-volume mute-toggle";
-        "${mod}+shift+v" = "exec swayosd-client --input-volume mute-toggle";
         "XF86MonBrightnessUp" = "exec swayosd-client --brightness raise";
         "XF86MonBrightnessDown" = "exec swayosd-client --brightness lower";
         "control+XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +1%";
         "control+XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -1%";
-        "${mod}+F1" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "XF86AudioPlay" = "exec playerctl play-pause";
         "XF86AudioNext" = "exec playerctl next";
         "XF86AudioPrev" = "exec playerctl previous";
+        "--locked ${mod}+shift+v" = "exec swayosd-client --input-volume mute-toggle";
+        "--locked ${mod}+F1" = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        "--locked XF86AudioRaiseVolume" = "exec swayosd-client --output-volume raise";
+        "--locked XF86AudioLowerVolume" = "exec swayosd-client --output-volume lower";
+        "--locked XF86AudioMute" = "exec swayosd-client --output-volume mute-toggle";
+        "--locked XF86AudioMicMute" = "exec swayosd-client --input-volume mute-toggle";
+        "--locked XF86MonBrightnessUp" = "exec swayosd-client --brightness raise";
+        "--locked XF86MonBrightnessDown" = "exec swayosd-client --brightness lower";
+        "--locked control+XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +1%";
+        "--locked control+XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -1%";
+        "--locked XF86AudioPlay" = "exec playerctl play-pause";
+        "--locked XF86AudioNext" = "exec playerctl next";
+        "--locked XF86AudioPrev" = "exec playerctl previous";
 
         /*
         "XF86MonBrightnessUp" = " exec swayosd-client --brightness 10";

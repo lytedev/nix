@@ -1,4 +1,244 @@
-{pkgs, ...}: {
+{pkgs, ...}:
+/*
+## source: https://community.frame.work/t/speakers-sound-quality/1078/82
+let
+  pipewire-speakers-profile-json = ''{
+    "output": {
+        "blocklist": [],
+        "equalizer": {
+            "balance": 0.0,
+            "bypass": false,
+            "input-gain": 0.0,
+            "left": {
+                "band0": {
+                    "frequency": 100.0,
+                    "gain": 0.0,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 1.0,
+                    "slope": "x4",
+                    "solo": false,
+                    "type": "Hi-pass"
+                },
+                "band1": {
+                    "frequency": 150.0,
+                    "gain": 4.02,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 3.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band2": {
+                    "frequency": 600.0,
+                    "gain": -5.07,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.000000000000008,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band3": {
+                    "frequency": 1200.0,
+                    "gain": -3.49,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.17,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band4": {
+                    "frequency": 2000.0,
+                    "gain": 1.43,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band5": {
+                    "frequency": 5300.0,
+                    "gain": 3.84,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 2.64,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band6": {
+                    "frequency": 6000.0,
+                    "gain": 4.02,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.36,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Hi-shelf"
+                },
+                "band7": {
+                    "frequency": 7500.0,
+                    "gain": -2.09,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 3.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band8": {
+                    "frequency": 8000.0,
+                    "gain": 2.01,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.36,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band9": {
+                    "frequency": 900.0,
+                    "gain": -4.12,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 5.909999999999967,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                }
+            },
+            "mode": "IIR",
+            "num-bands": 10,
+            "output-gain": -1.5,
+            "pitch-left": 0.0,
+            "pitch-right": 0.0,
+            "right": {
+                "band0": {
+                    "frequency": 100.0,
+                    "gain": 0.0,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 1.0,
+                    "slope": "x4",
+                    "solo": false,
+                    "type": "Hi-pass"
+                },
+                "band1": {
+                    "frequency": 150.0,
+                    "gain": 4.02,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 3.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band2": {
+                    "frequency": 600.0,
+                    "gain": -5.07,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.000000000000008,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band3": {
+                    "frequency": 1200.0,
+                    "gain": -3.49,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.17,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band4": {
+                    "frequency": 2000.0,
+                    "gain": 1.43,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band5": {
+                    "frequency": 5300.0,
+                    "gain": 3.84,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 2.64,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band6": {
+                    "frequency": 6000.0,
+                    "gain": 4.02,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.36,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Hi-shelf"
+                },
+                "band7": {
+                    "frequency": 7500.0,
+                    "gain": -2.09,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 3.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band8": {
+                    "frequency": 8000.0,
+                    "gain": 2.01,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 4.36,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                },
+                "band9": {
+                    "frequency": 900.0,
+                    "gain": -4.12,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 5.909999999999967,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell"
+                }
+            },
+            "split-channels": false
+        },
+        "loudness": {
+            "bypass": false,
+            "clipping": false,
+            "clipping-range": 6.0,
+            "fft": "4096",
+            "input-gain": 0.0,
+            "output-gain": 0.0,
+            "std": "ISO226-2003",
+            "volume": 6.999999999999991
+        },
+        "plugins_order": [
+            "loudness",
+            "equalizer"
+        ]
+    }
+}'';
+in
+*/
+{
   imports = [
     {
       system.stateVersion = "24.05";
@@ -6,8 +246,6 @@
       networking.hostName = "foxtrot";
     }
     {
-      # laptop power management
-      services.upower.enable = true;
       swapDevices = [
         # TODO: move this to disko?
         # NOTE(oninstall):
@@ -20,20 +258,9 @@
       ];
       # findmnt -no UUID -T /swap/swapfile
       boot.resumeDevice = "/dev/disk/by-uuid/81c3354a-f629-4b6b-a249-7705aeb9f0d5";
-      systemd.sleep.extraConfig = "HibernateDelaySec=30m";
+      systemd.sleep.extraConfig = "HibernateDelaySec=121m";
       services.fwupd.enable = true;
       services.fwupd.extraRemotes = ["lvfs-testing"];
-
-      # NOTE: I previously let plasma settings handle this
-      services.logind = {
-        lidSwitch = "suspend-then-hibernate";
-        extraConfig = ''
-          HandleLidSwitchDocked=ignore
-          HandlePowerKey=suspend-then-hibernate
-          IdleActionSec=11m
-          IdleAction=suspend-then-hibernate
-        '';
-      };
     }
   ];
 
@@ -77,8 +304,13 @@
         output = {
           "BOE NE135A1M-NY1 Unknown" = {
             mode = "2880x1920@120Hz";
-            position = "0,0";
+            position = "1092,2160";
             scale = toString 1.75;
+          };
+
+          "Dell Inc. DELL U2720Q CWTM623" = {
+            mode = "3840x2160@60Hz";
+            position = "0,0";
           };
 
           /*
@@ -111,7 +343,6 @@
   ];
 
   networking.networkmanager.wifi.powersave = false;
-  hardware.wirelessRegulatoryDatabase = true;
 
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
@@ -155,9 +386,6 @@
     ];
     initrd.availableKernelModules = ["xhci_pci" "nvme" "thunderbolt"];
     kernelModules = ["kvm-amd"];
-    extraModprobeConfig = ''
-      options cfg80211 ieee80211_regdom="US"
-    '';
   };
   hardware.bluetooth = {
     enable = true;
@@ -178,7 +406,7 @@
   };
 
   services.fprintd = {
-    enable = true;
+    enable = false;
     package = pkgs.fprintd.overrideAttrs {
       # Source: https://github.com/NixOS/nixpkgs/commit/87ca2dc071581aea0e691c730d6844f1beb07c9f
       mesonCheckFlags = [

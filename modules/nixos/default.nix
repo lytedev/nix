@@ -403,6 +403,19 @@
       ACTION=="add", SUBSYSTEM=="backlight", RUN+="${pkgs.coreutils}/bin/chgrp video /sys/class/backlight/%k/brightness"
       ACTION=="add", SUBSYSTEM=="backlight", RUN+="${pkgs.coreutils}/bin/chmod g+w /sys/class/backlight/%k/brightness"
     '';
+
+    services.upower.enable = true;
+
+    # NOTE: I previously let plasma settings handle this
+    services.logind = {
+      lidSwitch = "suspend-then-hibernate";
+      extraConfig = ''
+        HandleLidSwitchDocked=ignore
+        HandlePowerKey=suspend-then-hibernate
+        IdleActionSec=11m
+        IdleAction=suspend-then-hibernate
+      '';
+    };
   };
 
   emacs = {pkgs, ...}: {
@@ -540,6 +553,7 @@
       hexyl
       pkgs.unixtools.xxd
       usbutils
+      comma
     ];
   };
 
@@ -569,7 +583,6 @@
     ...
   }: {
     imports = with nixosModules; [
-      plasma6
       sway
       # hyprland
       enable-flatpaks-and-appimages
@@ -932,6 +945,10 @@
     TODO: powersave?
     TODO: can I pre-configure my usual wifi networks with SSIDs and PSKs loaded from secrets?
     */
+    hardware.wirelessRegulatoryDatabase = true;
+    boot.extraModprobeConfig = ''
+      options cfg80211 ieee80211_regdom="US"
+    '';
   };
 
   steam = {pkgs, ...}: {
