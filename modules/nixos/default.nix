@@ -552,6 +552,7 @@
       hexyl
       pkgs.unixtools.xxd
       usbutils
+      comma
     ];
   };
 
