@@ -119,6 +119,8 @@
       };
 
       startup = [
+        {command = "kdeconnect-indicator";}
+        {command = "mako";}
         {
           command = "swaybg -i $HOME/.wallpaper";
         }
@@ -151,7 +153,6 @@
             "timeout 600  'swaymsg \"output * dpms off\"' resume 'swaymsg \"output * dpms on\" & maybe-good-morning &'"
           ];
         }
-        {command = "mako";}
         # {command = "firefox";}
         # {command = "wezterm";}
       ];
