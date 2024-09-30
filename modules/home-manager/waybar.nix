@@ -38,7 +38,7 @@
           "clock"
         ];
         "bluetooth" = {
-          "format" = "<span</span>";
+          "format" = "<span></span>";
           "on-click" = "${pkgs.blueman}/bin/blueman-manager";
         };
         "wireplumber" = {
