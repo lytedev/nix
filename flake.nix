@@ -425,16 +425,16 @@
                   # we use command -v $cmd here because we only want to invoke these calls _if_ the related package is installed on the system
                   # otherwise, they will likely have no effect anyways
                   text = ''
-                    command -v powerprofilesctl &>/dev/null && set -x && powerprofilesctl set performance && set +x
-                    command -v swaymsg &>/dev/null && set -x && swaymsg output eDP-1 mode 2880x1920@60Hz && set +x
+                    command -v powerprofilesctl &>/dev/null && bash -x -c 'powerprofilesctl set performance'
+                    command -v swaymsg &>/dev/null && bash -x -c 'swaymsg output eDP-1 mode 2880x1920@60Hz'
                   '';
                 })
               (writeShellApplication
                 {
                   name = "battmode";
                   text = ''
-                    command -v powerprofilesctl &>/dev/null && set -x && powerprofilesctl set power-saver && set +x
-                    command -v swaymsg &>/dev/null && set -x && swaymsg output eDP-1 mode 2880x1920@120Hz && set +x
+                    command -v powerprofilesctl &>/dev/null && bash -x -c 'powerprofilesctl set power-saver'
+                    command -v swaymsg &>/dev/null && bash -x -c 'swaymsg output eDP-1 mode 2880x1920@120Hz'
                   '';
                 })
             ];
