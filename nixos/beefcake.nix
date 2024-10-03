@@ -1129,6 +1129,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraOptions = ["--tty" "--interactive"];
         environment = {
           EULA = "true";
+          MOTD = "Flanilla Survival! Happy hunting!";
           UID = toString uid;
           GID = toString gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
@@ -1195,6 +1196,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraOptions = ["--tty" "--interactive"];
         environment = {
           EULA = "true";
+          MOTD = "Flanilla Creative! Have fun building!";
           UID = toString uid;
           GID = toString gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
