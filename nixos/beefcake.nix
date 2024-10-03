@@ -1153,7 +1153,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       systemd.tmpfiles.settings = {
         "10-${user}-survival" = {
-          "${dir}" = {
+          "${dir}/data" = {
+            "d" = {
+              mode = "0770";
+              user = user;
+              group = user;
+            };
+          };
+          "${dir}/worlds" = {
             "d" = {
               mode = "0770";
               user = user;
@@ -1212,7 +1219,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       systemd.tmpfiles.settings = {
         "10-${user}-creative" = {
-          "${dir}" = {
+          "${dir}/data" = {
+            "d" = {
+              mode = "0770";
+              user = user;
+              group = user;
+            };
+          };
+          "${dir}/worlds" = {
             "d" = {
               mode = "0770";
               user = user;
