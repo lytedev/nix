@@ -1108,28 +1108,91 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         ];
       */
     }
-    {
+    ({...}: let
+      port = 26969;
+      dir = "/storage/flanilla";
+      user = "flanilla";
+      uid = config.users.users.flanilla.uid;
+      gid = config.users.groups.flanilla.gid;
+    in {
       # flanilla family minecraft server
-      /*
-      users.groups.flanilla = {};
-      users.users.flanilla = {
+      users.groups.${user} = {};
+      users.users.${user} = {
         isSystemUser = true;
         createHome = false;
-        group = "flanilla";
+        group = user;
       };
       virtualisation.oci-containers.containers.minecraft-flanilla = {
         autoStart = true;
-
         image = "docker.io/itzg/minecraft-server";
-        user = "${toString config.users.users.flanilla.uid}:${toString config.users.groups.flanilla.gid}";
+        user = "${toString uid}:${toString gid}";
         extraOptions = ["--tty" "--interactive"];
         environment = {
           EULA = "true";
-          UID = toString config.users.users.flanilla.uid;
-          GID = toString config.users.groups.flanilla.gid;
+          UID = toString uid;
+          GID = toString gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
           TZ = "America/Chicago";
-          VERSION = "1.20.4";
+          VERSION = "1.21";
+          OPS = "lytedev";
+          MODE = "survival";
+          DIFFICULTY = "easy";
+          ONLINE_MODE = "false";
+          MEMORY = "8G";
+          MAX_MEMORY = "16G";
+          ALLOW_FLIGHT = "true";
+          ENABLE_QUERY = "true";
+          ENABLE_COMMAND_BLOCK = "true";
+        };
+        ports = ["${toString port}:25565"];
+
+        volumes = [
+          "${dir}/data:/data"
+          "${dir}/worlds:/worlds"
+        ];
+      };
+      systemd.tmpfiles.settings = {
+        "10-${user}-survival" = {
+          "${dir}" = {
+            "d" = {
+              mode = "0770";
+              user = user;
+              group = user;
+            };
+          };
+        };
+      };
+      services.restic.commonPaths = [dir];
+      networking.firewall.allowedTCPPorts = [
+        port
+      ];
+    })
+    ({...}: let
+      port = 26968;
+      dir = "/storage/flanilla-creative";
+      user = "flanilla";
+      uid = config.users.users.flanilla.uid;
+      gid = config.users.groups.flanilla.gid;
+    in {
+      # flanilla family minecraft server
+      users.groups.${user} = {};
+      users.users.${user} = {
+        isSystemUser = true;
+        createHome = false;
+        group = user;
+      };
+      virtualisation.oci-containers.containers.minecraft-flanilla-creative = {
+        autoStart = true;
+        image = "docker.io/itzg/minecraft-server";
+        user = "${toString uid}:${toString gid}";
+        extraOptions = ["--tty" "--interactive"];
+        environment = {
+          EULA = "true";
+          UID = toString uid;
+          GID = toString gid;
+          STOP_SERVER_ANNOUNCE_DELAY = "20";
+          TZ = "America/Chicago";
+          VERSION = "1.21";
           OPS = "lytedev";
           MODE = "creative";
           DIFFICULTY = "peaceful";
@@ -1140,23 +1203,29 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           ENABLE_QUERY = "true";
           ENABLE_COMMAND_BLOCK = "true";
         };
-
-        environmentFiles = [
-          # config.sops.secrets."flanilla.env".path
-        ];
-
-        ports = ["26966:25565"];
+        ports = ["${toString port}:25565"];
 
         volumes = [
-          "/storage/flanilla/data:/data"
-          "/storage/flanilla/worlds:/worlds"
+          "${dir}/data:/data"
+          "${dir}/worlds:/worlds"
         ];
       };
+      systemd.tmpfiles.settings = {
+        "10-${user}-creative" = {
+          "${dir}" = {
+            "d" = {
+              mode = "0770";
+              user = user;
+              group = user;
+            };
+          };
+        };
+      };
+      services.restic.commonPaths = [dir];
       networking.firewall.allowedTCPPorts = [
-        26966
+        port
       ];
-      */
-    }
+    })
     ({options, ...}: let
       /*
       toml = pkgs.formats.toml {};

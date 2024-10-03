@@ -872,6 +872,15 @@
     };
   };
 
+  virtual-machines = {pkgs, ...}: {
+    virtualisation.libvirtd.enable = true;
+    users.users.daniel.extraGroups = ["libvirtd"];
+  };
+
+  virtual-machines-gui = {pkgs, ...}: {
+    programs.virt-manager.enable = true;
+  };
+
   postgres = {pkgs, ...}: {
     # this is really just for development usage
     services.postgresql = {

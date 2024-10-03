@@ -278,6 +278,8 @@
           common
           podman
           troubleshooting-tools
+          virtual-machines
+          virtual-machines-gui
           linux
           fonts
 
@@ -298,6 +300,8 @@
           password-manager
           wifi
           graphical-workstation
+          virtual-machines
+          virtual-machines-gui
           music-production
           gaming
           slippi.nixosModules.default
@@ -393,6 +397,8 @@
           kde-connect
           password-manager
           graphical-workstation
+          virtual-machines
+          virtual-machines-gui
           laptop
           gaming
 
@@ -434,7 +440,7 @@
                   name = "battmode";
                   text = ''
                     command -v powerprofilesctl &>/dev/null && bash -x -c 'powerprofilesctl set power-saver'
-                    command -v swaymsg &>/dev/null && bash -x -c 'swaymsg output eDP-1 mode 2880x1920@120Hz'
+                    command -v swaymsg &>/dev/null && bash -x -c 'swaymsg output eDP-1 mode 2880x1920@60Hz'
                   '';
                 })
             ];
