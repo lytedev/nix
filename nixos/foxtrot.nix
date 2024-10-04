@@ -258,7 +258,7 @@ in
       ];
       # findmnt -no UUID -T /swap/swapfile
       boot.resumeDevice = "/dev/disk/by-uuid/81c3354a-f629-4b6b-a249-7705aeb9f0d5";
-      systemd.sleep.extraConfig = "HibernateDelaySec=121m";
+      systemd.sleep.extraConfig = "HibernateDelaySec=11m";
       services.fwupd.enable = true;
       services.fwupd.extraRemotes = ["lvfs-testing"];
     }
