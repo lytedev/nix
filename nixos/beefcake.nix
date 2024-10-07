@@ -1783,7 +1783,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       virtualisation.oci-containers = {
         containers.actual = {
-          image = "docker.io/actualbudget/actual-server:24.9.0";
+          image = "ghcr.io/actualbudget/actual-server:24.10.0";
           autoStart = true;
           ports = ["5006:5006"];
           volumes = ["/storage/actual:/data"];
