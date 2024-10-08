@@ -68,7 +68,7 @@
     };
 
     services.dbus.enable = true;
-    services.polkit.enable = true; # needed for home-manager integration
+    security.polkit.enable = true; # needed for home-manager integration
 
     programs.thunar = {
       enable = true;
