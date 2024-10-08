@@ -72,6 +72,17 @@
 
     systemd = {
       enable = true;
+      variables = [
+        "DISPLAY"
+        "WAYLAND_DISPLAY"
+        "SWAYSOCK"
+        "XDG_CURRENT_DESKTOP"
+        "XDG_SESSION_TYPE"
+        "NIXOS_OZONE_WL"
+        "XCURSOR_THEME"
+        "XCURSOR_SIZE"
+        "PATH"
+      ];
     };
 
     # TODO: stuff is opening on workspace 10 (0?)
