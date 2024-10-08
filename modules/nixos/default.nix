@@ -618,8 +618,6 @@
       systemPackages = with pkgs; [
         libnotify
         slides
-        discord
-        slack
       ];
       variables = {
         /*
