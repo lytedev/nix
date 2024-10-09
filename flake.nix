@@ -659,8 +659,39 @@
       pinephone = let
         inherit (nixpkgs-unstable) lib;
       in
-        nixpkgs-unstable.legacyPackages.${builtins.currentSystem}.pkgsCross.aarch64-multiplatform.nixos {
-          imports = with nixosModules; [
+        lib.nixosSystem {
+          system = "aarch64-linux";
+          # lib.nixosSystem {
+
+          modules = with nixosModules; [
+            {
+              imports = [
+                (import "${mobile-nixos}/lib/configuration.nix" {
+                  device = "pine64-pinephone";
+                })
+              ];
+
+              # nixpkgs.hostPlatform.system = "aarch64-linux";
+              nixpkgs.buildPlatform = "x86_64-linux";
+
+              # TODO: quirk: since the pinephone kernel doesn't seem to have "rpfilter" support, firewall ain't working
+              networking.firewall.enable = lib.mkForce false;
+
+              # TODO: quirk: since git send-email requires perl support, which we don't seem to have on the pinephone, we're just disabling git for now
+              # TODO: would likely be easier/better to somehow ignore the assertion? probably a way to do that...
+              programs.git.enable = lib.mkForce false;
+
+              # this option is conflicted, presumably due to some assumption in my defaults/common config
+              # the sd-image module we're importing above has this set to true, so we better go with that?
+              # that said, I think the mobile-nixos bootloader module has this set to false, so...
+              # TODO: what does this mean?
+              boot.loader.generic-extlinux-compatible.enable = lib.mkForce true;
+
+              # another conflicting option since I think I default to NetworkManager and this conflicts with networking.wireless.enable
+              networking.networkmanager.enable = lib.mkForce false;
+              networking.wireless.enable = lib.mkForce true;
+            }
+
             # TODO: how do I build this as a .img to flash to an SD card?
 
             # for testing, this seems to work `nixos-rebuild build --impure --flake .#pinephone`
@@ -680,28 +711,10 @@
             }
 
             {
-              imports = [
-                (import "${mobile-nixos}/lib/configuration.nix" {
-                  device = "pine64-pinephone";
-                })
-              ];
-
-              # TODO: quirk: since the pinephone kernel doesn't seem to have "rpfilter" support, firewall ain't working
-              networking.firewall.enable = lib.mkForce false;
-
-              # TODO: quirk: since git send-email requires perl support, which we don't seem to have on the pinephone, we're just disabling git for now
-              # TODO: would likely be easier/better to somehow ignore the assertion? probably a way to do that...
-              programs.git.enable = lib.mkForce false;
-
-              # this option is conflicted, presumably due to some assumption in my defaults/common config
-              # the sd-image module we're importing above has this set to true, so we better go with that?
-              # that said, I think the mobile-nixos bootloader module has this set to false, so...
-              # TODO: what does this mean?
-              boot.loader.generic-extlinux-compatible.enable = lib.mkForce true;
-
-              # another conflicting option since I think I default to NetworkManager and this conflicts with networking.wireless.enable
-              networking.networkmanager.enable = lib.mkForce false;
-              networking.wireless.enable = lib.mkForce true;
+              # nixpkgs.buildPlatform = "x86_64-linux";
+              # nixpkgs.hostPlatform = lib.systems.examples.aarch64-multiplatform;
+              # nixpkgs.localSystem.system = lib.systems.examples.x86_64-linux;
+              # nixpkgs.crossSystem = lib.mkForce null;
             }
           ];
         };
