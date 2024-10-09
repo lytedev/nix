@@ -32,6 +32,11 @@
     slippi.inputs.home-manager.follows = "home-manager-unstable";
 
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
+
+    mobile-nixos = {
+      url = "github:lytedev/mobile-nixos";
+      flake = false;
+    };
   };
 
   nixConfig = {
@@ -66,6 +71,7 @@
     home-manager-unstable,
     helix,
     hardware,
+    mobile-nixos,
     # nnf,
     # hyprland,
     slippi,
@@ -627,6 +633,47 @@
           ./nixos/router.nix
         ];
       };
+
+      # pinephone-image =
+      #   (import "${mobile-nixos}/lib/eval-with-configuration.nix" {
+      #     configuration = with nixosModules; [
+      #       linux
+      #       home-manager-defaults
+
+      #       # outputs.diskoConfigurations.unencrypted # can I even disko with an image-based installation?
+      #       common
+      #       wifi
+
+      #       # TODO: how do I get a minimally useful mobile environment?
+      #       # for me, this means an on-screen keyboard and suspend support I think?
+      #       # I can live in a tty if needed and graphical stuff can all evolve later
+      #       # not worried about modem
+      #       # maybe/hopefully I can pull in or define my own sxmo via nix?
+      #     ];
+      #     device = "pine64-pinephone";
+      #     pkgs = pkgsFor "aarch64-linux";
+      #   })
+      #   .outputs
+      #   .disk-image;
+
+      pinephone = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = with nixosModules; [
+          # TODO: how do I build this image?
+          linux
+          home-manager-defaults
+
+          # outputs.diskoConfigurations.unencrypted # can I even disko with an image-based installation?
+          common
+          wifi
+
+          {
+            imports = [
+              (import "${mobile-nixos}/lib/configuration.nix" {device = "pine64-pinephone";})
+            ];
+          }
+        ];
+      };
     };
 
     homeConfigurations = {
@@ -657,7 +704,7 @@
     };
 
     /*
-    TODO: nix-on-droid for phone terminal usage?
+    TODO: nix-on-droid for phone terminal usage? mobile-nixos?
     TODO: nix-darwin for work?
     TODO: nixos ISO?
     */

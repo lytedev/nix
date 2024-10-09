@@ -522,6 +522,22 @@
         "type": "github"
       }
     },
+    "mobile-nixos": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1728423157,
+        "narHash": "sha256-pJaC+Aef6oixhV6HdWPS2Pq/TgHxEN+MPLYUjighWYI=",
+        "owner": "lytedev",
+        "repo": "mobile-nixos",
+        "rev": "b2c496bbcebc85a28d1d939b56bd331536bd1ac4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lytedev",
+        "repo": "mobile-nixos",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1709479366,
@@ -627,6 +643,7 @@
         "home-manager": "home-manager",
         "home-manager-unstable": "home-manager-unstable",
         "hyprland": "hyprland",
+        "mobile-nixos": "mobile-nixos",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "slippi": "slippi",
