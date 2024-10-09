@@ -692,6 +692,16 @@
               # TODO: quirk: since git send-email requires perl support, which we don't seem to have on the pinephone, we're just disabling git for now
               # TODO: would likely be easier/better to somehow ignore the assertion? probably a way to do that...
               programs.git.enable = lib.mkForce false;
+
+              # this option is conflicted, presumably due to some assumption in my defaults/common config
+              # the sd-image module we're importing above has this set to true, so we better go with that?
+              # that said, I think the mobile-nixos bootloader module has this set to false, so...
+              # TODO: what does this mean?
+              boot.loader.generic-extlinux-compatible.enable = lib.mkForce true;
+
+              # another conflicting option since I think I default to NetworkManager and this conflicts with networking.wireless.enable
+              networking.networkmanager.enable = lib.mkForce false;
+              networking.wireless.enable = lib.mkForce true;
             }
           ];
         };

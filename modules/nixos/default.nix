@@ -308,7 +308,7 @@
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        PermitRootLogin = "prohibit-password";
+        PermitRootLogin = lib.mkForce "prohibit-password";
       };
 
       openFirewall = lib.mkDefault true;
@@ -362,7 +362,7 @@
         modifications
         unstable-packages
       ];
-      config.allowUnfree = true;
+      # config.allowUnfree = true;
     };
 
     nix = {
