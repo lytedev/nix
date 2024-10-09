@@ -656,7 +656,7 @@
       #   .outputs
       #   .disk-image;
 
-      pinephone = nixpkgs.lib.nixosSystem {
+      pinephone = nixpkgs-unstable.lib.nixosSystem {
         system = "aarch64-linux";
         modules = with nixosModules; [
           # TODO: how do I build this image?
