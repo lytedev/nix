@@ -666,14 +666,14 @@
             # for testing, this seems to work `nixos-rebuild build --impure --flake .#pinephone`
 
             # TODO: would like to use the mobile-nixos installer?
-            # "${nixpkgs-unstable}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
+            "${nixpkgs-unstable}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
 
-            # linux
-            # home-manager-unstable-defaults
+            linux
+            home-manager-unstable-defaults
 
             # outputs.diskoConfigurations.unencrypted # can I even disko with an image-based installation?
-            # common
-            # wifi
+            common
+            wifi
 
             {
               system.stateVersion = "24.11";
@@ -696,6 +696,8 @@
           ];
         };
     };
+
+    images.pinephone = outputs.nixosConfigurations.pinephone.config.system.build.sdImage;
 
     homeConfigurations = {
       "deck" = let
