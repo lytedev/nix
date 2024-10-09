@@ -656,24 +656,48 @@
       #   .outputs
       #   .disk-image;
 
-      pinephone = nixpkgs-unstable.lib.nixosSystem {
+      pinephone = let
         system = "aarch64-linux";
-        modules = with nixosModules; [
-          # TODO: how do I build this image?
-          linux
-          home-manager-defaults
+        inherit (nixpkgs-unstable) lib;
+      in
+        lib.nixosSystem {
+          inherit system;
+          modules = with nixosModules; [
+            # TODO: how do I build this as a .img to flash to an SD card?
 
-          # outputs.diskoConfigurations.unencrypted # can I even disko with an image-based installation?
-          common
-          wifi
+            # for testing, this seems to work `nixos-rebuild build --impure --flake .#pinephone`
 
-          {
-            imports = [
-              (import "${mobile-nixos}/lib/configuration.nix" {device = "pine64-pinephone";})
-            ];
-          }
-        ];
-      };
+            {
+              # enable cross-compiling with impure
+              nixpkgs.buildPlatform = builtins.currentSystem;
+              nixpkgs.hostPlatform = system;
+            }
+
+            linux
+            home-manager-unstable-defaults
+
+            # outputs.diskoConfigurations.unencrypted # can I even disko with an image-based installation?
+            common
+            wifi
+
+            {
+              system.stateVersion = "24.11";
+            }
+
+            {
+              imports = [
+                (import "${mobile-nixos}/lib/configuration.nix" {device = "pine64-pinephone";})
+              ];
+
+              # TODO: quirk: since the pinephone kernel doesn't seem to have "rpfilter" support, firewall ain't working
+              networking.firewall.enable = lib.mkForce false;
+
+              # TODO: quirk: since git send-email requires perl support, which we don't seem to have on the pinephone, we're just disabling git for now
+              # TODO: would likely be easier/better to somehow ignore the assertion? probably a way to do that...
+              programs.git.enable = lib.mkForce false;
+            }
+          ];
+        };
     };
 
     homeConfigurations = {
