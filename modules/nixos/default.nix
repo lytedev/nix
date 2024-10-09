@@ -592,6 +592,7 @@
       printing
       music-consumption
       video-tools
+      radio-tools
     ];
 
     xdg.portal.enable = true;
@@ -630,6 +631,14 @@
 
   # gnome = {};
   # intel = {};
+
+  radio-tools = {pkgs, ...}: {
+    environment = {
+      systemPackages = with pkgs; [
+        chirp
+      ];
+    };
+  };
 
   kde-connect = {
     programs.kdeconnect.enable = true;
