@@ -407,6 +407,7 @@
           virtual-machines-gui
           laptop
           gaming
+          cross-compiler
 
           ./nixos/foxtrot.nix
 

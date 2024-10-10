@@ -1112,26 +1112,27 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       port = 26969;
       dir = "/storage/flanilla";
       user = "flanilla";
-      uid = config.users.users.flanilla.uid;
-      gid = config.users.groups.flanilla.gid;
+      # uid = config.users.users.flanilla.uid;
+      # gid = config.users.groups.flanilla.gid;
     in {
       # flanilla family minecraft server
       users.groups.${user} = {};
       users.users.${user} = {
         isSystemUser = true;
         createHome = false;
+        home = dir;
         group = user;
       };
       virtualisation.oci-containers.containers.minecraft-flanilla = {
-        autoStart = true;
+        autoStart = false;
         image = "docker.io/itzg/minecraft-server";
-        user = "${toString uid}:${toString gid}";
+        # user = "${toString uid}:${toString gid}";
         extraOptions = ["--tty" "--interactive"];
         environment = {
           EULA = "true";
           MOTD = "Flanilla Survival! Happy hunting!";
-          UID = toString uid;
-          GID = toString gid;
+          # UID = toString uid;
+          # GID = toString gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
           TZ = "America/Chicago";
           VERSION = "1.21";
@@ -1151,6 +1152,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "${dir}/data:/data"
           "${dir}/worlds:/worlds"
         ];
+      };
+      systemd.services.podman-minecraft-flanilla.serviceConfig = {
+        User = user;
+        Group = user;
       };
       systemd.tmpfiles.settings = {
         "10-${user}-survival" = {
@@ -1179,26 +1184,27 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       port = 26968;
       dir = "/storage/flanilla-creative";
       user = "flanilla";
-      uid = config.users.users.flanilla.uid;
-      gid = config.users.groups.flanilla.gid;
+      # uid = config.users.users.flanilla.uid;
+      # gid = config.users.groups.flanilla.gid;
     in {
       # flanilla family minecraft server
       users.groups.${user} = {};
       users.users.${user} = {
         isSystemUser = true;
         createHome = false;
+        home = lib.mkForce dir;
         group = user;
       };
       virtualisation.oci-containers.containers.minecraft-flanilla-creative = {
         autoStart = true;
         image = "docker.io/itzg/minecraft-server";
-        user = "${toString uid}:${toString gid}";
+        # user = "${toString uid}:${toString gid}";
         extraOptions = ["--tty" "--interactive"];
         environment = {
           EULA = "true";
           MOTD = "Flanilla Creative! Have fun building!";
-          UID = toString uid;
-          GID = toString gid;
+          # UID = toString uid;
+          # GID = toString gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
           TZ = "America/Chicago";
           VERSION = "1.21";
@@ -1219,6 +1225,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "${dir}/worlds:/worlds"
         ];
       };
+      # systemd.services.podman-minecraft-flanilla-creative.serviceConfig = {
+      #   User = user;
+      #   Group = user;
+      # };
       systemd.tmpfiles.settings = {
         "10-${user}-creative" = {
           "${dir}/data" = {
