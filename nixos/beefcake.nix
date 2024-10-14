@@ -1815,10 +1815,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         game-name = "Flanwheel Online";
         description = "Space Age 2.0";
         openFirewall = true;
+        lan = true;
         # public = true; # NOTE: cannot be true if requireUserVerification is false
         port = 34197;
         requireUserVerification = false; # critical for DRM-free users
-        lan = true; # NOTE: not sure if this interferes with online-ability?
 
         # contains the game password and account password for "public" servers
         extraSettingsFile = config.sops.secrets.factorio-server-settings.path;
