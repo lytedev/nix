@@ -220,8 +220,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       networking.firewall.allowedUDPPorts = lib.mkIf config.services.headscale.enable [3478];
     }
     {
-      # TODO: I think I need to setup my account? wondering if this can be done in nix as well
-
       services.restic.commonPaths = ["/var/lib/soju" "/var/lib/private/soju"];
       services.soju = {
         enable = true;
