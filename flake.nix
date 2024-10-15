@@ -31,6 +31,9 @@
     slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
     slippi.inputs.home-manager.follows = "home-manager-unstable";
 
+    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
+    jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
 
     mobile-nixos = {
@@ -71,6 +74,7 @@
     home-manager-unstable,
     helix,
     hardware,
+    jovian,
     mobile-nixos,
     # nnf,
     # hyprland,
@@ -384,6 +388,37 @@
           {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
+                linux-desktop-environment-config
+              ];
+            };
+          }
+        ];
+      };
+
+      steamdeck1 = nixpkgs-unstable.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          home-manager-unstable-defaults
+
+          outputs.diskoConfigurations.standard
+          hardware.nixosModules.common-pc-ssd
+          common
+          gaming
+          graphical-workstation
+          plasma6
+
+          jovian.outputs.nixosModules.jovian
+
+          {
+            networking.hostName = "steamdeck1";
+            boot.loader.systemd-boot.enable = true;
+            boot.loader.efi.canTouchEfiVariables = true;
+            hardware.bluetooth.enable = true;
+            networking.networkmanager.enable = true;
+
+            home-manager.users.daniel = {
+              imports = with homeManagerModules; [
+                firefox-no-tabs
                 linux-desktop-environment-config
               ];
             };

@@ -352,7 +352,7 @@
   };
 
   cross-compiler = {config, ...}: {
-    boot.binfmt.emulatedSystems = ["aarch64-linux"];
+    boot.binfmt.emulatedSystems = ["aarch64-linux" "i686-linux"];
   };
 
   default-nix-configuration-and-overlays = {
@@ -377,7 +377,7 @@
         trusted-users = ["root" "daniel"];
         experimental-features = lib.mkDefault ["nix-command" "flakes"];
 
-        extra-platforms = ["aarch64-linux"];
+        extra-platforms = ["i686-linux" "aarch64-linux"];
 
         substituters = [
           # TODO: dedupe with flake's config? is that even necessary?
