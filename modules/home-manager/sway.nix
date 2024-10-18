@@ -9,6 +9,17 @@
     enable = true;
   };
 
+  xdg = {
+    enable = true;
+    mimeApps = {
+      enable = true;
+      defaultApplications = {
+        "x-scheme-handler/http" = "firefox.desktop";
+        "x-scheme-handler/https" = "firefox.desktop";
+      };
+    };
+  };
+
   home.file."${config.xdg.configHome}/mako/config" = {
     enable = true;
     text = with style.colors.withHashPrefix; ''
@@ -17,6 +28,7 @@
       default-timeout=15000
       font=Symbols Nerd Font ${toString style.font.size},${style.font.name} ${toString style.font.size}
       anchor=top-right
+      on-notify=exec ${pkgs.mpv}/bin/mpv --volume=50 ~/.notify.wav
 
       background-color=${bg}
       text-color=${text}

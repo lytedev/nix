@@ -41,6 +41,25 @@
       pipewire
     ];
 
+    systemd.user.services."wait-for-full-path" = {
+      description = "wait for systemd units to have full PATH";
+      wantedBy = ["xdg-desktop-portal.service"];
+      before = ["xdg-desktop-portal.service"];
+      path = with pkgs; [systemd coreutils gnugrep];
+      script = ''
+        ispresent () {
+          systemctl --user show-environment | grep -E '^PATH=.*/.nix-profile/bin'
+        }
+        while ! ispresent; do
+          sleep 0.1;
+        done
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        TimeoutStartSec = "60";
+      };
+    };
+
     home-manager.users.daniel = {
       imports = with homeManagerModules; [
         sway
@@ -619,6 +638,8 @@
       systemPackages = with pkgs; [
         libnotify
         slides
+        slack
+        discord
       ];
       variables = {
         /*
@@ -879,6 +900,15 @@
       oci-containers = {
         backend = "podman";
       };
+    };
+
+    networking = {
+      extraHosts = ''
+        127.0.0.1 host.docker.internal
+        ::1 host.docker.internal
+        127.0.0.1 host.containers.internal
+        ::1 host.containers.internal
+      '';
     };
   };
 

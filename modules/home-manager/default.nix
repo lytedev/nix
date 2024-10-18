@@ -1294,7 +1294,6 @@
         };
       }
       ./waybar.nix
-      ./mako.nix
       ./swaylock.nix
       ./sway.nix
     ];
