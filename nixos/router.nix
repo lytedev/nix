@@ -214,6 +214,7 @@ in {
             udp dport { 80, 443 } accept comment "Allow QUIC to server (see nat prerouting)"
             tcp dport { 22 } accept comment "Allow SSH to server (see nat prerouting)"
             tcp dport { 25565 } accept comment "Allow Minecraft server connections (see nat prerouting)"
+            udp dport { 34197 } accept comment "Allow Factorio server connections (see nat prerouting)"
 
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "tailscale0" accept comment "Allow local network to access the router"
@@ -256,6 +257,7 @@ in {
             iifname ${wan} tcp dport {26966} dnat to ${hosts.beefcake.ip}
             iifname ${wan} tcp dport {25565} dnat to ${hosts.bald.ip}
             iifname ${wan} udp dport {25565} dnat to ${hosts.bald.ip}
+            iifname ${wan} udp dport {34197} dnat to ${hosts.beefcake.ip}
           }
 
           chain postrouting {
