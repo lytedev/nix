@@ -1077,7 +1077,7 @@
       createHome = true;
       openssh.authorizedKeys.keys = [pubkey];
       group = username;
-      extraGroups = ["users" "wheel" "video" "dialout" "uucp"];
+      extraGroups = ["users" "wheel" "video" "dialout" "uucp" "kvm"];
       packages = [];
     };
     home-manager.users.daniel = {
