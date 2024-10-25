@@ -602,6 +602,13 @@
     };
   };
 
+  android-dev = {pkgs, ...}: {
+    services.udev.packages = [
+      pkgs.android-udev-rules
+    ];
+    environment.systemPackages = [pkgs.android-studio];
+  };
+
   graphical-workstation = {
     pkgs,
     lib,
@@ -619,6 +626,7 @@
       music-consumption
       video-tools
       radio-tools
+      android-dev
     ];
 
     xdg.portal.enable = true;
