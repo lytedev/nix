@@ -476,6 +476,7 @@
 
     environment.systemPackages = with pkgs; [
       taplo # toml language server for editing helix configs per repo
+      picocom # serial
       pgcli
       oil
       watchexec
