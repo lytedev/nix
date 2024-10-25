@@ -1,13 +1,14 @@
 <div align="center">
+
 <h1>
 <img width="100" src="images/Nix_snowflake_lytedev.svg" /> <br>
+Nix for <code>lytedev</code>
 </h1>
-</div>
-
-# Nix
 
 [![flake check status](https://git.lyte.dev/lytedev/nix/badges/workflows/nix-flake-check.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=nix-flake-check.yaml)
 [![build status](https://git.lyte.dev/lytedev/nix/badges/workflows/nix-build.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=nix-build.yaml)
+
+</div>
 
 My grand, declarative, and unified application, service, environment, and
 machine configuration, secret, and package management in a single flake. ❤️ ❄️
