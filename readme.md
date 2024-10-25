@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-<img width="100" src="images/Nix_showflake_lytedev.svg" /> <br>
+<img width="100" src="images/Nix_snowflake_lytedev.svg" /> <br>
 </h1>
 </div>
 
