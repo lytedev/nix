@@ -1,3 +1,9 @@
+<div align="center">
+<h1>
+<img width="100" src="images/Nix_showflake_lytedev.svg" /> <br>
+</h1>
+</div>
+
 # Nix
 
 [![flake check status](https://git.lyte.dev/lytedev/nix/badges/workflows/nix-flake-check.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=nix-flake-check.yaml)
