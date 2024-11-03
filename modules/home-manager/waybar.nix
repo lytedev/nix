@@ -123,6 +123,8 @@
         };
         "mpris" = {
           "format" = "{title}\nby {artist}";
+          "title-len" = 64;
+          "artist-len" = 61;
           "justify" = "center";
         };
         "pulseaudio" = {
