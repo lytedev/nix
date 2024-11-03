@@ -1250,10 +1250,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         port
       ];
     })
-    ({options, ...}: let
-      /*
+    ({
+      config,
+      options,
+      ...
+    }: let
       toml = pkgs.formats.toml {};
-      package = pkgs.kanidm;
+      kanidm-package = config.services.kanidm.package;
       domain = "idm.h.lyte.dev";
       name = "kanidm";
       storage = "/storage/${name}";
@@ -1332,12 +1335,12 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # Does not work well with the temporary root
         #UMask = "0066";
       };
-      */
     in {
       # kanidm
-      /*
       config = {
-        # we need a mechanism to get the certificates that caddy provisions for us
+        # reload certs from caddy every 5 minutes
+        # TODO: ideally some kind of file watcher service would make way more sense here?
+        # or we could simply setup the permissions properly somehow?
         systemd.timers."copy-kanidm-certificates-from-caddy" = {
           wantedBy = ["timers.target"];
           timerConfig = {
@@ -1348,8 +1351,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
 
         systemd.services."copy-kanidm-certificates-from-caddy" = {
+          # get the certificates that caddy provisions for us
           script = ''
             umask 077
+            # this line should be unnecessary now that we have this in tmpfiles
             install -d -m 0700 -o "${user}" -g "${group}" "${storage}/data" "${storage}/certs"
             cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
             install -m 0700 -o "${user}" -g "${group}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
@@ -1361,9 +1366,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
 
-        environment.systemPackages = [package];
+        environment.systemPackages = [kanidm-package];
 
-        # TODO: should I use this for /storage/kanidm/certs etc.?
         systemd.tmpfiles.settings."10-kanidm" = {
           "${serverSettings.online_backup.path}".d = {
             inherit user group;
@@ -1393,7 +1397,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           inherit group;
           description = "kanidm server";
           isSystemUser = true;
-          packages = [package];
+          packages = [kanidm-package];
         };
         users.users."${user}-unixd" = {
           group = "${group}-unixd";
@@ -1405,7 +1409,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # loosely based off it
         systemd.services.kanidm = {
           enable = true;
-          path = with pkgs; [openssl] ++ [package];
+          path = with pkgs; [openssl] ++ [kanidm-package];
           description = "kanidm identity management daemon";
           wantedBy = ["multi-user.target"];
           after = ["network.target"];
@@ -1414,7 +1418,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             pwd
             ls -la
             ls -laR /storage/kanidm
-            ${package}/bin/kanidmd server -c ${serverConfigFile}
+            ${kanidm-package}/bin/kanidmd server -c ${serverConfigFile}
           '';
           # environment.RUST_LOG = serverSettings.log_level;
           serviceConfig = lib.mkMerge [
@@ -1459,7 +1463,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
               CacheDirectory = "${name}-unixd";
               CacheDirectoryMode = "0700";
               RuntimeDirectory = "${name}-unixd";
-              ExecStart = "${package}/bin/kanidm_unixd";
+              ExecStart = "${kanidm-package}/bin/kanidm_unixd";
               User = "${user}-unixd";
               Group = "${group}-unixd";
 
@@ -1493,7 +1497,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           partOf = ["kanidm-unixd.service"];
           restartTriggers = [unixdConfigFile clientConfigFile];
           serviceConfig = {
-            ExecStart = "${package}/bin/kanidm_unixd_tasks";
+            ExecStart = "${kanidm-package}/bin/kanidm_unixd_tasks";
 
             BindReadOnlyPaths = [
               "/nix/store"
@@ -1531,7 +1535,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           "kanidm/unixd".source = unixdConfigFile;
         };
 
-        system.nssModules = [package];
+        system.nssModules = [kanidm-package];
 
         system.nssDatabases.group = [name];
         system.nssDatabases.passwd = [name];
@@ -1559,7 +1563,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           '';
         };
       };
-      */
     })
     {
       systemd.tmpfiles.settings = {

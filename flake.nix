@@ -265,37 +265,44 @@
     };
 
     nixosConfigurations = {
-      beefcake = nixpkgs.lib.nixosSystem {
+      beefcake = let
         system = "x86_64-linux";
-        modules = with nixosModules; [
-          home-manager-defaults
+      in
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = with nixosModules; [
+            home-manager-defaults
 
-          # TODO: disko?
-          hardware.nixosModules.common-cpu-intel
+            # TODO: disko?
+            hardware.nixosModules.common-cpu-intel
 
-          outputs.nixosModules.deno-netlify-ddns-client
+            outputs.nixosModules.deno-netlify-ddns-client
 
-          {
-            services.deno-netlify-ddns-client = {
-              enable = true;
-              username = "beefcake.h";
-              # TODO: router doesn't even do ipv6 yet...
-              ipv6 = false;
-            };
-          }
+            {
+              services.deno-netlify-ddns-client = {
+                enable = true;
+                username = "beefcake.h";
+                # TODO: router doesn't even do ipv6 yet...
+                ipv6 = false;
+              };
+            }
 
-          family-users
-          common
-          podman
-          troubleshooting-tools
-          virtual-machines
-          virtual-machines-gui
-          linux
-          fonts
+            family-users
+            common
+            podman
+            troubleshooting-tools
+            virtual-machines
+            virtual-machines-gui
+            linux
+            fonts
 
-          ./nixos/beefcake.nix
-        ];
-      };
+            ./nixos/beefcake.nix
+
+            {
+              services.kanidm.package = (unstable.pkgsFor system).kanidm;
+            }
+          ];
+        };
 
       dragon = nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";
