@@ -243,6 +243,22 @@
         */
         wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         final.wezterm = wezterm;
+
+        zellij = prev.zellij.overrideAttrs rec {
+          version = "0.41.0";
+          src = prev.fetchFromGitHub {
+            owner = "zellij-org";
+            repo = "zellij";
+            rev = "v0.41.0";
+            hash = "sha256-A+JVWYz0t9cVA8XZciOwDkCecsC2r5TU2O9i9rVg7do=";
+          };
+          cargoDeps = prev.zellij.cargoDeps.overrideAttrs (prev.lib.const {
+            name = "zellij-vendor.tar.gz";
+            inherit src;
+            outputHash = "sha256-WxrMI7fV0pNsGjbNpXLr+xnMdWYkC4WxIeN4OK3ZPIE=";
+          });
+        };
+        final.zellij = zellij;
       };
 
       unstable-packages = final: _prev: {
