@@ -1395,7 +1395,7 @@
       # enableFishIntegration = true;
       settings = {
         pane_frames = false;
-        # simplified_ui = true;
+        simplified_ui = true;
         default_mode = "locked";
         mouse_mode = true;
         copy_clipboard = "primary";
