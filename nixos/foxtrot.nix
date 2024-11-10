@@ -436,15 +436,19 @@ in
 
   networking.firewall.allowedTCPPorts = let
     stardewValley = 24642;
+    factorio = 34197;
   in [
     8000 # dev stuff
+    factorio
     stardewValley
     7777
   ];
   networking.firewall.allowedUDPPorts = let
     stardewValley = 24642;
+    factorio = 34197;
   in [
     8000 # dev stuff
+    factorio
     stardewValley
     7777
   ];
