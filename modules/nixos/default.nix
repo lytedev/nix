@@ -537,7 +537,7 @@
       };
 
       programs.jujutsu = {
-        enable = true;
+        enable = false; # disabling for now due to CVE
       };
 
       programs.k9s = {
