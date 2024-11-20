@@ -311,6 +311,7 @@ in
           "Dell Inc. DELL U2720Q CWTM623" = {
             mode = "3840x2160@60Hz";
             position = "0,0";
+            scale = toString 1.25;
           };
 
           /*
