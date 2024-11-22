@@ -49,13 +49,17 @@
     enable = true;
     text = ''
       font = ${pkgs.iosevkaLyteTerm}/share/fonts/truetype/IosevkaLyteTerm-regular.ttf
+      font-size = 12
 
       text-color = #f8f8f8
       prompt-color = #f38ba8
       selection-color = #66d9ef
       background-color = #1e1e2e
-      border-width = 4
+      outline-width = 0
+      border-width = 1
       border-color = #66d9ef
+      width = 640
+      height = 400
 
       fuzzy-match = true
     '';
