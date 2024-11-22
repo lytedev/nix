@@ -348,7 +348,7 @@ in
   hardware.framework.amd-7040.preventWakeOnAC = true;
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    # kernelPackages = pkgs.linuxPackages_latest;
 
     # https://github.com/void-linux/void-packages/issues/50417#issuecomment-2131802836 fix framework 13 not shutting down
     /*
@@ -393,6 +393,20 @@ in
     # TODO: when resuming from hibernation, it would be nice if this would
     # simply resume the power state at the time of hibernation
     powerOnBoot = false;
+
+    package = pkgs.bluez.overrideAttrs (finalAttrs: previousAttrs: rec {
+      version = "5.78";
+      src = pkgs.fetchurl {
+        url = "mirror://kernel/linux/bluetooth/bluez-${version}.tar.xz";
+        sha256 = "sha256-gw/tGRXF03W43g9eb0X83qDcxf9f+z0x227Q8A1zxeM=";
+      };
+      patches = [];
+      buildInputs =
+        previousAttrs.buildInputs
+        ++ [
+          pkgs.python3Packages.pygments
+        ];
+    });
   };
   powerManagement.cpuFreqGovernor = "ondemand";
   /*
