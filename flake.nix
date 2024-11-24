@@ -8,7 +8,7 @@
 
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
+    # sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     git-hooks.url = "github:cachix/git-hooks.nix";
     git-hooks.inputs.nixpkgs.follows = "nixpkgs";

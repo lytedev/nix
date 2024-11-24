@@ -1,17 +1,19 @@
 {
   pkgs,
-  colors,
+  style,
   config,
   lib,
   # font,
   ...
-}: {
+}: let
+  inherit (style) colors;
+in {
   imports = [
     ./ewwbar.nix
-    ./mako.nix
-    ./swaylock.nix
+    # ./mako.nix
+    # ./swaylock.nix
     # TODO: figure out how to import this for this module _and_ for the sway module?
-    ./linux-desktop.nix
+    # ./linux-desktop.nix
   ];
 
   # TODO: Hyprland seems to have issues with resuming from hibernation on my
@@ -117,6 +119,10 @@
         allow_workspace_cycles = true;
       };
 
+      cursor = {
+        no_warps = true;
+      };
+
       general = {
         # See https://wiki.hyprland.org/Configuring/Variables/ for more
         "col.active_border" = "0xff${colors.primary} 0xff${colors.green} 45deg";
@@ -125,7 +131,6 @@
         gaps_in = 3;
         gaps_out = 6;
         border_size = 2;
-        no_cursor_warps = true;
         resize_on_border = true;
         no_focus_fallback = true;
 
@@ -142,10 +147,12 @@
         blur_new_optimizations = on
         */
 
-        drop_shadow = "yes";
-        shadow_range = 4;
-        shadow_render_power = 3;
-        "col.shadow" = "rgba(1a1a1aee)";
+        shadow = {
+          enabled = true;
+          color = "rgba(1a1a1aee)";
+          range = 4;
+          render_power = 3;
+        };
 
         dim_inactive = false;
       };
@@ -259,12 +266,12 @@
         # master switch for pseudotiling. Enabling is bound to mod + P in the keybinds section below
         pseudotile = yes
         preserve_split = 1
-        no_gaps_when_only = true
+        # no_gaps_when_only = true
       }
 
       master {
         # See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
-        new_is_master = true
+        # new_is_master = true
       }
 
       gestures {

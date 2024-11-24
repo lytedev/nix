@@ -1118,7 +1118,7 @@
     };
   };
 
-  # hyprland = {};
+  hyprland = import ./hyprland.nix;
 
   iex = {
     home.file.".iex.exs" = {

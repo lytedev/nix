@@ -24,7 +24,7 @@ config.show_new_tab_button_in_tab_bar = true
 
 config.front_end = "WebGpu"
 config.webgpu_power_preference = 'HighPerformance'
-config.enable_wayland = false
+config.enable_wayland = true
 -- config.use_ime = true
 
 local function tab_title(tab_info)

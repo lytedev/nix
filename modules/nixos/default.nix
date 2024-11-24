@@ -33,6 +33,12 @@
       package = flakeInputs.hyprland.packages.${pkgs.system}.hyprland;
     };
 
+    home-manager.users.daniel = {
+      imports = with homeManagerModules; [
+        hyprland
+      ];
+    };
+
     # TODO: include the home-manager modules for daniel?
   };
 
@@ -618,7 +624,7 @@
   }: {
     imports = with nixosModules; [
       sway
-      # hyprland
+      hyprland
       enable-flatpaks-and-appimages
       fonts
       development-tools
