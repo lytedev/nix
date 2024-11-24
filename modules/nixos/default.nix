@@ -478,7 +478,7 @@
       taplo # toml language server for editing helix configs per repo
       picocom # serial
       pgcli
-      oil
+      oils-for-unix
       watchexec
       android-tools
       kubectl
@@ -750,7 +750,7 @@
       */
     ];
 
-    programs.gnupg.agent.pinentryPackage = pkgs.pinentry-tty;
+    programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-tty;
   };
 
   lutris = {pkgs, ...}: {
@@ -1229,7 +1229,7 @@
 
     programs.gnupg.agent = {
       enable = true;
-      pinentryPackage = lib.mkDefault pkgs.pinentry-tty;
+      pinentryPackage = pkgs.pinentry-tty;
     };
 
     time = {
