@@ -49,7 +49,7 @@ in {
         "hyprpaper"
         "mako"
         "swayosd-server"
-        "eww daemon && eww open bar$EWW_BAR_MON"
+        "eww daemon && eww open bar0"
         "firefox"
         "wezterm"
         "xwaylandvideobridge"
