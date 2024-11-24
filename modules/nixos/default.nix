@@ -1235,7 +1235,7 @@
 
     programs.gnupg.agent = {
       enable = true;
-      # pinentryPackage = lib.mkDefault pkgs.pinentry-tty;
+      pinentryPackage = lib.mkDefault pkgs.pinentry-tty;
     };
 
     time = {
