@@ -242,6 +242,7 @@
         I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
         */
         wezterm = wezterm-input.outputs.packages.${prev.system}.default;
+        # wezterm = (import nixpkgs {inherit (prev) system;}).wezterm;
         final.wezterm = wezterm;
 
         zellij = prev.zellij.overrideAttrs rec {
@@ -496,7 +497,7 @@
                   # we use command -v $cmd here because we only want to invoke these calls _if_ the related package is installed on the system
                   # otherwise, they will likely have no effect anyways
                   text = ''
-                    command -v powerprofilesctl &>/dev/null && bash -x -c 'powerprofilesctl set performance'
+                    command -v powerprofilesctl &>/dev/null && bash -x -c 'powerprofilesctl set balanced'
                     command -v swaymsg &>/dev/null && bash -x -c 'swaymsg output eDP-1 mode 2880x1920@120Hz'
                   '';
                 })

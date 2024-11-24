@@ -750,7 +750,7 @@
       */
     ];
 
-    programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-tty;
+    programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
   };
 
   lutris = {pkgs, ...}: {
@@ -1187,7 +1187,7 @@
       environment.TMPDIR = "/var/tmp";
     };
     boot.tmp.cleanOnBoot = true;
-    services.irqbalance.enable = true;
+    # services.irqbalance.enable = true;
 
     # this is not ready for primetime yet
     # services.kanidm = {
@@ -1229,7 +1229,7 @@
 
     programs.gnupg.agent = {
       enable = true;
-      pinentryPackage = pkgs.pinentry-tty;
+      pinentryPackage = lib.mkDefault pkgs.pinentry-tty;
     };
 
     time = {
