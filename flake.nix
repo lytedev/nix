@@ -49,7 +49,7 @@
       "https://cache.nixos.org/"
       "https://helix.cachix.org"
       "https://nix-community.cachix.org"
-      "https://nix.h.lyte.dev"
+      # "https://nix.h.lyte.dev"
       "https://hyprland.cachix.org"
     ];
 
@@ -294,7 +294,6 @@
             hardware.nixosModules.common-cpu-intel
 
             outputs.nixosModules.deno-netlify-ddns-client
-
             {
               services.deno-netlify-ddns-client = {
                 enable = true;
@@ -341,7 +340,6 @@
           slippi.nixosModules.default
 
           outputs.nixosModules.deno-netlify-ddns-client
-
           {
             services.deno-netlify-ddns-client = {
               enable = true;
@@ -462,6 +460,7 @@
           kde-connect
           password-manager
           graphical-workstation
+          plasma6
           virtual-machines
           virtual-machines-gui
           laptop
@@ -672,7 +671,6 @@
           troubleshooting-tools
 
           outputs.nixosModules.deno-netlify-ddns-client
-
           {
             services.deno-netlify-ddns-client = {
               enable = true;
