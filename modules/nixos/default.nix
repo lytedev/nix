@@ -1188,7 +1188,7 @@
       root
     ];
 
-    boot.tmp.useTmpfs = true;
+    # boot.tmp.useTmpfs = true;
     systemd.services.nix-daemon = {
       environment.TMPDIR = "/var/tmp";
     };
