@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     disko.url = "github:nix-community/disko/master";
@@ -337,6 +337,7 @@
           virtual-machines
           virtual-machines-gui
           music-production
+          plasma6
           gaming
           slippi.nixosModules.default
 
