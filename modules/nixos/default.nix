@@ -695,8 +695,13 @@
   };
 
   fonts = {pkgs, ...}: {
-    fonts.packages = with pkgs; [
-      nerd-fonts.symbols-only
+    fonts.packages = [
+      (
+        # allow nixpkgs 24.11 and unstable to both work
+        if builtins.hasAttr "nerd-fonts" pkgs
+        then (pkgs.nerd-fonts.symbols-only)
+        else (pkgs.nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
+      )
       pkgs.iosevkaLyteTerm
     ];
   };

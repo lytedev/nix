@@ -13,7 +13,7 @@
     git-hooks.url = "github:cachix/git-hooks.nix";
     git-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager-unstable.url = "github:nix-community/home-manager";
@@ -245,21 +245,21 @@
         # wezterm = (import nixpkgs {inherit (prev) system;}).wezterm;
         final.wezterm = wezterm;
 
-        zellij = prev.zellij.overrideAttrs rec {
-          version = "0.41.0";
-          src = prev.fetchFromGitHub {
-            owner = "zellij-org";
-            repo = "zellij";
-            rev = "v0.41.0";
-            hash = "sha256-A+JVWYz0t9cVA8XZciOwDkCecsC2r5TU2O9i9rVg7do=";
-          };
-          cargoDeps = prev.zellij.cargoDeps.overrideAttrs (prev.lib.const {
-            name = "zellij-vendor.tar.gz";
-            inherit src;
-            outputHash = "sha256-WxrMI7fV0pNsGjbNpXLr+xnMdWYkC4WxIeN4OK3ZPIE=";
-          });
-        };
-        final.zellij = zellij;
+        # zellij = prev.zellij.overrideAttrs rec {
+        #   version = "0.41.0";
+        #   src = prev.fetchFromGitHub {
+        #     owner = "zellij-org";
+        #     repo = "zellij";
+        #     rev = "v0.41.0";
+        #     hash = "sha256-A+JVWYz0t9cVA8XZciOwDkCecsC2r5TU2O9i9rVg7do=";
+        #   };
+        #   cargoDeps = prev.zellij.cargoDeps.overrideAttrs (prev.lib.const {
+        #     name = "zellij-vendor.tar.gz";
+        #     inherit src;
+        #     outputHash = "sha256-WxrMI7fV0pNsGjbNpXLr+xnMdWYkC4WxIeN4OK3ZPIE=";
+        #   });
+        # };
+        # final.zellij = zellij;
       };
 
       unstable-packages = final: _prev: {

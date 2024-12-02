@@ -6,7 +6,7 @@
 }: {
   imports = [
     {
-      system.stateVersion = "24.05";
+      system.stateVersion = "24.11";
       home-manager.users.daniel.home.stateVersion = "24.05";
       networking.hostName = "dragon";
     }
