@@ -183,7 +183,7 @@
             nodejs
             wget
             sudo
-            nixFlakes
+            nixVersions.stable
             cacert
             gnutar
             gzip

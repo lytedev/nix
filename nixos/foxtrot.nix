@@ -343,6 +343,15 @@ in
     pkgs.vaapiVdpau
   ];
 
+  hardware.amdgpu = {
+    amdvlk = {
+      enable = true;
+      support32Bit = {
+        enable = true;
+      };
+    };
+  };
+
   networking.networkmanager.wifi.powersave = false;
 
   hardware.framework.amd-7040.preventWakeOnAC = true;
