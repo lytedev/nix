@@ -1769,7 +1769,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       services.paperless = {
         enable = true;
-        package = pkgs.paperless-ngx;
+        # package = pkgs.paperless-ngx;
         dataDir = "/storage/paperless";
         passwordFile = config.sops.secrets.paperless-superuser-password.path;
       };
