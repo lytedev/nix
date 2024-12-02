@@ -35,7 +35,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         initrd.supportedFilesystems = {
           zfs = true;
         };
-        kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
+        # kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
         initrd.availableKernelModules = ["ehci_pci" "mpt3sas" "usbhid" "sd_mod"];
         kernelModules = ["kvm-intel"];
         kernelParams = ["nohibernate"];
