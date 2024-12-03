@@ -409,7 +409,7 @@
           "https://cache.nixos.org/"
           "https://helix.cachix.org"
           "https://nix-community.cachix.org"
-          # "https://nix.h.lyte.dev"
+          "https://nix.h.lyte.dev"
           "https://hyprland.cachix.org"
         ];
         trusted-public-keys = [
