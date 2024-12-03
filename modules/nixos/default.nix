@@ -642,6 +642,7 @@
       then {
         graphics = {
           enable = true;
+          enable32Bit = true;
           /*
           driSupport32Bit = true;
           driSupport = true;

@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   config,
   ...
@@ -41,7 +42,18 @@
   boot.kernelModules = ["kvm-intel" "acpi_call"];
   boot.extraModulePackages = with config.boot.kernelPackages; [acpi_call];
 
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware = {
+    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+      extraPackages = with pkgs; [
+        intel-media-driver
+        intel-ocl
+        intel-vaapi-driver
+      ];
+    };
+  };
 
   hardware.bluetooth = {
     enable = true;

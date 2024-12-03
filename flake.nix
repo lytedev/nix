@@ -527,6 +527,7 @@
           common
           password-manager
           graphical-workstation
+          plasma6
           music-production
           laptop
           gaming
