@@ -23,8 +23,8 @@
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
 
-    # wezterm.url = "github:wez/wezterm?dir=nix";
-    # wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    wezterm.url = "github:wez/wezterm?dir=nix";
+    wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     slippi.url = "github:lytedev/slippi-nix";
     # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
@@ -69,7 +69,7 @@
     disko,
     sops-nix,
     git-hooks,
-    # wezterm,
+    wezterm,
     home-manager,
     home-manager-unstable,
     helix,
@@ -230,11 +230,9 @@
         };
       };
 
-      modifications = final: prev:
-      # let
-      # wezterm-input = wezterm;
-      # in
-      rec {
+      modifications = final: prev: let
+        wezterm-input = wezterm;
+      in rec {
         helix = helix.outputs.packages.${prev.system}.helix;
         final.helix = helix;
         /*
@@ -243,9 +241,9 @@
         not-yet-merged (abandoned?): https://github.com/wez/wezterm/pull/4737
         I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
         */
-        # wezterm = wezterm-input.outputs.packages.${prev.system}.default;
+        wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         # wezterm = (import nixpkgs {inherit (prev) system;}).wezterm;
-        # final.wezterm = wezterm;
+        final.wezterm = wezterm;
 
         # zellij = prev.zellij.overrideAttrs rec {
         #   version = "0.41.0";

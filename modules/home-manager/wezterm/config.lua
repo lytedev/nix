@@ -22,8 +22,8 @@ config.window_background_opacity = 1.0
 config.enable_kitty_keyboard = true
 config.show_new_tab_button_in_tab_bar = true
 
-config.front_end = "WebGpu"
-config.webgpu_power_preference = 'HighPerformance'
+-- config.front_end = "WebGpu"
+-- config.webgpu_power_preference = 'HighPerformance'
 config.enable_wayland = true
 -- config.use_ime = true
 
