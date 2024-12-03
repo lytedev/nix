@@ -695,8 +695,13 @@
   };
 
   fonts = {pkgs, ...}: {
-    fonts.packages = with pkgs; [
-      (nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
+    fonts.packages = [
+      (
+        # allow nixpkgs 24.11 and unstable to both work
+        if builtins.hasAttr "nerd-fonts" pkgs
+        then (pkgs.nerd-fonts.symbols-only)
+        else (pkgs.nerdfonts.override {fonts = ["NerdFontsSymbolsOnly"];})
+      )
       pkgs.iosevkaLyteTerm
     ];
   };
@@ -1188,7 +1193,7 @@
       root
     ];
 
-    boot.tmp.useTmpfs = true;
+    # boot.tmp.useTmpfs = true;
     systemd.services.nix-daemon = {
       environment.TMPDIR = "/var/tmp";
     };

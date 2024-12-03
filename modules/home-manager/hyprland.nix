@@ -99,8 +99,8 @@ in {
 
         follow_mouse = 2;
 
-        repeat_delay = 200;
-        repeat_rate = 60;
+        repeat_delay = 180;
+        repeat_rate = 120;
 
         touchpad = {
           natural_scroll = "yes";

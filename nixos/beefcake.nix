@@ -35,7 +35,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         initrd.supportedFilesystems = {
           zfs = true;
         };
-        kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
+        # kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
         initrd.availableKernelModules = ["ehci_pci" "mpt3sas" "usbhid" "sd_mod"];
         kernelModules = ["kvm-intel"];
         kernelParams = ["nohibernate"];
@@ -268,7 +268,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         ];
       };
       services.nextcloud = {
-        enable = true;
+        enable = false;
         hostName = "nextcloud.h.lyte.dev";
         maxUploadSize = "100G";
         extraAppsEnable = true;
@@ -304,9 +304,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         serviceConfig.Group = "nextcloud";
       };
 
-      services.phpfpm.pools.nextcloud.settings = {
-        "listen.owner" = "caddy";
-        "listen.group" = "caddy";
+      services.phpfpm = lib.mkIf config.services.nextcloud.enable {
+        pools.nextcloud.settings = {
+          "listen.owner" = "caddy";
+          "listen.group" = "caddy";
+        };
       };
 
       services.caddy.virtualHosts."nextcloud.h.lyte.dev" = let
@@ -1767,7 +1769,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       services.paperless = {
         enable = true;
-        package = pkgs.paperless-ngx;
+        # package = pkgs.paperless-ngx;
         dataDir = "/storage/paperless";
         passwordFile = config.sops.secrets.paperless-superuser-password.path;
       };

@@ -6,7 +6,7 @@
 }: {
   imports = [
     {
-      system.stateVersion = "24.05";
+      system.stateVersion = "24.11";
       home-manager.users.daniel.home.stateVersion = "24.05";
       networking.hostName = "dragon";
     }
@@ -31,6 +31,14 @@
       };
     }
   ];
+  hardware.amdgpu = {
+    amdvlk = {
+      enable = true;
+      support32Bit = {
+        enable = true;
+      };
+    };
+  };
   hardware.graphics.extraPackages = [
     # pkgs.rocmPackages.clr.icd
     pkgs.amdvlk
@@ -96,7 +104,7 @@
     wayland.windowManager.hyprland = {
       settings = {
         env = [
-          "EWW_BAR_MON,1"
+          "EWW_BAR_MON,0"
         ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [
@@ -108,7 +116,7 @@
           "desc:LG Display 0x0521,3840x2160@120,0x0,1"
           "desc:Dell Inc. DELL U2720Q D3TM623,3840x2160@60,3840x0,1.5,transform,1"
           */
-          "DP-2,3840x2160@60,0x0,1.5,transform,1"
+          "DP-1,3840x2160@60,0x0,1.5,transform,1"
         ];
         input = {
           force_no_accel = true;

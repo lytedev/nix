@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     disko.url = "github:nix-community/disko/master";
@@ -13,7 +13,7 @@
     git-hooks.url = "github:cachix/git-hooks.nix";
     git-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager-unstable.url = "github:nix-community/home-manager";
@@ -23,8 +23,8 @@
     hardware.url = "github:nixos/nixos-hardware";
     hyprland.url = "github:hyprwm/Hyprland";
 
-    wezterm.url = "github:wez/wezterm?dir=nix";
-    wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # wezterm.url = "github:wez/wezterm?dir=nix";
+    # wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     slippi.url = "github:lytedev/slippi-nix";
     # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
@@ -69,7 +69,7 @@
     disko,
     sops-nix,
     git-hooks,
-    wezterm,
+    # wezterm,
     home-manager,
     home-manager-unstable,
     helix,
@@ -183,7 +183,7 @@
             nodejs
             wget
             sudo
-            nixFlakes
+            nixVersions.stable
             cacert
             gnutar
             gzip
@@ -230,9 +230,11 @@
         };
       };
 
-      modifications = final: prev: let
-        wezterm-input = wezterm;
-      in rec {
+      modifications = final: prev:
+      # let
+      # wezterm-input = wezterm;
+      # in
+      rec {
         helix = helix.outputs.packages.${prev.system}.helix;
         final.helix = helix;
         /*
@@ -241,25 +243,25 @@
         not-yet-merged (abandoned?): https://github.com/wez/wezterm/pull/4737
         I did try using the latest code via the flake, but alas it did not resolve my issues with mux'ing
         */
-        wezterm = wezterm-input.outputs.packages.${prev.system}.default;
+        # wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         # wezterm = (import nixpkgs {inherit (prev) system;}).wezterm;
-        final.wezterm = wezterm;
+        # final.wezterm = wezterm;
 
-        zellij = prev.zellij.overrideAttrs rec {
-          version = "0.41.0";
-          src = prev.fetchFromGitHub {
-            owner = "zellij-org";
-            repo = "zellij";
-            rev = "v0.41.0";
-            hash = "sha256-A+JVWYz0t9cVA8XZciOwDkCecsC2r5TU2O9i9rVg7do=";
-          };
-          cargoDeps = prev.zellij.cargoDeps.overrideAttrs (prev.lib.const {
-            name = "zellij-vendor.tar.gz";
-            inherit src;
-            outputHash = "sha256-WxrMI7fV0pNsGjbNpXLr+xnMdWYkC4WxIeN4OK3ZPIE=";
-          });
-        };
-        final.zellij = zellij;
+        # zellij = prev.zellij.overrideAttrs rec {
+        #   version = "0.41.0";
+        #   src = prev.fetchFromGitHub {
+        #     owner = "zellij-org";
+        #     repo = "zellij";
+        #     rev = "v0.41.0";
+        #     hash = "sha256-A+JVWYz0t9cVA8XZciOwDkCecsC2r5TU2O9i9rVg7do=";
+        #   };
+        #   cargoDeps = prev.zellij.cargoDeps.overrideAttrs (prev.lib.const {
+        #     name = "zellij-vendor.tar.gz";
+        #     inherit src;
+        #     outputHash = "sha256-WxrMI7fV0pNsGjbNpXLr+xnMdWYkC4WxIeN4OK3ZPIE=";
+        #   });
+        # };
+        # final.zellij = zellij;
       };
 
       unstable-packages = final: _prev: {
@@ -336,6 +338,7 @@
           virtual-machines
           virtual-machines-gui
           music-production
+          plasma6
           gaming
           slippi.nixosModules.default
 
