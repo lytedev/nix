@@ -595,6 +595,7 @@
           common
           password-manager
           graphical-workstation
+          plasma6
           laptop
           gaming
 
