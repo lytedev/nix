@@ -285,7 +285,6 @@ in
       };
     };
 
-    /*
     wayland.windowManager.hyprland = {
       settings = {
         env = [
@@ -293,11 +292,10 @@ in
         ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [
-          "eDP-1,2256x1504@60,0x0,${toString scale}"
+          "eDP-1,2880x1920@120Hz,0x0,1.66667"
         ];
       };
     };
-    */
 
     wayland.windowManager.sway = {
       config = {
@@ -305,7 +303,7 @@ in
           "BOE NE135A1M-NY1 Unknown" = {
             mode = "2880x1920@120Hz";
             position = "1092,2160";
-            scale = toString 1.75;
+            scale = toString (5 / 3);
           };
 
           "Dell Inc. DELL U2720Q CWTM623" = {

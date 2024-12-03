@@ -63,7 +63,7 @@ workspaces
 # listen to events and re-render
 while true; do
   # TODO: not sure why this socat | read invocation seems to stop?
-  socat - "UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" | while read -r line; do
+  socat - "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" | while read -r line; do
     workspaces "$line"
   done
 done
