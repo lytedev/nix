@@ -1014,7 +1014,26 @@
   wifi = {lib, ...}: let
     inherit (lib) mkDefault;
   in {
-    networking.networkmanager.enable = mkDefault true;
+    networking.networkmanager = {
+      enable = mkDefault true;
+      # ensureProfiles = {
+      #   profiles = {
+      #     home-wifi = {
+      #     id="home-wifi";
+      #     permissions = "";
+      #     type = "wifi";
+      #     };
+      #     wifi = {
+      #     ssid = "";
+      #     };
+      #     wifi-security = {
+      #     # auth-alg = "";
+      #     # key-mgmt = "";
+      #     psk = "";
+      #     };
+      #   };
+      # };
+    };
     systemd.services.NetworkManager-wait-online.enable = mkDefault false;
 
     /*
@@ -1199,6 +1218,7 @@
       environment.TMPDIR = "/var/tmp";
     };
     boot.tmp.cleanOnBoot = true;
+    # boot.uki.tries = 3;
     # services.irqbalance.enable = true;
 
     # this is not ready for primetime yet

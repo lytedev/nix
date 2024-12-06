@@ -266,6 +266,7 @@ in
 
   environment = {
     systemPackages = with pkgs; [
+      easyeffects
       godot_4
       fractal
       prismlauncher
@@ -283,6 +284,14 @@ in
       pointerCursor = {
         size = 40;
       };
+    };
+
+    services.easyeffects = {
+      enable = true;
+      preset = "philonmetal";
+      # clone from https://github.com/ceiphr/ee-framework-presets
+      # then `cp *.json ~/.config/easyeffects/output`
+      # TODO: nixify this
     };
 
     wayland.windowManager.hyprland = {
