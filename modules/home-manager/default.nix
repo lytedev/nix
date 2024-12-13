@@ -249,6 +249,9 @@
     programs.firefox = {
       profiles = {
         daniel = {
+          settings = {
+            "alerts.useSystemBackend" = true;
+          };
           userChrome = ''
             #TabsToolbar {
               visibility: collapse;
