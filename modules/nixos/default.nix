@@ -118,7 +118,7 @@
         libinput
         libinput-gestures
         libnotify
-        mako
+        # mako
         noto-fonts
         pamixer
         playerctl

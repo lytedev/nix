@@ -147,7 +147,7 @@
 
       startup = [
         {command = "kdeconnect-indicator";}
-        {command = "mako";}
+        # {command = "mako";}
         {
           command = "swaybg -i $HOME/.wallpaper";
         }
