@@ -864,6 +864,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             # REPO_INDEXER_INCLUDE =
             REPO_INDEXER_EXCLUDE = "resources/bin/**";
           };
+          "markup.asciidoc" = {
+            ENABLED = true;
+            NEED_POSTPROCESS = true;
+            FILE_EXTENSIONS = ".adoc,.asciidoc";
+            RENDER_COMMAND = "${pkgs.asciidoctor}/bin/asciidoctor --embedded --safe-mode=secure --out-file=- -";
+            IS_INPUT_FILE = false;
+          };
         };
         lfs = {
           enable = true;
