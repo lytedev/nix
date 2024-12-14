@@ -813,7 +813,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
       };
     }
-    {
+    ({...}: let
+      theme = pkgs.fetchzip {
+        url = "https://github.com/catppuccin/gitea/releases/download/v1.0.1/catppuccin-gitea.tar.gz";
+        sha256 = "sha256-HqVLW58lKPn81p3gTSjzkACHSBbmqPqeobAlJMubb8Y=";
+        stripRoot = false;
+      };
+    in {
       # systemd.tmpfiles.settings = {
       #   "10-forgejo" = {
       #     "/storage/forgejo" = {
@@ -890,6 +896,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         "forgejo-runner.env" = {mode = "0400";};
       };
       systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
+
+      systemd.services.forgejo = {
+        preStart = lib.mkAfter ''
+          rm -rf ${config.services.forgejo.stateDir}/custom/public
+          mkdir -p ${config.services.forgejo.stateDir}/custom/public
+          ln -sf ${theme} ${config.services.forgejo.stateDir}/custom/public/css
+        '';
+      };
+
       services.gitea-actions-runner = {
         # TODO: simple git-based automation would be dope? maybe especially for
         # mirroring to github super easy?
@@ -938,7 +953,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
         '';
       };
-    }
+    })
     {
       services.restic.commonPaths = [
         config.services.vaultwarden.backupDir
