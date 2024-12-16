@@ -107,8 +107,6 @@
     environment = {
       variables = {
         VISUAL = "hx";
-        PAGER = "less";
-        MANPAGER = "less";
       };
 
       systemPackages = with pkgs; [
@@ -197,22 +195,9 @@
     };
   };
 
-  less-pager = {pkgs, ...}: {
-    environment = {
-      systemPackages = [
-        pkgs.less
-      ];
-      variables = {
-        PAGER = "less";
-        MANPAGER = "less";
-      };
-    };
-  };
-
   helix-text-editor = {pkgs, ...}: {
     environment = {
       systemPackages = [
-        pkgs.less
         helix.packages.${pkgs.system}.helix
       ];
       variables = {
@@ -252,30 +237,36 @@
 
   my-favorite-default-system-apps = {pkgs, ...}: {
     imports = with nixosModules; [
-      less-pager
       helix-text-editor
       zellij-multiplexer
       fish-shell
     ];
 
-    environment.systemPackages = with pkgs; [
-      curl
-      dua
-      eza # TODO: needs shell aliases
-      fd
-      file
-      iputils
-      nettools
-      /*
-      nodePackages.bash-language-server # just pull in as needed?
-      shellcheck
-      shfmt
-      */
-      killall
-      ripgrep
-      rsync
-      sd
-    ];
+    environment = {
+      variables = {
+        PAGER = "bat --style=plain";
+        MANPAGER = "bat --style=plain";
+      };
+      systemPackages = with pkgs; [
+        curl
+        dua
+        bat
+        eza
+        fd
+        file
+        iputils
+        nettools
+        /*
+        nodePackages.bash-language-server # just pull in as needed?
+        shellcheck
+        shfmt
+        */
+        killall
+        ripgrep
+        rsync
+        sd
+      ];
+    };
 
     programs = {
       traceroute.enable = true;
@@ -462,7 +453,11 @@
     };
   };
 
-  development-tools = {pkgs, ...}: {
+  development-tools = {
+    pkgs,
+    lib,
+    ...
+  }: {
     imports = with nixosModules; [
       postgres
       podman
@@ -543,7 +538,7 @@
       };
 
       programs.jujutsu = {
-        enable = false; # disabling for now due to CVE
+        enable = lib.mkDefault true;
       };
 
       programs.k9s = {

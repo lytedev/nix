@@ -39,7 +39,7 @@
 
   emacs = {pkgs, ...}: {
     programs.emacs = {
-      enable = true;
+      enable = false;
       /*
       extraConfig = ''
       '';
@@ -84,6 +84,7 @@
       bat
       homeManagerModules.helix
       git
+      jujutsu
       zellij
       htop
 
@@ -112,7 +113,7 @@
 
       packages = with pkgs; [
         # tools I use when editing nix code
-        kanidm
+        # kanidm
         nil
         alejandra
         gnupg
@@ -132,7 +133,7 @@
       # https://github.com/lotabout/skim/issues/494
       enable = false;
       enableFishIntegration = true;
-      defaultOptions = ["--no-clear-start" "--color=16"];
+      defaultOptions = ["--no-clear-start" "--color=16" "--height=20"];
     };
 
     programs.atuin = {
@@ -358,6 +359,18 @@
         v = "$EDITOR";
         sv = "sudo $EDITOR";
         kssh = "kitty +kitten ssh";
+      };
+    };
+  };
+
+  jujutsu = {...}: {
+    programs.jujutsu = {
+      enable = true;
+      settings = {
+        user = {
+          email = "daniel@lyte.dev";
+          name = "Daniel Flanagan";
+        };
       };
     };
   };
