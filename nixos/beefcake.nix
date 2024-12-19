@@ -816,9 +816,113 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     ({...}: let
       theme = pkgs.fetchzip {
         url = "https://github.com/catppuccin/gitea/releases/download/v1.0.1/catppuccin-gitea.tar.gz";
-        sha256 = "sha256-HqVLW58lKPn81p3gTSjzkACHSBbmqPqeobAlJMubb8Y=";
-        stripRoot = false;
+        sha256 = "sha256-et5luA3SI7iOcEIQ3CVIu0+eiLs8C/8mOitYlWQa/uI=";
       };
+      logos = {
+        png = pkgs.fetchurl {
+          url = "https://lyte.dev/icon.png";
+          sha256 = "sha256-o/iZDohzXBGbpJ2PR1z23IF4FZignTAK88QwrfgTwlk=";
+        };
+        svg = pkgs.fetchurl {
+          url = "https://lyte.dev/img/logo.svg";
+          sha256 = "sha256-G9leVXNanoaCizXJaXn++JzaVcYOgRc3dJKhTQsMhVs=";
+        };
+        svg-with-background = pkgs.fetchurl {
+          url = "https://lyte.dev/img/logo-with-background.svg";
+          sha256 = "sha256-CdMTRXoQ3AI76aHW/sTqvZo1q/0XQdnQs9V1vGmiffY=";
+        };
+      };
+      forgejoCustomCss =
+        pkgs.writeText "iosevkalyte.css"
+        ''
+          @font-face {
+            font-family: ldiosevka;
+            font-style: normal;
+            font-weight: 300;
+            src: local("Iosevka"), url("//lyte.dev/font/iosevkalytewebmin/iosevkalyteweb-regular.subset.woff2");
+            font-display: swap
+          }
+
+          @font-face {
+            font-family: ldiosevka;
+            font-style: italic;
+            font-weight: 300;
+            src: local("Iosevka"), url("//lyte.dev/font/iosevkalytewebmin/iosevkalyteweb-italic.subset.woff2");
+            font-display: swap
+          }
+
+          @font-face {
+            font-family: ldiosevka;
+            font-style: italic;
+            font-weight: 500;
+            src: local("Iosevka"), url("//lyte.dev/font/iosevkalytewebmin/iosevkalyteweb-bolditalic.woff2");
+            font-display: swap
+          }
+          :root {
+            --fonts-monospace: ldiosevka, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace, var(--fonts-emoji);
+          }
+        '';
+      forgejoCustomHeaderTmpl =
+        pkgs.writeText "header.tmpl"
+        ''
+          <link rel="stylesheet" href="/assets/css/iosevkalyte.css" />
+          <script async="" defer="" data-domain="lyte.dev" src="https://a.lyte.dev/js/script.js"></script>
+        '';
+      forgejoCustomHomeTmpl =
+        pkgs.writeText "home.tmpl"
+        ''
+          {{template "base/head" .}}
+          <div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="page-content home">
+          	<div class="tw-mb-8 tw-px-8">
+          		<div class="center">
+          			<img class="logo" width="220" height="220" src="{{AssetUrlPrefix}}/img/logo.svg" alt="{{ctx.Locale.Tr "logo"}}">
+          			<div class="hero">
+          				<h1 class="ui icon header title">
+                    {{AppDisplayName}}
+          				</h1>
+          				<h2>{{ctx.Locale.Tr "startpage.app_desc"}}</h2>
+          			</div>
+          		</div>
+          	</div>
+          	<div class="ui stackable middle very relaxed page grid">
+          		<div class="eight wide center column">
+          			<h1 class="hero ui icon header">
+          				{{svg "octicon-flame"}} {{ctx.Locale.Tr "startpage.install"}}
+          			</h1>
+          			<p class="large">
+          				{{ctx.Locale.Tr "startpage.install_desc" "https://forgejo.org/download/#installation-from-binary" "https://forgejo.org/download/#container-image" "https://forgejo.org/download"}}
+          			</p>
+          		</div>
+          		<div class="eight wide center column">
+          			<h1 class="hero ui icon header">
+          				{{svg "octicon-device-desktop"}} {{ctx.Locale.Tr "startpage.platform"}}
+          			</h1>
+          			<p class="large">
+          				{{ctx.Locale.Tr "startpage.platform_desc"}}
+          			</p>
+          		</div>
+          	</div>
+          	<div class="ui stackable middle very relaxed page grid">
+          		<div class="eight wide center column">
+          			<h1 class="hero ui icon header">
+          				{{svg "octicon-rocket"}} {{ctx.Locale.Tr "startpage.lightweight"}}
+          			</h1>
+          			<p class="large">
+          				{{ctx.Locale.Tr "startpage.lightweight_desc"}}
+          			</p>
+          		</div>
+          		<div class="eight wide center column">
+          			<h1 class="hero ui icon header">
+          				{{svg "octicon-code"}} {{ctx.Locale.Tr "startpage.license"}}
+          			</h1>
+          			<p class="large">
+          				{{ctx.Locale.Tr "startpage.license_desc" "https://forgejo.org/download" "https://codeberg.org/forgejo/forgejo"}}
+          			</p>
+          		</div>
+          	</div>
+          </div>
+          {{template "base/footer" .}}
+        '';
     in {
       # systemd.tmpfiles.settings = {
       #   "10-forgejo" = {
@@ -833,6 +937,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # };
       services.forgejo = {
         enable = true;
+        package = pkgs.unstable-packages.forgejo;
         stateDir = "/storage/forgejo";
         settings = {
           DEFAULT = {
@@ -860,8 +965,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             # LEVEL = "Debug";
           };
           ui = {
-            THEMES = "forgejo-auto,forgejo-light,forgejo-dark";
-            DEFAULT_THEME = "forgejo-auto";
+            THEMES = "catppuccin-mocha-sapphire,forgejo-auto,forgejo-light,forgejo-dark";
+            DEFAULT_THEME = "catppuccin-mocha-sapphire";
           };
           indexer = {
             REPO_INDEXER_ENABLED = "true";
@@ -900,8 +1005,19 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       systemd.services.forgejo = {
         preStart = lib.mkAfter ''
           rm -rf ${config.services.forgejo.stateDir}/custom/public
-          mkdir -p ${config.services.forgejo.stateDir}/custom/public
-          ln -sf ${theme} ${config.services.forgejo.stateDir}/custom/public/css
+          mkdir -p ${config.services.forgejo.stateDir}/custom/public/
+          mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/
+          mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/img/
+          mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/css/
+          mkdir -p ${config.services.forgejo.stateDir}/custom/templates/custom/
+          ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.png
+          ln -sf ${logos.svg} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.svg
+          ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.png
+          ln -sf ${logos.svg-with-background} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.svg
+          ln -sf ${theme}/theme-catppuccin-mocha-sapphire.css ${config.services.forgejo.stateDir}/custom/public/assets/css/
+          ln -sf ${forgejoCustomCss} ${config.services.forgejo.stateDir}/custom/public/assets/css/iosevkalyte.css
+          ln -sf ${forgejoCustomHeaderTmpl} ${config.services.forgejo.stateDir}/custom/templates/custom/header.tmpl
+          ln -sf ${forgejoCustomHomeTmpl} ${config.services.forgejo.stateDir}/custom/templates/home.tmpl
         '';
       };
 

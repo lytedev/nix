@@ -89,7 +89,7 @@
     forSystems = nixpkgs.lib.genAttrs systems;
     pkgsFor = system: (import nixpkgs {inherit system;}).extend overlays.default;
     genPkgs = func: (forSystems (system: func (pkgsFor system)));
-    pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
+    # pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
 
     unstable = {
       forSystems = nixpkgs-unstable.lib.genAttrs systems;

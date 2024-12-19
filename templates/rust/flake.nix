@@ -20,16 +20,12 @@
         src = ./.;
         hooks = {
           alejandra.enable = true;
-          # NOTE: These do not work well with `nix flake check` due to pure environments
-          # https://github.com/cachix/git-hooks.nix/issues/452
-          /*
           cargo-check.enable = true;
           clippy = {
             enable = true;
             packageOverrides.cargo = pkgs.cargo;
             packageOverrides.clippy = pkgs.rustPackages.clippy;
           };
-          */
           rustfmt = {
             enable = true;
             packageOverrides.rustfmt = pkgs.rustfmt;
@@ -40,7 +36,7 @@
 
     packages = genPkgs (pkgs: {
       my-package = pkgs.rustPlatform.buildRustPackage {
-        pname = "kodotag";
+        pname = "my-package";
         version = "0.1.0";
 
         /*
