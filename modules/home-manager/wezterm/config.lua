@@ -4,6 +4,7 @@ if wezterm.config_builder then
   config = wezterm.config_builder()
 end
 
+config.adjust_window_size_when_changing_font_size = false
 config.font = wezterm.font_with_fallback {
   { family = "IosevkaLyteTerm",        weight = 'Medium',  italic = false },
   { family = 'Symbols Nerd Font Mono', weight = 'Regular', italic = false },
