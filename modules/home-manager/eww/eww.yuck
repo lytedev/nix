@@ -1,8 +1,9 @@
 (defwidget bar []
   (centerbox :orientation "h"
-    (sidestuff)
+    (leftsidestuff)
     (box)
-    (music)))
+    (rightsidestuff)
+    ))
 
 (defwindow bar0
   :monitor 0
@@ -30,14 +31,16 @@
     :anchor "bottom center")
   (bar))
 
-(defwidget sidestuff []
-  (box :class "sidestuff" :orientation "h" :space-evenly false :halign "start" :valign "center" :spacing 10
-    time
-    ; TODO: indicator/tray/taskbar/toolbar icons and management? (probably should use something standalone?)
-    ; https://github.com/elkowar/eww/issues/111
+(defwidget rightsidestuff []
+  (box :class "rightsidestuff" :orientation "h" :space-evenly false :halign "end" :valign "center" :spacing 10
+    (music)
+    (systray)
+  ))
 
+(defwidget leftsidestuff []
+  (box :class "leftsidestuff" :orientation "h" :space-evenly false :halign "start" :valign "center" :spacing 10
+    time
     ; TODO: idle inhibitor?
-    ; TODO: hyprland workspaces?
     ; TODO: get these to align properly? icons seem lower than they should be?
     (box :class "mic" (
       box :class {micMuted == "false" ? "live" : "muted"} {micMuted == "false" ? " " : " "}
