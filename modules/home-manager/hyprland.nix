@@ -289,11 +289,12 @@ in {
       windowrulev2 = tile,class:^.*([Kk]itty|[Ff]irefox|[Ww]ezterm|[Dd]iscord|[Ss]potify|[Ss]lack).*$
       windowrulev2 = opacity 1.0 0.95,class:^.*$
 
-      windowrulev2 = opacity 0.0 override 0.0 override,class:^(xwaylandvideobridge)$
-      windowrulev2 = noanim,class:^(xwaylandvideobridge)$
-      windowrulev2 = noinitialfocus,class:^(xwaylandvideobridge)$
-      windowrulev2 = maxsize 1 1,class:^(xwaylandvideobridge)$
-      windowrulev2 = noblur,class:^(xwaylandvideobridge)$
+      windowrulev2 = opacity 0.0 override, class:^(xwaylandvideobridge)$
+      windowrulev2 = noanim, class:^(xwaylandvideobridge)$
+      windowrulev2 = noinitialfocus, class:^(xwaylandvideobridge)$
+      windowrulev2 = maxsize 1 1, class:^(xwaylandvideobridge)$
+      windowrulev2 = noblur, class:^(xwaylandvideobridge)$
+      windowrulev2 = nofocus, class:^(xwaylandvideobridge)$
     '';
   };
 }
