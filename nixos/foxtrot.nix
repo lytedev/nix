@@ -296,8 +296,8 @@ in
 
     wayland.windowManager.hyprland = {
       settings = {
-        env = [
-          "EWW_BAR_MON,0"
+        exec-once = [
+          "eww open bar0"
         ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [

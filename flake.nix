@@ -461,7 +461,7 @@
           kde-connect
           password-manager
           graphical-workstation
-          plasma6
+          # plasma6
           virtual-machines
           virtual-machines-gui
           laptop
