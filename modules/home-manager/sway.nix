@@ -33,8 +33,10 @@
       on-notify=exec ${pkgs.mpv}/bin/mpv --volume=50 ~/.notify.wav
       actions=1
       icons=1
+      width=400
+      height=150
 
-      background-color=${bg}AA
+      background-color=${bg}DD
       text-color=${text}
       border-color=${primary}
       progress-color=${primary}
