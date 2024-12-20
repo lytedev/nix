@@ -116,7 +116,7 @@
         libinput
         libinput-gestures
         libnotify
-        # mako
+        mako
         noto-fonts
         pamixer
         playerctl
@@ -482,7 +482,6 @@
       oils-for-unix
       watchexec
       android-tools
-      kubectl
       stern
       libresprite
       # logseq
@@ -521,6 +520,17 @@
         yubikey-manager
         yubico-piv-tool
       ];
+
+      programs.direnv.mise = {
+        enable = true;
+      };
+
+      programs.mise = {
+        enable = true;
+        enableFishIntegration = true;
+        enableBashIntegration = true;
+        enableZshIntegration = true;
+      };
 
       programs.thunderbird = {
         enable = true;

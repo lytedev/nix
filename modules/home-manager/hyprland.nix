@@ -53,7 +53,6 @@ in {
         "firefox"
         "wezterm"
         "xwaylandvideobridge"
-        "dbus-update-activation-environment --systemd --all"
         "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
         # "wezterm"
         # NOTE: maybe check out hypridle?
@@ -80,7 +79,6 @@ in {
           "before-sleep 'swaylock --daemonize'"
         ])
         ''swayidle -w timeout 600 'notify-send "Locking in 30 seconds..."' timeout 630 'swaylock -f' timeout 660 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on && maybe-good-morning' before-sleep 'swaylock -f'"''
-        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       ];
 
       env = [

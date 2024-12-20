@@ -23,14 +23,18 @@
   home.file."${config.xdg.configHome}/mako/config" = {
     enable = true;
     text = with style.colors.withHashPrefix; ''
-      border-size=1
+      border-size=2
+      border-radius=5
+      padding=10,15
       max-visible=5
       default-timeout=15000
       font=Symbols Nerd Font ${toString style.font.size},${style.font.name} ${toString style.font.size}
       anchor=top-right
       on-notify=exec ${pkgs.mpv}/bin/mpv --volume=50 ~/.notify.wav
+      actions=1
+      icons=1
 
-      background-color=${bg}
+      background-color=${bg}AA
       text-color=${text}
       border-color=${primary}
       progress-color=${primary}
@@ -39,7 +43,7 @@
       border-color=${urgent}
 
       [urgency=high]
-      background-color=${urgent}
+      background-color=${urgent}AA
       border-color=${urgent}
       text-color=${bg}
     '';
@@ -147,7 +151,7 @@
 
       startup = [
         {command = "kdeconnect-indicator";}
-        # {command = "mako";}
+        {command = "mako";}
         {
           command = "swaybg -i $HOME/.wallpaper";
         }

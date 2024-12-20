@@ -336,7 +336,7 @@
           virtual-machines
           virtual-machines-gui
           music-production
-          plasma6
+          # plasma6
           gaming
           slippi.nixosModules.default
 
