@@ -1,5 +1,5 @@
 {
-  forrSelf = final: prev: {
+  forSelf = final: prev: {
     erlangPackages = prev.beam.packagesWith prev.erlang_28;
     erlang = final.erlangPackages.erlang;
     elixir = final.erlangPackages.elixir_1_17;
