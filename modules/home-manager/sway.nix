@@ -43,7 +43,7 @@
       border-color=${urgent}
 
       [urgency=high]
-      background-color=${urgent}AA
+      background-color=${urgent}EE
       border-color=${urgent}
       text-color=${bg}
     '';
