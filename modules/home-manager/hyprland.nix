@@ -49,9 +49,9 @@ in {
         "hyprpaper"
         "mako"
         "swayosd-server"
-        "eww daemon && eww open bar0"
-        "firefox"
-        "wezterm"
+        "eww daemon"
+        "[workspace 1 silent] firefox"
+        "[workspace 1 silent] wezterm"
         "xwaylandvideobridge"
         "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
         # "wezterm"
@@ -285,8 +285,9 @@ in {
 
       ## See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
       windowrulev2 = idleinhibit,class:^.*([Ss]lippi).*$
-      windowrulev2 = float,class:^.*([Kk]itty|[Ff]irefox|[Ww]ezterm|[Dd]iscord|[Ss]potify|[Ss]lack).*$
-      windowrulev2 = opacity 1.0 0.9,floating:1
+      windowrulev2 = float,class:^.*$
+      windowrulev2 = tile,class:^.*([Kk]itty|[Ff]irefox|[Ww]ezterm|[Dd]iscord|[Ss]potify|[Ss]lack).*$
+      windowrulev2 = opacity 1.0 0.95,class:^.*$
 
       windowrulev2 = opacity 0.0 override 0.0 override,class:^(xwaylandvideobridge)$
       windowrulev2 = noanim,class:^(xwaylandvideobridge)$

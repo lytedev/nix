@@ -103,8 +103,8 @@
     # TODO: monitor config module?
     wayland.windowManager.hyprland = {
       settings = {
-        env = [
-          "EWW_BAR_MON,0"
+        exec-once = [
+          "eww open bar1"
         ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [
@@ -122,6 +122,17 @@
           force_no_accel = true;
           sensitivity = 1; # -1.0 - 1.0, 0 means no modification.
         };
+        workspace = [
+          "1, monitor:DP-3, default:true"
+          "2, monitor:DP-3, default:false"
+          "3, monitor:DP-3, default:false"
+          "4, monitor:DP-3, default:false"
+          "5, monitor:DP-3, default:false"
+          "6, monitor:DP-3, default:false"
+          "7, monitor:DP-3, default:false"
+          "8, monitor:DP-1, default:true"
+          "9, monitor:DP-1, default:false"
+        ];
       };
     };
 
