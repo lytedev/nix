@@ -4,19 +4,20 @@
   ...
 }: let
   version = "1.0.0";
-  src = ./.;
+  src = ../.;
   pname = "my-package";
 in {
-  ${pname} = pkgs.beamPackages.mixRelease {
+  ${pname} = pkgs.mixRelease {
     inherit pname version src;
-    mixFodDeps = pkgs.beamPackages.fetchMixDeps {
+    mixFodDeps = pkgs.fetchMixDeps {
       inherit version src;
       pname = "mix-deps-${pname}";
-      hash = pkgs.lib.fakeSha256;
+      sha256 = pkgs.lib.fakeSha256;
     };
     # buildInputs = with pkgs; [];
     # HOME = "$(pwd)";
     # MIX_XDG = "$HOME";
+    # RELEASE_COOKIE = "test-cookie";
   };
 
   default = self.packages.${pkgs.system}.${pname};
