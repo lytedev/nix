@@ -24,6 +24,7 @@
     enable = true;
     text = with style.colors.withHashPrefix; ''
       border-size=1
+      border-radius=5
       max-visible=5
       default-timeout=15000
       font=Symbols Nerd Font ${toString style.font.size},${style.font.name} ${toString style.font.size}
