@@ -454,6 +454,7 @@
         merge.conflictstyle = "zdiff3";
 
         push.autoSetupRemote = true;
+        pull.ff = "only";
 
         branch.autoSetupMerge = true;
 
