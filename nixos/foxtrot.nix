@@ -294,6 +294,20 @@ in
       # TODO: nixify this
     };
 
+    services.hypridle = let
+      secondsPerMinute = 60;
+      lockSeconds = 10 * secondsPerMinute;
+    in {
+      settings = {
+        listener = [
+          {
+            timeout = lockSeconds + 55;
+            on-timeout = ''systemctl suspend'';
+          }
+        ];
+      };
+    };
+
     wayland.windowManager.hyprland = {
       settings = {
         exec-once = [

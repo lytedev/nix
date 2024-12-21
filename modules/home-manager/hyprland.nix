@@ -8,19 +8,9 @@
 }: let
   inherit (style) colors;
 in {
-  imports = [
-    ./ewwbar.nix
-    # ./mako.nix
-    # ./swaylock.nix
-    # TODO: figure out how to import this for this module _and_ for the sway module?
-    # ./linux-desktop.nix
-  ];
-
-  # TODO: Hyprland seems to have issues with resuming from hibernation on my
-  # laptop where it uses a ton of CPU.
+  # TODO: Hyprland seems to sometimes use a ton of CPU?
 
   home.packages = with pkgs; [
-    # TODO: integrate osd
     swayosd
   ];
 
@@ -54,29 +44,7 @@ in {
         "[workspace 1 silent] wezterm"
         "xwaylandvideobridge"
         "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
-        # "wezterm"
-        # NOTE: maybe check out hypridle?
-        (lib.concatStringsSep " " [
-          "swayidle -w"
-          "before-sleep 'swaylock'"
-          "timeout 300 'notify-send \"Idling in 5 minutes\"' resume 'notify-send \"Idling cancelled.\"'"
-          "timeout 480  'notify-send -u critical \"Idling in 2 minutes\"'"
-          "timeout 510  'notify-send -u critical \"Idling in 90 seconds\"'"
-          "timeout 540  'notify-send -u critical \"Idling in 60 seconds!\"'"
-          "timeout 570  'notify-send -u critical \"Idling in 30 seconds!\"'"
-          "timeout 590  'notify-send -u critical \"Idling in 10 seconds!\"'"
-          "timeout 591  'notify-send -u critical \"Idling in 9 seconds!\"'"
-          "timeout 592  'notify-send -u critical \"Idling in 8 seconds!\"'"
-          "timeout 593  'notify-send -u critical \"Idling in 7 seconds!\"'"
-          "timeout 594  'notify-send -u critical \"Idling in 6 seconds!\"'"
-          "timeout 595  'notify-send -u critical \"Idling in 5 seconds!\"'"
-          "timeout 596  'notify-send -u critical \"Idling in 4 seconds!\"'"
-          "timeout 597  'notify-send -u critical \"Idling in 3 seconds!\"'"
-          "timeout 598  'notify-send -u critical \"Idling in 2 seconds!\"'"
-          "timeout 599  'notify-send -u critical \"Idling in 1 second!\"'"
-          "timeout 600  'swaylock -f'"
-          "timeout 600  'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on'"
-        ])
+        "hypridle"
       ];
 
       env = [
@@ -134,7 +102,7 @@ in {
       };
 
       decoration = {
-        rounding = 3;
+        rounding = 5;
 
         /*
         blur = "no";
@@ -231,7 +199,7 @@ in {
         # Scroll through existing workspaces with mod + scroll
         "$mod, mouse_down, workspace, e+1"
         "$mod, mouse_up, workspace, e-1"
-        "CTRL SHIFT $mod, L, exec, swaylock"
+        "CTRL SHIFT $mod, L, exec, hyprlock"
         "$mod CTRL, space, exec, makoctl dismiss"
         "$mod SHIFT CTRL, space, exec, makoctl restore"
         "$mod SHIFT, space, exec, makoctl invoke default"
@@ -295,5 +263,158 @@ in {
       windowrulev2 = noblur, class:^(xwaylandvideobridge)$
       windowrulev2 = nofocus, class:^(xwaylandvideobridge)$
     '';
+  };
+
+  programs.hyprlock = {
+    enable = true;
+    settings = {
+      # docs: https://wiki.hyprland.org/Hypr-Ecosystem/hyprlock
+
+      general = {
+        grace = 0;
+        no_face_out = true;
+      };
+
+      input-field = [
+        {
+          monitor = "";
+          fade_on_empty = false;
+          placeholder_text = "Locked";
+          rounding = 5;
+          font_size = 20;
+          font_color = "rgba(255, 255, 255, 1.0)";
+          inner_color = "rgba(31, 31, 47, 0.95)";
+          outer_color = "0xff74c7ec 0xff74c7ec 45deg";
+          outline_thickness = 3;
+          position = "0, -200";
+
+          dots_size = 0.1;
+          size = "300 75";
+          font_family = "IosevkaLyteTerm";
+
+          shadow_passes = 3;
+          shadow_size = 8;
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_boost = 0.8;
+        }
+      ];
+
+      background = [
+        {
+          path = "~/.wallpaper";
+          blur_passes = 2;
+        }
+      ];
+
+      label = [
+        {
+          monitor = "";
+          font_size = 64;
+
+          halign = "center";
+          valign = "center";
+          text_align = "center";
+
+          # rotate = 10;
+          position = "0, 200";
+          font_family = "IosevkaLyteTerm";
+          text = ''Locked for <span foreground="##74c7ec">$USER</span>'';
+
+          shadow_passes = 1;
+          shadow_size = 8;
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_boost = 0.5;
+        }
+
+        {
+          monitor = "";
+          font_size = 20;
+
+          halign = "center";
+          valign = "center";
+          text_align = "center";
+          color = "rgba(255, 255, 255, 0.5)";
+
+          position = "0 120";
+          font_family = "IosevkaLyteTerm";
+          text = "cmd[update:1000] date '+%a %b %d %H:%M:%S'";
+
+          shadow_passes = 3;
+          shadow_size = 1;
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_boost = 1.0;
+        }
+
+        {
+          monitor = "";
+          font_size = 200;
+
+          halign = "center";
+          valign = "center";
+          text_align = "center";
+          color = "rgba(220, 240, 255, 0.8)";
+          position = "0 500";
+          font_family = "NerdFontSymbolsOnly";
+          text = "󰍁";
+
+          shadow_passes = 3;
+          shadow_size = 1;
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_boost = 1.0;
+        }
+      ];
+    };
+  };
+
+  services.hypridle = let
+    secondsPerMinute = 60;
+    lockSeconds = 10 * secondsPerMinute;
+  in {
+    enable = true;
+    settings = {
+      general = {
+        after_sleep_cmd = "hyprctl dispatch dpms on";
+        before_sleep_cmd = "loginctl lock-session";
+        ignore_dbus_inhibit = false;
+        lock_cmd = "pidof hyprlock || hyprlock";
+      };
+
+      listener = [
+        {
+          timeout = lockSeconds - 300;
+          on-timeout = ''notify-send "Auto-locking in 5 minutes"'';
+          on-resume = ''notify-send "Auto-locking cancelled"'';
+        }
+        {
+          timeout = lockSeconds - 180;
+          on-timeout = ''notify-send "Auto-locking in 3 minutes"'';
+        }
+        {
+          timeout = lockSeconds - 120;
+          on-timeout = ''notify-send "Auto-locking in 2 minutes"'';
+        }
+        {
+          timeout = lockSeconds - 60;
+          on-timeout = ''notify-send "Auto-locking in 1 minute"'';
+        }
+        {
+          timeout = lockSeconds - 30;
+          on-timeout = ''notify-send "Auto-locking in 30 seconds"'';
+        }
+        {
+          timeout = lockSeconds - 10;
+          on-timeout = ''notify-send -u critical "Auto-locking in 10 seconds"'';
+        }
+        {
+          timeout = lockSeconds;
+          on-timeout = ''loginctl lock-session'';
+        }
+        {
+          timeout = lockSeconds + 5;
+          on-timeout = ''hyprctl dispatch dpms off'';
+          on-resume = ''hyprctl dispatch dpms on'';
+        }
+      ];
+    };
   };
 }

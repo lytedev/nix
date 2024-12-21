@@ -2,7 +2,6 @@
   style,
   lib,
   config,
-  pkgs,
   ...
 }: {
   programs.foot = {
@@ -18,57 +17,6 @@
         "x-scheme-handler/https" = "firefox.desktop";
       };
     };
-  };
-
-  home.file."${config.xdg.configHome}/mako/config" = {
-    enable = true;
-    text = with style.colors.withHashPrefix; ''
-      border-size=2
-      border-radius=5
-      padding=10,15
-      max-visible=5
-      default-timeout=15000
-      font=Symbols Nerd Font ${toString style.font.size},${style.font.name} ${toString style.font.size}
-      anchor=top-right
-      on-notify=exec ${pkgs.mpv}/bin/mpv --volume=50 ~/.notify.wav
-      actions=1
-      icons=1
-      width=400
-      height=150
-
-      background-color=${bg}DD
-      text-color=${text}
-      border-color=${primary}
-      progress-color=${primary}
-
-      [urgency=high]
-      border-color=${urgent}
-
-      [urgency=high]
-      background-color=${urgent}EE
-      border-color=${urgent}
-      text-color=${bg}
-    '';
-  };
-
-  home.file."${config.xdg.configHome}/tofi/config" = {
-    enable = true;
-    text = ''
-      font = ${pkgs.iosevkaLyteTerm}/share/fonts/truetype/IosevkaLyteTerm-regular.ttf
-      font-size = 12
-
-      text-color = #f8f8f8
-      prompt-color = #f38ba8
-      selection-color = #66d9ef
-      background-color = #1e1e2e
-      outline-width = 0
-      border-width = 1
-      border-color = #66d9ef
-      width = 640
-      height = 400
-
-      fuzzy-match = true
-    '';
   };
 
   wayland.windowManager.sway = {
