@@ -316,7 +316,7 @@ in {
           text_align = "center";
 
           # rotate = 10;
-          position = "0, 200";
+          position = "0, 250";
           font_family = "IosevkaLyteTerm";
           text = ''Locked for <span foreground="##74c7ec">$USER</span>'';
 
@@ -328,14 +328,14 @@ in {
 
         {
           monitor = "";
-          font_size = 20;
+          font_size = 32;
 
           halign = "center";
           valign = "center";
           text_align = "center";
           color = "rgba(255, 255, 255, 0.5)";
 
-          position = "0 120";
+          position = "0 100";
           font_family = "IosevkaLyteTerm";
           text = "cmd[update:1000] date '+%a %b %d %H:%M:%S'";
 

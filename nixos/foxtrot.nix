@@ -298,7 +298,7 @@ in
       label = [
         {
           monitor = "";
-          font_size = 20;
+          font_size = 32;
 
           halign = "center";
           valign = "center";
@@ -307,7 +307,7 @@ in
 
           position = "0 -500";
           font_family = "IosevkaLyteTerm";
-          text = "cmd[update:1000] acpi";
+          text = "cmd[update:30000] acpi";
 
           shadow_passes = 3;
           shadow_size = 1;
