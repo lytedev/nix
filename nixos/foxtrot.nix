@@ -294,6 +294,28 @@ in
       # TODO: nixify this
     };
 
+    programs.hyprlock.settings = {
+      label = [
+        {
+          monitor = "";
+          font_size = 20;
+
+          halign = "center";
+          valign = "center";
+          text_align = "center";
+          color = "rgba(255, 255, 255, 0.5)";
+
+          position = "0 -500";
+          font_family = "IosevkaLyteTerm";
+          text = "cmd[update:1000] acpi";
+
+          shadow_passes = 3;
+          shadow_size = 1;
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_boost = 1.0;
+        }
+      ];
+    };
     services.hypridle = let
       secondsPerMinute = 60;
       lockSeconds = 10 * secondsPerMinute;

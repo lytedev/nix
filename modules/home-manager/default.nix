@@ -35,12 +35,12 @@
     };
   };
 
-  eww = {
-    programs.eww = {
-      enable = true;
-      # NOTE: might be better as a mk out of store symlink or w/e
-      configDir = ./eww;
-    };
+  eww = {config, ...}: {
+    # programs.eww = {
+    #   enable = true;
+    # };
+
+    home.file.".config/eww".source = config.lib.file.mkOutOfStoreSymlink /etc/nixos/flake/modules/home-manager/eww;
   };
 
   mako = {

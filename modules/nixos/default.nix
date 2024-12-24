@@ -433,10 +433,21 @@
     services.logind = {
       lidSwitch = "suspend-then-hibernate";
       extraConfig = ''
-        HandleLidSwitchDocked=ignore
-        HandlePowerKey=suspend-then-hibernate
+        KillUserProcesses=no
+        HandlePowerKey=suspend
+        HandlePowerKeyLongPress=poweroff
+        HandleRebootKey=reboot
+        HandleRebootKeyLongPress=poweroff
+        HandleSuspendKey=suspend
+        HandleSuspendKeyLongPress=hibernate
+        HandleHibernateKey=hibernate
+        HandleHibernateKeyLongPress=ignore
+        HandleLidSwitch=suspend
+        HandleLidSwitchExternalPower=suspend
+        HandleLidSwitchDocked=suspend
+        HandleLidSwitchDocked=suspend
         IdleActionSec=11m
-        IdleAction=suspend-then-hibernate
+        IdleAction=ignore
       '';
     };
   };

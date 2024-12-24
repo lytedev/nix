@@ -34,6 +34,8 @@ $rosewater: #f5e0dc;
 .bar {
   background-color: $base;
   color: $text;
+  border-radius: 5px;
+  border: solid 0px $base;
   font-family: IosevkaLyteTerm;
   font-size: 12.0pt;
 }
@@ -69,8 +71,8 @@ $rosewater: #f5e0dc;
 .bar0>*,
 .bar1>*,
 .bar>* {
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .vol .muted,
@@ -85,8 +87,12 @@ $rosewater: #f5e0dc;
 
 .workspace {
   /* height: 100%; */
-  padding-left: 10px;
-  padding-right: 10px;
+  /* height: 32px; */
+  margin: 0;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 5px;
+  padding-right: 5px;
   color: #666666;
 }
 
