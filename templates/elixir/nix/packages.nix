@@ -14,6 +14,7 @@ in {
       pname = "mix-deps-${pname}";
       sha256 = pkgs.lib.fakeSha256;
     };
+    LANG = "C.UTF-8";
     # buildInputs = with pkgs; [];
     # HOME = "$(pwd)";
     # MIX_XDG = "$HOME";
