@@ -325,7 +325,7 @@
         modules = with nixosModules; [
           home-manager-unstable-defaults
 
-          outputs.diskoConfigurations.standard
+          outputs.diskoConfigurations.unencrypted
           hardware.nixosModules.common-cpu-amd
           hardware.nixosModules.common-pc-ssd
 
