@@ -1,5 +1,21 @@
 {lib, ...}: let
   inherit (lib.attrsets) mapAttrs' filterAttrs;
+  ESP = size: {
+    priority = 1;
+    start = "1M";
+    end = size;
+    label = "EFI";
+    name = "ESP";
+    type = "EF00";
+    content = {
+      type = "filesystem";
+      format = "vfat";
+      mountpoint = "/boot";
+      mountOptions = [
+        "umask=0077"
+      ];
+    };
+  };
 in {
   standardWithHibernateSwap = {
     disks ? ["/dev/sda"],
@@ -80,14 +96,14 @@ in {
       };
     };
   };
-  standard = {disks ? ["/dev/vda"], ...}: {
+  standard = {disk, ...}: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
     disko.devices = {
       disk = {
         primary = {
           type = "disk";
-          device = builtins.elemAt disks 0;
+          device = disk;
           content = {
             type = "gpt";
             partitions = {
@@ -143,36 +159,24 @@ in {
     };
   };
 
-  unencrypted = {disks ? ["/dev/vda"], ...}: {
+  unencrypted = {disk, ...}: {
     disko.devices = {
       disk = {
         primary = {
           type = "disk";
-          device = builtins.elemAt disks 0;
+          device = disk;
           content = {
             type = "gpt";
             partitions = {
-              ESP = {
-                label = "EFI";
-                name = "ESP";
-                size = "512M";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [
-                    "defaults"
-                  ];
-                };
-              };
+              ESP = ESP "5G";
               root = {
                 size = "100%";
                 content = {
                   type = "btrfs";
                   extraArgs = ["-f"];
+                  mountpoint = "/partition-root";
                   subvolumes = {
-                    "/root" = {
+                    "/rootfs" = {
                       mountpoint = "/";
                       mountOptions = [];
                     };
