@@ -162,6 +162,7 @@ in {
     in {
       enable = true;
       checkRuleset = true;
+      flushRuleset = true;
       ruleset = with inf; ''
         table inet filter {
         	## set LANv4 {

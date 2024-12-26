@@ -1263,6 +1263,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       virtualisation.oci-containers.containers.minecraft-flanilla = {
         autoStart = false;
+
+        environmentFiles = [
+          # config.sops.secrets."jland.env".path
+        ];
         image = "docker.io/itzg/minecraft-server";
         # user = "${toString uid}:${toString gid}";
         extraOptions = ["--tty" "--interactive"];
