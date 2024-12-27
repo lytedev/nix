@@ -34,6 +34,10 @@
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
     jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    ghostty.url = "github:ghostty-org/ghostty";
+    ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
+    ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
+
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
 
     mobile-nixos = {
@@ -51,6 +55,7 @@
       "https://nix-community.cachix.org"
       "https://nix.h.lyte.dev"
       "https://hyprland.cachix.org"
+      "https://ghostty.cachix.org"
     ];
 
     extra-trusted-public-keys = [
@@ -59,6 +64,7 @@
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+      "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
     ];
   };
 
@@ -79,6 +85,7 @@
     # nnf,
     # hyprland,
     slippi,
+    ghostty,
     ...
   }: let
     inherit (self) outputs;
@@ -481,6 +488,7 @@
               ];
             };
             environment.systemPackages = with pkgs; [
+              ghostty.outputs.packages.${pkgs.system}.ghostty
               fw-ectool
               (writeShellApplication
                 {
