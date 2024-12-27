@@ -8,7 +8,7 @@ keys:
   # ssh host "nix shell nixpkgs#ssh-to-age -c $SHELL -c 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'"
   - &sshd-at-beefcake age1etv56f7kf78a55lxqtydrdd32dpmsjnxndf4u28qezxn6p7xt9esqvqdq7 
   - &sshd-at-router age1zd7c3g5d20shdftq8ghqm0r92488dg4pdp4gulur7ex3zx2yq35ssxawpn
-  - &sshd-at-dragon age1ez4why08hdx0qf940cjzs6ep4q5rk2gqq7lp99pe58fktpwv65esx4xrht
+  - &sshd-at-dragon age12x49p3mwf27r9gdkfmfqu7lr6gwcwznlhcvcgmv8dz3gac2mkdgsp36y9p
   - &ssh-foxtrot age1njnet9ltjuxasqv3ckn67r5natke6xgd8wlx8psf64pyc4duvurqhedw80
 
   # after updating this file, you may need to update the keys for any associated files like so:
