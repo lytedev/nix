@@ -18,7 +18,7 @@
   };
 in {
   standardWithHibernateSwap = {
-    disks ? ["/dev/sda"],
+    disk,
     swapSize,
     ...
   }: {
@@ -33,7 +33,7 @@ in {
       disk = {
         primary = {
           type = "disk";
-          device = builtins.elemAt disks 0;
+          device = disk;
           content = {
             type = "gpt";
             partitions = {
@@ -73,14 +73,15 @@ in {
                   content = {
                     type = "btrfs";
                     extraArgs = ["-f"];
+                    mountpoint = "/partition-root";
                     subvolumes = {
-                      "/nixos" = {
-                        mountpoint = "/";
-                        mountOptions = ["compress=zstd" "noatime"];
+                      "/rootfs" = {
+                        mountpoint = "/rootfs";
+                        mountOptions = ["compress=zstd"];
                       };
                       "/home" = {
                         mountpoint = "/home";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = ["compress=zstd"];
                       };
                       "/nix" = {
                         mountpoint = "/nix";
@@ -110,7 +111,7 @@ in {
               ESP = {
                 label = "EFI";
                 name = "ESP";
-                size = "512M";
+                size = "4G";
                 type = "EF00";
                 content = {
                   type = "filesystem";
@@ -135,14 +136,15 @@ in {
                   content = {
                     type = "btrfs";
                     extraArgs = ["-f"];
+                    mountpoint = "/partition-root";
                     subvolumes = {
                       "/root" = {
                         mountpoint = "/";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = ["compress=zstd"];
                       };
                       "/home" = {
                         mountpoint = "/home";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = ["compress=zstd"];
                       };
                       "/nix" = {
                         mountpoint = "/nix";
@@ -178,7 +180,7 @@ in {
                   subvolumes = {
                     "/rootfs" = {
                       mountpoint = "/";
-                      mountOptions = [];
+                      mountOptions = ["compress=zstd"];
                     };
                     "/home" = {
                       mountpoint = "/home";
@@ -394,7 +396,7 @@ in {
       };
     };
   };
-  legacy = {disks ? ["/dev/vda"], ...}: {
+  legacy = {disks, ...}: {
     disko.devices = {
       disk = {
         primary = {

@@ -337,7 +337,7 @@ in
         ];
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         monitor = [
-          "eDP-1,2880x1920@120Hz,0x0,1.66667"
+          "eDP-1,2880x1920@120Hz,0x0,1.5"
         ];
       };
     };
