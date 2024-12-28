@@ -1,23 +1,34 @@
 {lib, ...}: let
   inherit (lib.attrsets) mapAttrs' filterAttrs;
-  ESP = size: {
-    priority = 1;
-    start = "1M";
-    label = "EFI";
-    name = "ESP";
-    end = size;
-    type = "EF00";
-    content = {
-      type = "filesystem";
-      format = "vfat";
-      mountpoint = "/boot";
-      mountOptions = [
-        "umask=0077"
-      ];
-    };
-  };
-in {
+  ESP = inputs @ {
+    size ? "4G",
+    label ? "ESP",
+    name ? "ESP",
+  }:
+    {
+      priority = 1;
+      start = "1M";
+      label = label;
+      name = name;
+      end = size;
+      type = "EF00";
+      content = {
+        type = "filesystem";
+        format = "vfat";
+        mountpoint = "/boot";
+        mountOptions = [
+          "umask=0077"
+        ];
+      };
+    }
+    // inputs;
+in rec {
   standardWithHibernateSwap = {
+    esp ? {
+      label = "ESP";
+      size = "4G";
+      name = "ESP";
+    },
     disk,
     swapSize,
     ...
@@ -37,7 +48,7 @@ in {
           content = {
             type = "gpt";
             partitions = {
-              ESP = ESP "4G";
+              ESP = ESP esp;
               swap = {
                 size = swapSize;
                 content = {
@@ -82,6 +93,16 @@ in {
       };
     };
   };
+
+  foxtrot = standardWithHibernateSwap {
+    disk = "nvme0n1";
+    swapSize = "32G";
+    esp = {
+      label = "EFI";
+      name = "EFI";
+    };
+  };
+
   standard = {disk, ...}: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
@@ -93,7 +114,7 @@ in {
           content = {
             type = "gpt";
             partitions = {
-              ESP = ESP "4G";
+              ESP = ESP {size = "4G";};
               luks = {
                 size = "100%";
                 content = {
@@ -140,7 +161,7 @@ in {
           content = {
             type = "gpt";
             partitions = {
-              ESP = ESP "5G";
+              ESP = ESP {size = "5G";};
               root = {
                 size = "100%";
                 content = {

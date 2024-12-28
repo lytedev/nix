@@ -461,7 +461,7 @@
         modules = with nixosModules; [
           home-manager-unstable-defaults
 
-          outputs.diskoConfigurations.standardWithHibernateSwap
+          outputs.diskoConfigurations.foxtrot
           hardware.nixosModules.framework-13-7040-amd
 
           common
