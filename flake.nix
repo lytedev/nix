@@ -461,7 +461,7 @@
         modules = with nixosModules; [
           home-manager-unstable-defaults
 
-          outputs.diskoConfigurations.standard
+          outputs.diskoConfigurations.standardWithHibernateSwap
           hardware.nixosModules.framework-13-7040-amd
 
           common
@@ -595,7 +595,7 @@
               swapSize = "32G";
             };
           }
-          outputs.diskoConfigurations.standardWithHibernateSwap
+          outputs.diskoConfigurations.standard
           hardware.nixosModules.lenovo-thinkpad-t480
           hardware.nixosModules.common-pc-laptop-ssd
 
@@ -603,7 +603,7 @@
           common
           password-manager
           graphical-workstation
-          plasma6
+          # plasma6
           laptop
           gaming
 

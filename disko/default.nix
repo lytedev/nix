@@ -3,9 +3,9 @@
   ESP = size: {
     priority = 1;
     start = "1M";
-    end = size;
     label = "EFI";
     name = "ESP";
+    end = size;
     type = "EF00";
     content = {
       type = "filesystem";
@@ -37,20 +37,7 @@ in {
           content = {
             type = "gpt";
             partitions = {
-              ESP = {
-                label = "EFI";
-                name = "ESP";
-                size = "4G";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [
-                    "defaults"
-                  ];
-                };
-              };
+              ESP = ESP "4G";
               swap = {
                 size = swapSize;
                 content = {
@@ -64,7 +51,6 @@ in {
                 content = {
                   type = "luks";
                   name = "crypted";
-                  extraOpenArgs = ["--allow-discards"];
                   # if you want to use the key for interactive login be sure there is no trailing newline
                   # for example use `echo -n "password" > /tmp/secret.key`
                   keyFile = "/tmp/secret.key"; # Interactive
@@ -73,10 +59,9 @@ in {
                   content = {
                     type = "btrfs";
                     extraArgs = ["-f"];
-                    mountpoint = "/partition-root";
                     subvolumes = {
                       "/rootfs" = {
-                        mountpoint = "/rootfs";
+                        mountpoint = "/";
                         mountOptions = ["compress=zstd"];
                       };
                       "/home" = {
@@ -108,26 +93,12 @@ in {
           content = {
             type = "gpt";
             partitions = {
-              ESP = {
-                label = "EFI";
-                name = "ESP";
-                size = "4G";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [
-                    "defaults"
-                  ];
-                };
-              };
+              ESP = ESP "4G";
               luks = {
                 size = "100%";
                 content = {
                   type = "luks";
                   name = "crypted";
-                  extraOpenArgs = ["--allow-discards"];
                   # if you want to use the key for interactive login be sure there is no trailing newline
                   # for example use `echo -n "password" > /tmp/secret.key`
                   keyFile = "/tmp/secret.key"; # Interactive
@@ -136,7 +107,6 @@ in {
                   content = {
                     type = "btrfs";
                     extraArgs = ["-f"];
-                    mountpoint = "/partition-root";
                     subvolumes = {
                       "/root" = {
                         mountpoint = "/";
