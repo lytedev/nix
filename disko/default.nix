@@ -98,8 +98,8 @@ in rec {
     disk = "nvme0n1";
     swapSize = "32G";
     esp = {
-      label = "EFI";
-      name = "EFI";
+      label = "disk-primary-ESP";
+      name = "disk-primary-ESP";
     };
   };
 

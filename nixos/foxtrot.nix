@@ -189,6 +189,7 @@
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
       "amdgpu.sg_display=0"
+      "boot.shell_on_fail=1"
       "acpi_osi=\"!Windows 2020\""
 
       # "nvme.noacpi=1" # maybe causing crashes upon waking?
