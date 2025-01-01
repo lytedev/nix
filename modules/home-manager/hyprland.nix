@@ -11,6 +11,7 @@ in {
   # TODO: Hyprland seems to sometimes use a ton of CPU?
 
   home.packages = with pkgs; [
+    glib
     swayosd
   ];
 
@@ -47,8 +48,14 @@ in {
         "hypridle"
       ];
 
+      exec = [
+        ''gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"''
+        ''gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"''
+      ];
+
       env = [
         "XCURSOR_SIZE,24"
+        "QT_QPA_PLATFORMTHEME,qt6ct"
       ];
 
       input = {
@@ -96,7 +103,7 @@ in {
         gaps_out = 6;
         border_size = 2;
         resize_on_border = true;
-        no_focus_fallback = true;
+        no_focus_fallback = false;
 
         layout = "dwindle";
       };
@@ -129,7 +136,7 @@ in {
         "$mod SHIFT, return, exec, wezterm"
         */
         "$mod, return, exec, wezterm"
-        "$mod SHIFT, return, exec, kitty"
+        "$mod SHIFT, return, exec, [float] wezterm start --always-new-process"
         "$mod, U, exec, firefox"
         "$mod, space, exec, tofi-run | xargs hyprctl dispatch exec --"
         "$mod, C, killactive,"
