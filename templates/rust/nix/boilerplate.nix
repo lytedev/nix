@@ -4,7 +4,7 @@ inputs @ {
   ...
 }: let
   forSelfOverlay =
-    if builtins.hasAttr "forSelf" self.overlays
+    if builtins.hasAttr "overlays" self && builtins.hasAttr "forSelf" self.overlays
     then self.overlays.forSelf
     else (_: p: p);
 in rec {
