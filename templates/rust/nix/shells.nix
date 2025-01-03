@@ -5,9 +5,9 @@
 }: let
   inherit (pkgs) system;
 in rec {
-  lyrs-dev = pkgs.mkShell {
+  my-package-dev = pkgs.mkShell {
     inherit (self.checks.${system}.git-hooks) shellHook;
-    inputsFrom = [self.packages.${system}.lyrs];
+    inputsFrom = [self.packages.${system}.my-package];
     packages = with pkgs; [
       convco
       rustPackages.clippy
@@ -18,5 +18,5 @@ in rec {
       lldb
     ];
   };
-  default = lyrs-dev;
+  default = my-package-dev;
 }
