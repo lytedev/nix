@@ -535,7 +535,7 @@
         system = "x86_64-linux";
         modules = with nixosModules; [
           home-manager-unstable-defaults
-          outputs.diskoConfigurations.standard
+          outputs.diskoConfigurations.thablet
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
           common
