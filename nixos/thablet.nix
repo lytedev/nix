@@ -75,6 +75,61 @@
   };
 
   home-manager.users.daniel = {
+    home = {
+      pointerCursor = {
+        size = 40;
+      };
+    };
+
+    programs.hyprlock.settings = {
+      label = [
+        {
+          monitor = "";
+          font_size = 32;
+
+          halign = "center";
+          valign = "center";
+          text_align = "center";
+          color = "rgba(255, 255, 255, 0.5)";
+
+          position = "0 -500";
+          font_family = "IosevkaLyteTerm";
+          text = "cmd[update:30000] acpi";
+
+          shadow_passes = 3;
+          shadow_size = 1;
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_boost = 1.0;
+        }
+      ];
+    };
+
+    services.hypridle = let
+      secondsPerMinute = 60;
+      lockSeconds = 10 * secondsPerMinute;
+    in {
+      settings = {
+        listener = [
+          {
+            timeout = lockSeconds + 55;
+            on-timeout = ''systemctl suspend'';
+          }
+        ];
+      };
+    };
+
+    wayland.windowManager.hyprland = {
+      settings = {
+        exec-once = [
+          "eww open bar0"
+        ];
+        # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+        monitor = [
+          "eDP-1,2560x1440@60Hz,0x0,1.25"
+        ];
+      };
+    };
+
     wayland.windowManager.sway = {
       config = {
         output = {

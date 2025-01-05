@@ -2,6 +2,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    hardware.url = "github:nixos/nixos-hardware";
 
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,8 +21,16 @@
     home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     helix.url = "github:helix-editor/helix/master";
-    hardware.url = "github:nixos/nixos-hardware";
+    helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     hyprland.url = "github:hyprwm/Hyprland";
+    hyprland.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    hyprgrass.url = "github:horriblename/hyprgrass";
+    hyprgrass.inputs.hyprland.follows = "hyprland";
+
+    iio-hyprland.url = "github:JeanSchoeller/iio-hyprland";
+    iio-hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     wezterm.url = "github:wez/wezterm?dir=nix";
     wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -524,9 +533,10 @@
           common
           password-manager
           graphical-workstation
-          plasma6
+          # plasma6
           music-production
           laptop
+          touchscreen
           gaming
 
           ./nixos/thablet.nix

@@ -422,6 +422,10 @@
       wifi
     ];
 
+    environment.systemPackages = with pkgs; [
+      acpi
+    ];
+
     services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="backlight", RUN+="${pkgs.coreutils}/bin/chgrp video /sys/class/backlight/%k/brightness"
       ACTION=="add", SUBSYSTEM=="backlight", RUN+="${pkgs.coreutils}/bin/chmod g+w /sys/class/backlight/%k/brightness"
@@ -450,6 +454,14 @@
         IdleAction=ignore
       '';
     };
+  };
+
+  touchscreen = {pkgs, ...}: {
+    environment.systemPackages = with pkgs; [
+      wvkbd # on-screen keyboard
+      flakeInputs.iio-hyprland.outputs.packages.${system}.default # auto-rotate hyprland displays
+      flakeInputs.hyprgrass.outputs.packages.${system}.hyprgrass # hyprland touch gestures
+    ];
   };
 
   emacs = {pkgs, ...}: {
