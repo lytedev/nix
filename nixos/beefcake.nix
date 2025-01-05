@@ -866,7 +866,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         pkgs.writeText "header.tmpl"
         ''
           <link rel="stylesheet" href="/assets/css/iosevkalyte.css" />
-          <script async="" defer="" data-domain="lyte.dev" src="https://a.lyte.dev/js/script.js"></script>
+          <script async="" defer="" data-domain="git.lyte.dev" src="https://a.lyte.dev/js/script.js"></script>
         '';
       forgejoCustomHomeTmpl =
         pkgs.writeText "home.tmpl"
@@ -1263,6 +1263,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       };
       virtualisation.oci-containers.containers.minecraft-flanilla = {
         autoStart = false;
+
+        environmentFiles = [
+          # config.sops.secrets."jland.env".path
+        ];
         image = "docker.io/itzg/minecraft-server";
         # user = "${toString uid}:${toString gid}";
         extraOptions = ["--tty" "--interactive"];

@@ -1,8 +1,35 @@
 {lib, ...}: let
   inherit (lib.attrsets) mapAttrs' filterAttrs;
-in {
+  ESP = inputs @ {
+    size ? "4G",
+    label ? "ESP",
+    name ? "ESP",
+  }:
+    {
+      priority = 1;
+      start = "1M";
+      label = label;
+      name = name;
+      end = size;
+      type = "EF00";
+      content = {
+        type = "filesystem";
+        format = "vfat";
+        mountpoint = "/boot";
+        mountOptions = [
+          "umask=0077"
+        ];
+      };
+    }
+    // inputs;
+in rec {
   standardWithHibernateSwap = {
-    disks ? ["/dev/sda"],
+    esp ? {
+      label = "ESP";
+      size = "4G";
+      name = "ESP";
+    },
+    disk,
     swapSize,
     ...
   }: {
@@ -17,24 +44,11 @@ in {
       disk = {
         primary = {
           type = "disk";
-          device = builtins.elemAt disks 0;
+          device = disk;
           content = {
             type = "gpt";
             partitions = {
-              ESP = {
-                label = "EFI";
-                name = "ESP";
-                size = "4G";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [
-                    "defaults"
-                  ];
-                };
-              };
+              ESP = ESP esp;
               swap = {
                 size = swapSize;
                 content = {
@@ -48,7 +62,6 @@ in {
                 content = {
                   type = "luks";
                   name = "crypted";
-                  extraOpenArgs = ["--allow-discards"];
                   # if you want to use the key for interactive login be sure there is no trailing newline
                   # for example use `echo -n "password" > /tmp/secret.key`
                   keyFile = "/tmp/secret.key"; # Interactive
@@ -58,75 +71,13 @@ in {
                     type = "btrfs";
                     extraArgs = ["-f"];
                     subvolumes = {
-                      "/nixos" = {
+                      "/rootfs" = {
                         mountpoint = "/";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = ["compress=zstd"];
                       };
                       "/home" = {
                         mountpoint = "/home";
-                        mountOptions = ["compress=zstd" "noatime"];
-                      };
-                      "/nix" = {
-                        mountpoint = "/nix";
-                        mountOptions = ["compress=zstd" "noatime"];
-                      };
-                    };
-                  };
-                };
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  standard = {disks ? ["/dev/vda"], ...}: {
-    # this is my standard partitioning scheme for my machines: an LUKS-encrypted
-    # btrfs volume
-    disko.devices = {
-      disk = {
-        primary = {
-          type = "disk";
-          device = builtins.elemAt disks 0;
-          content = {
-            type = "gpt";
-            partitions = {
-              ESP = {
-                label = "EFI";
-                name = "ESP";
-                size = "512M";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [
-                    "defaults"
-                  ];
-                };
-              };
-              luks = {
-                size = "100%";
-                content = {
-                  type = "luks";
-                  name = "crypted";
-                  extraOpenArgs = ["--allow-discards"];
-                  # if you want to use the key for interactive login be sure there is no trailing newline
-                  # for example use `echo -n "password" > /tmp/secret.key`
-                  keyFile = "/tmp/secret.key"; # Interactive
-                  # settings.keyFile = "/tmp/password.key";
-                  # additionalKeyFiles = ["/tmp/additionalSecret.key"];
-                  content = {
-                    type = "btrfs";
-                    extraArgs = ["-f"];
-                    subvolumes = {
-                      "/root" = {
-                        mountpoint = "/";
-                        mountOptions = ["compress=zstd" "noatime"];
-                      };
-                      "/home" = {
-                        mountpoint = "/home";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = ["compress=zstd"];
                       };
                       "/nix" = {
                         mountpoint = "/nix";
@@ -143,38 +94,84 @@ in {
     };
   };
 
-  unencrypted = {disks ? ["/dev/vda"], ...}: {
+  foxtrot = standardWithHibernateSwap {
+    disk = "nvme0n1";
+    swapSize = "32G";
+    esp = {
+      label = "disk-primary-ESP";
+      name = "disk-primary-ESP";
+    };
+  };
+
+  standard = {disk, ...}: {
+    # this is my standard partitioning scheme for my machines: an LUKS-encrypted
+    # btrfs volume
     disko.devices = {
       disk = {
         primary = {
           type = "disk";
-          device = builtins.elemAt disks 0;
+          device = disk;
           content = {
             type = "gpt";
             partitions = {
-              ESP = {
-                label = "EFI";
-                name = "ESP";
-                size = "512M";
-                type = "EF00";
+              ESP = ESP {size = "4G";};
+              luks = {
+                size = "100%";
                 content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [
-                    "defaults"
-                  ];
+                  type = "luks";
+                  name = "crypted";
+                  # if you want to use the key for interactive login be sure there is no trailing newline
+                  # for example use `echo -n "password" > /tmp/secret.key`
+                  keyFile = "/tmp/secret.key"; # Interactive
+                  # settings.keyFile = "/tmp/password.key";
+                  # additionalKeyFiles = ["/tmp/additionalSecret.key"];
+                  content = {
+                    type = "btrfs";
+                    extraArgs = ["-f"];
+                    subvolumes = {
+                      "/root" = {
+                        mountpoint = "/";
+                        mountOptions = ["compress=zstd"];
+                      };
+                      "/home" = {
+                        mountpoint = "/home";
+                        mountOptions = ["compress=zstd"];
+                      };
+                      "/nix" = {
+                        mountpoint = "/nix";
+                        mountOptions = ["compress=zstd" "noatime"];
+                      };
+                    };
+                  };
                 };
               };
+            };
+          };
+        };
+      };
+    };
+  };
+
+  unencrypted = {disk, ...}: {
+    disko.devices = {
+      disk = {
+        primary = {
+          type = "disk";
+          device = disk;
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = ESP {size = "5G";};
               root = {
                 size = "100%";
                 content = {
                   type = "btrfs";
                   extraArgs = ["-f"];
+                  mountpoint = "/partition-root";
                   subvolumes = {
-                    "/root" = {
+                    "/rootfs" = {
                       mountpoint = "/";
-                      mountOptions = [];
+                      mountOptions = ["compress=zstd"];
                     };
                     "/home" = {
                       mountpoint = "/home";
@@ -390,7 +387,7 @@ in {
       };
     };
   };
-  legacy = {disks ? ["/dev/vda"], ...}: {
+  legacy = {disks, ...}: {
     disko.devices = {
       disk = {
         primary = {

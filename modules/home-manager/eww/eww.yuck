@@ -13,7 +13,7 @@
   (geometry
     :x "0%"
     :y "5px"
-    :width "100%"
+    :width "80%"
     :height "32px"
     :anchor "bottom center")
   (bar))
@@ -25,10 +25,10 @@
   :geometry
   (geometry
     :x "0%"
-    :y "20%"
-    :width "90%"
-    :height "60px"
-    :anchor "top center")
+    :y "5px"
+    :width "80%"
+    :height "32px"
+    :anchor "bottom center")
   (bar))
 
 (defwidget rightsidestuff []
