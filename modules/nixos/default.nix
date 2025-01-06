@@ -660,6 +660,7 @@
       development-tools
       printing
       music-consumption
+      kde-connect
       video-tools
       radio-tools
       android-dev
