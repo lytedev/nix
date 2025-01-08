@@ -1984,4 +1984,34 @@
       z = "zellij";
     };
   };
+
+  admin-user-device = {
+    programs.ssh.enable = true;
+    matchBlocks = {
+      "git.lyte.dev" = {
+        # hostname = "git.lyte.dev";
+        user = "forgejo";
+      };
+      "github.com" = {
+        user = "git";
+      };
+      "gitlab.com" = {
+        user = "git";
+      };
+      "codeberg.org" = {
+        user = "git";
+      };
+      "git.hq.bill.com" = {
+        user = "git";
+      };
+      work = {
+        user = "daniel.flanagan";
+      };
+    };
+    extraConfig = ''
+      Include config.d/*
+      # pass obscure/keys/ssh-key-ed25519 | tail -n 7
+      IdentityFile ~/.ssh/id_ed25519
+    '';
+  };
 }
