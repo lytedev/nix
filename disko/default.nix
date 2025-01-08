@@ -103,7 +103,15 @@ in rec {
     };
   };
 
-  standard = {disk, ...}: {
+  standard = {
+    esp ? {
+      label = "ESP";
+      size = "4G";
+      name = "ESP";
+    },
+    disk,
+    ...
+  }: {
     # this is my standard partitioning scheme for my machines: an LUKS-encrypted
     # btrfs volume
     disko.devices = {
@@ -114,7 +122,7 @@ in rec {
           content = {
             type = "gpt";
             partitions = {
-              ESP = ESP {size = "4G";};
+              ESP = ESP esp;
               luks = {
                 size = "100%";
                 content = {
@@ -149,6 +157,15 @@ in rec {
           };
         };
       };
+    };
+  };
+
+  thablet = standard {
+    disk = "nvme0n1";
+    esp = {
+      label = "EFI";
+      size = "4G";
+      name = "EFI";
     };
   };
 

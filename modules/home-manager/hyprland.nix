@@ -280,7 +280,7 @@ in {
 
       general = {
         grace = 0;
-        no_face_out = true;
+        no_fade_out = true;
       };
 
       input-field = [
