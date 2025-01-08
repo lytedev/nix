@@ -795,8 +795,8 @@
 
   gaming = {pkgs, ...}: {
     imports = with nixosModules; [
-      lutris
-      steam
+      # lutris # use the flatpak
+      steam # TODO: use the flatpak?
     ];
 
     environment = {
