@@ -3,15 +3,32 @@
 function usage {
 	echo "countdown - exit after a certain amount of time has passed"
 	echo "  Usage:"
-	echo "    countdown <SECONDS> && command..."
+	echo "    countdown <TIME> && command..."
 	echo
 	echo "  Examples:"
-	echo '    countdown 120 && echo "Two minutes has elapsed!"'
+	echo '    countdown 120 && echo "Two minutes have elapsed!"'
+	echo '    countdown 5m && echo "Five minutes have elapsed!"'
+	echo '    countdown 10h && echo "Ten hours have elapsed!"'
+	echo '    countdown 9d && echo "Nine days have elapsed!"'
 }
 
 [[ $# -lt 1 ]] && { printf "error: no SECONDS argument provided\n" >&2; usage; exit 1; }
 
-d=$(($(date +%s) + $1));
+t="$1"
+seconds="$(echo "$t" | tr -d -c 0-9)"
+if [[ $t =~ ^.*m$ ]]; then
+	seconds=$((seconds * 60))
+fi
+
+if [[ $t =~ ^.*h$ ]]; then
+	seconds=$((seconds * 60 * 60))
+fi
+
+if [[ $t =~ ^.*d$ ]]; then
+	seconds=$((seconds * 60 * 60 * 24))
+fi
+
+d=$(($(date +%s) + seconds));
 printf 'Started at %s\n' "$(date)"
 
 while [[ "$d" -ge "$(date +%s)" ]]; do

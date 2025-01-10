@@ -2006,6 +2006,14 @@
         "git.hq.bill.com" = {
           user = "git";
         };
+        "steam-deck-oled" = {
+          user = "deck";
+          hostname = "sdo";
+        };
+        "steam-deck" = {
+          user = "deck";
+          hostname = "steamdeck";
+        };
         work = {
           user = "daniel.flanagan";
         };
