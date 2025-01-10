@@ -272,21 +272,6 @@
       TODO: enable color scheme/theme by default
       */
       enable = true;
-
-      # TODO: uses nixpkgs.pass so pass otp doesn't work
-      package = pkgs.firefox.override {
-        nativeMessagingHosts = [
-          pkgs.passff-host
-          pkgs.plasma-browser-integration
-        ];
-      };
-
-      /*
-      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-        ublock-origin
-      ]; # TODO: would be nice to have _all_ my firefox stuff managed here instead of Firefox Sync maybe?
-      */
-
       profiles = {
         daniel = {
           id = 0;
