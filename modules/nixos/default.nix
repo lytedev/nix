@@ -522,7 +522,6 @@
       nodePackages.yaml-language-server
       xh
       curl
-      google-chrome
     ];
 
     hardware.gpgSmartcards.enable = true;
@@ -585,10 +584,6 @@
       };
 
       programs.jq = {
-        enable = true;
-      };
-
-      programs.chromium = {
         enable = true;
       };
 
@@ -701,6 +696,8 @@
       };
     environment = {
       systemPackages = with pkgs; [
+        firefox
+        google-chrome
         libnotify
         slides
         slack

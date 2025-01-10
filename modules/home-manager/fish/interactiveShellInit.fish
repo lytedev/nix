@@ -1,3 +1,5 @@
+set this_shell_should_notify 1
+
 # prompt
 function get_hostname
     if test (uname) = Linux || test (uname) = Darwin
@@ -61,8 +63,9 @@ end
 function _last_cmd_duration
     set_color -b normal green
     set -q CMD_DURATION && printf " %dms" $CMD_DURATION
-    if test $CMD_DURATION -gt 5000
+    if test $CMD_DURATION -gt 5000 && test $this_shell_should_notify = 1
         printf "\e]777;notify;%s;%s\e\\" "WezTerm: Command Finished" (history --max 1)
+        set this_shell_should_notify 0
     end
 end
 
@@ -113,6 +116,10 @@ end
 function _prompt_prefix
     set_color -b normal brblack
     printf "# "
+end
+
+function preexec --on-event fish_preexec
+    set this_shell_should_notify 1
 end
 
 function fish_prompt
