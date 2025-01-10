@@ -661,10 +661,22 @@
       printing
       music-consumption
       kde-connect
+      plasma6
       video-tools
       radio-tools
       android-dev
     ];
+
+    services.displayManager.sddm = {
+      enable = true;
+      package = lib.mkForce pkgs.kdePackages.sddm;
+      settings = {};
+      # theme = "";
+      wayland = {
+        enable = true;
+        compositor = "weston";
+      };
+    };
 
     xdg.portal.enable = true;
 
