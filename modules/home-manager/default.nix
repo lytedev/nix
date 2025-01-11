@@ -304,6 +304,7 @@
 
   firefox-no-tabs = {
     programs.firefox = {
+      profileVersion = null;
       profiles = {
         daniel = {
           settings = {
