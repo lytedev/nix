@@ -1088,19 +1088,17 @@
   };
 
   steam = {pkgs, ...}: {
-    # programs.gamescope.enable = true;
+    programs.gamescope.enable = true;
 
     programs.steam = {
       enable = true;
 
-      /*
       extest.enable = true;
       gamescopeSession.enable = true;
 
       extraPackages = with pkgs; [
-      gamescope
+        gamescope
       ];
-      */
 
       extraCompatPackages = with pkgs; [
         proton-ge-bin
