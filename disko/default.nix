@@ -29,6 +29,8 @@ in rec {
       size = "4G";
       name = "ESP";
     },
+    rootfsName ? "/rootfs",
+    homeName ? "/home",
     disk,
     swapSize,
     ...
@@ -71,11 +73,11 @@ in rec {
                     type = "btrfs";
                     extraArgs = ["-f"];
                     subvolumes = {
-                      "/rootfs" = {
+                      ${rootfsName} = {
                         mountpoint = "/";
                         mountOptions = ["compress=zstd"];
                       };
-                      "/home" = {
+                      ${homeName} = {
                         mountpoint = "/home";
                         mountOptions = ["compress=zstd"];
                       };
@@ -97,6 +99,8 @@ in rec {
   foxtrot = standardWithHibernateSwap {
     disk = "nvme0n1";
     swapSize = "32G";
+    rootfsName = "/nixos-rootfs";
+    homeName = "/nixos-home";
     esp = {
       label = "disk-primary-ESP";
       name = "disk-primary-ESP";

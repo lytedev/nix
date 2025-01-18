@@ -250,6 +250,7 @@
         MANPAGER = "bat --style=plain";
       };
       systemPackages = with pkgs; [
+        aria2
         curl
         dua
         bat

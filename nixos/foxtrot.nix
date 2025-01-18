@@ -176,7 +176,15 @@
 
     loader = {
       efi.canTouchEfiVariables = true;
-      systemd-boot.enable = true;
+      systemd-boot = {
+        enable = true;
+        extraEntries = {
+          "arch.conf" = ''
+            title Arch
+            efi   /efi/Arch/grubx64.efi
+          '';
+        };
+      };
     };
 
     # NOTE(oninstall):
