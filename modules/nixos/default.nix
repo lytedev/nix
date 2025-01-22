@@ -27,7 +27,7 @@
     programs.hyprland = {
       enable = true;
     };
-    environment.systemPackages = with pkgs; [hyprpaper xwaylandvideobridge socat];
+    environment.systemPackages = with pkgs; [hyprpaper xwaylandvideobridge netcat-openbsd];
 
     programs.hyprland = {
       package = flakeInputs.hyprland.packages.${pkgs.system}.hyprland;

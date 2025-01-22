@@ -1,0 +1,19 @@
+[package]
+name = "hyprland-workspaces-eww"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "hyprland-workspaces-eww"
+path = "./main.rs"
+
+[dependencies]
+serde = "1.0.217"
+serde_json = "1.0.137"
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
