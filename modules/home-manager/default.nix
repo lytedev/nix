@@ -1201,6 +1201,20 @@
     ];
   };
 
+  niri = {
+    pkgs,
+    config,
+    ...
+  }: {
+    home.packages = with pkgs; [
+      niri
+    ];
+
+    home.file."${config.xdg.configHome}/niri" = {
+      source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/niri;
+    };
+  };
+
   iex = {
     home.file.".iex.exs" = {
       enable = true;

@@ -371,6 +371,7 @@
           {
             home-manager.users.daniel = {
               imports = with homeManagerModules; [
+                niri
                 senpai
                 iex
                 cargo

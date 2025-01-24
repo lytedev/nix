@@ -131,8 +131,8 @@
           "5, monitor:DP-3, default:false"
           "6, monitor:DP-3, default:false"
           "7, monitor:DP-3, default:false"
-          "8, monitor:DP-1, default:true"
-          "9, monitor:DP-1, default:false"
+          "8, monitor:DP-2, default:true"
+          "9, monitor:DP-2, default:false"
         ];
       };
     };
