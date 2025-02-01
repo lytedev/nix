@@ -140,6 +140,7 @@ in {
         "$mod SHIFT, return, exec, [float] wezterm start --always-new-process"
         "$mod, U, exec, firefox"
         "$mod, space, exec, tofi-run | xargs hyprctl dispatch exec --"
+        "$mod, D, exec, tofi-drun | xargs hyprctl dispatch exec --"
         "$mod, C, killactive,"
         "$mod SHIFT, E, exit,"
         "$mod, E, exec, dolphin"
