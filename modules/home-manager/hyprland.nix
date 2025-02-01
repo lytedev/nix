@@ -110,7 +110,8 @@ in {
       };
 
       decoration = {
-        rounding = 5;
+        rounding = 10;
+        rounding_power = 4.0;
 
         /*
         blur = "no";

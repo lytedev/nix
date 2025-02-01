@@ -91,6 +91,7 @@
     hardware,
     jovian,
     mobile-nixos,
+    hyprland,
     # nnf,
     # hyprland,
     slippi,
@@ -248,6 +249,7 @@
 
       modifications = final: prev: let
         wezterm-input = wezterm;
+        hyprland-input = hyprland;
       in rec {
         helix = helix.outputs.packages.${prev.system}.helix;
         final.helix = helix;
@@ -260,6 +262,9 @@
         wezterm = wezterm-input.outputs.packages.${prev.system}.default;
         # wezterm = (import nixpkgs {inherit (prev) system;}).wezterm;
         final.wezterm = wezterm;
+
+        hyprland = hyprland-input.outputs.packages.${prev.system}.default;
+        final.hyprland = hyprland;
 
         # zellij = prev.zellij.overrideAttrs rec {
         #   version = "0.41.0";
