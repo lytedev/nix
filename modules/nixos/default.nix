@@ -657,7 +657,7 @@
       printing
       music-consumption
       kde-connect
-      plasma6
+      # plasma6
       video-tools
       radio-tools
       android-dev
