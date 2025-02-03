@@ -263,7 +263,7 @@ in {
       windowrulev2 = idleinhibit,class:^.*([Ss]lippi).*$
       windowrulev2 = float,class:^.*$
       windowrulev2 = tile,class:^.*([Kk]itty|[Ff]irefox|[Ww]ezterm|[Dd]iscord|[Ss]potify|[Ss]lack).*$
-      windowrulev2 = opacity 1.0 0.95,class:^.*$
+      # windowrulev2 = opacity 1.0 0.95,class:^.*$
       windowrulev2 = center 1,floating:1
 
       windowrulev2 = opacity 0.0 override, class:^(xwaylandvideobridge)$

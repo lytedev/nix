@@ -657,14 +657,14 @@
       printing
       music-consumption
       kde-connect
-      plasma6
+      # plasma6
       video-tools
       radio-tools
       android-dev
     ];
 
     services.displayManager.sddm = {
-      enable = true;
+      enable = false;
       package = lib.mkForce pkgs.kdePackages.sddm;
       settings = {};
       # theme = "";

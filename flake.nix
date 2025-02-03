@@ -484,8 +484,8 @@
           password-manager
           graphical-workstation
           # plasma6
-          virtual-machines
-          virtual-machines-gui
+          # virtual-machines
+          # virtual-machines-gui
           laptop
           gaming
           cross-compiler
