@@ -47,23 +47,22 @@
       ip = "192.168.0.9";
       additionalHosts = [
         ".beefcake.lan"
-        "nix.h.lyte.dev"
-        "idm.h.lyte.dev"
-        "git.lyte.dev"
-        "video.lyte.dev"
-        "paperless.h.lyte.dev"
-        "audio.lyte.dev"
         "a.lyte.dev"
+        "atuin.h.lyte.dev"
+        "audio.lyte.dev"
         "bw.lyte.dev"
         "files.lyte.dev"
-        "vpn.h.lyte.dev"
-        "atuin.h.lyte.dev"
-        "grafana.h.lyte.dev"
-        "prometheus.h.lyte.dev"
         "finances.h.lyte.dev"
+        "git.lyte.dev"
+        "grafana.h.lyte.dev"
+        "idm.h.lyte.dev"
         "nextcloud.h.lyte.dev"
+        "nix.h.lyte.dev"
         "onlyoffice.h.lyte.dev"
-        "a.lyte.dev"
+        "paperless.h.lyte.dev"
+        "prometheus.h.lyte.dev"
+        "video.lyte.dev"
+        "vpn.h.lyte.dev"
       ];
     };
   };

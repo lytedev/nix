@@ -214,6 +214,7 @@ layout {
 spawn-at-startup "wezterm"
 spawn-at-startup "firefox"
 spawn-at-startup "mako"
+spawn-at-startup "swayosd-server"
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
 // If the client will specifically ask for CSD, the request will be honored.
@@ -291,7 +292,8 @@ binds {
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     Mod+T { spawn "wezterm"; }
-    Mod+Space { spawn "tofi-run"; }
+    Mod+Space { spawn "fuzzel"; }
+    Mod+D { spawn "fuzzel --drun"; }
     Super+Alt+L { spawn "swaylock"; }
 
     // You can also use a shell. Do this if you need pipes, multiple commands, etc.
@@ -446,7 +448,7 @@ binds {
     // Mod+Ctrl+1 { move-window-to-workspace 1; }
 
     // Switches focus between the current and the previous workspace.
-    // Mod+Tab { focus-workspace-previous; }
+    Mod+Tab { focus-workspace-previous; }
 
     // Consume one window from the right into the focused column.
     Mod+Comma  { consume-window-into-column; }

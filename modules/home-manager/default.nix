@@ -176,6 +176,7 @@
       stateVersion = lib.mkDefault "24.05";
 
       sessionVariables = {
+        TERMINAL = "wezterm";
         EDITOR = "hx";
         VISUAL = "hx";
         PAGER = "less";
@@ -1208,10 +1209,15 @@
   }: {
     home.packages = with pkgs; [
       niri
+      fuzzel
     ];
 
     home.file."${config.xdg.configHome}/niri" = {
       source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/niri;
+    };
+
+    home.file."${config.xdg.configHome}/fuzzel" = {
+      source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/fuzzel;
     };
   };
 

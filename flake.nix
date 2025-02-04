@@ -497,6 +497,7 @@
               imports = with homeManagerModules; [
                 senpai
                 iex
+                niri
                 cargo
                 firefox-no-tabs
                 linux-desktop-environment-config
