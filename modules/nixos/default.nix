@@ -18,6 +18,30 @@
     # TODO: include the home-manager modules for daniel?
   };
 
+  niri = {pkgs, ...}: {
+    environment.systemPackages = with pkgs; [niri];
+
+    systemd.user.services.polkit = {
+      description = "PolicyKit Authentication Agent";
+      wantedBy = ["niri.service"];
+      after = ["graphical-session.target"];
+      partOf = ["graphical-session.target"];
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${pkgs.libsForQt5.polkit-kde-agent}/libexec/polkit-kde-authentication-agent-1";
+        Restart = "on-failure";
+        RestartSec = 1;
+        TimeoutStopSec = 10;
+      };
+    };
+
+    security.pam.services.swaylock = {};
+    programs.dconf.enable = pkgs.lib.mkDefault true;
+    fonts.enableDefaultPackages = pkgs.lib.mkDefault true;
+    security.polkit.enable = true;
+    services.gnome.gnome-keyring.enable = true;
+  };
+
   hyprland = {pkgs, ...}: {
     imports = with nixosModules; [
       ewwbar

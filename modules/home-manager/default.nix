@@ -1211,7 +1211,23 @@
     home.packages = with pkgs; [
       niri
       fuzzel
+      xdg-desktop-portal-gnome
+      xdg-desktop-portal-gtk
     ];
+
+    services.gnome-keyring.enable = true;
+    xdg.portal = {
+      enable = true;
+      extraPortals = with pkgs; [xdg-desktop-portal-gtk xdg-desktop-portal-gnome];
+      config = {
+        common = {
+          default = ["gtk"];
+        };
+        niri = {
+          default = ["gtk"];
+        };
+      };
+    };
 
     home.file."${config.xdg.configHome}/niri" = {
       source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/niri;
