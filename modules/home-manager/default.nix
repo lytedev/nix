@@ -176,7 +176,7 @@
       stateVersion = lib.mkDefault "24.05";
 
       sessionVariables = {
-        TERMINAL = "wezterm";
+        TERMINAL = "ghostty";
         EDITOR = "hx";
         VISUAL = "hx";
         PAGER = "less";
@@ -261,6 +261,7 @@
   desktop = {
     imports = with homeManagerModules; [
       wezterm
+      ghostty
     ];
   };
 
@@ -1419,6 +1420,20 @@
 
     home.file."${config.xdg.configHome}/wezterm" = {
       source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/wezterm;
+    };
+  };
+
+  ghostty = {
+    pkgs,
+    config,
+    ...
+  }: {
+    home.packages = with pkgs; [
+      ghostty
+    ];
+
+    home.file."${config.xdg.configHome}/ghostty" = {
+      source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/ghostty;
     };
   };
 
