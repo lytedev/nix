@@ -62,6 +62,10 @@ See [lib/internal.md](./lib/internal.md).
 
 ## Short Term
 
+- gnome weather
+- gnome notification sounds
+- gnome missing icons
+- ghostty only notify if window or pane or w/e is not focused
 - more-easily manage gitea repo mirroring to github?
 - router https://github.com/breakds/nixos-routers/blob/main/machines/welderhelper/router.nix
 - a.lyte.dev for web analytics
