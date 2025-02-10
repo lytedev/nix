@@ -1017,7 +1017,7 @@ keybind = performable:ctrl+k=goto_split:up
 # left padding to 2 and the right padding to 4. If you want to set both
 # paddings to the same value, you can use a single value. For example,
 # `window-padding-x = 2` will set both paddings to 2.
-window-padding-x = 2
+window-padding-x = 5
 
 # Vertical window padding. This applies padding between the terminal cells and
 # the top and bottom window borders. The value is in points, meaning that it
@@ -1036,7 +1036,7 @@ window-padding-x = 2
 # top padding to 2 and the bottom padding to 4. If you want to set both
 # paddings to the same value, you can use a single value. For example,
 # `window-padding-y = 2` will set both paddings to 2.
-window-padding-y = 2
+window-padding-y = 5
 
 # The viewport dimensions are usually not perfectly divisible by the cell
 # size. In this case, some extra padding on the end of a column and the bottom
