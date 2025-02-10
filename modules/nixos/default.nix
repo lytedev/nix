@@ -684,21 +684,11 @@
       music-consumption
       kde-connect
       # plasma6
+      gnome
       video-tools
       radio-tools
       android-dev
     ];
-
-    services.displayManager.sddm = {
-      enable = false;
-      package = lib.mkForce pkgs.kdePackages.sddm;
-      settings = {};
-      # theme = "";
-      wayland = {
-        enable = true;
-        compositor = "weston";
-      };
-    };
 
     xdg.portal.enable = true;
 
@@ -739,8 +729,49 @@
     };
   };
 
-  # gnome = {};
-  # intel = {};
+  gnome = {
+    pkgs,
+    lib,
+    ...
+  }: {
+    imports = with nixosModules; [pipewire];
+
+    services.xserver.displayManager.gdm.enable = true;
+    services.xserver.desktopManager.gnome.enable = true;
+
+    services.xserver.enable = true;
+
+    environment.variables.GSK_RENDERER = "gl";
+
+    programs.kdeconnect = {
+      enable = true;
+      package = pkgs.gnomeExtensions.gsconnect;
+    };
+
+    networking.firewall = rec {
+      allowedTCPPortRanges = [
+        {
+          from = 1714;
+          to = 1764;
+        }
+      ];
+      allowedUDPPortRanges = allowedTCPPortRanges;
+    };
+
+    home-manager.users.daniel = {
+      imports = with homeManagerModules; [
+        gnome
+      ];
+
+      home.file.".face" = {
+        enable = true;
+        source = builtins.fetchurl {
+          url = "https://lyte.dev/img/avatar3-square-512.png";
+          sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
+        };
+      };
+    };
+  };
 
   radio-tools = {pkgs, ...}: {
     environment = {
@@ -785,10 +816,19 @@
     ];
 
     services.xserver.enable = true;
+
     services.displayManager.sddm = {
       enable = true;
-      wayland.enable = true;
+      # package = lib.mkForce pkgs.kdePackages.sddm;
+      settings = {};
+      # theme = "";
+      enableHidpi = true;
+      wayland = {
+        enable = true;
+        compositor = "weston";
+      };
     };
+
     services.desktopManager.plasma6.enable = true;
     programs.dconf.enable = true;
 

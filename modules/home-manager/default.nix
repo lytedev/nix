@@ -554,7 +554,27 @@
     };
   };
 
-  # gnome = {};
+  gnome = {pkgs, ...}: {
+    dconf = {
+      enable = true;
+      settings = {
+        "org/gnome/desktop/interface" = {
+          clock-show-weekday = true;
+          font-name = "IosevkaLyteTerm 12";
+          monospace-font-name = "IosevkaLyteTerm 12";
+          # scaling-factor = 1.75;
+        };
+        "org/gnome/mutter" = {
+          experimental-features = ["scale-monitor-framebuffer" "variable-refresh-rate"];
+        };
+      };
+    };
+
+    programs.gnome-shell = {
+      enable = true;
+      extensions = [{package = pkgs.gnomeExtensions.gsconnect;}];
+    };
+  };
 
   helix = {
     config,

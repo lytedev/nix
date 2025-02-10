@@ -1,6 +1,7 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
+config.enable_wayland = true
 config.adjust_window_size_when_changing_font_size = false
 
 config.color_scheme = 'catppuccin-mocha-sapphire';
