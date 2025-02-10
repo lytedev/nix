@@ -560,7 +560,7 @@
       enable = true;
       settings = {
         "org/gnome/settings-daemon/plugins/media-keys" = {
-          screensaver = ["<Shift><Control><Super>l"];
+          screensaver = ["<Shift><Control><Super>l"]; # lock screen
           mic-mute = ["<Shift><Super>v"];
         };
         "org/gnome/desktop/peripherals/keyboard" = {
@@ -590,7 +590,6 @@
         "org/gnome/shell" = {
           disable-user-extensions = false;
           enabled-extensions = [
-            # "paperwm@paperwm.github.com"
             "tilingshell@ferrarodomenico.com"
           ];
         };
