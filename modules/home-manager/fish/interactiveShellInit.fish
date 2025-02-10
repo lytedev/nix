@@ -64,7 +64,7 @@ function _last_cmd_duration
     set_color -b normal green
     set -q CMD_DURATION && printf " %dms" $CMD_DURATION
     if test $CMD_DURATION -gt 5000 && test $this_shell_should_notify = 1
-        printf "\e]777;notify;%s;%s\e\\" "WezTerm: Command Finished" (history --max 1)
+        printf "\e]777;notify;%s;%s\e\\" "Terminal Command Finished" (history --max 1)
         set this_shell_should_notify 0
     end
 end
