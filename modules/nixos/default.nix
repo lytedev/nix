@@ -35,7 +35,7 @@
       };
     };
 
-    security.pam.services.swaylock = {};
+    # security.pam.services.swaylock = {};
     programs.dconf.enable = pkgs.lib.mkDefault true;
     fonts.enableDefaultPackages = pkgs.lib.mkDefault true;
     security.polkit.enable = true;
@@ -275,6 +275,8 @@
       };
       systemPackages = with pkgs; [
         aria2
+        iputils
+        inetutils
         curl
         dua
         bat

@@ -504,7 +504,6 @@
               ];
             };
             environment.systemPackages = with pkgs; [
-              ghostty.outputs.packages.${pkgs.system}.ghostty
               fw-ectool
               (writeShellApplication
                 {
