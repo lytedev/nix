@@ -1,9 +1,7 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
-config.enable_wayland = false
 config.adjust_window_size_when_changing_font_size = false
-config.front_end = "OpenGL"
 
 config.color_scheme = 'catppuccin-mocha-sapphire';
 config.font_size = 12.0

@@ -248,11 +248,15 @@
       };
 
       modifications = final: prev: let
+        helix-input = helix;
         wezterm-input = wezterm;
+        ghostty-input = ghostty;
         hyprland-input = hyprland;
       in rec {
-        helix = helix.outputs.packages.${prev.system}.helix;
+        helix = helix-input.outputs.packages.${prev.system}.helix;
         final.helix = helix;
+        ghostty = ghostty-input.outputs.packages.${prev.system}.ghostty;
+        final.ghostty = ghostty;
         /*
         TODO: would love to use a current wezterm build so I can make use of ssh/mux functionality without breakage
         source: https://github.com/wez/wezterm/issues/3771

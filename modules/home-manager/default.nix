@@ -311,6 +311,7 @@
         daniel = {
           settings = {
             "alerts.useSystemBackend" = true;
+            "widget.gtk.rounded-bottom-corners.enabled" = true;
           };
           userChrome = ''
             #TabsToolbar {
@@ -558,6 +559,24 @@
     dconf = {
       enable = true;
       settings = {
+        "org/gnome/settings-daemon/plugins/media-keys" = {
+          screensaver = ["<Shift><Control><Super>l"];
+          mic-mute = ["<Shift><Super>v"];
+        };
+        "org/gnome/desktop/peripherals/keyboard" = {
+          # gnome key repeat
+          repeat-interval = 7;
+          delay = 200;
+        };
+        "org/gnome/desktop/wm/preferences" = {
+          resize-with-right-button = true;
+          # mouse-button-modifier = '<Super>'; # default
+        };
+        "org/gnome/desktop/wm/keybindings" = {
+          minimize = ["<Shift><Control><Super>h"];
+          show-desktop = ["<Super>d"];
+          # mouse-button-modifier = '<Super>'; # default
+        };
         "org/gnome/desktop/interface" = {
           clock-show-weekday = true;
           font-name = "IosevkaLyteTerm 12";
@@ -567,8 +586,27 @@
         "org/gnome/mutter" = {
           experimental-features = ["scale-monitor-framebuffer" "variable-refresh-rate"];
         };
+
+        "org/gnome/shell" = {
+          disable-user-extensions = false;
+          enabled-extensions = [
+            # "paperwm@paperwm.github.com"
+            "tilingshell@ferrarodomenico.com"
+          ];
+        };
+
+        "org/gnome/shell/extensions/tilingshell" = {
+          focus-window-right = ["<Super>l"];
+          focus-window-left = ["<Super>h"];
+          focus-window-up = ["<Super>k"];
+          focus-window-down = ["<Super>j"];
+        };
       };
     };
+
+    home.packages = with pkgs; [
+      gnomeExtensions.tiling-shell
+    ];
 
     programs.gnome-shell = {
       enable = true;
