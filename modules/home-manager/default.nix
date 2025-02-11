@@ -581,20 +581,24 @@
           clock-show-weekday = true;
           font-name = "IosevkaLyteTerm 12";
           monospace-font-name = "IosevkaLyteTerm 12";
+          color-scheme = "prefer-dark";
           # scaling-factor = 1.75;
         };
         "org/gnome/mutter" = {
-          experimental-features = ["scale-monitor-framebuffer" "variable-refresh-rate"];
+          experimental-features = ["variable-refresh-rate"];
         };
 
         "org/gnome/shell" = {
           disable-user-extensions = false;
-          enabled-extensions = [
-            "tilingshell@ferrarodomenico.com"
+          enabled-extensions = with pkgs.gnomeExtensions; [
+            tiling-shell.extensionUuid
+            appindicator.extensionUuid
+            blur-my-shell.extensionUuid
           ];
         };
 
         "org/gnome/shell/extensions/tilingshell" = {
+          inner-gaps = 8;
           focus-window-right = ["<Super>l"];
           focus-window-left = ["<Super>h"];
           focus-window-up = ["<Super>k"];
@@ -603,8 +607,10 @@
       };
     };
 
-    home.packages = with pkgs; [
-      gnomeExtensions.tiling-shell
+    home.packages = with pkgs.gnomeExtensions; [
+      tiling-shell
+      blur-my-shell
+      appindicator
     ];
 
     programs.gnome-shell = {

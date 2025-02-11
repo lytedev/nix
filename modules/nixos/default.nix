@@ -736,12 +736,22 @@
   }: {
     imports = with nixosModules; [pipewire];
 
-    services.xserver.displayManager.gdm.enable = true;
-    services.xserver.desktopManager.gnome.enable = true;
+    services = {
+      xserver = {
+        enable = true;
+        displayManager.gdm.enable = true;
+        desktopManager.gnome.enable = true;
+      };
+      udev.packages = [pkgs.gnome-settings-daemon];
+    };
 
-    services.xserver.enable = true;
-
-    environment.variables.GSK_RENDERER = "gl";
+    environment = {
+      variables.GSK_RENDERER = "gl";
+      systemPackages = with pkgs; [
+        adwaita-icon-theme
+        adwaita-icon-theme-legacy
+      ];
+    };
 
     programs.kdeconnect = {
       enable = true;
