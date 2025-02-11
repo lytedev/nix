@@ -748,6 +748,7 @@
     environment = {
       variables.GSK_RENDERER = "gl";
       systemPackages = with pkgs; [
+        bitwarden
         adwaita-icon-theme
         adwaita-icon-theme-legacy
       ];

@@ -617,6 +617,10 @@
       enable = true;
       extensions = [{package = pkgs.gnomeExtensions.gsconnect;}];
     };
+
+    programs.firefox.package = pkgs.firefox.override {
+      nativeMessagingHosts = with pkgs; [bitwarden];
+    };
   };
 
   helix = {

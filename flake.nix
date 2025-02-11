@@ -270,6 +270,23 @@
         hyprland = hyprland-input.outputs.packages.${prev.system}.default;
         final.hyprland = hyprland;
 
+        bitwarden = prev.bitwarden.overrideAttrs (old: {
+          preBuild = ''
+            ${old.preBuild}
+            pushd apps/desktop/desktop_native/proxy
+            cargo build --bin desktop_proxy --release
+            popd
+          '';
+
+          postInstall = ''
+            mkdir -p $out/bin
+            cp -r apps/desktop/desktop_native/target/release/desktop_proxy $out/bin
+            mkdir -p $out/lib/mozilla/native-messaging-hosts
+            substituteAll ${./packages/bitwarden.json} $out/lib/mozilla/native-messaging-hosts/com.8bit.bitwarden.json
+          '';
+        });
+        final.bitwarden = bitwarden;
+
         # zellij = prev.zellij.overrideAttrs rec {
         #   version = "0.41.0";
         #   src = prev.fetchFromGitHub {
