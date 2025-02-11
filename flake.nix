@@ -447,7 +447,6 @@
           common
           gaming
           graphical-workstation
-          plasma6
 
           ./nixos/htpc.nix
 
