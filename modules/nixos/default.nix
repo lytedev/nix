@@ -179,6 +179,7 @@
   };
 
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
+  conduwuit = import ./conduwuit.nix;
 
   fallback-hostname = {lib, ...}: {
     networking.hostName = lib.mkDefault "set-a-hostname-dingus";
@@ -749,6 +750,8 @@
       variables.GSK_RENDERER = "gl";
       systemPackages = with pkgs; [
         bitwarden
+        # adwaita-gtk-theme
+        papirus-icon-theme
         adwaita-icon-theme
         adwaita-icon-theme-legacy
       ];

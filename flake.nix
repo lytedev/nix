@@ -185,6 +185,7 @@
         iosevkaLyteTermSubset = prev.callPackage ./packages/iosevkaLyteTermSubset.nix {
           inherit iosevkaLyteTerm;
         };
+        conduwuit = prev.callPackage ./packages/conduwuit.nix {};
         nix-base-container-image = final.dockerTools.buildImageWithNixDb {
           name = "git.lyte.dev/lytedev/nix";
           tag = "latest";
@@ -331,6 +332,7 @@
           inherit system;
           modules = with nixosModules; [
             home-manager-defaults
+            conduwuit
 
             # TODO: disko?
             hardware.nixosModules.common-cpu-intel

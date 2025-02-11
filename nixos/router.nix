@@ -56,6 +56,7 @@
         "git.lyte.dev"
         "grafana.h.lyte.dev"
         "idm.h.lyte.dev"
+        "matrix.lyte.dev"
         "nextcloud.h.lyte.dev"
         "nix.h.lyte.dev"
         "onlyoffice.h.lyte.dev"

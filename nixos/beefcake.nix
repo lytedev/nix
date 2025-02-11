@@ -1786,6 +1786,36 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         factorio-server-settings = {mode = "0777";};
       };
     }
+    ({
+      pkgs,
+      config,
+      ...
+    }: let
+      port = builtins.head config.services.conduwuit.settings.global.port;
+      sPort = toString port;
+    in {
+      sops.secrets.matrix-registration-token-file.mode = "0400";
+      services.conduwuit = {
+        enable = true;
+        settings = {
+          global = {
+            allow_check_for_updates = true;
+            allow_federation = false;
+            registration_token_file = config.sops.secrets.matrix-registration-token-file.path;
+            server_name = "lyte.dev";
+          };
+        };
+      };
+      services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
+        reverse_proxy /_matrix/* :${sPort}
+        reverse_proxy /_synapse/client/* :${sPort}
+      '';
+      services.caddy.virtualHosts."lyte.dev:8448".extraConfig = ''
+        reverse_proxy /_matrix/* :${sPort}
+      '';
+      # TODO: backups
+      # TODO: reverse proxy
+    })
   ];
 
   /*
