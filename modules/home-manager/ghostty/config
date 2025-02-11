@@ -959,7 +959,6 @@ working-directory =
 # keybind = ctrl+zero=reset_font_size
 # keybind = alt+three=goto_tab:3
 # keybind = ctrl+shift+j=write_scrollback_file:paste
-# keybind = ctrl+enter=toggle_fullscreen
 # keybind = ctrl+page_up=previous_tab
 # keybind = shift+right=adjust_selection:right
 # keybind = ctrl+tab=next_tab
@@ -989,7 +988,13 @@ working-directory =
 # keybind = ctrl+shift+i=inspector:toggle
 # keybind = alt+six=goto_tab:6
 # keybind = alt+seven=goto_tab:7
- 
+
+keybind = ctrl+shift+2=increase_font_size:4
+keybind = ctrl+shift+minus=decrease_font_size:0.5
+keybind = ctrl+shift+plus=increase_font_size:0.5
+keybind = ctrl+shift+zero=reset_font_size
+keybind = alt+enter=toggle_fullscreen
+keybind = ctrl+shift+z=toggle_split_zoom
 keybind = performable:ctrl+shift+h=new_split:left
 keybind = performable:ctrl+shift+l=new_split:right
 keybind = performable:ctrl+shift+j=new_split:down
