@@ -1696,9 +1696,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         ##   user = "kanidm";
         ## };
 
-        services.caddy.virtualHosts."idm.h.lyte.dev" = {
-          extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
-        };
+        # services.caddy.virtualHosts."idm.h.lyte.dev" = {
+        #   extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
+        # };
 
         networking = {
           extraHosts = ''
@@ -1977,7 +1977,6 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   /*
   TODO: non-root processes and services that access secrets need to be part of
   the 'keys' group
-  maybe this will fix plausible?
 
   systemd.services.some-service = {
     serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
