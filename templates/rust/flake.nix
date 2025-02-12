@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   inputs.git-hooks.url = "github:cachix/git-hooks.nix";
   inputs.git-hooks.inputs.nixpkgs.follows = "nixpkgs";
   outputs = inputs: let

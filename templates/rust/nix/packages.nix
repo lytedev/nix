@@ -1,8 +1,11 @@
 {pkgs, ...}: let
+  inherit (builtins) fromTOML readFile;
   pname = "my-package";
+  src = ./..;
   main-package = pkgs.rustPlatform.buildRustPackage {
-    inherit pname;
-    version = "0.1.0";
+    inherit pname src;
+    version = (fromTOML (readFile "${src}/Cargo.toml")).package.version;
+    # or for workspaces: version = (fromTOML (readFile "${src}/${pname}/Cargo.toml")).package.version;
 
     /*
     nativeBuildInputs = with pkgs; [
@@ -14,8 +17,6 @@
     ];
     */
 
-    src = ./..;
-    hash = pkgs.lib.fakeHash;
     cargoHash = pkgs.lib.fakeHash;
     useFetchCargoVendor = true;
   };
