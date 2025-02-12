@@ -1,6 +1,7 @@
-{pkgs, ...}: rec {
-  my-package = pkgs.rustPlatform.buildRustPackage {
-    pname = "my-binary";
+{pkgs, ...}: let
+  pname = "my-package";
+  main-package = pkgs.rustPlatform.buildRustPackage {
+    inherit pname;
     version = "0.1.0";
 
     /*
@@ -16,7 +17,9 @@
     src = ./..;
     hash = pkgs.lib.fakeHash;
     cargoHash = pkgs.lib.fakeHash;
+    useFetchCargoVendor = true;
   };
-
-  default = my-package;
+in {
+  ${pname} = main-package;
+  default = main-package;
 }

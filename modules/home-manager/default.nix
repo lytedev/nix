@@ -575,6 +575,10 @@
         "org/gnome/desktop/wm/keybindings" = {
           minimize = ["<Shift><Control><Super>h"];
           show-desktop = ["<Super>d"];
+          move-to-workspace-left = ["<Super><Shift>h"];
+          move-to-workspace-right = ["<Super><Shift>l"];
+          switch-to-workspace-left = ["<Super><Control>h"];
+          switch-to-workspace-right = ["<Super><Control>l"];
           # mouse-button-modifier = '<Super>'; # default
         };
         "org/gnome/desktop/interface" = {
@@ -599,6 +603,9 @@
 
         "org/gnome/shell/extensions/tilingshell" = {
           inner-gaps = 8;
+          outer-gaps = 8;
+          window-border-width = 2;
+          window-border-color = "rgba(116,199,236,0.47)";
           focus-window-right = ["<Super>l"];
           focus-window-left = ["<Super>h"];
           focus-window-up = ["<Super>k"];

@@ -754,6 +754,7 @@
         papirus-icon-theme
         adwaita-icon-theme
         adwaita-icon-theme-legacy
+        hydrapaper
       ];
     };
 

@@ -4,10 +4,10 @@
   ...
 }: let
   inherit (pkgs) system;
-in rec {
-  my-package-dev = pkgs.mkShell {
+in {
+  default = pkgs.mkShell {
     inherit (self.checks.${system}.git-hooks) shellHook;
-    inputsFrom = [self.packages.${system}.my-package];
+    inputsFrom = [self.packages.${system}.default];
     packages = with pkgs; [
       convco
       rustPackages.clippy
@@ -18,5 +18,4 @@ in rec {
       lldb
     ];
   };
-  default = my-package-dev;
 }
