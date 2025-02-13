@@ -465,12 +465,12 @@
         modules = with nixosModules; [
           home-manager-unstable-defaults
 
-          outputs.diskoConfigurations.standard
+          outputs.diskoConfigurations.unencrypted
           hardware.nixosModules.common-pc-ssd
           common
           gaming
           graphical-workstation
-          plasma6
+          # plasma6
 
           jovian.outputs.nixosModules.jovian
 
@@ -561,7 +561,17 @@
         system = "x86_64-linux";
         modules = with nixosModules; [
           home-manager-unstable-defaults
-          outputs.diskoConfigurations.thablet
+          {
+            _module.args = {
+              disk = "nvme0n1";
+              esp = {
+                label = "ESP";
+                size = "4G";
+                name = "ESP";
+              };
+            };
+          }
+          outputs.diskoConfigurations.standard
           hardware.nixosModules.lenovo-thinkpad-x1-yoga
 
           common
@@ -670,6 +680,7 @@
               disks = ["/dev/sda"];
               # swapSize = "8G";
             };
+            esp = {};
           }
           outputs.diskoConfigurations.unencrypted
           hardware.nixosModules.common-pc-laptop-ssd
