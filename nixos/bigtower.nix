@@ -7,8 +7,7 @@
   system.stateVersion = "24.05";
   home-manager.users.daniel.home.stateVersion = "24.05";
   networking.hostName = "bigtower";
-  networking.networkmanager.enable = lib.mkForce false;
-  networking.useDHCP = true;
+  networking.networkmanager.enable = true;
 
   imports = [
     {
