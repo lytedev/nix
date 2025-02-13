@@ -417,8 +417,6 @@
         modules = with nixosModules; [
           home-manager-unstable-defaults
 
-          outputs.diskoConfigurations.unencrypted
-          hardware.nixosModules.common-cpu-amd
           hardware.nixosModules.common-pc-ssd
 
           common
@@ -714,7 +712,6 @@
         system = "x86_64-linux";
         modules = with nixosModules; [
           home-manager-defaults
-          outputs.diskoConfigurations.unencrypted
           common
           linux
           troubleshooting-tools

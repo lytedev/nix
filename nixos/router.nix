@@ -98,6 +98,26 @@ in {
         extraModulePackages = [];
       };
 
+      fileSystems."/" = {
+        device = "/dev/disk/by-uuid/6ec80156-62e0-4f6f-b6eb-e2f588f88802";
+        fsType = "btrfs";
+        options = ["subvol=root"];
+      };
+      fileSystems."/nix" = {
+        device = "/dev/disk/by-uuid/6ec80156-62e0-4f6f-b6eb-e2f588f88802";
+        fsType = "btrfs";
+        options = ["subvol=nix"];
+      };
+      fileSystems."/home" = {
+        device = "/dev/disk/by-uuid/6ec80156-62e0-4f6f-b6eb-e2f588f88802";
+        fsType = "btrfs";
+        options = ["subvol=home"];
+      };
+      fileSystems."/boot" = {
+        device = "/dev/disk/by-uuid/7F78-7AE8";
+        fsType = "vfat";
+        options = ["fmask=0022" "dmask=0022"];
+      };
       nixpkgs.hostPlatform = "x86_64-linux";
       powerManagement.cpuFreqGovernor = "performance";
       hardware.cpu.intel.updateMicrocode = true;
@@ -165,33 +185,33 @@ in {
       flushRuleset = true;
       ruleset = with inf; ''
         table inet filter {
-        	## set LANv4 {
-        	## 	type ipv4_addr
-        	## 	flags interval
-        	## 	elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
-        	## }
-        	## set LANv6 {
-        	## 	type ipv6_addr
-        	## 	flags interval
-        	## 	elements = { fd00::/8, fe80::/10 }
-        	## }
+          ## set LANv4 {
+          ##   type ipv4_addr
+          ##   flags interval
+          ##   elements = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 }
+          ## }
+          ## set LANv6 {
+          ##   type ipv6_addr
+          ##   flags interval
+          ##   elements = { fd00::/8, fe80::/10 }
+          ## }
           ## TODO: maybe tailnet?
 
-        	## chain my_input_lan {
-        	## 	udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
-        	## 	udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
-        	## }
+          ## chain my_input_lan {
+          ##   udp sport 1900 udp dport >= 1024 meta pkttype unicast limit rate 4/second burst 20 packets accept comment "Accept UPnP IGD port mapping reply"
+          ##   udp sport netbios-ns udp dport >= 1024 meta pkttype unicast accept comment "Accept Samba Workgroup browsing replies"
+          ## }
 
           chain input {
             type filter hook input priority 0; policy drop;
 
-        		iif lo accept comment "Accept any localhost traffic"
-        		ct state invalid drop comment "Drop invalid connections"
-        		ct state established,related accept comment "Accept traffic originated from us"
+            iif lo accept comment "Accept any localhost traffic"
+            ct state invalid drop comment "Drop invalid connections"
+            ct state established,related accept comment "Accept traffic originated from us"
 
-        		meta l4proto ipv6-icmp accept comment "Accept ICMPv6"
-        		meta l4proto icmp accept comment "Accept ICMP"
-        		ip protocol igmp accept comment "Accept IGMP"
+            meta l4proto ipv6-icmp accept comment "Accept ICMPv6"
+            meta l4proto icmp accept comment "Accept ICMP"
+            ip protocol igmp accept comment "Accept IGMP"
 
             ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit accept
             ip6 nexthdr icmpv6 icmpv6 type nd-router-advert  accept comment "Accept IPv6 router advertisements"
@@ -204,12 +224,12 @@ in {
             meta l4proto ipv6-icmp counter accept
             udp dport dhcpv6-client counter accept
 
-        		udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
-        		udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
+            udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
+            udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
 
-        		tcp dport 2201 accept comment "Accept SSH on port 2201"
-        		tcp dport 53 accept comment "Accept DNS"
-        		udp dport 53 accept comment "Accept DNS"
+            tcp dport 2201 accept comment "Accept SSH on port 2201"
+            tcp dport 53 accept comment "Accept DNS"
+            udp dport 53 accept comment "Accept DNS"
 
             tcp dport { 80, 443 } accept comment "Allow HTTP/HTTPS to server (see nat prerouting)"
             udp dport { 80, 443 } accept comment "Allow QUIC to server (see nat prerouting)"
@@ -220,8 +240,8 @@ in {
             iifname "${lan}" accept comment "Allow local network to access the router"
             iifname "tailscale0" accept comment "Allow local network to access the router"
 
-        		## ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
-        		## ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
+            ## ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
+            ## ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"
 
             iifname "${wan}" counter drop comment "Drop all other unsolicited traffic from wan"
           }
@@ -249,8 +269,8 @@ in {
           chain prerouting {
             type nat hook prerouting priority dstnat;
 
-          	iifname ${lan} accept
-          	iifname tailscale0 accept
+            iifname ${lan} accept
+            iifname tailscale0 accept
 
             iifname ${wan} tcp dport {22} dnat to ${hosts.beefcake.ip}
             iifname ${wan} tcp dport {80, 443} dnat to ${hosts.beefcake.ip}
@@ -529,34 +549,34 @@ in {
     config = ''
       interface lo
       {
-      	AdvSendAdvert on;
-      	MinRtrAdvInterval 3;
-      	MaxRtrAdvInterval 10;
-      	AdvDefaultPreference low;
-      	AdvHomeAgentFlag off;
+        AdvSendAdvert on;
+        MinRtrAdvInterval 3;
+        MaxRtrAdvInterval 10;
+        AdvDefaultPreference low;
+        AdvHomeAgentFlag off;
 
-      	prefix 2001:db8:1:0::/64
-      	{
-      		AdvOnLink on;
-      		AdvAutonomous on;
-      		AdvRouterAddr off;
-      	};
+        prefix 2001:db8:1:0::/64
+        {
+          AdvOnLink on;
+          AdvAutonomous on;
+          AdvRouterAddr off;
+        };
 
-      	prefix 0:0:0:1234::/64
-      	{
-      		AdvOnLink on;
-      		AdvAutonomous on;
-      		AdvRouterAddr off;
-      		Base6to4Interface ppp0;
-      		AdvPreferredLifetime 120;
-      		AdvValidLifetime 300;
-      	};
+        prefix 0:0:0:1234::/64
+        {
+          AdvOnLink on;
+          AdvAutonomous on;
+          AdvRouterAddr off;
+          Base6to4Interface ppp0;
+          AdvPreferredLifetime 120;
+          AdvValidLifetime 300;
+        };
 
-      	route 2001:db0:fff::/48
-      	{
-      		AdvRoutePreference high;
-      		AdvRouteLifetime 3600;
-      	};
+        route 2001:db0:fff::/48
+        {
+          AdvRoutePreference high;
+          AdvRouteLifetime 3600;
+        };
 
         RDNSS 2001:db8::1 2001:db8::2
         {
@@ -685,40 +705,40 @@ in {
         family = "ip";
         content = ''
           set masq_saddr {
-          	type ipv4_addr
-          	flags interval
-          	elements = { ${cidr} }
+            type ipv4_addr
+            flags interval
+            elements = { ${cidr} }
           }
 
           map map_port_ipport {
-          	type inet_proto . inet_service : ipv4_addr . inet_service
+            type inet_proto . inet_service : ipv4_addr . inet_service
           }
 
           chain prerouting {
-          	iifname ${lan_if} accept
+            iifname ${lan_if} accept
 
-          	type nat hook prerouting priority dstnat + 1; policy accept;
-          	fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+            type nat hook prerouting priority dstnat + 1; policy accept;
+            fib daddr type local dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
 
-          	iifname ${wan_if} tcp dport { 22, 80, 443, 25565, 64022 } dnat to ${hosts.beefcake.ip}
-          	iifname ${wan_if} udp dport { 64020 } dnat to ${hosts.beefcake.ip}
+            iifname ${wan_if} tcp dport { 22, 80, 443, 25565, 64022 } dnat to ${hosts.beefcake.ip}
+            iifname ${wan_if} udp dport { 64020 } dnat to ${hosts.beefcake.ip}
 
-          	## iifname ${wan_if} tcp dport { 25565 } dnat to 192.168.0.244
-          	## iifname ${wan_if} udp dport { 25565 } dnat to 192.168.0.244
+            ## iifname ${wan_if} tcp dport { 25565 } dnat to 192.168.0.244
+            ## iifname ${wan_if} udp dport { 25565 } dnat to 192.168.0.244
 
-          	## router
-          	iifname ${wan_if} tcp dport { 2201 } dnat to ${ip}
+            ## router
+            iifname ${wan_if} tcp dport { 2201 } dnat to ${ip}
           }
 
           chain output {
-          	type nat hook output priority -99; policy accept;
-          	ip daddr != 127.0.0.0/8 oif "lo" dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
+            type nat hook output priority -99; policy accept;
+            ip daddr != 127.0.0.0/8 oif "lo" dnat ip addr . port to meta l4proto . th dport map @map_port_ipport
           }
 
           chain postrouting {
-          	type nat hook postrouting priority srcnat + 1; policy accept;
-          	oifname ${lan_if} masquerade
-          	ip saddr @masq_saddr masquerade
+            type nat hook postrouting priority srcnat + 1; policy accept;
+            oifname ${lan_if} masquerade
+            ip saddr @masq_saddr masquerade
           }
         '';
       };
@@ -753,17 +773,17 @@ in {
       static domain_name_servers=${ip}
 
       interface ${wan_if}
-      	gateway
-      	ipv6rs
-      	iaid 1
-      	## option rapid_commit
-      	## ia_na 1
-      	ia_pd 1 ${lan_if}
+        gateway
+        ipv6rs
+        iaid 1
+        ## option rapid_commit
+        ## ia_na 1
+        ia_pd 1 ${lan_if}
 
       interface ${lan_if}
-      	static ip_address=${cidr}
-      	static routers=${ip}
-      	static domain_name_servers=${ip}
+        static ip_address=${cidr}
+        static routers=${ip}
+        static domain_name_servers=${ip}
     '';
   };
   */
