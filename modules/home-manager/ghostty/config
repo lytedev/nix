@@ -1001,6 +1001,7 @@ keybind = performable:ctrl+shift+l=new_split:right
 keybind = performable:ctrl+shift+j=new_split:down
 keybind = performable:ctrl+shift+k=new_split:up
 
+# not working quite right yet: https://github.com/ghostty-org/ghostty/issues/2866
 keybind = performable:ctrl+h=goto_split:left
 keybind = performable:ctrl+l=goto_split:right
 keybind = performable:ctrl+j=goto_split:down
