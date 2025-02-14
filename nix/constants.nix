@@ -1,4 +1,4 @@
-{
+{nixpkgs, ...}: {
   style = {
     colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
 

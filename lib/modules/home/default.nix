@@ -1,15 +1,8 @@
-{
-  style,
-  lib,
-  flakeInputs,
-  homeManagerModules,
-  home-manager,
-  home-manager-unstable,
-  helix,
-  nixosModules,
-  pubkey,
-  overlays,
-}: {
+{self, ...}: let
+  inherit (self) outputs;
+  inherit (outputs) homeManagerModules constants;
+  inherit (constants) style;
+in {
   bat = {
     programs.bat = {
       enable = true;
@@ -636,9 +629,7 @@
     config,
     pkgs,
     ...
-  }: let
-    inherit (pkgs) system;
-  in {
+  }: {
     # helix rust debugger stuff
     # https://github.com/helix-editor/helix/wiki/Debugger-Configurations
     home.file."${config.xdg.configHome}/lldb_vscode_rustc_primer.py" = {
@@ -668,7 +659,6 @@
 
     programs.helix = {
       enable = true;
-      package = lib.mkForce helix.packages.${system}.helix;
       languages = {
         language-server = {
           lexical = {

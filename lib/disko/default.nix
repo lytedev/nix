@@ -1,4 +1,6 @@
-{lib, ...}: let
+{nixpkgs-unstable, ...}: let
+  # TODO: This file needs some serious cleaning up.
+  lib = nixpkgs-unstable.lib;
   inherit (lib.attrsets) mapAttrs' filterAttrs;
   ESP = inputs @ {
     size ? "4G",
@@ -408,6 +410,7 @@ in rec {
       };
     };
   };
+
   legacy = {disks, ...}: {
     disko.devices = {
       disk = {

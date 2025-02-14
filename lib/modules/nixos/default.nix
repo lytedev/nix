@@ -1,16 +1,53 @@
-{
-  disko,
-  sops-nix,
-  style,
-  flakeInputs,
-  homeManagerModules,
-  home-manager,
-  home-manager-unstable,
-  helix,
-  nixosModules,
-  pubkey,
-  overlays,
-}: {
+{self, ...}: let
+  inherit (self) outputs;
+  inherit (outputs) nixosModules homeManagerModules overlays constants;
+  inherit (constants) pubkey;
+in {
+  shell-defaults-and-applications = import ./shell-config.nix;
+  deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
+
+  # boot.tmp.useTmpfs = true;
+  # boot.uki.tries = 3;
+  # services.irqbalance.enable = true;
+
+  # this is not ready for primetime yet
+  # services.kanidm = {
+  #   enableClient = true;
+  #   enablePam = true;
+  #   package = pkgs.kanidm;
+
+  #   clientSettings.uri = "https://idm.h.lyte.dev";
+  #   unixSettings = {
+  #     # hsm_pin_path = "/somewhere/else";
+  #     pam_allowed_login_groups = [];
+  #   };
+  # };
+  # systemd.tmpfiles.rules = [
+  #   "d /etc/kanidm 1755 nobody users -"
+  # ];
+
+  # module has the incorrect file permissions out of the box
+  # environment.etc = {
+  /*
+  "kanidm" = {
+  enable = true;
+    user = "nobody";
+    group = "users";
+    mode = "0755";
+  };
+  */
+  #   "kanidm/unixd" = {
+  #     user = "kanidm-unixd";
+  #     group = "kanidm-unixd";
+  #     mode = "0700";
+  #   };
+  #   "kanidm/config" = {
+  #     user = "nobody";
+  #     group = "users";
+  #     mode = "0755";
+  #   };
+  # };
+
   ewwbar = {pkgs, ...}: {
     # imports = with nixosModules;  [];
     environment.systemPackages = with pkgs; [eww upower jq];
@@ -52,10 +89,6 @@
       enable = true;
     };
     environment.systemPackages = with pkgs; [hyprpaper xwaylandvideobridge netcat-openbsd];
-
-    programs.hyprland = {
-      package = flakeInputs.hyprland.packages.${pkgs.system}.hyprland;
-    };
 
     home-manager.users.daniel = {
       imports = with homeManagerModules; [
@@ -178,143 +211,6 @@
     };
   };
 
-  deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
-  conduwuit = import ./conduwuit.nix;
-
-  fallback-hostname = {lib, ...}: {
-    networking.hostName = lib.mkDefault "set-a-hostname-dingus";
-  };
-
-  no-giant-logs = {lib, ...}: {
-    services.journald.extraConfig = lib.mkDefault "SystemMaxUse=1G";
-  };
-
-  allow-redistributable-firmware = {lib, ...}: {
-    hardware.enableRedistributableFirmware = lib.mkDefault true;
-  };
-
-  home-manager-defaults = {
-    imports = [
-      # enable home-manager
-      home-manager.nixosModules.home-manager
-    ];
-
-    home-manager.useGlobalPkgs = true;
-    home-manager.backupFileExtension = "hm-backup";
-  };
-
-  home-manager-unstable-defaults = {
-    imports = [
-      # enable home-manager
-      home-manager-unstable.nixosModules.home-manager
-    ];
-
-    home-manager.useGlobalPkgs = true;
-    home-manager.backupFileExtension = "hm-backup";
-  };
-
-  mdns-and-lan-service-discovery = {
-    services.avahi = {
-      enable = true;
-      reflector = true;
-      openFirewall = true;
-      nssmdns4 = true;
-    };
-  };
-
-  helix-text-editor = {pkgs, ...}: {
-    environment = {
-      systemPackages = [
-        helix.packages.${pkgs.system}.helix
-      ];
-      variables = {
-        EDITOR = "hx";
-        SYSTEMD_EDITOR = "hx";
-        VISUAL = "hx";
-      };
-    };
-  };
-
-  zellij-multiplexer = {pkgs, ...}: {
-    environment.systemPackages = [
-      pkgs.zellij
-    ];
-  };
-
-  fish-shell = {
-    pkgs,
-    lib,
-    ...
-  }: {
-    programs.fish = {
-      enable = true;
-    };
-
-    users = {
-      defaultUserShell = pkgs.fish;
-    };
-  };
-
-  nix-index = {
-    enable = true;
-    enableBashIntegration = true;
-    enableFishIntegration = true;
-    enableZshIntegration = true;
-  };
-
-  my-favorite-default-system-apps = {pkgs, ...}: {
-    imports = with nixosModules; [
-      helix-text-editor
-      zellij-multiplexer
-      fish-shell
-    ];
-
-    environment = {
-      variables = {
-        PAGER = "bat --style=plain";
-        MANPAGER = "bat --style=plain";
-      };
-      systemPackages = with pkgs; [
-        aria2
-        iputils
-        inetutils
-        curl
-        dua
-        bat
-        eza
-        fd
-        file
-        iputils
-        nettools
-        /*
-        nodePackages.bash-language-server # just pull in as needed?
-        shellcheck
-        shfmt
-        */
-        killall
-        ripgrep
-        rsync
-        sd
-      ];
-    };
-
-    programs = {
-      traceroute.enable = true;
-      git = {
-        enable = true;
-        package = pkgs.gitFull;
-        lfs.enable = true;
-      };
-    };
-  };
-
-  mosh = {lib, ...}: {
-    programs.mosh = {
-      enable = true;
-      openFirewall = lib.mkDefault true;
-    };
-  };
-
   remote-disk-key-entry-on-boot = {
     lib,
     pkgs,
@@ -337,111 +233,6 @@
           authorizedKeys = [pubkey];
           hostKeys = ["/etc/secrets/initrd/ssh_host_rsa_key"];
         };
-      };
-    };
-  };
-
-  ssh-server = {lib, ...}: {
-    # enable an ssh server and provide root access with my primary public key
-
-    users.users.root = {
-      openssh.authorizedKeys.keys = [pubkey];
-    };
-
-    services.openssh = {
-      enable = true;
-
-      settings = {
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-        PermitRootLogin = lib.mkForce "prohibit-password";
-      };
-
-      openFirewall = lib.mkDefault true;
-
-      /*
-      listenAddresses = [
-        { addr = "0.0.0.0"; port = 22; }
-      ];
-      */
-    };
-  };
-
-  password-manager = {pkgs, ...}: {
-    /*
-    programs.goldwarden = {
-      ## NOTE: This didn't seem to work for me, but would be awesome! (but I can't remember why?)
-      enable = true;
-    };
-    */
-
-    home-manager.users.daniel = {
-      imports = with homeManagerModules; [
-        password-manager
-      ];
-    };
-  };
-
-  linux = {pkgs, ...}: {
-    home-manager.users.daniel = {
-      imports = with homeManagerModules; [
-        linux
-      ];
-    };
-  };
-
-  tailscale = {lib, ...}: {
-    services.tailscale = {
-      enable = true;
-      useRoutingFeatures = lib.mkDefault "client";
-    };
-  };
-
-  cross-compiler = {config, ...}: {
-    boot.binfmt.emulatedSystems = ["aarch64-linux" "i686-linux"];
-  };
-
-  default-nix-configuration-and-overlays = {
-    lib,
-    config,
-    ...
-  }: {
-    nixpkgs = {
-      overlays = with overlays; [
-        additions
-        modifications
-        unstable-packages
-      ];
-      config.allowUnfree = true;
-    };
-
-    nix = {
-      nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
-      # registry = lib.mapAttrs (_: value: {flake = value;}) flakeInputs;
-
-      settings = {
-        trusted-users = ["root" "daniel"];
-        experimental-features = lib.mkDefault ["nix-command" "flakes"];
-
-        extra-platforms = ["i686-linux" "aarch64-linux"];
-
-        substituters = [
-          # TODO: dedupe with flake's config? is that even necessary?
-          "https://cache.nixos.org/"
-          "https://helix.cachix.org"
-          "https://nix-community.cachix.org"
-          "https://nix.h.lyte.dev"
-          "https://hyprland.cachix.org"
-        ];
-        trusted-public-keys = [
-          # TODO: dedupe with flake's config? is that even necessary?
-          "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-          "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
-          "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-          "h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0="
-          "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-        ];
-        auto-optimise-store = true;
       };
     };
   };
@@ -543,12 +334,6 @@
     # users.users.daniel.extraGroups = ["adbusers"];
 
     home-manager.users.daniel = {
-      home.packages = with pkgs; [
-        # yubikey-personalization
-        # yubikey-manager
-        # yubico-piv-tool
-      ];
-
       programs.direnv.mise = {
         enable = true;
       };
@@ -982,166 +767,195 @@
     */
   };
 
-  music-production = {pkgs, ...}: {
-    /*
-    TODO: may want to force nixpkgs-stable for a more-stable music production
-    environment?
-    */
-    imports = [
-      {
-        environment.systemPackages = with pkgs; [
-          helvum # pipewire graph/patchbay GUI
-          ardour # DAW
-          helm # synth
+  podman = {
+    pkgs,
+    config,
+    lib,
+    ...
+  }: {
+    config = lib.mkIf config.virtualisation.podman.enable {
+      environment = {
+        systemPackages = with pkgs; [
+          podman-compose
         ];
-      }
-    ];
-
-    /*
-    TODO: things to look into for music production:
-    - https://linuxmusicians.com/viewtopic.php?t=27016
-    - KXStudio?
-    - falktx (https://github.com/DISTRHO/Cardinal)
-    */
-  };
-
-  podman = {pkgs, ...}: {
-    environment = {
-      systemPackages = with pkgs; [
-        podman-compose
-      ];
-    };
-
-    virtualisation = {
-      podman = {
-        enable = true;
-        dockerCompat = true;
-        dockerSocket.enable = true;
-        defaultNetwork.settings.dns_enabled = true;
-        # networkSocket.enable = true;
       };
 
-      oci-containers = {
-        backend = "podman";
+      virtualisation = {
+        podman = {
+          dockerCompat = config.virtualisation.podman.enable;
+          dockerSocket.enable = true;
+          defaultNetwork.settings.dns_enabled = true;
+        };
+
+        oci-containers = {
+          backend = "podman";
+        };
+      };
+
+      networking = {
+        extraHosts = ''
+          127.0.0.1 host.docker.internal
+          ::1 host.docker.internal
+          127.0.0.1 host.containers.internal
+          ::1 host.containers.internal
+        '';
       };
     };
+  };
 
-    networking = {
-      extraHosts = ''
-        127.0.0.1 host.docker.internal
-        ::1 host.docker.internal
-        127.0.0.1 host.containers.internal
-        ::1 host.containers.internal
-      '';
+  virtual-machines = {
+    pkgs,
+    lib,
+    config,
+    ...
+  }: {
+    config = lib.mkIf config.virtualisation.libvirtd.enable {
+      users.users.daniel.extraGroups = ["libvirtd"];
     };
   };
 
-  virtual-machines = {pkgs, ...}: {
-    virtualisation.libvirtd.enable = true;
-    users.users.daniel.extraGroups = ["libvirtd"];
-  };
+  postgres = {
+    pkgs,
+    lib,
+    config,
+    ...
+  }: {
+    config = lib.mkIf config.services.postgresql.enable {
+      # this is really just for development usage
+      services.postgresql = {
+        ensureDatabases = ["daniel"];
+        ensureUsers = [
+          {
+            name = "daniel";
+            ensureDBOwnership = true;
+          }
+        ];
+        # enableTCPIP = true;
+        # package = pkgs.postgresql_15;
 
-  virtual-machines-gui = {pkgs, ...}: {
-    programs.virt-manager.enable = true;
-  };
+        authentication = pkgs.lib.mkOverride 10 ''
+          #type database  DBuser    auth-method
+          local all       postgres  peer map=superuser_map
+          local all       daniel    peer map=superuser_map
+          local sameuser  all       peer map=superuser_map
 
-  postgres = {pkgs, ...}: {
-    # this is really just for development usage
-    services.postgresql = {
-      enable = true;
-      ensureDatabases = ["daniel"];
-      ensureUsers = [
-        {
-          name = "daniel";
-          ensureDBOwnership = true;
-        }
+          # lan ipv4
+          host  all       all     10.0.0.0/24   trust
+          host  all       all     127.0.0.1/32  trust
+
+          # tailnet ipv4
+          host       all       all     100.64.0.0/10 trust
+        '';
+
+        identMap = ''
+          # ArbitraryMapName systemUser DBUser
+          superuser_map      root       postgres
+          superuser_map      postgres   postgres
+          superuser_map      daniel     postgres
+
+          superuser_map      /^(.*)$    \1       # Let other names login as themselves
+        '';
+      };
+
+      environment.systemPackages = with pkgs; [
+        pgcli
       ];
-      # enableTCPIP = true;
-
-      package = pkgs.postgresql_15;
-
-      authentication = pkgs.lib.mkOverride 10 ''
-        #type database  DBuser    auth-method
-        local all       postgres  peer map=superuser_map
-        local all       daniel    peer map=superuser_map
-        local sameuser  all       peer map=superuser_map
-
-        # lan ipv4
-        host  all       all     10.0.0.0/24   trust
-        host  all       all     127.0.0.1/32  trust
-
-        # tailnet ipv4
-        host       all       all     100.64.0.0/10 trust
-      '';
-
-      identMap = ''
-        # ArbitraryMapName systemUser DBUser
-        superuser_map      root       postgres
-        superuser_map      postgres   postgres
-        superuser_map      daniel     postgres
-
-        superuser_map      /^(.*)$    \1       # Let other names login as themselves
-      '';
     };
-
-    environment.systemPackages = with pkgs; [
-      pgcli
-    ];
   };
 
-  printing = {pkgs, ...}: {
-    services.printing.enable = true;
-    services.printing.browsing = true;
-    services.printing.browsedConf = ''
-      BrowseDNSSDSubTypes _cups,_print
-      BrowseLocalProtocols all
-      BrowseRemoteProtocols all
-      CreateIPPPrinterQueues All
-
-      BrowseProtocols all
-    '';
-    services.printing.drivers = [pkgs.gutenprint];
-  };
-
-  enable-flatpaks-and-appimages = {
-    services.flatpak.enable = true;
-    programs.appimage.binfmt = true;
-  };
-
-  wifi = {lib, ...}: let
-    inherit (lib) mkDefault;
+  desktop = {
+    pkgs,
+    lib,
+    config,
+    ...
+  }: let
+    cfg = config.lyte.desktop;
   in {
-    networking.networkmanager = {
-      enable = mkDefault true;
-      # ensureProfiles = {
-      #   profiles = {
-      #     home-wifi = {
-      #     id="home-wifi";
-      #     permissions = "";
-      #     type = "wifi";
-      #     };
-      #     wifi = {
-      #     ssid = "";
-      #     };
-      #     wifi-security = {
-      #     # auth-alg = "";
-      #     # key-mgmt = "";
-      #     psk = "";
-      #     };
-      #   };
-      # };
+    options = {
+      lyte = {
+        desktop = {
+          enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
+        };
+      };
     };
-    systemd.services.NetworkManager-wait-online.enable = mkDefault false;
+    config = lib.mkIf cfg.enable {
+      home-manager.users.daniel = {
+        imports = with homeManagerModules; [
+          firefox-no-tabs
+          linux-desktop-environment-config
+        ];
+      };
+      services.flatpak.enable = true;
+      programs.appimage.binfmt = true;
+      services.printing.enable = true;
+      programs.virt-manager.enable = config.virtualization.libvirtd.enable;
+    };
+  };
 
-    /*
-    TODO: networking.networkmanager.wifi.backend = "iwd"; ?
-    TODO: powersave?
-    TODO: can I pre-configure my usual wifi networks with SSIDs and PSKs loaded from secrets?
-    */
-    hardware.wirelessRegulatoryDatabase = true;
-    boot.extraModprobeConfig = ''
-      options cfg80211 ieee80211_regdom="US"
-    '';
+  printing = {
+    pkgs,
+    lib,
+    config,
+    ...
+  }: {
+    config = lib.mkIf config.services.printing.enable {
+      services.printing.browsing = true;
+      services.printing.browsedConf = ''
+        BrowseDNSSDSubTypes _cups,_print
+        BrowseLocalProtocols all
+        BrowseRemoteProtocols all
+        CreateIPPPrinterQueues All
+
+        BrowseProtocols all
+      '';
+      services.printing.drivers = [pkgs.gutenprint];
+    };
+  };
+
+  wifi = {
+    lib,
+    config,
+    ...
+  }: let
+    inherit (lib) mkDefault;
+    cfg = config.networking.wifi;
+  in {
+    options = {
+      networking.wifi.enable = lib.mkEnableOption "Enable wifi via NetworkManager";
+    };
+    config = lib.mkIf cfg.enable {
+      networking.networkmanager = {
+        enable = true;
+        # ensureProfiles = {
+        #   profiles = {
+        #     home-wifi = {
+        #     id="home-wifi";
+        #     permissions = "";
+        #     type = "wifi";
+        #     };
+        #     wifi = {
+        #     ssid = "";
+        #     };
+        #     wifi-security = {
+        #     # auth-alg = "";
+        #     # key-mgmt = "";
+        #     psk = "";
+        #     };
+        #   };
+        # };
+      };
+      systemd.services.NetworkManager-wait-online.enable = mkDefault false;
+
+      /*
+      TODO: networking.networkmanager.wifi.backend = "iwd"; ?
+      TODO: powersave?
+      TODO: can I pre-configure my usual wifi networks with SSIDs and PSKs loaded from secrets?
+      */
+      hardware.wirelessRegulatoryDatabase = true;
+      boot.extraModprobeConfig = ''
+        options cfg80211 ieee80211_regdom="US"
+      '';
+    };
   };
 
   steam = {pkgs, ...}: {
@@ -1201,9 +1015,27 @@
     };
   };
 
-  daniel = {pkgs, ...}: let
+  daniel = {
+    pkgs,
+    lib,
+    config,
+    ...
+  }: let
     username = "daniel";
   in {
+    imports = [
+      {
+        config = lib.mkIf config.lyte.shell.enable {
+          home-manager.users.${username} = {
+            imports = with homeManagerModules; [
+              senpai
+              iex
+              cargo
+            ];
+          };
+        };
+      }
+    ];
     users.groups.${username} = {};
     users.users.${username} = {
       isNormalUser = true;
@@ -1220,7 +1052,7 @@
       home = {
         username = "daniel";
         homeDirectory = "/home/daniel/.home";
-        stateVersion = pkgs.lib.mkDefault "24.05";
+        stateVersion = config.system.stateVersion;
       };
 
       accounts.email.accounts = {
@@ -1278,141 +1110,6 @@
   };
 
   # a common module that is intended to be imported by all NixOS systems
-  common = {
-    lib,
-    pkgs,
-    modulesPath,
-    ...
-  }: {
-    imports = with nixosModules; [
-      (modulesPath + "/installer/scan/not-detected.nix")
-      default-nix-configuration-and-overlays
-
-      # allow any machine to make use of sops secrets
-      sops-nix.nixosModules.sops
-
-      # allow disko modules to manage disk config
-      disko.nixosModules.disko
-
-      fallback-hostname
-      no-giant-logs
-      allow-redistributable-firmware
-      mdns-and-lan-service-discovery
-      tailscale
-      ssh-server
-
-      my-favorite-default-system-apps
-      mosh
-
-      daniel
-      root
-    ];
-
-    # boot.tmp.useTmpfs = true;
-    systemd.services.nix-daemon = {
-      environment.TMPDIR = "/var/tmp";
-    };
-    boot.tmp.cleanOnBoot = true;
-    # boot.uki.tries = 3;
-    # services.irqbalance.enable = true;
-
-    # this is not ready for primetime yet
-    # services.kanidm = {
-    #   enableClient = true;
-    #   enablePam = true;
-    #   package = pkgs.kanidm;
-
-    #   clientSettings.uri = "https://idm.h.lyte.dev";
-    #   unixSettings = {
-    #     # hsm_pin_path = "/somewhere/else";
-    #     pam_allowed_login_groups = [];
-    #   };
-    # };
-    # systemd.tmpfiles.rules = [
-    #   "d /etc/kanidm 1755 nobody users -"
-    # ];
-
-    # module has the incorrect file permissions out of the box
-    # environment.etc = {
-    /*
-    "kanidm" = {
-    enable = true;
-      user = "nobody";
-      group = "users";
-      mode = "0755";
-    };
-    */
-    #   "kanidm/unixd" = {
-    #     user = "kanidm-unixd";
-    #     group = "kanidm-unixd";
-    #     mode = "0700";
-    #   };
-    #   "kanidm/config" = {
-    #     user = "nobody";
-    #     group = "users";
-    #     mode = "0755";
-    #   };
-    # };
-
-    programs.gnupg.agent = {
-      enable = true;
-      pinentryPackage = lib.mkDefault pkgs.pinentry-tty;
-    };
-
-    time = {
-      timeZone = "America/Chicago";
-    };
-
-    i18n = {
-      defaultLocale = lib.mkDefault "en_US.UTF-8";
-    };
-
-    services = {
-      xserver.xkb = {
-        layout = lib.mkDefault "us";
-
-        # have the caps-lock key instead be a ctrl key
-        options = lib.mkDefault "ctrl:nocaps";
-      };
-      smartd.enable = true;
-      fwupd.enable = true;
-    };
-
-    console = {
-      # font = "Lat2-Terminus16"; # TODO: would like this font for non-hidpi displays, but this is not dynamic enough?
-      useXkbConfig = lib.mkDefault true;
-      earlySetup = lib.mkDefault true;
-
-      colors = with style.colors; [
-        bg
-        red
-        green
-        orange
-        blue
-        purple
-        yellow
-        fg3
-        fgdim
-        red
-        green
-        orange
-        blue
-        purple
-        yellow
-        fg
-      ];
-    };
-
-    networking = {
-      useDHCP = lib.mkDefault true;
-      firewall = {
-        enable = lib.mkDefault true;
-        allowPing = lib.mkDefault true;
-      };
-    };
-
-    system.stateVersion = lib.mkDefault "24.05";
-  };
 
   # intended to be auto-logged in and only run a certain application
   # flanfamkiosk = {};
