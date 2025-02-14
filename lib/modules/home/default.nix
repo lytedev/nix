@@ -181,7 +181,7 @@ in
       # };
 
       home.file.".config/eww".source =
-        config.lib.file.mkOutOfStoreSymlink /etc/nixos/flake/modules/home-manager/eww;
+        config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/eww;
     };
 
   mako =
@@ -293,11 +293,15 @@ in
       */
     };
 
-  desktop = {
-    imports = with homeManagerModules; [
-      ghostty
-    ];
-  };
+  desktop =
+    { config, lib, ... }:
+    {
+      config = lib.mkIf config.lyte.desktop {
+        imports = with homeManagerModules; [
+          ghostty
+        ];
+      };
+    };
 
   # ewwbar = {};
 
@@ -1232,11 +1236,11 @@ in
       # };
 
       home.file."${config.xdg.configHome}/niri" = {
-        source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/niri;
+        source = config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/niri;
       };
 
       home.file."${config.xdg.configHome}/fuzzel" = {
-        source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/fuzzel;
+        source = config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/fuzzel;
       };
     };
 

@@ -66,18 +66,26 @@ let
                   };
 
                   # TODO: for each non-system user on the machine?
-                  home-manager.users.root = {
-                    home.stateVersion = lib.mkDefault config.system.stateVersion;
-                    imports = with self.outputs.homeManagerModules; [
-                      common
-                    ];
-                  };
-                  home-manager.users.daniel = {
-                    home.stateVersion = lib.mkDefault config.system.stateVersion;
-                    imports = with self.outputs.homeManagerModules; [
-                      daniel
-                      common
-                    ];
+                  home-manager = {
+                    extraSpecialArgs = {
+                      config.lyte = config.lyte;
+                    };
+
+                    users = {
+                      root = {
+                        home.stateVersion = lib.mkDefault config.system.stateVersion;
+                        imports = with self.outputs.homeManagerModules; [
+                          common
+                        ];
+                      };
+                      daniel = {
+                        home.stateVersion = lib.mkDefault config.system.stateVersion;
+                        imports = with self.outputs.homeManagerModules; [
+                          daniel
+                          common
+                        ];
+                      };
+                    };
                   };
 
                   nix = {
