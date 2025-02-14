@@ -2,13 +2,21 @@
   config,
   modulesPath,
   ...
-}: {
+}:
+{
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "ehci_pci" "usbhid" "uas" "sd_mod"];
-  boot.kernelModules = ["kvm-amd"];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "ehci_pci"
+    "usbhid"
+    "uas"
+    "sd_mod"
+  ];
+  boot.kernelModules = [ "kvm-amd" ];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/2e2ad73a-6264-4a7b-8439-9c05295d903d";
@@ -25,26 +33,30 @@
     device = "/dev/sda";
   };
 
-  users.groups.beefcake = {};
+  users.groups.beefcake = { };
   users.users = {
     beefcake = {
       isSystemUser = true;
       createHome = true;
       home = "/storage/backups/beefcake";
       group = "beefcake";
-      extraGroups = ["sftponly"];
-      openssh.authorizedKeys.keys =
-        config.users.users.daniel.openssh.authorizedKeys.keys
-        ++ [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOEI82VdbyR1RYqSnFtlffHBtHFdXO0v9RmQH7GkfXo restic@beefcake"
-        ];
+      extraGroups = [ "sftponly" ];
+      openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys ++ [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOEI82VdbyR1RYqSnFtlffHBtHFdXO0v9RmQH7GkfXo restic@beefcake"
+      ];
     };
 
     daniel = {
       # used for restic backups
       isNormalUser = true;
-      extraGroups = ["users" "wheel" "video" "dialout" "uucp"];
+      extraGroups = [
+        "users"
+        "wheel"
+        "video"
+        "dialout"
+        "uucp"
+      ];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
       ];
@@ -68,7 +80,7 @@
     firewall = {
       enable = true;
       allowPing = true;
-      allowedTCPPorts = [22];
+      allowedTCPPorts = [ 22 ];
     };
   };
 

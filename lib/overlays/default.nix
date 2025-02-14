@@ -3,7 +3,8 @@
   nixpkgs,
   nixpkgs-unstable,
   ...
-} @ inputs: {
+}@inputs:
+{
   default = final: _prev: {
     overlays = with self.overlays; [
       additions
@@ -14,13 +15,16 @@
 
   additions = final: prev: (prev // self.outputs.packages.${prev.system});
 
-  modifications = final: prev: let
-    inherit (inputs) helix ghostty;
-  in {
-    ghostty = ghostty.outputs.packages.${prev.system}.default;
-    helix = helix.outputs.packages.${prev.system}.default;
-    bitwarden = self.outputs.packages.${prev.system}.bitwarden;
-  };
+  modifications =
+    final: prev:
+    let
+      inherit (inputs) helix ghostty;
+    in
+    {
+      ghostty = ghostty.outputs.packages.${prev.system}.default;
+      helix = helix.outputs.packages.${prev.system}.default;
+      bitwarden = self.outputs.packages.${prev.system}.bitwarden;
+    };
 
   unstable-packages = final: _prev: {
     unstable-packages = import nixpkgs-unstable {

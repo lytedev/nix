@@ -2,12 +2,14 @@
   self,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (pkgs) system;
-in {
+in
+{
   default = pkgs.mkShell {
     inherit (self.checks.${system}.git-hooks) shellHook;
-    inputsFrom = [self.packages.${system}.default];
+    inputsFrom = [ self.packages.${system}.default ];
     packages = with pkgs; [
       convco
       rustPackages.clippy

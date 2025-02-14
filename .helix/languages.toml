@@ -3,6 +3,7 @@ auto-format = true
 file-types = ["nix"]
 name = "nix"
 scope = "source.nix"
+language-servers = ["nixd", "nil"]
 
 [language.formatter]
 args = ["-"]

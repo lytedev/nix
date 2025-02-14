@@ -2,21 +2,25 @@
   pkgs,
   style,
   ...
-}: {
+}:
+{
   programs.waybar = {
     enable = true;
     settings = {
       mainBar = {
         "layer" = "top";
         "position" = "bottom";
-        "output" = ["eDP-1" "DP-3"];
+        "output" = [
+          "eDP-1"
+          "DP-3"
+        ];
         "height" = 50;
         "modules-left" = [
           "idle_inhibitor"
           "sway/workspaces"
           "sway/window"
         ];
-        "modules-center" = [];
+        "modules-center" = [ ];
         "modules-right" = [
           "privacy"
           "power-profiles-daemon"
@@ -83,9 +87,9 @@
         };
         "temperature" = {
           /*
-          "thermal-zone" = 2;
-          "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
-          "format-critical" = "{temperatureC}°C {icon}";
+            "thermal-zone" = 2;
+            "hwmon-path" = "/sys/class/hwmon/hwmon2/temp1_input";
+            "format-critical" = "{temperatureC}°C {icon}";
           */
           "critical-threshold" = 80;
           "format" = "{temperatureC}\n°C";
@@ -94,7 +98,10 @@
         "backlight" = {
           # "device" = "acpi_video1";
           "format" = "{percent}%\n{icon}";
-          "format-icons" = ["" ""];
+          "format-icons" = [
+            ""
+            ""
+          ];
           "justify" = "center";
         };
         "battery" = {
@@ -129,9 +136,9 @@
         };
         "pulseaudio" = {
           /*
-          "scroll-step" = 1, # %, can be a floa;
-          "format" = "{volume}% {icon} {format_source}";
-          "format-muted" = " {format_source}";
+            "scroll-step" = 1, # %, can be a floa;
+            "format" = "{volume}% {icon} {format_source}";
+            "format-muted" = " {format_source}";
           */
           "format" = "{volume}%\n{format_source}";
           "format-muted" = "MUTE\n{format_source}";
@@ -145,10 +152,12 @@
         };
       };
     };
-    style = let
-      border-width = "0px";
-    in
-      with style.colors.withHashPrefix; ''
+    style =
+      let
+        border-width = "0px";
+      in
+      with style.colors.withHashPrefix;
+      ''
         * {
         	border-radius: 0;
         	font-family: "${style.font.name}", "Symbols Nerd Font Mono", sans-serif;

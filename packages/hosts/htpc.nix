@@ -3,7 +3,8 @@
   config,
   lib,
   ...
-}: {
+}:
+{
   networking.hostName = "htpc";
 
   networking.networkmanager.enable = true;
@@ -12,9 +13,18 @@
   boot.loader.grub.device = "/dev/sda";
   boot.loader.grub.useOSProber = true;
 
-  boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod"];
-  boot.initrd.kernelModules = ["8821au" "8812au"];
-  boot.kernelModules = ["kvm-intel"];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "usbhid"
+    "usb_storage"
+    "sd_mod"
+  ];
+  boot.initrd.kernelModules = [
+    "8821au"
+    "8812au"
+  ];
+  boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [
     # pkgs.rtl8811au
     config.boot.kernelPackages.rtl8812au
@@ -26,7 +36,7 @@
     fsType = "ext4";
   };
 
-  swapDevices = [];
+  swapDevices = [ ];
 
   hardware.bluetooth = {
     enable = true;

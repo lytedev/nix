@@ -5,9 +5,11 @@
   lib,
   # font,
   ...
-}: let
+}:
+let
   inherit (style) colors;
-in {
+in
+{
   # TODO: Hyprland seems to sometimes use a ton of CPU?
 
   home.packages = with pkgs; [
@@ -64,9 +66,9 @@ in {
         kb_options = "ctrl:nocaps";
 
         /*
-        kb_variant =
-        kb_model =
-        kb_rules =
+          kb_variant =
+          kb_model =
+          kb_rules =
         */
 
         follow_mouse = 2;
@@ -114,10 +116,10 @@ in {
         rounding_power = 4.0;
 
         /*
-        blur = "no";
-        blur_size = 3
-        blur_passes = 1
-        blur_new_optimizations = on
+          blur = "no";
+          blur_size = 3
+          blur_passes = 1
+          blur_new_optimizations = on
         */
 
         shadow = {
@@ -134,8 +136,8 @@ in {
       bind = [
         # See https://wiki.hyprland.org/Configuring/Keywords/ for more
         /*
-        "$mod, return, exec, wezterm"
-        "$mod SHIFT, return, exec, wezterm"
+          "$mod, return, exec, wezterm"
+          "$mod SHIFT, return, exec, wezterm"
         */
         "$mod, return, exec, wezterm"
         "$mod SHIFT, return, exec, [float] wezterm start --always-new-process"
@@ -217,7 +219,10 @@ in {
       ];
 
       # Move/resize windows with mod + LMB/RMB and dragging
-      bindm = ["$mod, mouse:272, movewindow" "$mod, mouse:273, resizewindow"];
+      bindm = [
+        "$mod, mouse:272, movewindow"
+        "$mod, mouse:273, resizewindow"
+      ];
     };
 
     extraConfig = ''
@@ -376,55 +381,57 @@ in {
     };
   };
 
-  services.hypridle = let
-    secondsPerMinute = 60;
-    lockSeconds = 10 * secondsPerMinute;
-  in {
-    enable = true;
-    settings = {
-      general = {
-        after_sleep_cmd = "hyprctl dispatch dpms on";
-        before_sleep_cmd = "loginctl lock-session";
-        ignore_dbus_inhibit = false;
-        lock_cmd = "pidof hyprlock || hyprlock";
-      };
+  services.hypridle =
+    let
+      secondsPerMinute = 60;
+      lockSeconds = 10 * secondsPerMinute;
+    in
+    {
+      enable = true;
+      settings = {
+        general = {
+          after_sleep_cmd = "hyprctl dispatch dpms on";
+          before_sleep_cmd = "loginctl lock-session";
+          ignore_dbus_inhibit = false;
+          lock_cmd = "pidof hyprlock || hyprlock";
+        };
 
-      listener = [
-        {
-          timeout = lockSeconds - 300;
-          on-timeout = ''notify-send "Auto-locking in 5 minutes"'';
-          on-resume = ''notify-send "Auto-locking cancelled"'';
-        }
-        {
-          timeout = lockSeconds - 180;
-          on-timeout = ''notify-send "Auto-locking in 3 minutes"'';
-        }
-        {
-          timeout = lockSeconds - 120;
-          on-timeout = ''notify-send "Auto-locking in 2 minutes"'';
-        }
-        {
-          timeout = lockSeconds - 60;
-          on-timeout = ''notify-send "Auto-locking in 1 minute"'';
-        }
-        {
-          timeout = lockSeconds - 30;
-          on-timeout = ''notify-send "Auto-locking in 30 seconds"'';
-        }
-        {
-          timeout = lockSeconds - 10;
-          on-timeout = ''notify-send -u critical "Auto-locking in 10 seconds"'';
-        }
-        {
-          timeout = lockSeconds;
-          on-timeout = ''loginctl lock-session'';
-        }
-        {
-          timeout = lockSeconds + 5;
-          on-timeout = ''hyprctl dispatch dpms off'';
-          on-resume = ''hyprctl dispatch dpms on'';
-        }
-      ];
+        listener = [
+          {
+            timeout = lockSeconds - 300;
+            on-timeout = ''notify-send "Auto-locking in 5 minutes"'';
+            on-resume = ''notify-send "Auto-locking cancelled"'';
+          }
+          {
+            timeout = lockSeconds - 180;
+            on-timeout = ''notify-send "Auto-locking in 3 minutes"'';
+          }
+          {
+            timeout = lockSeconds - 120;
+            on-timeout = ''notify-send "Auto-locking in 2 minutes"'';
+          }
+          {
+            timeout = lockSeconds - 60;
+            on-timeout = ''notify-send "Auto-locking in 1 minute"'';
+          }
+          {
+            timeout = lockSeconds - 30;
+            on-timeout = ''notify-send "Auto-locking in 30 seconds"'';
+          }
+          {
+            timeout = lockSeconds - 10;
+            on-timeout = ''notify-send -u critical "Auto-locking in 10 seconds"'';
+          }
+          {
+            timeout = lockSeconds;
+            on-timeout = ''loginctl lock-session'';
+          }
+          {
+            timeout = lockSeconds + 5;
+            on-timeout = ''hyprctl dispatch dpms off'';
+            on-resume = ''hyprctl dispatch dpms on'';
+          }
+        ];
+      };
     };
-  };
 }

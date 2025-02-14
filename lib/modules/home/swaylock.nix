@@ -1,4 +1,5 @@
-{style, ...}: {
+{ style, ... }:
+{
   programs.swaylock = {
     enable = true;
     settings = {

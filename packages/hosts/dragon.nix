@@ -5,7 +5,8 @@
   hardware,
   diskoConfigurations,
   ...
-}: {
+}:
+{
   system.stateVersion = "24.11";
   home-manager.users.daniel.home.stateVersion = "24.11";
   networking.hostName = "dragon";
@@ -14,19 +15,26 @@
     kernelPackages = pkgs.linuxPackages_latest;
     loader.efi.canTouchEfiVariables = true;
     loader.systemd-boot.enable = true;
-    initrd.availableKernelModules = ["xhci_pci" "nvme" "ahci" "usbhid"];
-    kernelModules = ["kvm-amd"];
-    supportedFilesystems = ["ntfs"];
+    initrd.availableKernelModules = [
+      "xhci_pci"
+      "nvme"
+      "ahci"
+      "usbhid"
+    ];
+    kernelModules = [ "kvm-amd" ];
+    supportedFilesystems = [ "ntfs" ];
   };
 
   imports = with hardware; [
-    (diskoConfigurations.unencrypted {disk = "/dev/nvme0n1";})
+    (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
     common-cpu-amd
     common-gpu-amd
     common-pc-ssd
   ];
 
-  sops.secrets.ddns-pass = {mode = "0400";};
+  sops.secrets.ddns-pass = {
+    mode = "0400";
+  };
   services.deno-netlify-ddns-client = {
     passwordFile = config.sops.secrets.ddns-pass.path;
     enable = true;

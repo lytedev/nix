@@ -3,11 +3,18 @@
   config,
   pkgs,
   ...
-}: let
-  inherit (lib) mkEnableOption mkOption types mkIf;
+}:
+let
+  inherit (lib)
+    mkEnableOption
+    mkOption
+    types
+    mkIf
+    ;
   inherit (lib.strings) optionalString;
   cfg = config.services.deno-netlify-ddns-client;
-in {
+in
+{
   options.services.deno-netlify-ddns-client = {
     enable = mkEnableOption "Enable the deno-netlify-ddns client.";
     username = mkOption {
@@ -48,8 +55,8 @@ in {
   config = {
     systemd.timers.deno-netlify-ddns-client = {
       enable = mkIf cfg.enable true;
-      after = ["network.target"];
-      wantedBy = ["timers.target"];
+      after = [ "network.target" ];
+      wantedBy = [ "timers.target" ];
       timerConfig = {
         OnBootSec = cfg.afterBootTime;
         OnUnitActiveSec = cfg.every;
@@ -59,7 +66,7 @@ in {
 
     systemd.services.deno-netlify-ddns-client = {
       enable = mkIf cfg.enable true;
-      after = ["network.target"];
+      after = [ "network.target" ];
       script = ''
         set -eu
         password="$(cat "${cfg.passwordFile}")"

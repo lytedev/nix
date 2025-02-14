@@ -1,22 +1,23 @@
 /*
-if ur fans get loud:
+  if ur fans get loud:
 
-# enable manual fan control
-sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
+  # enable manual fan control
+  sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x01 0x00
 
-# set fan speed to last byte as decimal
-sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
+  # set fan speed to last byte as decimal
+  sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 */
 {
   /*
-  inputs,
-  outputs,
+    inputs,
+    outputs,
   */
   lib,
   config,
   pkgs,
   ...
-}: {
+}:
+{
   system.stateVersion = "24.05";
   home-manager.users.daniel.home.stateVersion = "24.05";
   networking.hostName = "beefcake";
@@ -27,7 +28,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       networking.hostId = "541ede55";
       boot = {
         zfs = {
-          extraPools = ["zstorage"];
+          extraPools = [ "zstorage" ];
         };
         supportedFilesystems = {
           zfs = true;
@@ -36,9 +37,14 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           zfs = true;
         };
         # kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
-        initrd.availableKernelModules = ["ehci_pci" "mpt3sas" "usbhid" "sd_mod"];
-        kernelModules = ["kvm-intel"];
-        kernelParams = ["nohibernate"];
+        initrd.availableKernelModules = [
+          "ehci_pci"
+          "mpt3sas"
+          "usbhid"
+          "sd_mod"
+        ];
+        kernelModules = [ "kvm-intel" ];
+        kernelParams = [ "nohibernate" ];
         loader.systemd-boot.enable = true;
         loader.efi.canTouchEfiVariables = true;
       };
@@ -51,15 +57,18 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       fileSystems."/boot" = {
         device = "/dev/disk/by-uuid/B6C4-7CF4";
         fsType = "vfat";
-        options = ["fmask=0022" "dmask=0022"];
+        options = [
+          "fmask=0022"
+          "dmask=0022"
+        ];
       };
 
       /*
-      # should be mounted by auto-import; see boot.zfs.extraPools
-      fileSystems."/storage" = {
-        device = "zstorage/storage";
-        fsType = "zfs";
-      };
+        # should be mounted by auto-import; see boot.zfs.extraPools
+        fileSystems."/storage" = {
+          device = "zstorage/storage";
+          fsType = "zfs";
+        };
       */
 
       fileSystems."/nix" = {
@@ -73,34 +82,38 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # TODO: nfs with zfs?
       # services.nfs.server.enable = true;
     }
-    ({
-      options,
-      config,
-      ...
-    }: let
-      inherit (lib) mkOption types;
-    in {
-      options.services.restic.commonPaths = mkOption {
-        type = types.nullOr (types.listOf types.str);
-        default = [];
-        description = ''
-          Which paths to backup, in addition to ones specified via
-          `dynamicFilesFrom`.  If null or an empty array and
-          `dynamicFilesFrom` is also null, no backup command will be run.
-           This can be used to create a prune-only job.
-        '';
-        example = [
-          "/var/lib/postgresql"
-          "/home/user/backup"
-        ];
-      };
-    })
+    (
+      {
+        options,
+        config,
+        ...
+      }:
+      let
+        inherit (lib) mkOption types;
+      in
+      {
+        options.services.restic.commonPaths = mkOption {
+          type = types.nullOr (types.listOf types.str);
+          default = [ ];
+          description = ''
+            Which paths to backup, in addition to ones specified via
+            `dynamicFilesFrom`.  If null or an empty array and
+            `dynamicFilesFrom` is also null, no backup command will be run.
+             This can be used to create a prune-only job.
+          '';
+          example = [
+            "/var/lib/postgresql"
+            "/home/user/backup"
+          ];
+        };
+      }
+    )
     {
       # sops secrets config
       sops = {
         defaultSopsFile = ../secrets/beefcake/secrets.yml;
         age = {
-          sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+          sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
           keyFile = "/var/lib/sops-nix/key.txt";
           generateKey = true;
         };
@@ -108,7 +121,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     }
     {
       sops.secrets = {
-        netlify-ddns-password = {mode = "0400";};
+        netlify-ddns-password = {
+          mode = "0400";
+        };
       };
       services.deno-netlify-ddns-client = {
         passwordFile = config.sops.secrets.netlify-ddns-password.path;
@@ -117,7 +132,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # nix binary cache
       sops.secrets = {
-        nix-cache-priv-key = {mode = "0400";};
+        nix-cache-priv-key = {
+          mode = "0400";
+        };
       };
       services.nix-serve = {
         enable = true; # TODO: true
@@ -136,7 +153,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # regularly build this flake so we have stuff in the cache
       # TODO: schedule this for nightly builds instead of intervals based on boot time
       systemd.timers."build-lytedev-flake" = {
-        wantedBy = ["timers.target"];
+        wantedBy = [ "timers.target" ];
         timerConfig = {
           OnBootSec = "30m"; # 30 minutes after booting
           OnUnitActiveSec = "1d"; # every day afterwards
@@ -166,7 +183,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           # build main laptop configuration
           nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#foxtrot --accept-flake-config
         '';
-        path = with pkgs; [openssh git nixos-rebuild];
+        path = with pkgs; [
+          openssh
+          git
+          nixos-rebuild
+        ];
         serviceConfig = {
           # TODO: mkdir -p...?
           WorkingDirectory = "/home/daniel/.home/.cache/nightly-flake-builds";
@@ -217,13 +238,16 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           reverse_proxy http://localhost:${toString config.services.headscale.port}
         '';
       };
-      networking.firewall.allowedUDPPorts = lib.mkIf config.services.headscale.enable [3478];
+      networking.firewall.allowedUDPPorts = lib.mkIf config.services.headscale.enable [ 3478 ];
     }
     {
-      services.restic.commonPaths = ["/var/lib/soju" "/var/lib/private/soju"];
+      services.restic.commonPaths = [
+        "/var/lib/soju"
+        "/var/lib/private/soju"
+      ];
       services.soju = {
         enable = true;
-        listen = ["irc+insecure://:6667"];
+        listen = [ "irc+insecure://:6667" ];
       };
       networking.firewall.allowedTCPPorts = [
         6667
@@ -236,7 +260,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         createHome = false;
         group = "nextcloud";
       };
-      users.groups.nextcloud = {};
+      users.groups.nextcloud = { };
       sops.secrets = {
         nextcloud-admin-password = {
           owner = "nextcloud";
@@ -259,7 +283,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         "/storage/nextcloud"
       ];
       services.postgresql = {
-        ensureDatabases = ["nextcloud"];
+        ensureDatabases = [ "nextcloud" ];
         ensureUsers = [
           {
             name = "nextcloud";
@@ -274,7 +298,13 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraAppsEnable = true;
         autoUpdateApps.enable = true;
         extraApps = with config.services.nextcloud.package.packages.apps; {
-          inherit calendar contacts notes onlyoffice tasks;
+          inherit
+            calendar
+            contacts
+            notes
+            onlyoffice
+            tasks
+            ;
         };
         package = pkgs.nextcloud28;
         home = "/storage/nextcloud";
@@ -311,10 +341,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
 
-      services.caddy.virtualHosts."nextcloud.h.lyte.dev" = let
-        fpm-nextcloud-pool = config.services.phpfpm.pools.nextcloud;
-        root = config.services.nginx.virtualHosts.${config.services.nextcloud.hostName}.root;
-      in
+      services.caddy.virtualHosts."nextcloud.h.lyte.dev" =
+        let
+          fpm-nextcloud-pool = config.services.phpfpm.pools.nextcloud;
+          root = config.services.nginx.virtualHosts.${config.services.nextcloud.hostName}.root;
+        in
         lib.mkIf config.services.nextcloud.enable {
           extraConfig = ''
             encode zstd gzip
@@ -374,7 +405,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # plausible
       services.postgresql = {
-        ensureDatabases = ["plausible"];
+        ensureDatabases = [ "plausible" ];
         ensureUsers = [
           {
             name = "plausible";
@@ -388,7 +419,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         group = "plausible";
       };
       users.extraGroups = {
-        "plausible" = {};
+        "plausible" = { };
       };
       services.plausible = {
         enable = true;
@@ -472,7 +503,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # family storage
       users.extraGroups = {
-        "family" = {};
+        "family" = { };
       };
       systemd.tmpfiles.settings = {
         "10-family" = {
@@ -517,8 +548,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
       };
-      users.groups.daniel.members = ["daniel"];
-      users.groups.nixadmin.members = ["daniel"];
+      users.groups.daniel.members = [ "daniel" ];
+      users.groups.nixadmin.members = [ "daniel" ];
       users.users.daniel = {
         extraGroups = [
           # "nixadmin" # write access to /etc/nixos/ files
@@ -536,7 +567,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       ];
 
       services.postgresql = {
-        ensureDatabases = ["daniel"];
+        ensureDatabases = [ "daniel" ];
         ensureUsers = [
           {
             name = "daniel";
@@ -593,26 +624,26 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraConfig = ''reverse_proxy :8096'';
       };
       /*
-      NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general
-      but I can probably throw in a crappy GPU (or a big, cheap ebay GPU for ML
-      stuff, too?) and get good transcoding performance
+        NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general
+        but I can probably throw in a crappy GPU (or a big, cheap ebay GPU for ML
+        stuff, too?) and get good transcoding performance
       */
 
       # jellyfin hardware encoding
       /*
-      hardware.graphics = {
-        enable = true;
-        extraPackages = with pkgs; [
-          intel-media-driver
-          vaapiIntel
-          vaapiVdpau
-          libvdpau-va-gl
-          intel-compute-runtime
-        ];
-      };
-      nixpkgs.config.packageOverrides = pkgs: {
-        vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
-      };
+        hardware.graphics = {
+          enable = true;
+          extraPackages = with pkgs; [
+            intel-media-driver
+            vaapiIntel
+            vaapiVdpau
+            libvdpau-va-gl
+            intel-compute-runtime
+          ];
+        };
+        nixpkgs.config.packageOverrides = pkgs: {
+          vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+        };
       */
     }
     {
@@ -637,31 +668,31 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
         # TODO: give the "daniel" user access to all databases
         /*
-        authentication = pkgs.lib.mkOverride 10 ''
-          #type database  user      auth-method    auth-options
-          local all       postgres  peer           map=superuser_map
-          local all       daniel    peer           map=superuser_map
-          local sameuser  all       peer           map=superuser_map
+          authentication = pkgs.lib.mkOverride 10 ''
+            #type database  user      auth-method    auth-options
+            local all       postgres  peer           map=superuser_map
+            local all       daniel    peer           map=superuser_map
+            local sameuser  all       peer           map=superuser_map
 
-          # lan ipv4
-          host  all       daniel    192.168.0.0/16 trust
-          host  all       daniel    10.0.0.0/24    trust
+            # lan ipv4
+            host  all       daniel    192.168.0.0/16 trust
+            host  all       daniel    10.0.0.0/24    trust
 
-          # tailnet ipv4
-          host  all       daniel    100.64.0.0/10 trust
-        '';
+            # tailnet ipv4
+            host  all       daniel    100.64.0.0/10 trust
+          '';
         */
 
         /*
-        identMap = ''
-          # map            system_user db_user
-          superuser_map    root        postgres
-          superuser_map    postgres    postgres
-          superuser_map    daniel      postgres
+          identMap = ''
+            # map            system_user db_user
+            superuser_map    root        postgres
+            superuser_map    postgres    postgres
+            superuser_map    daniel      postgres
 
-          # Let other names login as themselves
-          superuser_map    /^(.*)$     \1
-        '';
+            # Let other names login as themselves
+            superuser_map    /^(.*)$     \1
+          '';
         */
       };
 
@@ -680,7 +711,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
       # friends
       users.users.ben = {
         isNormalUser = true;
-        packages = [pkgs.vim];
+        packages = [ pkgs.vim ];
         openssh.authorizedKeys.keys = [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUfLZ+IX85p9355Po2zP1H2tAxiE0rE6IYb8Sf+eF9T ben@benhany.com"
         ];
@@ -688,14 +719,16 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
 
       users.users.alan = {
         isNormalUser = true;
-        packages = [pkgs.vim];
+        packages = [ pkgs.vim ];
         # openssh.authorizedKeys.keys = [];
       };
     }
     {
       # restic backups
       sops.secrets = {
-        restic-ssh-priv-key-benland = {mode = "0400";};
+        restic-ssh-priv-key-benland = {
+          mode = "0400";
+        };
         restic-rascal-passphrase = {
           mode = "0400";
         };
@@ -703,15 +736,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           mode = "0400";
         };
       };
-      users.groups.restic = {};
+      users.groups.restic = { };
       users.users.restic = {
         # used for other machines to backup to
         isSystemUser = true;
         createHome = true;
         home = "/storage/backups/restic";
         group = "restic";
-        extraGroups = ["sftponly"];
-        openssh.authorizedKeys.keys = [] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
+        extraGroups = [ "sftponly" ];
+        openssh.authorizedKeys.keys = [ ] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
       };
       services.openssh.extraConfig = ''
         Match Group sftponly
@@ -730,44 +763,41 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
       };
-      services.restic.backups = let
-        # TODO: How do I set things up so that a compromised server doesn't have access to my backups so that it can corrupt or ransomware them?
-        defaults = {
-          passwordFile = config.sops.secrets.restic-rascal-passphrase.path;
-          paths =
-            config.services.restic.commonPaths
-            ++ [
+      services.restic.backups =
+        let
+          # TODO: How do I set things up so that a compromised server doesn't have access to my backups so that it can corrupt or ransomware them?
+          defaults = {
+            passwordFile = config.sops.secrets.restic-rascal-passphrase.path;
+            paths = config.services.restic.commonPaths ++ [
             ];
-          initialize = true;
-          exclude = [];
-          timerConfig = {
-            OnCalendar = ["04:45" "17:45"];
+            initialize = true;
+            exclude = [ ];
+            timerConfig = {
+              OnCalendar = [
+                "04:45"
+                "17:45"
+              ];
+            };
           };
-        };
-      in {
-        local =
-          defaults
-          // {
+        in
+        {
+          local = defaults // {
             repository = "/storage/backups/local";
           };
-        rascal =
-          defaults
-          // {
+          rascal = defaults // {
             extraOptions = [
               ''sftp.command="ssh beefcake@rascal.hare-cod.ts.net -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
             ];
             repository = "sftp://beefcake@rascal.hare-cod.ts.net://storage/backups/beefcake";
           };
-        # TODO: add ruby?
-        benland =
-          defaults
-          // {
+          # TODO: add ruby?
+          benland = defaults // {
             extraOptions = [
               ''sftp.command="ssh daniel@n.benhaney.com -p 10022 -i ${config.sops.secrets.restic-ssh-priv-key-benland.path} -s sftp"''
             ];
             repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
           };
-      };
+        };
     }
     {
       systemd.tmpfiles.settings = {
@@ -813,28 +843,28 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
       };
     }
-    ({...}: let
-      theme = pkgs.fetchzip {
-        url = "https://github.com/catppuccin/gitea/releases/download/v1.0.1/catppuccin-gitea.tar.gz";
-        sha256 = "sha256-et5luA3SI7iOcEIQ3CVIu0+eiLs8C/8mOitYlWQa/uI=";
-      };
-      logos = {
-        png = pkgs.fetchurl {
-          url = "https://lyte.dev/icon.png";
-          sha256 = "sha256-o/iZDohzXBGbpJ2PR1z23IF4FZignTAK88QwrfgTwlk=";
+    (
+      { ... }:
+      let
+        theme = pkgs.fetchzip {
+          url = "https://github.com/catppuccin/gitea/releases/download/v1.0.1/catppuccin-gitea.tar.gz";
+          sha256 = "sha256-et5luA3SI7iOcEIQ3CVIu0+eiLs8C/8mOitYlWQa/uI=";
         };
-        svg = pkgs.fetchurl {
-          url = "https://lyte.dev/img/logo.svg";
-          sha256 = "sha256-G9leVXNanoaCizXJaXn++JzaVcYOgRc3dJKhTQsMhVs=";
+        logos = {
+          png = pkgs.fetchurl {
+            url = "https://lyte.dev/icon.png";
+            sha256 = "sha256-o/iZDohzXBGbpJ2PR1z23IF4FZignTAK88QwrfgTwlk=";
+          };
+          svg = pkgs.fetchurl {
+            url = "https://lyte.dev/img/logo.svg";
+            sha256 = "sha256-G9leVXNanoaCizXJaXn++JzaVcYOgRc3dJKhTQsMhVs=";
+          };
+          svg-with-background = pkgs.fetchurl {
+            url = "https://lyte.dev/img/logo-with-background.svg";
+            sha256 = "sha256-CdMTRXoQ3AI76aHW/sTqvZo1q/0XQdnQs9V1vGmiffY=";
+          };
         };
-        svg-with-background = pkgs.fetchurl {
-          url = "https://lyte.dev/img/logo-with-background.svg";
-          sha256 = "sha256-CdMTRXoQ3AI76aHW/sTqvZo1q/0XQdnQs9V1vGmiffY=";
-        };
-      };
-      forgejoCustomCss =
-        pkgs.writeText "iosevkalyte.css"
-        ''
+        forgejoCustomCss = pkgs.writeText "iosevkalyte.css" ''
           @font-face {
             font-family: ldiosevka;
             font-style: normal;
@@ -862,15 +892,11 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             --fonts-monospace: ldiosevka, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace, var(--fonts-emoji);
           }
         '';
-      forgejoCustomHeaderTmpl =
-        pkgs.writeText "header.tmpl"
-        ''
+        forgejoCustomHeaderTmpl = pkgs.writeText "header.tmpl" ''
           <link rel="stylesheet" href="/assets/css/iosevkalyte.css" />
           <script async="" defer="" data-domain="git.lyte.dev" src="https://a.lyte.dev/js/script.js"></script>
         '';
-      forgejoCustomHomeTmpl =
-        pkgs.writeText "home.tmpl"
-        ''
+        forgejoCustomHomeTmpl = pkgs.writeText "home.tmpl" ''
           {{template "base/head" .}}
           <div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="page-content home">
           	<div class="tw-mb-8 tw-px-8">
@@ -923,153 +949,157 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           </div>
           {{template "base/footer" .}}
         '';
-    in {
-      # systemd.tmpfiles.settings = {
-      #   "10-forgejo" = {
-      #     "/storage/forgejo" = {
-      #       "d" = {
-      #         mode = "0700";
-      #         user = "forgejo";
-      #         group = "nogroup";
-      #       };
-      #     };
-      #   };
-      # };
-      services.forgejo = {
-        enable = true;
-        package = pkgs.unstable-packages.forgejo;
-        stateDir = "/storage/forgejo";
-        settings = {
-          DEFAULT = {
-            APP_NAME = "git.lyte.dev";
-          };
-          server = {
-            ROOT_URL = "https://git.lyte.dev";
-            HTTP_ADDR = "127.0.0.1";
-            HTTP_PORT = 3088;
-            DOMAIN = "git.lyte.dev";
-          };
-          migrations = {
-            ALLOWED_DOMAINS = "*.github.com,github.com,gitlab.com,*.gitlab.com";
-          };
-          actions = {
-            ENABLED = true;
-          };
-          service = {
-            DISABLE_REGISTRATION = true;
-          };
-          session = {
-            COOKIE_SECURE = true;
-          };
-          log = {
-            # LEVEL = "Debug";
-          };
-          ui = {
-            THEMES = "catppuccin-mocha-sapphire,forgejo-auto,forgejo-light,forgejo-dark";
-            DEFAULT_THEME = "catppuccin-mocha-sapphire";
-          };
-          indexer = {
-            REPO_INDEXER_ENABLED = "true";
-            REPO_INDEXER_PATH = "indexers/repos.bleve";
-            MAX_FILE_SIZE = "1048576";
-            # REPO_INDEXER_INCLUDE =
-            REPO_INDEXER_EXCLUDE = "resources/bin/**";
-          };
-          "markup.asciidoc" = {
-            ENABLED = true;
-            NEED_POSTPROCESS = true;
-            FILE_EXTENSIONS = ".adoc,.asciidoc";
-            RENDER_COMMAND = "${pkgs.asciidoctor}/bin/asciidoctor --embedded --safe-mode=secure --out-file=- -";
-            IS_INPUT_FILE = false;
-          };
-        };
-        lfs = {
+      in
+      {
+        # systemd.tmpfiles.settings = {
+        #   "10-forgejo" = {
+        #     "/storage/forgejo" = {
+        #       "d" = {
+        #         mode = "0700";
+        #         user = "forgejo";
+        #         group = "nogroup";
+        #       };
+        #     };
+        #   };
+        # };
+        services.forgejo = {
           enable = true;
-        };
-        dump = {
-          enable = false;
-        };
-        database = {
-          # TODO: move to postgres?
-          type = "sqlite3";
-        };
-      };
-      services.restic.commonPaths = [
-        config.services.forgejo.stateDir
-      ];
-      sops.secrets = {
-        "forgejo-runner.env" = {mode = "0400";};
-      };
-      systemd.services.gitea-runner-beefcake.after = ["sops-nix.service"];
-
-      systemd.services.forgejo = {
-        preStart = lib.mkAfter ''
-          rm -rf ${config.services.forgejo.stateDir}/custom/public
-          mkdir -p ${config.services.forgejo.stateDir}/custom/public/
-          mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/
-          mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/img/
-          mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/css/
-          mkdir -p ${config.services.forgejo.stateDir}/custom/templates/custom/
-          ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.png
-          ln -sf ${logos.svg} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.svg
-          ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.png
-          ln -sf ${logos.svg-with-background} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.svg
-          ln -sf ${theme}/theme-catppuccin-mocha-sapphire.css ${config.services.forgejo.stateDir}/custom/public/assets/css/
-          ln -sf ${forgejoCustomCss} ${config.services.forgejo.stateDir}/custom/public/assets/css/iosevkalyte.css
-          ln -sf ${forgejoCustomHeaderTmpl} ${config.services.forgejo.stateDir}/custom/templates/custom/header.tmpl
-          ln -sf ${forgejoCustomHomeTmpl} ${config.services.forgejo.stateDir}/custom/templates/home.tmpl
-        '';
-      };
-
-      services.gitea-actions-runner = {
-        # TODO: simple git-based automation would be dope? maybe especially for
-        # mirroring to github super easy?
-        package = pkgs.forgejo-runner;
-        instances."beefcake" = {
-          enable = true;
-          name = "beefcake";
-          url = "https://git.lyte.dev";
+          package = pkgs.unstable-packages.forgejo;
+          stateDir = "/storage/forgejo";
           settings = {
-            container = {
-              # use the shared network which is bridged by default
-              # this lets us hit git.lyte.dev just fine
-              network = "podman";
+            DEFAULT = {
+              APP_NAME = "git.lyte.dev";
+            };
+            server = {
+              ROOT_URL = "https://git.lyte.dev";
+              HTTP_ADDR = "127.0.0.1";
+              HTTP_PORT = 3088;
+              DOMAIN = "git.lyte.dev";
+            };
+            migrations = {
+              ALLOWED_DOMAINS = "*.github.com,github.com,gitlab.com,*.gitlab.com";
+            };
+            actions = {
+              ENABLED = true;
+            };
+            service = {
+              DISABLE_REGISTRATION = true;
+            };
+            session = {
+              COOKIE_SECURE = true;
+            };
+            log = {
+              # LEVEL = "Debug";
+            };
+            ui = {
+              THEMES = "catppuccin-mocha-sapphire,forgejo-auto,forgejo-light,forgejo-dark";
+              DEFAULT_THEME = "catppuccin-mocha-sapphire";
+            };
+            indexer = {
+              REPO_INDEXER_ENABLED = "true";
+              REPO_INDEXER_PATH = "indexers/repos.bleve";
+              MAX_FILE_SIZE = "1048576";
+              # REPO_INDEXER_INCLUDE =
+              REPO_INDEXER_EXCLUDE = "resources/bin/**";
+            };
+            "markup.asciidoc" = {
+              ENABLED = true;
+              NEED_POSTPROCESS = true;
+              FILE_EXTENSIONS = ".adoc,.asciidoc";
+              RENDER_COMMAND = "${pkgs.asciidoctor}/bin/asciidoctor --embedded --safe-mode=secure --out-file=- -";
+              IS_INPUT_FILE = false;
             };
           };
-          labels = [
-            # type ":host" does not depend on docker/podman/lxc
-            "podman"
-            "nix:docker://git.lyte.dev/lytedev/nix:latest"
-            "beefcake:host"
-            "nixos-host:host"
-          ];
-          tokenFile = config.sops.secrets."forgejo-runner.env".path;
-          hostPackages = with pkgs; [
-            nix
-            bash
-            coreutils
-            curl
-            gawk
-            gitMinimal
-            gnused
-            nodejs
-            gnutar # needed for cache action
-            wget
-          ];
+          lfs = {
+            enable = true;
+          };
+          dump = {
+            enable = false;
+          };
+          database = {
+            # TODO: move to postgres?
+            type = "sqlite3";
+          };
         };
-      };
-      # environment.systemPackages = with pkgs; [nodejs];
-      services.caddy.virtualHosts."git.lyte.dev" = {
-        extraConfig = ''
-          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
-        '';
-      };
-      services.caddy.virtualHosts."http://git.beefcake.lan" = {
-        extraConfig = ''
-          reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
-        '';
-      };
-    })
+        services.restic.commonPaths = [
+          config.services.forgejo.stateDir
+        ];
+        sops.secrets = {
+          "forgejo-runner.env" = {
+            mode = "0400";
+          };
+        };
+        systemd.services.gitea-runner-beefcake.after = [ "sops-nix.service" ];
+
+        systemd.services.forgejo = {
+          preStart = lib.mkAfter ''
+            rm -rf ${config.services.forgejo.stateDir}/custom/public
+            mkdir -p ${config.services.forgejo.stateDir}/custom/public/
+            mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/
+            mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/img/
+            mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/css/
+            mkdir -p ${config.services.forgejo.stateDir}/custom/templates/custom/
+            ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.png
+            ln -sf ${logos.svg} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.svg
+            ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.png
+            ln -sf ${logos.svg-with-background} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.svg
+            ln -sf ${theme}/theme-catppuccin-mocha-sapphire.css ${config.services.forgejo.stateDir}/custom/public/assets/css/
+            ln -sf ${forgejoCustomCss} ${config.services.forgejo.stateDir}/custom/public/assets/css/iosevkalyte.css
+            ln -sf ${forgejoCustomHeaderTmpl} ${config.services.forgejo.stateDir}/custom/templates/custom/header.tmpl
+            ln -sf ${forgejoCustomHomeTmpl} ${config.services.forgejo.stateDir}/custom/templates/home.tmpl
+          '';
+        };
+
+        services.gitea-actions-runner = {
+          # TODO: simple git-based automation would be dope? maybe especially for
+          # mirroring to github super easy?
+          package = pkgs.forgejo-runner;
+          instances."beefcake" = {
+            enable = true;
+            name = "beefcake";
+            url = "https://git.lyte.dev";
+            settings = {
+              container = {
+                # use the shared network which is bridged by default
+                # this lets us hit git.lyte.dev just fine
+                network = "podman";
+              };
+            };
+            labels = [
+              # type ":host" does not depend on docker/podman/lxc
+              "podman"
+              "nix:docker://git.lyte.dev/lytedev/nix:latest"
+              "beefcake:host"
+              "nixos-host:host"
+            ];
+            tokenFile = config.sops.secrets."forgejo-runner.env".path;
+            hostPackages = with pkgs; [
+              nix
+              bash
+              coreutils
+              curl
+              gawk
+              gitMinimal
+              gnused
+              nodejs
+              gnutar # needed for cache action
+              wget
+            ];
+          };
+        };
+        # environment.systemPackages = with pkgs; [nodejs];
+        services.caddy.virtualHosts."git.lyte.dev" = {
+          extraConfig = ''
+            reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
+          '';
+        };
+        services.caddy.virtualHosts."http://git.beefcake.lan" = {
+          extraConfig = ''
+            reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
+          '';
+        };
+      }
+    )
     {
       services.restic.commonPaths = [
         config.services.vaultwarden.backupDir
@@ -1083,9 +1113,9 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           ROCKET_ADDRESS = "127.0.0.1";
           ROCKET_PORT = 8222;
           /*
-          TODO: smtp setup?
-          right now, I think I configured this manually by temporarily setting ADMIN_TOKEN
-          and then configuring in https://bw.lyte.dev/admin
+            TODO: smtp setup?
+            right now, I think I configured this manually by temporarily setting ADMIN_TOKEN
+            and then configuring in https://bw.lyte.dev/admin
           */
         };
       };
@@ -1100,10 +1130,10 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         group = "atuin";
       };
       users.extraGroups = {
-        "atuin" = {};
+        "atuin" = { };
       };
       services.postgresql = {
-        ensureDatabases = ["atuin"];
+        ensureDatabases = [ "atuin" ];
         ensureUsers = [
           {
             name = "atuin";
@@ -1132,396 +1162,414 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
     {
       # jland minecraft server
       /*
-        users.groups.jland = {
-          gid = 982;
-        };
-        users.users.jland = {
-          uid = 986;
+          users.groups.jland = {
+            gid = 982;
+          };
+          users.users.jland = {
+            uid = 986;
+            isSystemUser = true;
+            createHome = false;
+            group = "jland";
+          };
+          virtualisation.oci-containers.containers.minecraft-jland = {
+            autoStart = false;
+
+            # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+            image = "docker.io/itzg/minecraft-server";
+            # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
+            extraOptions = [
+              "--tty"
+              "--interactive"
+            ];
+            environment = {
+              EULA = "true";
+              ## UID = toString config.users.users.jland.uid;
+              ## GID = toString config.users.groups.jland.gid;
+              STOP_SERVER_ANNOUNCE_DELAY = "20";
+              TZ = "America/Chicago";
+              VERSION = "1.20.1";
+              MEMORY = "8G";
+              MAX_MEMORY = "16G";
+              TYPE = "FORGE";
+              FORGE_VERSION = "47.1.3";
+              ALLOW_FLIGHT = "true";
+              ENABLE_QUERY = "true";
+
+              MODPACK = "/data/origination-files/Server-Files-0.2.14.zip";
+
+              ## TYPE = "AUTO_CURSEFORGE";
+              ## CF_SLUG = "monumental-experience";
+              ## CF_FILE_ID = "4826863"; # 2.2.53
+
+              ## due to
+              ## Nov 02 13:45:22 beefcake minecraft-jland[2738672]: me.itzg.helpers.errors.GenericException: The modpack authors have indicated this file is not allowed for project distribution. Please download the client zip file from https://www.curseforge.com/minecraft/modpacks/monumental-experience and pass via CF_MODPACK_ZIP environment variable or place indownloads repo directory.
+              ## we must upload manually
+              ## CF_MODPACK_ZIP = "/data/origination-files/Monumental+Experience-2.2.53.zip";
+
+              ## ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
+              ## May also have mod/loader incompatibilities?
+              ## https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
+            };
+            environmentFiles = [
+              # config.sops.secrets."jland.env".path
+            ];
+            ports = ["26965:25565"];
+            volumes = [
+              "/storage/jland/data:/data"
+              "/storage/jland/worlds:/worlds"
+            ];
+          };
+          networking.firewall.allowedTCPPorts = [
+            26965
+          ];
+        }
+        {
+          # dawncraft minecraft server
+          systemd.tmpfiles.rules = [
+            "d /storage/dawncraft/ 0770 1000 1000 -"
+            "d /storage/dawncraft/data/ 0770 1000 1000 -"
+            "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
+            "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
+          ];
+          virtualisation.oci-containers.containers.minecraft-dawncraft = {
+            autoStart = false;
+
+            # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+            image = "docker.io/itzg/minecraft-server";
+            extraOptions = [
+              "--tty"
+              "--interactive"
+            ];
+            environment = {
+              EULA = "true";
+
+              STOP_SERVER_ANNOUNCE_DELAY = "20";
+              TZ = "America/Chicago";
+              VERSION = "1.18.2";
+              MEMORY = "8G";
+              MAX_MEMORY = "32G";
+
+              ALLOW_FLIGHT = "true";
+              ENABLE_QUERY = "true";
+              SERVER_PORT = "26968";
+              QUERY_PORT = "26968";
+
+              TYPE = "AUTO_CURSEFORGE";
+              CF_SLUG = "dawn-craft";
+
+              CF_EXCLUDE_MODS = "368398";
+              CF_FORCE_SYNCHRONIZE = "true";
+              # CF_FILE_ID = "5247696"; # 2.0.7 server
+            };
+            environmentFiles = [
+              config.sops.secrets."dawncraft.env".path
+            ];
+            ports = ["26968:26968/tcp" "26968:26968/udp"];
+            volumes = [
+              "/storage/dawncraft/data:/data"
+              "/storage/dawncraft/worlds:/worlds"
+              "/storage/dawncraft/downloads:/downloads"
+            ];
+          };
+          networking.firewall.allowedTCPPorts = [
+            26968
+          ];
+      */
+    }
+    (
+      { ... }:
+      let
+        port = 26969;
+        dir = "/storage/flanilla";
+        user = "flanilla";
+      in
+      # uid = config.users.users.flanilla.uid;
+      # gid = config.users.groups.flanilla.gid;
+      {
+        # flanilla family minecraft server
+        users.groups.${user} = { };
+        users.users.${user} = {
           isSystemUser = true;
           createHome = false;
-          group = "jland";
+          home = dir;
+          group = user;
         };
-        virtualisation.oci-containers.containers.minecraft-jland = {
+        virtualisation.oci-containers.containers.minecraft-flanilla = {
           autoStart = false;
 
-          # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
-          image = "docker.io/itzg/minecraft-server";
-          # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
-          extraOptions = [
-            "--tty"
-            "--interactive"
-          ];
-          environment = {
-            EULA = "true";
-            ## UID = toString config.users.users.jland.uid;
-            ## GID = toString config.users.groups.jland.gid;
-            STOP_SERVER_ANNOUNCE_DELAY = "20";
-            TZ = "America/Chicago";
-            VERSION = "1.20.1";
-            MEMORY = "8G";
-            MAX_MEMORY = "16G";
-            TYPE = "FORGE";
-            FORGE_VERSION = "47.1.3";
-            ALLOW_FLIGHT = "true";
-            ENABLE_QUERY = "true";
-
-            MODPACK = "/data/origination-files/Server-Files-0.2.14.zip";
-
-            ## TYPE = "AUTO_CURSEFORGE";
-            ## CF_SLUG = "monumental-experience";
-            ## CF_FILE_ID = "4826863"; # 2.2.53
-
-            ## due to
-            ## Nov 02 13:45:22 beefcake minecraft-jland[2738672]: me.itzg.helpers.errors.GenericException: The modpack authors have indicated this file is not allowed for project distribution. Please download the client zip file from https://www.curseforge.com/minecraft/modpacks/monumental-experience and pass via CF_MODPACK_ZIP environment variable or place indownloads repo directory.
-            ## we must upload manually
-            ## CF_MODPACK_ZIP = "/data/origination-files/Monumental+Experience-2.2.53.zip";
-
-            ## ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
-            ## May also have mod/loader incompatibilities?
-            ## https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
-          };
           environmentFiles = [
             # config.sops.secrets."jland.env".path
           ];
-          ports = ["26965:25565"];
-          volumes = [
-            "/storage/jland/data:/data"
-            "/storage/jland/worlds:/worlds"
-          ];
-        };
-        networking.firewall.allowedTCPPorts = [
-          26965
-        ];
-      }
-      {
-        # dawncraft minecraft server
-        systemd.tmpfiles.rules = [
-          "d /storage/dawncraft/ 0770 1000 1000 -"
-          "d /storage/dawncraft/data/ 0770 1000 1000 -"
-          "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
-          "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
-        ];
-        virtualisation.oci-containers.containers.minecraft-dawncraft = {
-          autoStart = false;
-
-          # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
           image = "docker.io/itzg/minecraft-server";
+          # user = "${toString uid}:${toString gid}";
           extraOptions = [
             "--tty"
             "--interactive"
           ];
           environment = {
             EULA = "true";
-
+            MOTD = "Flanilla Survival! Happy hunting!";
+            # UID = toString uid;
+            # GID = toString gid;
             STOP_SERVER_ANNOUNCE_DELAY = "20";
             TZ = "America/Chicago";
-            VERSION = "1.18.2";
+            VERSION = "1.21";
+            OPS = "lytedev";
+            MODE = "survival";
+            DIFFICULTY = "easy";
+            ONLINE_MODE = "false";
             MEMORY = "8G";
-            MAX_MEMORY = "32G";
-
+            MAX_MEMORY = "16G";
             ALLOW_FLIGHT = "true";
             ENABLE_QUERY = "true";
-            SERVER_PORT = "26968";
-            QUERY_PORT = "26968";
-
-            TYPE = "AUTO_CURSEFORGE";
-            CF_SLUG = "dawn-craft";
-
-            CF_EXCLUDE_MODS = "368398";
-            CF_FORCE_SYNCHRONIZE = "true";
-            # CF_FILE_ID = "5247696"; # 2.0.7 server
+            ENABLE_COMMAND_BLOCK = "true";
           };
-          environmentFiles = [
-            config.sops.secrets."dawncraft.env".path
-          ];
-          ports = ["26968:26968/tcp" "26968:26968/udp"];
+          ports = [ "${toString port}:25565" ];
+
           volumes = [
-            "/storage/dawncraft/data:/data"
-            "/storage/dawncraft/worlds:/worlds"
-            "/storage/dawncraft/downloads:/downloads"
+            "${dir}/data:/data"
+            "${dir}/worlds:/worlds"
           ];
         };
+        systemd.services.podman-minecraft-flanilla.serviceConfig = {
+          User = user;
+          Group = user;
+        };
+        systemd.tmpfiles.settings = {
+          "10-${user}-survival" = {
+            "${dir}/data" = {
+              "d" = {
+                mode = "0770";
+                user = user;
+                group = user;
+              };
+            };
+            "${dir}/worlds" = {
+              "d" = {
+                mode = "0770";
+                user = user;
+                group = user;
+              };
+            };
+          };
+        };
+        services.restic.commonPaths = [ dir ];
         networking.firewall.allowedTCPPorts = [
-          26968
+          port
         ];
-      */
-    }
-    ({...}: let
-      port = 26969;
-      dir = "/storage/flanilla";
-      user = "flanilla";
+      }
+    )
+    (
+      { ... }:
+      let
+        port = 26968;
+        dir = "/storage/flanilla-creative";
+        user = "flanilla";
+      in
       # uid = config.users.users.flanilla.uid;
       # gid = config.users.groups.flanilla.gid;
-    in {
-      # flanilla family minecraft server
-      users.groups.${user} = {};
-      users.users.${user} = {
-        isSystemUser = true;
-        createHome = false;
-        home = dir;
-        group = user;
-      };
-      virtualisation.oci-containers.containers.minecraft-flanilla = {
-        autoStart = false;
+      {
+        # flanilla family minecraft server
+        users.groups.${user} = { };
+        users.users.${user} = {
+          isSystemUser = true;
+          createHome = false;
+          home = lib.mkForce dir;
+          group = user;
+        };
+        virtualisation.oci-containers.containers.minecraft-flanilla-creative = {
+          autoStart = true;
+          image = "docker.io/itzg/minecraft-server";
+          # user = "${toString uid}:${toString gid}";
+          extraOptions = [
+            "--tty"
+            "--interactive"
+          ];
+          environment = {
+            EULA = "true";
+            MOTD = "Flanilla Creative! Have fun building!";
+            # UID = toString uid;
+            # GID = toString gid;
+            STOP_SERVER_ANNOUNCE_DELAY = "20";
+            TZ = "America/Chicago";
+            VERSION = "1.21";
+            OPS = "lytedev";
+            MODE = "creative";
+            DIFFICULTY = "peaceful";
+            ONLINE_MODE = "false";
+            MEMORY = "8G";
+            MAX_MEMORY = "16G";
+            ALLOW_FLIGHT = "true";
+            ENABLE_QUERY = "true";
+            ENABLE_COMMAND_BLOCK = "true";
+          };
+          ports = [ "${toString port}:25565" ];
 
-        environmentFiles = [
-          # config.sops.secrets."jland.env".path
+          volumes = [
+            "${dir}/data:/data"
+            "${dir}/worlds:/worlds"
+          ];
+        };
+        # systemd.services.podman-minecraft-flanilla-creative.serviceConfig = {
+        #   User = user;
+        #   Group = user;
+        # };
+        systemd.tmpfiles.settings = {
+          "10-${user}-creative" = {
+            "${dir}/data" = {
+              "d" = {
+                mode = "0770";
+                user = user;
+                group = user;
+              };
+            };
+            "${dir}/worlds" = {
+              "d" = {
+                mode = "0770";
+                user = user;
+                group = user;
+              };
+            };
+          };
+        };
+        services.restic.commonPaths = [ dir ];
+        networking.firewall.allowedTCPPorts = [
+          port
         ];
-        image = "docker.io/itzg/minecraft-server";
-        # user = "${toString uid}:${toString gid}";
-        extraOptions = ["--tty" "--interactive"];
-        environment = {
-          EULA = "true";
-          MOTD = "Flanilla Survival! Happy hunting!";
-          # UID = toString uid;
-          # GID = toString gid;
-          STOP_SERVER_ANNOUNCE_DELAY = "20";
-          TZ = "America/Chicago";
-          VERSION = "1.21";
-          OPS = "lytedev";
-          MODE = "survival";
-          DIFFICULTY = "easy";
-          ONLINE_MODE = "false";
-          MEMORY = "8G";
-          MAX_MEMORY = "16G";
-          ALLOW_FLIGHT = "true";
-          ENABLE_QUERY = "true";
-          ENABLE_COMMAND_BLOCK = "true";
-        };
-        ports = ["${toString port}:25565"];
-
-        volumes = [
-          "${dir}/data:/data"
-          "${dir}/worlds:/worlds"
-        ];
-      };
-      systemd.services.podman-minecraft-flanilla.serviceConfig = {
-        User = user;
-        Group = user;
-      };
-      systemd.tmpfiles.settings = {
-        "10-${user}-survival" = {
-          "${dir}/data" = {
-            "d" = {
-              mode = "0770";
-              user = user;
-              group = user;
-            };
-          };
-          "${dir}/worlds" = {
-            "d" = {
-              mode = "0770";
-              user = user;
-              group = user;
-            };
-          };
-        };
-      };
-      services.restic.commonPaths = [dir];
-      networking.firewall.allowedTCPPorts = [
-        port
-      ];
-    })
-    ({...}: let
-      port = 26968;
-      dir = "/storage/flanilla-creative";
-      user = "flanilla";
-      # uid = config.users.users.flanilla.uid;
-      # gid = config.users.groups.flanilla.gid;
-    in {
-      # flanilla family minecraft server
-      users.groups.${user} = {};
-      users.users.${user} = {
-        isSystemUser = true;
-        createHome = false;
-        home = lib.mkForce dir;
-        group = user;
-      };
-      virtualisation.oci-containers.containers.minecraft-flanilla-creative = {
-        autoStart = true;
-        image = "docker.io/itzg/minecraft-server";
-        # user = "${toString uid}:${toString gid}";
-        extraOptions = ["--tty" "--interactive"];
-        environment = {
-          EULA = "true";
-          MOTD = "Flanilla Creative! Have fun building!";
-          # UID = toString uid;
-          # GID = toString gid;
-          STOP_SERVER_ANNOUNCE_DELAY = "20";
-          TZ = "America/Chicago";
-          VERSION = "1.21";
-          OPS = "lytedev";
-          MODE = "creative";
-          DIFFICULTY = "peaceful";
-          ONLINE_MODE = "false";
-          MEMORY = "8G";
-          MAX_MEMORY = "16G";
-          ALLOW_FLIGHT = "true";
-          ENABLE_QUERY = "true";
-          ENABLE_COMMAND_BLOCK = "true";
-        };
-        ports = ["${toString port}:25565"];
-
-        volumes = [
-          "${dir}/data:/data"
-          "${dir}/worlds:/worlds"
-        ];
-      };
-      # systemd.services.podman-minecraft-flanilla-creative.serviceConfig = {
-      #   User = user;
-      #   Group = user;
-      # };
-      systemd.tmpfiles.settings = {
-        "10-${user}-creative" = {
-          "${dir}/data" = {
-            "d" = {
-              mode = "0770";
-              user = user;
-              group = user;
-            };
-          };
-          "${dir}/worlds" = {
-            "d" = {
-              mode = "0770";
-              user = user;
-              group = user;
-            };
-          };
-        };
-      };
-      services.restic.commonPaths = [dir];
-      networking.firewall.allowedTCPPorts = [
-        port
-      ];
-    })
-    ({
-      config,
-      options,
-      ...
-    }: let
-      domain = "idm.h.lyte.dev";
-      name = "kanidm";
-      user = name;
-      group = name;
-      storage = "/storage/${name}";
-    in {
-      # kanidm
-      config = {
-        # reload certs from caddy every 5 minutes
-        # TODO: ideally some kind of file watcher service would make way more sense here?
-        # or we could simply setup the permissions properly somehow?
-        systemd.timers."copy-kanidm-certificates-from-caddy" = {
-          wantedBy = ["timers.target"];
-          timerConfig = {
-            OnBootSec = "10m"; # 10 minutes after booting
-            OnUnitActiveSec = "5m"; # every 5 minutes afterwards
-            Unit = "copy-kanidm-certificates-from-caddy.service";
-          };
-        };
-
-        systemd.services."copy-kanidm-certificates-from-caddy" = {
-          # get the certificates that caddy provisions for us
-          script = ''
-            umask 077
-            # this line should be unnecessary now that we have this in tmpfiles
-            install -d -m 0700 -o "${name}" -g "${name}" "${storage}/data" "${storage}/certs"
-            cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
-            install -m 0700 -o "${name}" -g "${name}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
-          '';
-          path = with pkgs; [rsync];
-          serviceConfig = {
-            Type = "oneshot";
-            User = "root";
-          };
-        };
-
-        systemd.tmpfiles.settings."10-kanidm" = {
-          "${config.services.kanidm.serverSettings.online_backup.path}".d = {
-            user = name;
-            group = name;
-            mode = "0700";
-          };
-          "${storage}/data".d = {
-            inherit user group;
-            mode = "0700";
-          };
-          "${storage}/certs".d = {
-            inherit user group;
-            mode = "0700";
-          };
-        };
-
-        services.kanidm = {
-          enableServer = true;
-          serverSettings = {
-            inherit domain;
-            origin = "https://${domain}";
-            bindaddress = "127.0.0.1:8443";
-            tls_chain = "${storage}/certs/idm.h.lyte.dev.crt";
-            tls_key = "${storage}/certs/idm.h.lyte.dev.key";
-            log_level = "info";
-            online_backup = {
-              path = "${storage}/backups/";
-              schedule = "00 22 * * *";
-              versions = 50;
+      }
+    )
+    (
+      {
+        config,
+        options,
+        ...
+      }:
+      let
+        domain = "idm.h.lyte.dev";
+        name = "kanidm";
+        user = name;
+        group = name;
+        storage = "/storage/${name}";
+      in
+      {
+        # kanidm
+        config = {
+          # reload certs from caddy every 5 minutes
+          # TODO: ideally some kind of file watcher service would make way more sense here?
+          # or we could simply setup the permissions properly somehow?
+          systemd.timers."copy-kanidm-certificates-from-caddy" = {
+            wantedBy = [ "timers.target" ];
+            timerConfig = {
+              OnBootSec = "10m"; # 10 minutes after booting
+              OnUnitActiveSec = "5m"; # every 5 minutes afterwards
+              Unit = "copy-kanidm-certificates-from-caddy.service";
             };
           };
 
-          enablePam = false;
-          unixSettings = {
-            # pam_allowed_login_groups = [];
+          systemd.services."copy-kanidm-certificates-from-caddy" = {
+            # get the certificates that caddy provisions for us
+            script = ''
+              umask 077
+              # this line should be unnecessary now that we have this in tmpfiles
+              install -d -m 0700 -o "${name}" -g "${name}" "${storage}/data" "${storage}/certs"
+              cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
+              install -m 0700 -o "${name}" -g "${name}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
+            '';
+            path = with pkgs; [ rsync ];
+            serviceConfig = {
+              Type = "oneshot";
+              User = "root";
+            };
           };
 
-          enableClient = true;
-          clientSettings = {
-            uri = "https://idm.h.lyte.dev";
+          systemd.tmpfiles.settings."10-kanidm" = {
+            "${config.services.kanidm.serverSettings.online_backup.path}".d = {
+              user = name;
+              group = name;
+              mode = "0700";
+            };
+            "${storage}/data".d = {
+              inherit user group;
+              mode = "0700";
+            };
+            "${storage}/certs".d = {
+              inherit user group;
+              mode = "0700";
+            };
           };
 
-          provision = {
-            # enable = true;
-            # instanceUrl = "https://${domain}";
-            # adminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
-            # idmAdminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
-            # autoRemove = true;
-            # groups = {
-            #   myGroup = {
-            #     members = ["myUser" /* ...*/];
-            #   }
-            # };
-            # persons = {
-            #   myUser = {
-            #     displayName = "display name";
-            #     legalName = "My User";
-            #     mailAddresses = ["myuser@example.com"];
-            #     groups = ["myGroup"];
-            #   }
-            # };
-            # systems = {
-            #   oauth2 = {
-            #     mySystem = {
-            #       enableLegacyCrypto = false;
-            #       enableLocalhostRedirects = true; # only for public
-            #       allowInsecureClientDisablePkce = false;
-            #       basicSecretFile = config.sops.secrets.basic-secret-file...
-            #       claimMap = {};
-            #     };
-            #   };
-            # };
+          services.kanidm = {
+            enableServer = true;
+            serverSettings = {
+              inherit domain;
+              origin = "https://${domain}";
+              bindaddress = "127.0.0.1:8443";
+              tls_chain = "${storage}/certs/idm.h.lyte.dev.crt";
+              tls_key = "${storage}/certs/idm.h.lyte.dev.key";
+              log_level = "info";
+              online_backup = {
+                path = "${storage}/backups/";
+                schedule = "00 22 * * *";
+                versions = 50;
+              };
+            };
+
+            enablePam = false;
+            unixSettings = {
+              # pam_allowed_login_groups = [];
+            };
+
+            enableClient = true;
+            clientSettings = {
+              uri = "https://idm.h.lyte.dev";
+            };
+
+            provision = {
+              # enable = true;
+              # instanceUrl = "https://${domain}";
+              # adminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
+              # idmAdminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
+              # autoRemove = true;
+              # groups = {
+              #   myGroup = {
+              #     members = ["myUser" /* ...*/];
+              #   }
+              # };
+              # persons = {
+              #   myUser = {
+              #     displayName = "display name";
+              #     legalName = "My User";
+              #     mailAddresses = ["myuser@example.com"];
+              #     groups = ["myGroup"];
+              #   }
+              # };
+              # systems = {
+              #   oauth2 = {
+              #     mySystem = {
+              #       enableLegacyCrypto = false;
+              #       enableLocalhostRedirects = true; # only for public
+              #       allowInsecureClientDisablePkce = false;
+              #       basicSecretFile = config.sops.secrets.basic-secret-file...
+              #       claimMap = {};
+              #     };
+              #   };
+              # };
+            };
+          };
+
+          services.caddy.virtualHosts."idm.h.lyte.dev" = {
+            extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
+          };
+
+          networking = {
+            extraHosts = ''
+              ::1 idm.h.lyte.dev
+              127.0.0.1 idm.h.lyte.dev
+            '';
           };
         };
-
-        services.caddy.virtualHosts."idm.h.lyte.dev" = {
-          extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
-        };
-
-        networking = {
-          extraHosts = ''
-            ::1 idm.h.lyte.dev
-            127.0.0.1 idm.h.lyte.dev
-          '';
-        };
-      };
-    })
+      }
+    )
     {
       systemd.tmpfiles.settings = {
         "10-audiobookshelf" = {
@@ -1548,7 +1596,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
           };
         };
       };
-      users.groups.audiobookshelf = {};
+      users.groups.audiobookshelf = { };
       users.users.audiobookshelf = {
         isSystemUser = true;
         group = "audiobookshelf";
@@ -1584,13 +1632,25 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
             job_name = "beefcake";
             static_configs = [
               {
-                targets = let inherit (config.services.prometheus.exporters.node) port listenAddress; in ["${listenAddress}:${toString port}"];
+                targets =
+                  let
+                    inherit (config.services.prometheus.exporters.node) port listenAddress;
+                  in
+                  [ "${listenAddress}:${toString port}" ];
               }
               {
-                targets = let inherit (config.services.prometheus.exporters.zfs) port listenAddress; in ["${listenAddress}:${toString port}"];
+                targets =
+                  let
+                    inherit (config.services.prometheus.exporters.zfs) port listenAddress;
+                  in
+                  [ "${listenAddress}:${toString port}" ];
               }
               {
-                targets = let inherit (config.services.prometheus.exporters.postgres) port listenAddress; in ["${listenAddress}:${toString port}"];
+                targets =
+                  let
+                    inherit (config.services.prometheus.exporters.postgres) port listenAddress;
+                  in
+                  [ "${listenAddress}:${toString port}" ];
               }
             ];
           }
@@ -1615,15 +1675,15 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         };
       };
       /*
-      TODO: promtail?
-      idrac exporter?
-      restic exporter?
-      smartctl exporter?
-      systemd exporter?
-      NOTE: we probably don't want this exposed
-      services.caddy.virtualHosts."prometheus.h.lyte.dev" = {
-        extraConfig = ''reverse_proxy :${toString config.services.prometheus.port}'';
-      };
+        TODO: promtail?
+        idrac exporter?
+        restic exporter?
+        smartctl exporter?
+        systemd exporter?
+        NOTE: we probably don't want this exposed
+        services.caddy.virtualHosts."prometheus.h.lyte.dev" = {
+          extraConfig = ''reverse_proxy :${toString config.services.prometheus.port}'';
+        };
       */
     }
     {
@@ -1754,8 +1814,8 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         containers.actual = {
           image = "ghcr.io/actualbudget/actual-server:25.2.1";
           autoStart = true;
-          ports = ["5006:5006"];
-          volumes = ["/storage/actual:/data"];
+          ports = [ "5006:5006" ];
+          volumes = [ "/storage/actual:/data" ];
         };
       };
 
@@ -1769,7 +1829,7 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         package = pkgs.factorio-headless.override {
           versionsJson = ./factorio-versions.json;
         };
-        admins = ["lytedev"];
+        admins = [ "lytedev" ];
         autosave-interval = 5;
         game-name = "Flanwheel Online";
         description = "Space Age 2.0";
@@ -1783,52 +1843,58 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
         extraSettingsFile = config.sops.secrets.factorio-server-settings.path;
       };
       sops.secrets = {
-        factorio-server-settings = {mode = "0777";};
-      };
-    }
-    ({
-      pkgs,
-      config,
-      ...
-    }: let
-      port = builtins.head config.services.conduwuit.settings.global.port;
-      sPort = toString port;
-    in {
-      sops.secrets.matrix-registration-token-file.mode = "0400";
-      services.conduwuit = {
-        enable = true;
-        settings = {
-          global = {
-            allow_check_for_updates = true;
-            allow_federation = false;
-            registration_token_file = config.sops.secrets.matrix-registration-token-file.path;
-            server_name = "lyte.dev";
-          };
+        factorio-server-settings = {
+          mode = "0777";
         };
       };
-      services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
-        reverse_proxy /_matrix/* :${sPort}
-        reverse_proxy /_synapse/client/* :${sPort}
-      '';
-      services.caddy.virtualHosts."lyte.dev:8448".extraConfig = ''
-        reverse_proxy /_matrix/* :${sPort}
-      '';
-      # TODO: backups
-      # TODO: reverse proxy
-    })
+    }
+    (
+      {
+        pkgs,
+        config,
+        ...
+      }:
+      let
+        port = builtins.head config.services.conduwuit.settings.global.port;
+        sPort = toString port;
+      in
+      {
+        sops.secrets.matrix-registration-token-file.mode = "0400";
+        services.conduwuit = {
+          enable = true;
+          settings = {
+            global = {
+              allow_check_for_updates = true;
+              allow_federation = false;
+              registration_token_file = config.sops.secrets.matrix-registration-token-file.path;
+              server_name = "lyte.dev";
+            };
+          };
+        };
+        services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
+          reverse_proxy /_matrix/* :${sPort}
+          reverse_proxy /_synapse/client/* :${sPort}
+        '';
+        services.caddy.virtualHosts."lyte.dev:8448".extraConfig = ''
+          reverse_proxy /_matrix/* :${sPort}
+        '';
+        # TODO: backups
+        # TODO: reverse proxy
+      }
+    )
   ];
 
   /*
-  TODO: non-root processes and services that access secrets need to be part of
-  the 'keys' group
+    TODO: non-root processes and services that access secrets need to be part of
+    the 'keys' group
 
-  systemd.services.some-service = {
-    serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
-  };
-  or
-  users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
+    systemd.services.some-service = {
+      serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
+    };
+    or
+    users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
 
-  TODO: declarative directory quotas? for storage/$USER and /home/$USER
+    TODO: declarative directory quotas? for storage/$USER and /home/$USER
   */
 
   environment.systemPackages = with pkgs; [
@@ -1846,34 +1912,34 @@ sudo nix run nixpkgs#ipmitool -- raw 0x30 0x30 0x02 0xff 0x00
   services.tailscale.useRoutingFeatures = "server";
 
   /*
-  # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
-  services.lidarr = {
-    enable = true;
-    dataDir = "/storage/lidarr";
-  };
+    # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
+    services.lidarr = {
+      enable = true;
+      dataDir = "/storage/lidarr";
+    };
 
-  services.radarr = {
-    enable = true;
-    dataDir = "/storage/radarr";
-  };
+    services.radarr = {
+      enable = true;
+      dataDir = "/storage/radarr";
+    };
 
-  services.sonarr = {
-    enable = true;
-    dataDir = "/storage/sonarr";
-  };
+    services.sonarr = {
+      enable = true;
+      dataDir = "/storage/sonarr";
+    };
 
-  services.bazarr = {
-    enable = true;
-    listenPort = 6767;
-  };
+    services.bazarr = {
+      enable = true;
+      listenPort = 6767;
+    };
 
-  networking.firewall.allowedTCPPorts = [9876 9877];
-  networking.firewall.allowedUDPPorts = [9876 9877];
-  networking.firewall.allowedUDPPortRanges = [
-    {
-      from = 27000;
-      to = 27100;
-    }
-  ];
+    networking.firewall.allowedTCPPorts = [9876 9877];
+    networking.firewall.allowedUDPPorts = [9876 9877];
+    networking.firewall.allowedUDPPortRanges = [
+      {
+        from = 27000;
+        to = 27100;
+      }
+    ];
   */
 }

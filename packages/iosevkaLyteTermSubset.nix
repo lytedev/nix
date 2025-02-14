@@ -9,8 +9,13 @@ pkgs.stdenvNoCC.mkDerivation {
   inherit (iosevkaLyteTerm) version;
 
   pname = "${iosevkaLyteTerm.pname}Subset";
-  buildInputs = [parallel] ++ (with python311Packages; [fonttools brotli]);
-  PYTHONPATH = pkgs.python3.withPackages (pp: with pp; [brotli]);
+  buildInputs =
+    [ parallel ]
+    ++ (with python311Packages; [
+      fonttools
+      brotli
+    ]);
+  PYTHONPATH = pkgs.python3.withPackages (pp: with pp; [ brotli ]);
   src = iosevkaLyteTerm;
 
   installPhase = ''

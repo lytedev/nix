@@ -3,9 +3,11 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   cfg = config.lyte.shell;
-in {
+in
+{
   options = {
     lyte = {
       shell = {

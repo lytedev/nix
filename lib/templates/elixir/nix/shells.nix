@@ -2,7 +2,8 @@
   pkgs,
   self,
   ...
-}: {
+}:
+{
   elixir-dev = pkgs.mkShell {
     shellHook = ''
       ${self.checks.${pkgs.system}.git-hooks.shellHook}

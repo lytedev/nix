@@ -2,8 +2,9 @@
   pkgs,
   lib,
   ...
-}: {
-  imports = [./pipewire.nix];
+}:
+{
+  imports = [ ./pipewire.nix ];
 
   # mkForce is used liberally to take precedence over KDE Plasma
   # so I can have both "usable" at once
@@ -21,7 +22,7 @@
   services.xserver.desktopManager.gnome = {
     enable = lib.mkDefault true;
 
-    extraGSettingsOverridePackages = [pkgs.gnome.mutter];
+    extraGSettingsOverridePackages = [ pkgs.gnome.mutter ];
     extraGSettingsOverrides = ''
       [org.gnome.mutter]
       experimental-features=['scale-monitor-framebuffer']
@@ -65,18 +66,18 @@
       wl-clipboard
       zathura
       /*
-      gimp
-      inkscape
-      krita
-      pavucontrol
-      pulseaudio
-      rclone
-      restic
-      steam
-      vlc
-      vulkan-tools
-      weechat
-      wine
+        gimp
+        inkscape
+        krita
+        pavucontrol
+        pulseaudio
+        rclone
+        restic
+        steam
+        vlc
+        vulkan-tools
+        weechat
+        wine
       */
     ];
   };

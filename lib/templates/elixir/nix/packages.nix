@@ -2,11 +2,13 @@
   pkgs,
   self,
   ...
-}: let
+}:
+let
   version = "1.0.0";
   src = ../.;
   pname = "my-package";
-in {
+in
+{
   ${pname} = pkgs.mixRelease {
     inherit pname version src;
     mixFodDeps = pkgs.fetchMixDeps {

@@ -5,12 +5,15 @@
     git-hooks.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs: let
-    inherit (import nix/boilerplate.nix inputs) call;
-  in {
-    overlays = import nix/overlays.nix;
-    packages = call (import nix/packages.nix);
-    checks = call (import nix/checks.nix);
-    devShells = call (import nix/shells.nix);
-  };
+  outputs =
+    inputs:
+    let
+      inherit (import nix/boilerplate.nix inputs) call;
+    in
+    {
+      overlays = import nix/overlays.nix;
+      packages = call (import nix/packages.nix);
+      checks = call (import nix/checks.nix);
+      devShells = call (import nix/shells.nix);
+    };
 }

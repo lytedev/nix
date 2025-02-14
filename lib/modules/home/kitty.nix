@@ -2,10 +2,11 @@
   colors,
   font,
   ...
-}: {
+}:
+{
   programs.kitty = {
     enable = true;
-    darwinLaunchOptions = ["--single-instance"];
+    darwinLaunchOptions = [ "--single-instance" ];
     shellIntegration = {
       enableFishIntegration = true;
     };

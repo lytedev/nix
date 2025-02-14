@@ -1,4 +1,5 @@
-{pkgs, ...}: let
+{ pkgs, ... }:
+let
   inherit (builtins) fromTOML readFile;
   pname = "my-package";
   src = ./..;
@@ -8,19 +9,20 @@
     # or for workspaces: version = (fromTOML (readFile "${src}/${pname}/Cargo.toml")).package.version;
 
     /*
-    nativeBuildInputs = with pkgs; [
-    pkg-config
-    clang
-    ];
+      nativeBuildInputs = with pkgs; [
+      pkg-config
+      clang
+      ];
 
-    buildInputs = with pkgs; [
-    ];
+      buildInputs = with pkgs; [
+      ];
     */
 
     cargoHash = pkgs.lib.fakeHash;
     useFetchCargoVendor = true;
   };
-in {
+in
+{
   ${pname} = main-package;
   default = main-package;
 }

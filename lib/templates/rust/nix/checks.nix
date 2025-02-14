@@ -2,7 +2,8 @@
   pkgs,
   git-hooks,
   ...
-}: {
+}:
+{
   git-hooks = git-hooks.lib.${pkgs.system}.run {
     src = ./..;
     hooks = {
@@ -16,7 +17,7 @@
         # types = ["rust"];
         # language = "rust";
         pass_filenames = false;
-        stages = ["pre-commit"];
+        stages = [ "pre-commit" ];
       };
       clippy.enable = true;
       rustfmt.enable = true;

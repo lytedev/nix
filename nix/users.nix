@@ -1,8 +1,9 @@
 {
-  "deck" = let
-    system = "x86_64-linux";
-    pkgs = unstable.pkgsFor system;
-  in
+  "deck" =
+    let
+      system = "x86_64-linux";
+      pkgs = unstable.pkgsFor system;
+    in
     home-manager-unstable.lib.homeManagerConfiguration {
       inherit pkgs;
       modules = with homeManagerModules; [

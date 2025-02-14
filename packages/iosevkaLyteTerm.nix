@@ -1,6 +1,9 @@
-{iosevka, ...}: let
+{ iosevka, ... }:
+let
   set = "LyteTerm";
-in ((iosevka.override {
+in
+(
+  (iosevka.override {
     inherit set;
 
     privateBuildPlan = ''
@@ -122,8 +125,8 @@ in ((iosevka.override {
       question = 'smooth'
       punctuation-dot = 'round'
     '';
-  })
-  .overrideAttrs {
+  }).overrideAttrs
+  {
     buildPhase = ''
       export HOME=$TMPDIR
       runHook preBuild
@@ -142,4 +145,5 @@ in ((iosevka.override {
       install "dist/$pname/WOFF2"/* "$wfontdir"
       runHook postInstall
     '';
-  })
+  }
+)
