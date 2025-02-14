@@ -528,49 +528,25 @@
       */
     };
 
-    environment.systemPackages = with pkgs; [
-      taplo # toml language server for editing helix configs per repo
-      picocom # serial
-      pgcli
-      oils-for-unix
-      watchexec
-      android-tools
-      stern
-      libresprite
-      # logseq
-      audacity
-      wol
-      shellcheck
-      skim
-      sops
-      gron
-      shfmt
-      vscode-langservers-extracted
-      nodePackages.bash-language-server
-      nodePackages.yaml-language-server
-      xh
-      curl
-    ];
-
     hardware.gpgSmartcards.enable = true;
 
-    services.udev.packages = with pkgs; [
-      # TODO: I think these get the whole package pulled in... should find out
-      # if there's a way to get just the rules and not 4 chromes
-      platformio
-      openocd
-      pkgs.yubikey-personalization
-      via
-    ];
+    # services.udev.packages = with pkgs; [
+    #   # TODO: I think these get the whole package pulled in... should find out
+    #   # if there's a way to get just the rules and not 4 chromes
+    #   platformio
+    #   openocd
+    #   pkgs.yubikey-personalization
+    #   via
+    # ];
 
-    programs.adb.enable = true;
-    users.users.daniel.extraGroups = ["adbusers"];
+    # programs.adb.enable = true;
+    # users.users.daniel.extraGroups = ["adbusers"];
 
     home-manager.users.daniel = {
       home.packages = with pkgs; [
-        yubikey-personalization
-        yubikey-manager
-        yubico-piv-tool
+        # yubikey-personalization
+        # yubikey-manager
+        # yubico-piv-tool
       ];
 
       programs.direnv.mise = {
@@ -585,7 +561,7 @@
       };
 
       programs.thunderbird = {
-        enable = true;
+        enable = false;
 
         profiles = {
           daniel = {
@@ -596,7 +572,7 @@
       };
 
       programs.nushell = {
-        enable = true;
+        enable = false;
       };
 
       programs.jujutsu = {
@@ -604,15 +580,15 @@
       };
 
       programs.k9s = {
-        enable = true;
+        enable = false;
       };
 
       programs.vscode = {
-        enable = true;
+        enable = false;
       };
 
       programs.jq = {
-        enable = true;
+        enable = false;
       };
 
       programs.btop = {
@@ -626,7 +602,6 @@
 
   troubleshooting-tools = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
-      comma
       iftop
       bottom
       btop
@@ -661,12 +636,12 @@
     };
   };
 
-  android-dev = {pkgs, ...}: {
-    services.udev.packages = [
-      pkgs.android-udev-rules
-    ];
-    environment.systemPackages = [pkgs.android-studio];
-  };
+  # android-dev = {pkgs, ...}: {
+  #   services.udev.packages = [
+  #     pkgs.android-udev-rules
+  #   ];
+  #   environment.systemPackages = [pkgs.android-studio];
+  # };
 
   graphical-workstation = {
     pkgs,
@@ -677,7 +652,7 @@
   }: {
     imports = with nixosModules; [
       sway
-      hyprland
+      # hyprland
       enable-flatpaks-and-appimages
       fonts
       development-tools
@@ -688,7 +663,7 @@
       gnome
       video-tools
       radio-tools
-      android-dev
+      # android-dev
     ];
 
     xdg.portal.enable = true;
