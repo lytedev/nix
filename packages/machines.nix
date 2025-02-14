@@ -84,7 +84,6 @@
 
         home-manager.users.daniel = {
           imports = with homeManagerModules; [
-            firefox-no-tabs
             linux-desktop-environment-config
           ];
         };
@@ -122,7 +121,6 @@
               iex
               niri
               cargo
-              firefox-no-tabs
               linux-desktop-environment-config
             ];
           };
@@ -192,7 +190,6 @@
             senpai
             iex
             cargo
-            firefox-no-tabs
             linux-desktop-environment-config
             # slippi.homeManagerModules.default
           ];
@@ -262,7 +259,6 @@
             senpai
             iex
             cargo
-            firefox-no-tabs
             linux-desktop-environment-config
             slippi.homeManagerModules.default
           ];
@@ -301,7 +297,6 @@
 
         home-manager.users.daniel = {
           imports = with homeManagerModules; [
-            firefox-no-tabs
             linux-desktop-environment-config
           ];
         };

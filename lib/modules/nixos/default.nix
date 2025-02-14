@@ -3,243 +3,35 @@ let
   inherit (self) outputs;
   inherit (outputs)
     nixosModules
-    homeManagerModules
-    overlays
-    constants
+    # overlays
+    pubkey
     ;
-  inherit (constants) pubkey;
 in
 {
+  common = {
+    imports = with nixosModules; [
+      deno-netlify-ddns-client
+      shell-defaults-and-applications
+      desktop
+      wifi
+      printing
+      podman
+      virtual-machines
+      postgres
+      gaming
+      gnome
+      daniel
+      root
+    ];
+  };
+
+  nix-config = (import ../../../flake.nix).nixConfig;
   shell-defaults-and-applications = import ./shell-config.nix;
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
 
   # boot.tmp.useTmpfs = true;
   # boot.uki.tries = 3;
   # services.irqbalance.enable = true;
-
-  # this is not ready for primetime yet
-  # services.kanidm = {
-  #   enableClient = true;
-  #   enablePam = true;
-  #   package = pkgs.kanidm;
-
-  #   clientSettings.uri = "https://idm.h.lyte.dev";
-  #   unixSettings = {
-  #     # hsm_pin_path = "/somewhere/else";
-  #     pam_allowed_login_groups = [];
-  #   };
-  # };
-  # systemd.tmpfiles.rules = [
-  #   "d /etc/kanidm 1755 nobody users -"
-  # ];
-
-  # module has the incorrect file permissions out of the box
-  # environment.etc = {
-  /*
-    "kanidm" = {
-    enable = true;
-      user = "nobody";
-      group = "users";
-      mode = "0755";
-    };
-  */
-  #   "kanidm/unixd" = {
-  #     user = "kanidm-unixd";
-  #     group = "kanidm-unixd";
-  #     mode = "0700";
-  #   };
-  #   "kanidm/config" = {
-  #     user = "nobody";
-  #     group = "users";
-  #     mode = "0755";
-  #   };
-  # };
-
-  ewwbar =
-    { pkgs, ... }:
-    {
-      # imports = with nixosModules;  [];
-      environment.systemPackages = with pkgs; [
-        eww
-        upower
-        jq
-      ];
-
-      # TODO: include the home-manager modules for daniel?
-    };
-
-  niri =
-    { pkgs, ... }:
-    {
-      environment.systemPackages = with pkgs; [ niri ];
-
-      systemd.user.services.polkit = {
-        description = "PolicyKit Authentication Agent";
-        wantedBy = [ "niri.service" ];
-        after = [ "graphical-session.target" ];
-        partOf = [ "graphical-session.target" ];
-        serviceConfig = {
-          Type = "simple";
-          ExecStart = "${pkgs.libsForQt5.polkit-kde-agent}/libexec/polkit-kde-authentication-agent-1";
-          Restart = "on-failure";
-          RestartSec = 1;
-          TimeoutStopSec = 10;
-        };
-      };
-
-      # security.pam.services.swaylock = {};
-      programs.dconf.enable = pkgs.lib.mkDefault true;
-      fonts.enableDefaultPackages = pkgs.lib.mkDefault true;
-      security.polkit.enable = true;
-      services.gnome.gnome-keyring.enable = true;
-    };
-
-  hyprland =
-    { pkgs, ... }:
-    {
-      imports = with nixosModules; [
-        ewwbar
-        pipewire
-      ];
-
-      programs.hyprland = {
-        enable = true;
-      };
-      environment.systemPackages = with pkgs; [
-        hyprpaper
-        xwaylandvideobridge
-        netcat-openbsd
-      ];
-
-      home-manager.users.daniel = {
-        imports = with homeManagerModules; [
-          hyprland
-        ];
-      };
-
-      # TODO: include the home-manager modules for daniel?
-    };
-
-  sway =
-    { pkgs, ... }:
-    {
-      imports = with nixosModules; [
-        pipewire
-      ];
-
-      systemd.user.services."wait-for-full-path" = {
-        description = "wait for systemd units to have full PATH";
-        wantedBy = [ "xdg-desktop-portal.service" ];
-        before = [ "xdg-desktop-portal.service" ];
-        path = with pkgs; [
-          systemd
-          coreutils
-          gnugrep
-        ];
-        script = ''
-          ispresent () {
-            systemctl --user show-environment | grep -E '^PATH=.*/.nix-profile/bin'
-          }
-          while ! ispresent; do
-            sleep 0.1;
-          done
-        '';
-        serviceConfig = {
-          Type = "oneshot";
-          TimeoutStartSec = "60";
-        };
-      };
-
-      home-manager.users.daniel = {
-        imports = with homeManagerModules; [
-          sway
-        ];
-      };
-
-      programs.sway = {
-        enable = true;
-        wrapperFeatures.gtk = true;
-      };
-
-      # services.xserver.libinput.enable = true;
-
-      # TODO: a lot of this probably needs de-duping with hyprland?
-
-      services.gnome.gnome-keyring.enable = true;
-
-      xdg.portal = {
-        enable = true;
-        wlr.enable = true;
-        # gtk.enable = true;
-
-        extraPortals = with pkgs; [
-          xdg-desktop-portal-wlr
-          xdg-desktop-portal-gtk
-        ];
-      };
-
-      services.dbus.enable = true;
-      security.polkit.enable = true; # needed for home-manager integration
-
-      programs.thunar = {
-        enable = true;
-        plugins = with pkgs.xfce; [
-          thunar-archive-plugin
-          thunar-volman
-        ];
-      };
-
-      services.gvfs = {
-        enable = true;
-      };
-
-      environment = {
-        variables = {
-          VISUAL = "hx";
-        };
-
-        systemPackages = with pkgs; [
-          brightnessctl
-          feh
-          grim
-          libinput
-          libinput-gestures
-          libnotify
-          mako
-          noto-fonts
-          pamixer
-          playerctl
-          pulseaudio
-          pulsemixer
-          slurp
-          swaybg
-          swayidle
-          swaylock
-          swayosd
-          tofi
-          waybar
-          wl-clipboard
-          zathura
-
-          /*
-            gimp
-            inkscape
-            krita
-            lutris
-            nil
-            nixpkgs-fmt
-            pavucontrol
-            rclone
-            restic
-            steam
-            vlc
-            vulkan-tools
-            weechat
-            wine
-          */
-        ];
-      };
-    };
 
   remote-disk-key-entry-on-boot =
     {
@@ -270,6 +62,7 @@ in
     };
 
   laptop =
+    # TODO: modularize
     { pkgs, ... }:
     {
       imports = with nixosModules; [
@@ -311,290 +104,50 @@ in
       };
     };
 
-  touchscreen =
-    { pkgs, ... }:
-    {
-      environment.systemPackages = with pkgs; [
-        wvkbd # on-screen keyboard
-        flakeInputs.iio-hyprland.outputs.packages.${system}.default # auto-rotate hyprland displays
-        flakeInputs.hyprgrass.outputs.packages.${system}.hyprgrass # hyprland touch gestures
-      ];
-    };
-
-  emacs =
-    { pkgs, ... }:
-    {
-      environment.systemPackages = with pkgs; [
-        emacs
-      ];
-
-      home-manager.users.daniel = {
-        imports = with homeManagerModules; [
-          emacs
-        ];
-      };
-    };
-
-  development-tools =
-    {
-      pkgs,
-      lib,
-      ...
-    }:
-    {
-      imports = with nixosModules; [
-        postgres
-        podman
-        troubleshooting-tools
-        emacs
-      ];
-
-      environment.sessionVariables.NIXOS_OZONE_WL = "1";
-      programs.neovim = {
-        enable = true;
-        /*
-          plugins = [
-            pkgs.vimPlugins.nvim-treesitter.withAllGrammars
-          ];
-        */
-      };
-
-      hardware.gpgSmartcards.enable = true;
-
-      # services.udev.packages = with pkgs; [
-      #   # TODO: I think these get the whole package pulled in... should find out
-      #   # if there's a way to get just the rules and not 4 chromes
-      #   platformio
-      #   openocd
-      #   pkgs.yubikey-personalization
-      #   via
-      # ];
-
-      # programs.adb.enable = true;
-      # users.users.daniel.extraGroups = ["adbusers"];
-
-      home-manager.users.daniel = {
-        programs.direnv.mise = {
-          enable = true;
-        };
-
-        programs.mise = {
-          enable = true;
-          enableFishIntegration = true;
-          enableBashIntegration = true;
-          enableZshIntegration = true;
-        };
-
-        programs.thunderbird = {
-          enable = false;
-
-          profiles = {
-            daniel = {
-              isDefault = true;
-              # name = "daniel";
-            };
-          };
-        };
-
-        programs.nushell = {
-          enable = false;
-        };
-
-        programs.jujutsu = {
-          enable = lib.mkDefault true;
-        };
-
-        programs.k9s = {
-          enable = false;
-        };
-
-        programs.vscode = {
-          enable = false;
-        };
-
-        programs.jq = {
-          enable = false;
-        };
-
-        programs.btop = {
-          enable = true;
-          package = pkgs.btop.override {
-            rocmSupport = true;
-          };
-        };
-      };
-    };
-
-  troubleshooting-tools =
-    { pkgs, ... }:
-    {
-      environment.systemPackages = with pkgs; [
-        iftop
-        bottom
-        btop
-        dnsutils
-        dogdns
-        htop
-        inetutils
-        nmap
-        pciutils
-        hexyl
-        pkgs.unixtools.xxd
-        usbutils
-        comma
-      ];
-    };
-
-  music-consumption =
-    { pkgs, ... }:
-    {
-      environment = {
-        systemPackages = with pkgs; [
-          spotube
-          spotdl
-        ];
-      };
-    };
-
-  video-tools =
-    { pkgs, ... }:
-    {
-      environment = {
-        systemPackages = with pkgs; [
-          ffmpeg-full
-          obs-studio
-        ];
-      };
-    };
-
-  # android-dev = {pkgs, ...}: {
-  #   services.udev.packages = [
-  #     pkgs.android-udev-rules
-  #   ];
-  #   environment.systemPackages = [pkgs.android-studio];
-  # };
-
-  graphical-workstation =
-    {
-      pkgs,
-      lib,
-      options,
-      config,
-      ...
-    }:
-    {
-      imports = with nixosModules; [
-        sway
-        # hyprland
-        enable-flatpaks-and-appimages
-        fonts
-        development-tools
-        printing
-        music-consumption
-        kde-connect
-        # plasma6
-        gnome
-        video-tools
-        radio-tools
-        # android-dev
-      ];
-
-      xdg.portal.enable = true;
-
-      hardware =
-        if builtins.hasAttr "graphics" options.hardware then
-          {
-            graphics = {
-              enable = true;
-              enable32Bit = true;
-              /*
-                driSupport32Bit = true;
-                driSupport = true;
-              */
-            };
-          }
-        else
-          {
-            opengl = {
-              enable = true;
-              driSupport32Bit = true;
-              driSupport = true;
-            };
-          };
-      environment = {
-        systemPackages = with pkgs; [
-          firefox
-          google-chrome
-          libnotify
-          slides
-          slack
-          discord
-        ];
-        variables = {
-          /*
-            GTK_THEME = "Catppuccin-Mocha-Compact-Sapphire-Dark";
-            GTK_USE_PORTAL = "1";
-          */
-        };
-      };
-    };
-
   gnome =
     {
       pkgs,
       lib,
+      config,
       ...
     }:
     {
-      imports = with nixosModules; [ pipewire ];
+      config = lib.mkIf config.services.xserver.desktopManager.gnome.enable {
 
-      services = {
-        xserver = {
-          enable = true;
-          displayManager.gdm.enable = true;
-          desktopManager.gnome.enable = true;
-        };
-        udev.packages = [ pkgs.gnome-settings-daemon ];
-      };
-
-      environment = {
-        variables.GSK_RENDERER = "gl";
-        systemPackages = with pkgs; [
-          bitwarden
-          # adwaita-gtk-theme
-          papirus-icon-theme
-          adwaita-icon-theme
-          adwaita-icon-theme-legacy
-          hydrapaper
-        ];
-      };
-
-      programs.kdeconnect = {
-        enable = true;
-        package = pkgs.gnomeExtensions.gsconnect;
-      };
-
-      networking.firewall = rec {
-        allowedTCPPortRanges = [
-          {
-            from = 1714;
-            to = 1764;
-          }
-        ];
-        allowedUDPPortRanges = allowedTCPPortRanges;
-      };
-
-      home-manager.users.daniel = {
-        imports = with homeManagerModules; [
-          gnome
-        ];
-
-        home.file.".face" = {
-          enable = true;
-          source = builtins.fetchurl {
-            url = "https://lyte.dev/img/avatar3-square-512.png";
-            sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
+        services = {
+          xserver = {
+            enable = true;
+            displayManager.gdm.enable = true;
+            # desktopManager.gnome.enable = true;
           };
+          udev.packages = [ pkgs.gnome-settings-daemon ];
+        };
+
+        environment = {
+          variables.GSK_RENDERER = "gl";
+          systemPackages = with pkgs; [
+            bitwarden
+            # adwaita-gtk-theme
+            papirus-icon-theme
+            adwaita-icon-theme
+            adwaita-icon-theme-legacy
+            hydrapaper
+          ];
+        };
+
+        programs.kdeconnect = {
+          enable = true;
+          package = pkgs.gnomeExtensions.gsconnect;
+        };
+
+        networking.firewall = rec {
+          allowedTCPPortRanges = [
+            {
+              from = 1714;
+              to = 1764;
+            }
+          ];
+          allowedUDPPortRanges = allowedTCPPortRanges;
         };
       };
     };
@@ -874,7 +427,6 @@ in
 
   virtual-machines =
     {
-      pkgs,
       lib,
       config,
       ...
@@ -941,6 +493,7 @@ in
       pkgs,
       lib,
       config,
+      options,
       ...
     }:
     let
@@ -955,16 +508,44 @@ in
         };
       };
       config = lib.mkIf cfg.enable {
-        home-manager.users.daniel = {
-          imports = with homeManagerModules; [
-            firefox-no-tabs
-            linux-desktop-environment-config
-          ];
-        };
+        services.xserver.desktopManager.gnome.enable = true;
+
+        xdg.portal.enable = true;
+
+        hardware =
+          if builtins.hasAttr "graphics" options.hardware then
+            {
+              graphics = {
+                enable = true;
+                # enable32Bit = true;
+                /*
+                  driSupport32Bit = true;
+                  driSupport = true;
+                */
+              };
+            }
+          else
+            {
+              opengl = {
+                enable = true;
+                # driSupport32Bit = true;
+                driSupport = true;
+              };
+            };
+        fonts.packages = [
+          (
+            # allow nixpkgs 24.11 and unstable to both work
+            if builtins.hasAttr "nerd-fonts" pkgs then
+              (pkgs.nerd-fonts.symbols-only)
+            else
+              (pkgs.nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
+          )
+          pkgs.iosevkaLyteTerm
+        ];
         services.flatpak.enable = true;
         programs.appimage.binfmt = true;
         services.printing.enable = true;
-        programs.virt-manager.enable = config.virtualization.libvirtd.enable;
+        programs.virt-manager.enable = config.virtualisation.libvirtd.enable;
       };
     };
 
@@ -1040,9 +621,13 @@ in
     };
 
   steam =
-    { pkgs, ... }:
+    { pkgs, options, ... }:
     {
       programs.gamescope.enable = true;
+
+      services.pipewire = {
+        alsa.support32Bit = true;
+      };
 
       programs.steam = {
         enable = true;
@@ -1062,7 +647,27 @@ in
         remotePlay.openFirewall = true;
       };
 
-      hardware.steam-hardware.enable = true;
+      hardware =
+        (
+          if builtins.hasAttr "graphics" options.hardware then
+            {
+              graphics = {
+                enable = true;
+                enable32Bit = true;
+              };
+            }
+          else
+            {
+              opengl = {
+                enable = true;
+                driSupport32Bit = true;
+              };
+            }
+        )
+        // {
+          steam-hardware.enable = true;
+        };
+
       services.udev.packages = with pkgs; [ steam ];
 
       environment.systemPackages = with pkgs; [
@@ -1089,15 +694,6 @@ in
         openssh.authorizedKeys.keys = [ pubkey ];
         shell = lib.mkForce pkgs.fish;
       };
-      home-manager.users.root = {
-        imports = [ homeManagerModules.common ];
-
-        home = {
-          username = "root";
-          homeDirectory = "/root";
-          stateVersion = pkgs.lib.mkDefault "24.05";
-        };
-      };
     };
 
   daniel =
@@ -1107,30 +703,15 @@ in
       config,
       ...
     }:
-    let
-      username = "daniel";
-    in
     {
-      imports = [
-        {
-          config = lib.mkIf config.lyte.shell.enable {
-            home-manager.users.${username} = {
-              imports = with homeManagerModules; [
-                senpai
-                iex
-                cargo
-              ];
-            };
-          };
-        }
-      ];
-      users.groups.${username} = { };
-      users.users.${username} = {
+      users.groups.daniel = { };
+      users.users.daniel = {
         isNormalUser = true;
-        home = "/home/${username}/.home";
+        home = "/home/daniel/.home";
+        description = "Daniel Flanagan";
         createHome = true;
         openssh.authorizedKeys.keys = [ pubkey ];
-        group = username;
+        group = "daniel";
         extraGroups = [
           "users"
           "wheel"
@@ -1141,81 +722,5 @@ in
         ];
         packages = [ ];
       };
-      home-manager.users.daniel = {
-        imports = [ homeManagerModules.common ];
-
-        home = {
-          username = "daniel";
-          homeDirectory = "/home/daniel/.home";
-          stateVersion = config.system.stateVersion;
-        };
-
-        accounts.email.accounts = {
-          primary = {
-            primary = true;
-            address = "daniel@lyte.dev";
-          };
-          legacy = {
-            address = "wraithx2@gmail.com";
-          };
-          io = {
-            # TODO: finalize deprecation
-            address = "daniel@lytedev.io";
-          };
-        };
-      };
     };
-
-  valerie =
-    let
-      username = "valerie";
-    in
-    {
-      users.groups.${username} = { };
-      users.users.${username} = {
-        isNormalUser = true;
-        home = "/home/${username}";
-        createHome = true;
-        openssh.authorizedKeys.keys = [ pubkey ];
-        group = username;
-        extraGroups = [
-          "users"
-          "video"
-        ];
-        packages = [ ];
-      };
-    };
-
-  flanfam =
-    let
-      username = "flanfam";
-    in
-    {
-      users.groups.${username} = { };
-      users.users.${username} = {
-        isNormalUser = true;
-        home = "/home/${username}";
-        createHome = true;
-        openssh.authorizedKeys.keys = [ pubkey ];
-        group = username;
-        extraGroups = [
-          "users"
-          "video"
-        ];
-        packages = [ ];
-      };
-    };
-
-  family-users = {
-    imports = with nixosModules; [
-      # daniel # part of common
-      valerie
-      flanfam
-    ];
-  };
-
-  # a common module that is intended to be imported by all NixOS systems
-
-  # intended to be auto-logged in and only run a certain application
-  # flanfamkiosk = {};
 }

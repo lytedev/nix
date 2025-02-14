@@ -1,34 +1,177 @@
-{ self, ... }:
+{ self, slippi, ... }:
 let
   inherit (self) outputs;
-  inherit (outputs) homeManagerModules constants;
-  inherit (constants) style;
+  inherit (outputs) homeManagerModules style;
 in
 {
-  bat = {
-    programs.bat = {
-      enable = true;
-      config = {
-        theme = "ansi";
-      };
-      /*
-        themes = {
-          "Catppuccin-mocha" = builtins.readFile (pkgs.fetchFromGitHub
-            {
-              owner = "catppuccin";
-              repo = "bat";
-              rev = "477622171ec0529505b0ca3cada68fc9433648c6";
-              sha256 = "6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
-            }
-            + "/Catppuccin-mocha.tmTheme");
-        };
-      */
-    };
+  common =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    {
+      imports = with homeManagerModules; [
+        slippi.homeManagerModules.default
+        # nix-colors.homeManagerModules.default
+        fish
+        homeManagerModules.helix
+        git
+        jujutsu
+        zellij
+        htop
+        sshconfig
+        senpai
+        iex
+        cargo
 
-    home.shellAliases = {
-      cat = "bat";
+        /*
+          broot
+          nnn
+          tmux
+        */
+      ];
+
+      programs.bat = {
+        enable = true;
+        config = {
+          theme = "ansi";
+        };
+        /*
+          themes = {
+            "Catppuccin-mocha" = builtins.readFile (pkgs.fetchFromGitHub
+              {
+                owner = "catppuccin";
+                repo = "bat";
+                rev = "477622171ec0529505b0ca3cada68fc9433648c6";
+                sha256 = "6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
+              }
+              + "/Catppuccin-mocha.tmTheme");
+          };
+        */
+      };
+
+      home.shellAliases = {
+        cat = "bat";
+      };
+
+      programs.home-manager.enable = true;
+
+      programs.direnv.mise = {
+        enable = true;
+      };
+
+      programs.mise = {
+        enable = true;
+        enableFishIntegration = true;
+        enableBashIntegration = true;
+        enableZshIntegration = true;
+      };
+
+      programs.jujutsu = {
+        enable = true;
+      };
+
+      programs.jq = {
+        enable = true;
+      };
+
+      programs.btop = {
+        enable = true;
+        package = pkgs.btop.override {
+          rocmSupport = true;
+        };
+      };
+
+      # services.ssh-agent.enable = true;
+
+      home = {
+        sessionVariables = {
+          TERMINAL = "ghostty";
+          EDITOR = "hx";
+          VISUAL = "hx";
+          PAGER = "less";
+          MANPAGER = "less";
+        };
+
+        packages = with pkgs; [
+          # tools I use when editing nix code
+          # kanidm
+          alejandra
+          gnupg
+          (pkgs.buildEnv {
+            name = "my-common-scripts";
+            paths = [ ./scripts/common ];
+          })
+        ];
+      };
+
+      programs.direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
+
+      programs.skim = {
+        # https://github.com/lotabout/skim/issues/494
+        enable = false;
+        enableFishIntegration = true;
+        defaultOptions = [
+          "--no-clear-start"
+          "--color=16"
+          "--height=20"
+        ];
+      };
+
+      programs.atuin = {
+        enable = true;
+        enableBashIntegration = config.programs.bash.enable;
+        enableFishIntegration = config.programs.fish.enable;
+        enableZshIntegration = config.programs.zsh.enable;
+        enableNushellIntegration = config.programs.nushell.enable;
+
+        flags = [
+          "--disable-up-arrow"
+        ];
+
+        settings = {
+          auto_sync = true;
+          sync_frequency = "1m";
+          sync_address = "https://atuin.h.lyte.dev";
+          keymap_mode = "vim-insert";
+          inline_height = 20;
+          show_preview = true;
+
+          sync = {
+            records = true;
+          };
+
+          dotfiles = {
+            enabled = true;
+          };
+        };
+      };
+
+      programs.fzf = {
+        # using good ol' fzf until skim sucks less out of the box I guess
+        enable = true;
+        /*
+          enableFishIntegration = true;
+          defaultCommand = "fd --type f";
+          defaultOptions = ["--height 40%"];
+          fileWidgetOptions = ["--preview 'head {}'"];
+        */
+      };
+
+      # TODO: regular cron or something?
+      programs.nix-index = {
+        enable = true;
+
+        enableBashIntegration = config.programs.bash.enable;
+        enableFishIntegration = config.programs.fish.enable;
+        enableZshIntegration = config.programs.zsh.enable;
+      };
     };
-  };
 
   eww =
     { config, ... }:
@@ -150,305 +293,28 @@ in
       */
     };
 
-  common =
-    {
-      pkgs,
-      lib,
-      config,
-      ...
-    }:
-    {
-      imports = with homeManagerModules; [
-        # nix-colors.homeManagerModules.default
-        fish
-        bat
-        homeManagerModules.helix
-        git
-        jujutsu
-        zellij
-        htop
-        sshconfig
-
-        /*
-          broot
-          nnn
-          tmux
-        */
-      ];
-
-      programs.home-manager.enable = true;
-
-      # services.ssh-agent.enable = true;
-
-      home = {
-        username = lib.mkDefault "lytedev";
-        homeDirectory = lib.mkDefault "/home/lytedev";
-        stateVersion = lib.mkDefault "24.05";
-
-        sessionVariables = {
-          TERMINAL = "ghostty";
-          EDITOR = "hx";
-          VISUAL = "hx";
-          PAGER = "less";
-          MANPAGER = "less";
-        };
-
-        packages = with pkgs; [
-          # tools I use when editing nix code
-          # kanidm
-          alejandra
-          gnupg
-          (pkgs.buildEnv {
-            name = "my-common-scripts";
-            paths = [ ./scripts/common ];
-          })
-        ];
-      };
-
-      programs.direnv = {
-        enable = true;
-        nix-direnv.enable = true;
-      };
-
-      programs.skim = {
-        # https://github.com/lotabout/skim/issues/494
-        enable = false;
-        enableFishIntegration = true;
-        defaultOptions = [
-          "--no-clear-start"
-          "--color=16"
-          "--height=20"
-        ];
-      };
-
-      programs.atuin = {
-        enable = true;
-        enableBashIntegration = config.programs.bash.enable;
-        enableFishIntegration = config.programs.fish.enable;
-        enableZshIntegration = config.programs.zsh.enable;
-        enableNushellIntegration = config.programs.nushell.enable;
-
-        flags = [
-          "--disable-up-arrow"
-        ];
-
-        settings = {
-          auto_sync = true;
-          sync_frequency = "1m";
-          sync_address = "https://atuin.h.lyte.dev";
-          keymap_mode = "vim-insert";
-          inline_height = 20;
-          show_preview = true;
-
-          sync = {
-            records = true;
-          };
-
-          dotfiles = {
-            enabled = true;
-          };
-        };
-      };
-
-      programs.fzf = {
-        # using good ol' fzf until skim sucks less out of the box I guess
-        enable = true;
-        /*
-          enableFishIntegration = true;
-          defaultCommand = "fd --type f";
-          defaultOptions = ["--height 40%"];
-          fileWidgetOptions = ["--preview 'head {}'"];
-        */
-      };
-
-      # TODO: regular cron or something?
-      programs.nix-index = {
-        enable = true;
-
-        enableBashIntegration = config.programs.bash.enable;
-        enableFishIntegration = config.programs.fish.enable;
-        enableZshIntegration = config.programs.zsh.enable;
-      };
-    };
-
   desktop = {
     imports = with homeManagerModules; [
-      wezterm
       ghostty
     ];
   };
 
   # ewwbar = {};
 
-  firefox =
-    { pkgs, ... }:
-    {
-      programs.firefox = {
-        /*
-          TODO: this should be able to work on macos, no?
-          TODO: enable color scheme/theme by default
-        */
-        enable = true;
-        profiles = {
-          daniel = {
-            id = 0;
-            settings = {
-              "general.smoothScroll" = true;
-              "browser.zoom.siteSpecific" = true;
-            };
-
-            extraConfig = ''
-              user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
-              // user_pref("full-screen-api.ignore-widgets", true);
-              user_pref("media.ffmpeg.vaapi.enabled", true);
-              user_pref("media.rdd-vpx.enabled", true);
-            '';
-
-            userChrome = ''
-              #webrtcIndicator {
-                display: none;
-              }
-            '';
-
-            /*
-              userContent = ''
-              '';
-            */
-          };
-        };
-      };
-    };
-
-  firefox-no-tabs = {
-    programs.firefox = {
-      profileVersion = null;
-      profiles = {
-        daniel = {
-          settings = {
-            "alerts.useSystemBackend" = true;
-            "widget.gtk.rounded-bottom-corners.enabled" = true;
-          };
-          userChrome = ''
-            #TabsToolbar {
-              visibility: collapse;
-            }
-
-            #main-window[tabsintitlebar="true"]:not([extradragspace="true"]) #TabsToolbar>.toolbar-items {
-              opacity: 0;
-              pointer-events: none;
-            }
-
-            #main-window:not([tabsintitlebar="true"]) #TabsToolbar {
-              visibility: collapse !important;
-            }
-          '';
-        };
-      };
-    };
-  };
-
-  fish =
-    { pkgs, ... }:
-    {
-      home = {
-        packages = [
-          pkgs.gawk # used in prompt
-        ];
-      };
-
-      programs.eza = {
-        enable = true;
-      };
-
-      programs.fish = {
-        enable = true;
-        # I load long scripts from files for a better editing experience
-        shellInit = builtins.readFile ./fish/shellInit.fish;
-        interactiveShellInit = builtins.readFile ./fish/interactiveShellInit.fish;
-        loginShellInit = "";
-        functions = {
-          # TODO: I think these should be loaded from fish files too for better editor experience?
-          d = ''
-            # --wraps=cd --description "Quickly jump to NICE_HOME (or given relative or absolute path) and list files."
-            if count $argv > /dev/null
-              cd $argv
-            else
-              cd $NICE_HOME
-            end
-            la
-          '';
-
-          c = ''
-            if count $argv > /dev/null
-              cd $NICE_HOME && d $argv
-            else
-              d $NICE_HOME
-            end
-          '';
-
-          ltl = ''
-            set d $argv[1] .
-            set -l l ""
-            for f in $d[1]/*
-              if test -z $l; set l $f; continue; end
-              if command test $f -nt $l; and test ! -d $f
-                set l $f
-              end
-            end
-            echo $l
-          '';
-
-          has_command = "command --quiet --search $argv[1]";
-        };
-        shellAbbrs = { };
-        shellAliases = {
-          # TODO: an alias that wraps `rm` such that if we run it without git committing first (when in a git repo)
-          ls = "eza --group-directories-first --classify";
-          l = "ls";
-          ll = "ls --long --group";
-          la = "ll --all";
-          lA = "la --all"; # --all twice to show . and ..
-          tree = "ls --tree --level=3";
-          lt = "ll --sort=modified";
-          lat = "la --sort=modified";
-          lc = "lt --sort=accessed";
-          lT = "lt --reverse";
-          lC = "lc --reverse";
-          lD = "la --only-dirs";
-          "cd.." = "d ..";
-          "cdc" = "d $XDG_CONFIG_HOME";
-          "cdn" = "d $NOTES_PATH";
-          "cdl" = "d $XDG_DOWNLOAD_DIR";
-          "cdg" = "d $XDG_GAMES_DIR";
-          ".." = "d ..";
-          "..." = "d ../..";
-          "...." = "d ../../..";
-          "....." = "d ../../../..";
-          "......" = "d ../../../../..";
-          "......." = "d ../../../../../..";
-          "........" = "d ../../../../../../..";
-          "........." = "d ../../../../../../../..";
-          p = "ping";
-          dc = "docker compose";
-          pc = "podman-compose";
-          k = "kubectl";
-          kg = "kubectl get";
-          v = "$EDITOR";
-          sv = "sudo $EDITOR";
-          kssh = "kitty +kitten ssh";
-        };
-      };
-    };
+  firefox = import ./firefox.nix;
+  fish = import ./fish.nix;
 
   jujutsu =
-    { ... }:
+    { config, lib, ... }:
     {
-      programs.jujutsu = {
-        enable = true;
-        settings = {
-          user = {
-            email = "daniel@lyte.dev";
-            name = "Daniel Flanagan";
+      config = lib.mkIf (builtins.hasAttr "primary" config.accounts.email.accounts) {
+        programs.jujutsu = {
+          enable = true;
+          settings = {
+            user = {
+              email = config.accounts.email.accounts.primary.address;
+              name = "Daniel Flanagan";
+            };
           };
         };
       };
@@ -640,19 +506,25 @@ in
         };
       };
 
-      home.packages = with pkgs.gnomeExtensions; [
-        tiling-shell
-        blur-my-shell
-        appindicator
-      ];
+      home = {
+        packages = with pkgs.gnomeExtensions; [
+          tiling-shell
+          blur-my-shell
+          appindicator
+        ];
+
+        file.".face" = {
+          enable = true;
+          source = builtins.fetchurl {
+            url = "https://lyte.dev/img/avatar3-square-512.png";
+            sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
+          };
+        };
+      };
 
       programs.gnome-shell = {
         enable = true;
         extensions = [ { package = pkgs.gnomeExtensions.gsconnect; } ];
-      };
-
-      programs.firefox.package = pkgs.firefox.override {
-        nativeMessagingHosts = with pkgs; [ bitwarden ];
       };
     };
 
@@ -2147,4 +2019,28 @@ in
       '';
     };
   };
+
+  daniel =
+    { config, ... }:
+    {
+
+      home = {
+        username = "daniel";
+        homeDirectory = "/home/daniel/.home";
+      };
+
+      accounts.email.accounts = {
+        primary = {
+          primary = true;
+          address = "daniel@lyte.dev";
+        };
+        legacy = {
+          address = "wraithx2@gmail.com";
+        };
+        io = {
+          # TODO: finalize deprecation
+          address = "daniel@lytedev.io";
+        };
+      };
+    };
 }

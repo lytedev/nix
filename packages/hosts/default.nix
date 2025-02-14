@@ -4,6 +4,7 @@
   nixpkgs,
   sops-nix,
   disko,
+  slippi,
   home-manager,
   nixpkgs-unstable,
   home-manager-unstable,
@@ -24,6 +25,10 @@ let
         }:
         (nixpkgs.lib.nixosSystem {
           inherit system;
+          specialArgs = {
+            hardware = hardware.outputs.nixosModules;
+            diskoConfigurations = self.outputs.diskoConfigurations;
+          };
           modules = [
             (
               {
@@ -34,27 +39,23 @@ let
                 ...
               }:
               {
-                imports = with self.outputs.nixosModules; [
+                imports = [
                   (modulesPath + "/installer/scan/not-detected.nix")
                   home-manager.nixosModules.home-manager
                   sops-nix.nixosModules.sops
                   disko.nixosModules.disko
-                  deno-netlify-ddns-client
-                  shell-defaults-and-applications
-                  wifi
-                  printing
-                  podman
-                  virtual-machines
-                  postgres
-                  gaming
-                  gnome
-                  daniel
-                  root
+                  slippi.nixosModules.default
+                  self.outputs.nixosModules.common
                 ];
 
                 config = {
                   lyte.shell.enable = lib.mkDefault true;
-                  nixpkgs.config.allowUnfree = lib.mkDefault true;
+                  lyte.desktop.enable = lib.mkDefault false;
+
+                  nixpkgs = {
+                    config.allowUnfree = lib.mkDefault true;
+                    overlays = [ self.flakeLib.forSelfOverlay ];
+                  };
 
                   sops = {
                     age = {
@@ -64,9 +65,24 @@ let
                     };
                   };
 
+                  # TODO: for each non-system user on the machine?
+                  home-manager.users.root = {
+                    home.stateVersion = lib.mkDefault config.system.stateVersion;
+                    imports = with self.outputs.homeManagerModules; [
+                      common
+                    ];
+                  };
+                  home-manager.users.daniel = {
+                    home.stateVersion = lib.mkDefault config.system.stateVersion;
+                    imports = with self.outputs.homeManagerModules; [
+                      daniel
+                      common
+                    ];
+                  };
+
                   nix = {
                     nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
-                    registry = lib.mapAttrs (_: value: { flake = value; }) self.inputs;
+                    # registry = lib.mapAttrs (_: value: { flake = value; }) self.inputs;
 
                     settings = {
                       trusted-users = lib.mkDefault [ "@wheel" ];
@@ -75,7 +91,7 @@ let
                         "flakes"
                       ];
                       auto-optimise-store = lib.mkDefault true;
-                    } // self.nixConfig;
+                    };
                   };
 
                   systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp"; # TODO: why did I do this again?
@@ -89,7 +105,7 @@ let
                   home-manager.backupFileExtension = lib.mkDefault "hm-backup";
 
                   users.users.root = {
-                    openssh.authorizedKeys.keys = lib.mkDefault [ self.constants.pubkey ];
+                    openssh.authorizedKeys.keys = lib.mkDefault [ self.outputs.pubkey ];
                   };
 
                   services = {
@@ -136,7 +152,7 @@ let
                     earlySetup = lib.mkDefault true;
 
                     colors =
-                      with self.constants.style.colors;
+                      with self.outputs.style.colors;
                       lib.mkDefault [
                         bg
                         red
@@ -170,12 +186,6 @@ let
               }
             )
 
-            {
-              _module.args = {
-                hardware = hardware.outputs.nixosModules;
-                diskoConfigurations = self.outputs.diskoConfigurations;
-              };
-            }
             (import path)
           ];
         })
@@ -188,7 +198,7 @@ let
   };
 in
 {
-  beefcake = stableHost ./beefcake.nix { };
+  # beefcake = stableHost ./beefcake.nix { };
   dragon = host ./dragon.nix { };
-  arm-dragon = host ./dragon.nix { system = "aarch64-linux"; };
+  # arm-dragon = host ./dragon.nix { system = "aarch64-linux"; };
 }

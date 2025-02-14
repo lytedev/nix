@@ -1,16 +1,16 @@
 {
   pkgs,
-  lib,
   config,
   hardware,
   diskoConfigurations,
   ...
 }:
 {
+  # nix boilerplate
   system.stateVersion = "24.11";
-  home-manager.users.daniel.home.stateVersion = "24.11";
   networking.hostName = "dragon";
 
+  # kernel and bootloader configuration
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
     loader.efi.canTouchEfiVariables = true;
@@ -25,15 +25,24 @@
     supportedFilesystems = [ "ntfs" ];
   };
 
+  # hardware configuration
   imports = with hardware; [
     (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
     common-cpu-amd
     common-gpu-amd
     common-pc-ssd
   ];
+  hardware.bluetooth.enable = true;
+  networking.wifi.enable = true;
+  powerManagement.cpuFreqGovernor = "performance";
 
-  sops.secrets.ddns-pass = {
-    mode = "0400";
+  # application and services configuration
+
+  lyte.desktop.enable = true;
+
+  sops = {
+    defaultSopsFile = ../../secrets/dragon/secrets.yml;
+    secrets.ddns-pass.mode = "0400";
   };
   services.deno-netlify-ddns-client = {
     passwordFile = config.sops.secrets.ddns-pass.path;
@@ -43,14 +52,10 @@
     ipv6 = false;
   };
 
-  hardware.bluetooth.enable = true;
-  networking.wifi.enable = true;
-  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
-
   home-manager.users.daniel = {
     slippi-launcher = {
       enable = true;
-      isoPath = "${config.home-manager.users.daniel.home.homeDirectory}/../games/roms/dolphin/melee.iso";
+      isoPath = "${config.users.users.daniel.home}/../games/roms/dolphin/melee.iso";
       launchMeleeOnPlay = false;
     };
   };

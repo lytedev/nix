@@ -1,7 +1,7 @@
 { nixpkgs, ... }:
 {
   style = {
-    colors = (import ./lib/colors.nix { inherit (nixpkgs) lib; }).schemes.catppuccin-mocha-sapphire;
+    colors = (import ./colors.nix { inherit (nixpkgs) lib; }).schemes.catppuccin-mocha-sapphire;
 
     font = {
       name = "IosevkaLyteTerm";

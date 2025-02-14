@@ -15,13 +15,12 @@ in
       };
     };
   };
+
   config = lib.mkIf cfg.enable {
-    nix-index = {
-      enable = true;
-      enableBashIntegration = true;
-      enableFishIntegration = true;
-      enableZshIntegration = true;
-    };
+    home-manager.users.daniel = { };
+
+    programs.nix-index.enable = true;
+    programs.command-not-found.enable = false;
     users = {
       defaultUserShell = pkgs.fish;
     };
@@ -34,12 +33,6 @@ in
         lfs.enable = true;
       };
     };
-    programs.btop = {
-      enable = true;
-      package = pkgs.btop.override {
-        rocmSupport = true;
-      };
-    };
     environment = {
       variables = {
         EDITOR = "hx";
@@ -49,25 +42,37 @@ in
         MANPAGER = "bat --style=plain";
       };
       systemPackages = with pkgs; [
-        zellij
-        helix
         aria2
         bat
+        bottom
+        btop
+        comma
         curl
+        dnsutils
+        dogdns
         dua
         eza
         fd
         file
+        helix
+        hexyl
+        htop
+        iftop
         inetutils
-        iputils
         iputils
         killall
         nettools
+        nmap
+        pciutils
+        unixtools.xxd
         ripgrep
         rsync
         sd
+        usbutils
         xh
+        zellij
       ];
     };
+
   };
 }

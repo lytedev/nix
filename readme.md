@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>
-<img width="100" src="images/Nix_snowflake_lytedev.svg" /> <br>
+<img width="100" src="lib/images/Nix_snowflake_lytedev.svg" /> <br>
 Nix for <code>lytedev</code>
 </h1>
 

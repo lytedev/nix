@@ -20,7 +20,7 @@
       nixosModules = import ./lib/modules/nixos inputs;
       homeManagerModules = import ./lib/modules/home inputs;
 
-      # overlays = import ./lib/overlays inputs;
+      overlays = import ./lib/overlays inputs;
 
       formatter = uGenPkgs (p: p.nixfmt-rfc-style);
 
@@ -30,7 +30,7 @@
         TODO: nixos ISO?
       */
     }
-    // (import ./nix/constants.nix inputs)
+    // (import ./lib/constants.nix inputs)
     // {
       flakeLib = lib;
     };

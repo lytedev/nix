@@ -7,6 +7,7 @@ let
       (_: p: p);
 in
 rec {
+  inherit forSelfOverlay;
   systems = [
     "aarch64-linux"
     "aarch64-darwin"
@@ -14,6 +15,8 @@ rec {
     "x86_64-linux"
   ];
   forSystems = nixpkgs: nixpkgs.lib.genAttrs systems;
-  pkgsFor = nixpkgs: system: (import nixpkgs { inherit system; }).extend forSelfOverlay;
+  pkgsFor =
+    nixpkgs: system:
+    (import nixpkgs { inherit system; }).extend (builtins.trace forSelfOverlay forSelfOverlay);
   genPkgs = nixpkgs: func: (forSystems nixpkgs (system: func (pkgsFor nixpkgs system)));
 }
