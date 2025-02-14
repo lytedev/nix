@@ -1,128 +1,22 @@
 {
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    hardware.url = "github:nixos/nixos-hardware";
-
-    disko.url = "github:nix-community/disko/master";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
-
-    sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    # sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
-
-    git-hooks.url = "github:cachix/git-hooks.nix";
-    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
-
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    home-manager-unstable.url = "github:nix-community/home-manager";
-    home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    helix.url = "github:helix-editor/helix/master";
-    helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    hyprland.url = "github:hyprwm/Hyprland";
-    hyprland.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    hyprgrass.url = "github:horriblename/hyprgrass";
-    hyprgrass.inputs.hyprland.follows = "hyprland";
-
-    iio-hyprland.url = "github:JeanSchoeller/iio-hyprland";
-    iio-hyprland.inputs.nixpkgs.follows = "nixpkgs";
-
-    wezterm.url = "github:wez/wezterm?dir=nix";
-    wezterm.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    slippi.url = "github:lytedev/slippi-nix";
-    # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix";
-    slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    slippi.inputs.home-manager.follows = "home-manager-unstable";
-
-    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
-    jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    ghostty.url = "github:ghostty-org/ghostty";
-    ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
-    ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
-
-    # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
-
-    mobile-nixos = {
-      url = "github:lytedev/mobile-nixos";
-      flake = false;
-    };
-  };
-
-  nixConfig = {
-    extra-experimental-features = ["nix-command" "flakes"];
-
-    extra-substituters = [
-      "https://cache.nixos.org/"
-      "https://helix.cachix.org"
-      "https://nix-community.cachix.org"
-      "https://nix.h.lyte.dev"
-      "https://hyprland.cachix.org"
-      "https://ghostty.cachix.org"
-    ];
-
-    extra-trusted-public-keys = [
-      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
-      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-      "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
-    ];
-  };
-
   outputs = {
     self,
-    nixpkgs,
     nixpkgs-unstable,
+    home-manager-unstable,
+    nixpkgs,
+    home-manager,
     disko,
     sops-nix,
     git-hooks,
-    wezterm,
-    home-manager,
-    home-manager-unstable,
     helix,
     hardware,
-    jovian,
-    mobile-nixos,
-    hyprland,
     # nnf,
     # hyprland,
     slippi,
     ghostty,
-    ...
   }: let
     inherit (self) outputs;
     inherit (outputs) nixosModules homeManagerModules overlays;
-
-    # TODO: make @ inputs unnecessary by making arguments explicit in all modules?
-    systems = ["aarch64-linux" "aarch64-darwin" "x86_64-darwin" "x86_64-linux"];
-    forSystems = nixpkgs.lib.genAttrs systems;
-    pkgsFor = system: (import nixpkgs {inherit system;}).extend overlays.default;
-    genPkgs = func: (forSystems (system: func (pkgsFor system)));
-    # pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
-
-    unstable = {
-      forSystems = nixpkgs-unstable.lib.genAttrs systems;
-      pkgsFor = system: (import nixpkgs-unstable {inherit system;}).extend overlays.default;
-      genPkgs = func: (forSystems (system: func (pkgsFor system)));
-      pkg = callee: overrides: genPkgs (pkgs: pkgs.callPackage callee overrides);
-    };
-
-    style = {
-      colors = (import ./lib/colors.nix {inherit (nixpkgs) lib;}).schemes.catppuccin-mocha-sapphire;
-
-      font = {
-        name = "IosevkaLyteTerm";
-        size = 12;
-      };
-    };
 
     /*
     moduleArgs = {
@@ -869,5 +763,74 @@
     TODO: nix-darwin for work?
     TODO: nixos ISO?
     */
+  };
+
+  inputs = {
+    # stable inputs
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    # "unstable" inputs
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    hardware.url = "github:NixOS/nixos-hardware";
+    disko.url = "github:nix-community/disko/master";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    home-manager-unstable.url = "github:nix-community/home-manager";
+    home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    helix.url = "github:helix-editor/helix/master";
+    helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    slippi.url = "github:lytedev/slippi-nix";
+    # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
+    slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    slippi.inputs.home-manager.follows = "home-manager-unstable";
+
+    # jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
+    # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    ghostty.url = "github:ghostty-org/ghostty";
+    ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
+    ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
+
+    # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
+
+    mobile-nixos = {
+      url = "github:lytedev/mobile-nixos";
+      flake = false;
+    };
+  };
+
+  nixConfig = {
+    extra-experimental-features = ["nix-command" "flakes"];
+
+    extra-substituters = [
+      "https://cache.nixos.org/"
+      "https://nix-community.cachix.org"
+      "https://nix.h.lyte.dev"
+
+      # since we are forcing most inputs to follow our nixpkgs, we don't bother settings up caches and just use our own
+      # "https://helix.cachix.org"
+      # "https://ghostty.cachix.org"
+    ];
+
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
+
+      # "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+      # "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+      # "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+    ];
   };
 }
