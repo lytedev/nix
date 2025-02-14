@@ -72,19 +72,21 @@ let
                     };
 
                     users = {
-                      root = {
-                        home.stateVersion = lib.mkDefault config.system.stateVersion;
-                        imports = with self.outputs.homeManagerModules; [
-                          common
-                        ];
-                      };
-                      daniel = {
-                        home.stateVersion = lib.mkDefault config.system.stateVersion;
-                        imports = with self.outputs.homeManagerModules; [
-                          daniel
-                          common
-                        ];
-                      };
+                      # root = {
+                      #   home.stateVersion = lib.mkDefault config.system.stateVersion;
+                      #   imports = with self.outputs.homeManagerModules; [
+                      #     common
+                      #     linux
+                      #   ];
+                      # };
+                      # daniel = {
+                      #   home.stateVersion = lib.mkDefault config.system.stateVersion;
+                      #   imports = with self.outputs.homeManagerModules; [
+                      #     common
+                      #     linux
+                      #     daniel
+                      #   ];
+                      # };
                     };
                   };
 

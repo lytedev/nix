@@ -1,7 +1,13 @@
 { pkgs, ... }:
 {
-  enable = true;
+  home = {
+    sessionVariables = {
+      MOZ_ENABLE_WAYLAND = "1";
+    };
+  };
+
   programs.firefox = {
+    enable = true;
     profileVersion = null;
     package = pkgs.firefox.override {
       nativeMessagingHosts = with pkgs; [ bitwarden ];

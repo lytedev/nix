@@ -25,6 +25,7 @@ in
         senpai
         iex
         cargo
+        desktop
 
         /*
           broot
@@ -184,97 +185,6 @@ in
         config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/eww;
     };
 
-  mako =
-    {
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      services.mako = {
-        enable = true;
-        extraConfig = with style.colors.withHashPrefix; ''
-          border-size=2
-          border-radius=5
-          padding=10,15
-          max-visible=5
-          default-timeout=15000
-          font=Symbols Nerd Font ${toString style.font.size},${style.font.name} ${toString style.font.size}
-          anchor=top-right
-          on-notify=exec ${pkgs.mpv}/bin/mpv --volume=50 ~/.notify.wav
-          actions=1
-          icons=1
-          width=400
-          height=150
-
-          background-color=${bg}DD
-          text-color=${text}
-          border-color=${primary}
-          progress-color=${primary}
-
-          [urgency=high]
-          border-color=${urgent}
-
-          [urgency=high]
-          background-color=${urgent}EE
-          border-color=${urgent}
-          text-color=${bg}
-        '';
-      };
-    };
-
-  tofi =
-    {
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      programs.tofi = {
-        enable = true;
-        settings = {
-          font = "${pkgs.iosevkaLyteTerm}/share/fonts/truetype/IosevkaLyteTerm-regular.ttf";
-          font-size = 12;
-          text-color = "#f8f8f8";
-          prompt-color = "#f38ba8";
-          selection-color = "#66d9ef";
-          background-color = "#1e1e2e";
-          outline-width = 0;
-          border-width = 1;
-          border-color = "#66d9ef";
-          width = 640;
-          height = 400;
-
-          fuzzy-match = "true";
-        };
-      };
-    };
-
-  broot = { };
-
-  emacs =
-    { pkgs, ... }:
-    {
-      programs.emacs = {
-        enable = false;
-        /*
-          extraConfig = ''
-          '';
-        */
-        extraPackages =
-          epkgs:
-          (with epkgs; [
-            magit
-          ]);
-      };
-
-      programs.fish = {
-        shellAliases = {
-          e = "emacs";
-        };
-      };
-    };
-
   cargo =
     { config, ... }:
     {
@@ -298,12 +208,11 @@ in
     {
       config = lib.mkIf config.lyte.desktop {
         imports = with homeManagerModules; [
+          firefox
           ghostty
         ];
       };
     };
-
-  # ewwbar = {};
 
   firefox = import ./firefox.nix;
   fish = import ./fish.nix;
@@ -1198,52 +1107,6 @@ in
     };
   };
 
-  hyprland = {
-    imports = with homeManagerModules; [
-      tofi
-      mako
-      eww
-      (import ./hyprland.nix)
-    ];
-  };
-
-  niri =
-    {
-      pkgs,
-      config,
-      ...
-    }:
-    {
-      home.packages = with pkgs; [
-        niri
-        fuzzel
-        # xdg-desktop-portal-gnome
-        # xdg-desktop-portal-gtk
-      ];
-
-      services.gnome-keyring.enable = true;
-      # xdg.portal = {
-      #   enable = true;
-      #   extraPortals = with pkgs; [xdg-desktop-portal-gtk xdg-desktop-portal-gnome];
-      #   config = {
-      #     common = {
-      #       default = ["gtk"];
-      #     };
-      #     niri = {
-      #       default = ["gtk"];
-      #     };
-      #   };
-      # };
-
-      home.file."${config.xdg.configHome}/niri" = {
-        source = config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/niri;
-      };
-
-      home.file."${config.xdg.configHome}/fuzzel" = {
-        source = config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/fuzzel;
-      };
-    };
-
   iex = {
     home.file.".iex.exs" = {
       enable = true;
@@ -1283,93 +1146,46 @@ in
   # kitty = {};
 
   linux =
-    { pkgs, ... }:
-    {
-      home = {
-        sessionVariables = {
-          MOZ_ENABLE_WAYLAND = "1";
-        };
-      };
-
-      programs.fish = {
-        shellAliases = {
-          disks = "df -h && lsblk";
-          sctl = "sudo systemctl";
-          bt = "bluetoothctl";
-          pa = "pulsemixer";
-          sctlu = "systemctl --user";
-        };
-
-        functions = {
-          pp = ''
-            if test (count $argv) -gt 0
-              while true; ping -O -i 1 -w 5 -c 10000000 $argv; sleep 1; end
-            else
-              while true; ping -O -i 1 -w 5 -c 10000000 1.1.1.1; sleep 1; end
-            end
-          '';
-        };
-      };
-
-      home.packages = [
-        (pkgs.buildEnv {
-          name = "my-linux-scripts";
-          paths = [ ./scripts/linux ];
-        })
-      ];
-    };
-
-  linux-desktop-environment-config =
     {
       pkgs,
-      # font,
+      config,
+      lib,
       ...
     }:
     {
-      imports = with homeManagerModules; [
-        linux
-        desktop
-        firefox
+      imports = [
+        {
+          config = lib.mkIf config.lyte.shell {
+            programs.fish = {
+              shellAliases = {
+                disks = "df -h && lsblk";
+                sctl = "sudo systemctl";
+                bt = "bluetoothctl";
+                pa = "pulsemixer";
+                sctlu = "systemctl --user";
+              };
+
+              functions = {
+                pp = ''
+                  if test (count $argv) -gt 0
+                    while true; ping -O -i 1 -w 5 -c 10000000 $argv; sleep 1; end
+                  else
+                    while true; ping -O -i 1 -w 5 -c 10000000 1.1.1.1; sleep 1; end
+                  end
+                '';
+              };
+            };
+
+            home.packages = [
+              (pkgs.buildEnv {
+                name = "my-linux-scripts";
+                paths = [ ./scripts/linux ];
+              })
+            ];
+          };
+        }
       ];
-
-      gtk.theme = {
-        name = "catppuccin-mocha-blue-compact+default";
-        package =
-          (pkgs.catppuccin-gtk.overrideAttrs {
-            src = pkgs.fetchFromGitHub {
-              owner = "catppuccin";
-              repo = "gtk";
-              rev = "v1.0.3";
-              fetchSubmodules = true;
-              hash = "sha256-q5/VcFsm3vNEw55zq/vcM11eo456SYE5TQA3g2VQjGc=";
-            };
-
-            postUnpack = "";
-          }).override
-            {
-              accents = [ "sapphire" ];
-              variant = "mocha";
-              size = "compact";
-            };
-      };
-      home.pointerCursor = {
-        name = "Bibata-Modern-Classic";
-        package = pkgs.bibata-cursors;
-        size = 40; # TODO: this doesn't seem to work -- at least in Sway
-        # some icons are also missing (hand2?)
-      };
     };
-
-  macos = {
-    imports = with homeManagerModules; [
-      desktop
-      # password-manager
-    ];
-  };
-
-  # mako = {};
-
-  # nnn = {};
 
   password-manager =
     { pkgs, ... }:
@@ -1398,70 +1214,35 @@ in
     };
 
   senpai =
-    { config, ... }:
+    { lib, config, ... }:
     {
-      programs.senpai = {
-        enable = true;
-        config = {
-          address = "irc+insecure://beefcake.hare-cod.ts.net:6667";
-          nickname = "lytedev";
-          password-cmd = [
-            "pass"
-            "soju"
-          ];
+      config = lib.mkIf config.programs.senpai.enable {
+        programs.senpai = {
+          config = {
+            address = "irc+insecure://beefcake.hare-cod.ts.net:6667";
+            nickname = "lytedev";
+            password-cmd = [
+              "pass"
+              "soju"
+            ];
+          };
         };
-      };
 
-      home.file."${config.xdg.configHome}/senpai/senpai.scfg" = {
-        enable = true;
-        text = ''
-          address irc+insecure://beefcake:6667
-          nickname lytedev
-          password-cmd pass soju
-        '';
-      };
-    };
-
-  sway = {
-    imports = [
-      {
-        _module.args = {
-          inherit style;
+        home.file."${config.xdg.configHome}/senpai/senpai.scfg" = {
+          enable = true;
+          text = ''
+            address irc+insecure://beefcake:6667
+            nickname lytedev
+            password-cmd pass soju
+          '';
         };
-      }
-      ./waybar.nix
-      ./swaylock.nix
-      ./sway.nix
-    ];
-  };
-
-  /*
-    sway-laptop = {};
-    swaylock = {};
-    tmux = {};
-    wallpaper-manager = {};
-    waybar = {};
-  */
-
-  wezterm =
-    {
-      pkgs,
-      config,
-      ...
-    }:
-    {
-      home.packages = with pkgs; [
-        wezterm
-      ];
-
-      home.file."${config.xdg.configHome}/wezterm" = {
-        source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/wezterm;
       };
     };
 
   ghostty =
     {
       pkgs,
+      lib,
       config,
       ...
     }:
