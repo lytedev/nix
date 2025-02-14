@@ -1,8 +1,6 @@
+{ self, ... }:
+{ pkgs, ... }:
 {
-  self,
-  pkgs,
-  ...
-}: {
   default = pkgs.mkShell {
     inherit (self.outputs.checks.${pkgs.system}.git-hooks) shellHook;
     packages = with pkgs; [

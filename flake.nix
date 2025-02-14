@@ -1,9 +1,12 @@
 {
-  outputs = inputs: let
-    lib = import ./lib inputs;
-  in
+  outputs =
+    inputs:
+    let
+      lib = import ./lib inputs;
+      uGenPkgs = lib.genPkgs inputs.nixpkgs-unstable;
+    in
     {
-      packages = lib.genPkgs inputs.nixpkgs-unstable (import ./packages);
+      packages = uGenPkgs (import ./packages);
 
       nixosConfigurations = import ./packages/hosts inputs;
       # homeConfigurations = import ./packages/users;
@@ -11,23 +14,26 @@
       templates = import ./lib/templates;
 
       diskoConfigurations = import ./lib/disko inputs;
-      checks = import ./packages/checks;
-      devShells = import ./packages/shells;
+      checks = uGenPkgs (import ./packages/checks inputs);
+      devShells = uGenPkgs (import ./packages/shells inputs);
 
       nixosModules = import ./lib/modules/nixos inputs;
       homeManagerModules = import ./lib/modules/home inputs;
 
       # overlays = import ./lib/overlays inputs;
 
-      formatter = lib.genPkgs inputs.nixpkgs-unstable (p: p.nixfmt-rfc-style);
+      formatter = uGenPkgs (p: p.nixfmt-rfc-style);
 
       /*
-      TODO: nix-on-droid for phone terminal usage? mobile-nixos?
-      TODO: nix-darwin for work?
-      TODO: nixos ISO?
+        TODO: nix-on-droid for phone terminal usage? mobile-nixos?
+        TODO: nix-darwin for work?
+        TODO: nixos ISO?
       */
     }
-    // (import ./nix/constants.nix inputs);
+    // (import ./nix/constants.nix inputs)
+    // {
+      flakeLib = lib;
+    };
 
   inputs = {
     # stable inputs
@@ -75,7 +81,10 @@
   };
 
   nixConfig = {
-    extra-experimental-features = ["nix-command" "flakes"];
+    extra-experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
 
     extra-substituters = [
       "https://cache.nixos.org/"
