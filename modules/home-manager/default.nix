@@ -563,6 +563,7 @@
           screensaver = ["<Shift><Control><Super>l"]; # lock screen
           mic-mute = ["<Shift><Super>v"];
         };
+
         "org/gnome/desktop/peripherals/keyboard" = {
           # gnome key repeat
           repeat-interval = 7;
@@ -582,6 +583,7 @@
           # mouse-button-modifier = '<Super>'; # default
         };
         "org/gnome/desktop/interface" = {
+          show-battery-percentage = true;
           clock-show-weekday = true;
           font-name = "IosevkaLyteTerm 12";
           monospace-font-name = "IosevkaLyteTerm 12";
