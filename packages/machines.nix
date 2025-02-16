@@ -1,4 +1,14 @@
 {
+  nixpkgs-unstable,
+  nixpkgs,
+  self,
+  ...
+}:
+let
+  inherit (self) outputs;
+  inherit (outputs) nixosModules;
+in
+{
   beefcake =
     let
       system = "x86_64-linux";

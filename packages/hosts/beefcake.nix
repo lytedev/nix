@@ -19,7 +19,7 @@
 }:
 {
   system.stateVersion = "24.05";
-  home-manager.users.daniel.home.stateVersion = "24.05";
+  # home-manager.users.daniel.home.stateVersion = "24.05";
   networking.hostName = "beefcake";
 
   imports = [

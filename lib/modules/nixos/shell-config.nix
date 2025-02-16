@@ -17,7 +17,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home-manager.users.daniel = { };
+    programs.eza = {
+      enable = true;
+    };
+
+    config.lyte.shell.enable = lib.mkDefault true;
 
     programs.nix-index.enable = true;
     programs.command-not-found.enable = false;
