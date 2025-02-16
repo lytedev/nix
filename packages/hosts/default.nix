@@ -50,7 +50,6 @@ let
 
                 config = {
                   lyte.shell.enable = lib.mkDefault true;
-                  lyte.desktop.enable = lib.mkDefault false;
 
                   nixpkgs = {
                     config.allowUnfree = lib.mkDefault true;
@@ -71,22 +70,23 @@ let
                       config.lyte = config.lyte;
                     };
 
+                    sharedModules = with self.outputs.homeManagerModules; [
+                      common
+                      linux
+                    ];
+
                     users = {
-                      # root = {
-                      #   home.stateVersion = lib.mkDefault config.system.stateVersion;
-                      #   imports = with self.outputs.homeManagerModules; [
-                      #     common
-                      #     linux
-                      #   ];
-                      # };
-                      # daniel = {
-                      #   home.stateVersion = lib.mkDefault config.system.stateVersion;
-                      #   imports = with self.outputs.homeManagerModules; [
-                      #     common
-                      #     linux
-                      #     daniel
-                      #   ];
-                      # };
+                      root = {
+                        home.stateVersion = lib.mkDefault config.system.stateVersion;
+                        imports = with self.outputs.homeManagerModules; [
+                        ];
+                      };
+                      daniel = {
+                        home.stateVersion = lib.mkDefault config.system.stateVersion;
+                        imports = with self.outputs.homeManagerModules; [
+                          daniel
+                        ];
+                      };
                     };
                   };
 

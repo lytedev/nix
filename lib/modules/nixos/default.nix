@@ -65,11 +65,6 @@ in
     # TODO: modularize
     { pkgs, ... }:
     {
-      imports = with nixosModules; [
-        family-users
-        wifi
-      ];
-
       environment.systemPackages = with pkgs; [
         acpi
       ];
@@ -274,7 +269,7 @@ in
     { pkgs, ... }:
     {
       imports = with nixosModules; [
-        # lutris # use the flatpak
+        lutris # TODO: use the flatpak?
         steam # TODO: use the flatpak?
       ];
 
@@ -508,7 +503,7 @@ in
         };
       };
       config = lib.mkIf cfg.enable {
-        services.xserver.desktopManager.gnome.enable = true;
+        # services.xserver.desktopManager.gnome.enable = true;
 
         xdg.portal.enable = true;
 

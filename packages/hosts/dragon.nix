@@ -6,11 +6,9 @@
   ...
 }:
 {
-  # nix boilerplate
   system.stateVersion = "24.11";
   networking.hostName = "dragon";
 
-  # kernel and bootloader configuration
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
     loader.efi.canTouchEfiVariables = true;
@@ -25,7 +23,6 @@
     supportedFilesystems = [ "ntfs" ];
   };
 
-  # hardware configuration
   imports = with hardware; [
     (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
     common-cpu-amd
@@ -35,8 +32,6 @@
   hardware.bluetooth.enable = true;
   networking.wifi.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
-
-  # application and services configuration
 
   lyte.desktop.enable = true;
 
