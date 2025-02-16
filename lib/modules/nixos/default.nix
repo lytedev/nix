@@ -11,7 +11,6 @@ inputs: {
   gnome = import ./gnome.nix;
   laptop = import ./laptop.nix;
   plasma6 = import ./plasma.nix;
-  lutris = import ./lutris.nix;
   gaming = import ./gaming.nix;
   pipewire = import ./pipewire.nix;
   podman = import ./podman.nix;
@@ -20,7 +19,6 @@ inputs: {
   desktop = import ./desktop.nix;
   printing = import ./printing.nix;
   wifi = import ./wifi.nix;
-  steam = import ./steam.nix;
 
   remote-disk-key-entry-on-boot =
     {

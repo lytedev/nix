@@ -15,21 +15,20 @@
 {
   imports = with self.outputs.nixosModules; [
     (modulesPath + "/installer/scan/not-detected.nix")
-    # home-manager.nixosModules.home-manager
+    home-manager.nixosModules.home-manager
     sops-nix.nixosModules.sops
     disko.nixosModules.disko
     slippi.nixosModules.default
-    # deno-netlify-ddns-client
-    # shell-defaults-and-applications
-
-    # desktop
-    # wifi
-    # printing
-    # podman
-    # virtual-machines
-    # postgres
-    # gaming
-    # daniel
+    deno-netlify-ddns-client
+    shell-defaults-and-applications
+    desktop
+    gnome
+    wifi
+    printing
+    podman
+    virtual-machines
+    postgres
+    gaming
   ];
 
   config = {
@@ -61,27 +60,27 @@
 
     # TODO: for each non-system user on the machine?
     # home-manager = {
-    #
-    # useGlobalPkgs = lib.mkDefault true;
-    # backupFileExtension = lib.mkDefault "hm-backup";
 
-    # sharedModules = with self.outputs.homeManagerModules; [
-    #   default
-    # ];
+    #   useGlobalPkgs = lib.mkDefault true;
+    #   backupFileExtension = lib.mkDefault "hm-backup";
 
-    # users = {
-    #   root = {
-    #     home.stateVersion = lib.mkDefault config.system.stateVersion;
-    #     # imports = with self.outputs.homeManagerModules; [
-    #     # ];
+    #   sharedModules = with self.outputs.homeManagerModules; [
+    #     default
+    #   ];
+
+    #   users = {
+    #     root = {
+    #       home.stateVersion = lib.mkDefault config.system.stateVersion;
+    #       # imports = with self.outputs.homeManagerModules; [
+    #       # ];
+    #     };
+    #     daniel = {
+    #       home.stateVersion = lib.mkDefault config.system.stateVersion;
+    #       imports = with self.outputs.homeManagerModules; [
+    #         daniel
+    #       ];
+    #     };
     #   };
-    #   daniel = {
-    #     home.stateVersion = lib.mkDefault config.system.stateVersion;
-    #     imports = with self.outputs.homeManagerModules; [
-    #       daniel
-    #     ];
-    #   };
-    # };
     # };
 
     systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp"; # TODO: why did I do this again?
@@ -187,6 +186,12 @@
         "kvm"
       ];
       packages = [ ];
+    };
+    home-manager.users.daniel = {
+      home.stateVersion = lib.mkDefault config.system.stateVersion;
+      imports = with self.outputs.homeManagerModules; [
+        default
+      ];
     };
   };
 }

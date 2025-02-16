@@ -15,8 +15,6 @@ rec {
     "x86_64-linux"
   ];
   forSystems = nixpkgs: nixpkgs.lib.genAttrs systems;
-  pkgsFor =
-    nixpkgs: system:
-    (import nixpkgs { inherit system; }).extend (builtins.trace forSelfOverlay forSelfOverlay);
+  pkgsFor = nixpkgs: system: (import nixpkgs { inherit system; }).extend forSelfOverlay;
   genPkgs = nixpkgs: func: (forSystems nixpkgs (system: func (pkgsFor nixpkgs system)));
 }

@@ -9,9 +9,6 @@ let
   cfg = config.lyte.desktop;
 in
 {
-  imports = with nixosModules; [
-    gnome
-  ];
   options = {
     lyte = {
       desktop = {
@@ -20,7 +17,7 @@ in
     };
   };
   config = lib.mkIf cfg.enable {
-    # services.xserver.desktopManager.gnome.enable = true;
+    services.xserver.desktopManager.gnome.enable = true;
 
     fonts.packages = [
       (

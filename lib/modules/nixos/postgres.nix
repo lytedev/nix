@@ -2,63 +2,50 @@
   pkgs,
   lib,
   config,
-  options,
   ...
 }:
-let
-  cfg = config.lyte.desktop;
-in
 {
-  imports = with nixosModules; [
-    gnome
-  ];
-  options = {
-    lyte = {
-      desktop = {
-        enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
-      };
-    };
-  };
-  config = lib.mkIf cfg.enable {
-    # services.xserver.desktopManager.gnome.enable = true;
-
-    fonts.packages = [
-      (
-        # allow nixpkgs 24.11 and unstable to both work
-        if builtins.hasAttr "nerd-fonts" pkgs then
-          (pkgs.nerd-fonts.symbols-only)
-        else
-          (pkgs.nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
-      )
-      pkgs.iosevkaLyteTerm
-    ];
-
-    xdg.portal.enable = true;
-
-    hardware =
-      if builtins.hasAttr "graphics" options.hardware then
+  config = lib.mkIf config.services.postgresql.enable {
+    # this is really just for development usage
+    services.postgresql = {
+      # enable = true;
+      ensureDatabases = [ "daniel" ];
+      ensureUsers = [
         {
-          graphics = {
-            enable = true;
-            # enable32Bit = true;
-            /*
-              driSupport32Bit = true;
-              driSupport = true;
-            */
-          };
+          name = "daniel";
+          ensureDBOwnership = true;
         }
-      else
-        {
-          opengl = {
-            enable = true;
-            # driSupport32Bit = true;
-            driSupport = true;
-          };
-        };
+      ];
+      # enableTCPIP = true;
 
-    services.flatpak.enable = true;
-    programs.appimage.binfmt = true;
-    services.printing.enable = true;
-    programs.virt-manager.enable = config.virtualisation.libvirtd.enable;
+      package = pkgs.postgresql_15;
+
+      authentication = pkgs.lib.mkOverride 10 ''
+        #type database  DBuser    auth-method
+        local all       postgres  peer map=superuser_map
+        local all       daniel    peer map=superuser_map
+        local sameuser  all       peer map=superuser_map
+
+        # lan ipv4
+        host  all       all     10.0.0.0/24   trust
+        host  all       all     127.0.0.1/32  trust
+
+        # tailnet ipv4
+        host       all       all     100.64.0.0/10 trust
+      '';
+
+      identMap = ''
+        # ArbitraryMapName systemUser DBUser
+        superuser_map      root       postgres
+        superuser_map      postgres   postgres
+        superuser_map      daniel     postgres
+
+        superuser_map      /^(.*)$    \1       # Let other names login as themselves
+      '';
+    };
+
+    environment.systemPackages = with pkgs; [
+      pgcli
+    ];
   };
 }

@@ -14,20 +14,19 @@ in
     {
       imports = with homeManagerModules; [
         slippi.homeManagerModules.default
-        # nix-colors.homeManagerModules.default
-        # fish
-        # helix
-        # git
-        # jujutsu
-        # zellij
-        # htop
-        # linux
-        # sshconfig
-        # senpai
-        # iex
-        # helix
-        # cargo
-        # desktop
+        fish
+        helix
+        git
+        jujutsu
+        zellij
+        htop
+        linux
+        sshconfig
+        senpai
+        iex
+        helix
+        cargo
+        desktop
 
         /*
           broot
@@ -39,7 +38,9 @@ in
       options = {
         lyte = {
           shell = {
-            enable = lib.mkEnableOption "Enable home-manager shell configuration for the user";
+            enable =
+              lib.mkEnableOption builtins.trace "looked at lyte options"
+                "Enable home-manager shell configuration for the user";
           };
           desktop = {
             enable = lib.mkEnableOption "Enable home-manager desktop configuration for the user";

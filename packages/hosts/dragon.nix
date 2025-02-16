@@ -3,7 +3,7 @@
   config,
   hardware,
   diskoConfigurations,
-  homeConfigurations,
+  # homeConfigurations,
   ...
 }:
 {
@@ -37,24 +37,22 @@
     defaultSopsFile = ../../secrets/dragon/secrets.yml;
     secrets.ddns-pass.mode = "0400";
   };
-  # services.deno-netlify-ddns-client = {
-  #   passwordFile = config.sops.secrets.ddns-pass.path;
-  #   enable = true;
-  #   username = "dragon.h";
-  #   # TODO: router doesn't even do ipv6 yet...
-  #   ipv6 = false;
-  # };
+  services.deno-netlify-ddns-client = {
+    passwordFile = config.sops.secrets.ddns-pass.path;
+    enable = true;
+    username = "dragon.h";
+    # TODO: router doesn't even do ipv6 yet...
+    ipv6 = false;
+  };
 
-  # networking.wifi.enable = true;
-  # lyte.desktop.enable = true;
+  networking.wifi.enable = true;
+  lyte.desktop.enable = true;
 
-  # home-manager.users.daniel = {
-  # lyte.shell.enable = true;
-  # lyte.desktop.enable = true;
-  #   slippi-launcher = {
-  #     enable = true;
-  #     isoPath = "${config.users.users.daniel.home}/../games/roms/dolphin/melee.iso";
-  #     launchMeleeOnPlay = false;
-  #   };
-  # };
+  home-manager.users.daniel = {
+    slippi-launcher = {
+      enable = true;
+      isoPath = "${config.users.users.daniel.home}/../games/roms/dolphin/melee.iso";
+      launchMeleeOnPlay = false;
+    };
+  };
 }
