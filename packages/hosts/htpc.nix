@@ -64,4 +64,10 @@
     lyte.shell.enable = true;
     lyte.desktop.enable = true;
   };
+
+  family-account.enable = true;
+  home-manager.users.flanfam = {
+    lyte.shell.enable = true;
+    lyte.desktop.enable = true;
+  };
 }
