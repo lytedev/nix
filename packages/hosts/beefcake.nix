@@ -105,6 +105,10 @@
     xh
   ];
 
+  home-manager.users.daniel = {
+    lyte.shell.enable = true;
+  };
+
   imports = [
     hardware.common-cpu-intel
     {
