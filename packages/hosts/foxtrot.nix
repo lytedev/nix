@@ -65,6 +65,7 @@
     };
   };
 
+  programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop.enable = true;
 

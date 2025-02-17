@@ -26,6 +26,7 @@ in
         iex
         cargo
         desktop
+        gnome
 
         /*
           broot
@@ -398,87 +399,94 @@ in
     };
 
   gnome =
-    { pkgs, ... }:
     {
-      dconf = {
-        enable = true;
-        settings = {
-          "org/gnome/settings-daemon/plugins/media-keys" = {
-            screensaver = [ "<Shift><Control><Super>l" ]; # lock screen
-            mic-mute = [ "<Shift><Super>v" ];
-          };
-
-          "org/gnome/desktop/peripherals/keyboard" = {
-            # gnome key repeat
-            repeat-interval = 7;
-            delay = 200;
-          };
-          "org/gnome/desktop/wm/preferences" = {
-            resize-with-right-button = true;
-            # mouse-button-modifier = '<Super>'; # default
-          };
-          "org/gnome/desktop/wm/keybindings" = {
-            minimize = [ "<Shift><Control><Super>h" ];
-            show-desktop = [ "<Super>d" ];
-            move-to-workspace-left = [ "<Super><Shift>h" ];
-            move-to-workspace-right = [ "<Super><Shift>l" ];
-            switch-to-workspace-left = [ "<Super><Control>h" ];
-            switch-to-workspace-right = [ "<Super><Control>l" ];
-            # mouse-button-modifier = '<Super>'; # default
-          };
-          "org/gnome/desktop/interface" = {
-            show-battery-percentage = true;
-            clock-show-weekday = true;
-            font-name = "IosevkaLyteTerm 12";
-            monospace-font-name = "IosevkaLyteTerm 12";
-            color-scheme = "prefer-dark";
-            # scaling-factor = 1.75;
-          };
-          "org/gnome/mutter" = {
-            experimental-features = [ "variable-refresh-rate" ];
-          };
-
-          "org/gnome/shell" = {
-            disable-user-extensions = false;
-            enabled-extensions = with pkgs.gnomeExtensions; [
-              tiling-shell.extensionUuid
-              appindicator.extensionUuid
-              blur-my-shell.extensionUuid
-            ];
-          };
-
-          "org/gnome/shell/extensions/tilingshell" = {
-            inner-gaps = 8;
-            outer-gaps = 8;
-            window-border-width = 2;
-            window-border-color = "rgba(116,199,236,0.47)";
-            focus-window-right = [ "<Super>l" ];
-            focus-window-left = [ "<Super>h" ];
-            focus-window-up = [ "<Super>k" ];
-            focus-window-down = [ "<Super>j" ];
-          };
-        };
-      };
-
-      home = {
-        packages = with pkgs.gnomeExtensions; [
-          tiling-shell
-          blur-my-shell
-          appindicator
-        ];
-
-        file.".face" = {
+      lib,
+      config,
+      pkgs,
+      ...
+    }:
+    {
+      config = lib.mkIf config.lyte.desktop.enable {
+        dconf = {
           enable = true;
-          source = builtins.fetchurl {
-            url = "https://lyte.dev/img/avatar3-square-512.png";
-            sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
+          settings = {
+            "org/gnome/settings-daemon/plugins/media-keys" = {
+              screensaver = [ "<Shift><Control><Super>l" ]; # lock screen
+              mic-mute = [ "<Shift><Super>v" ];
+            };
+
+            "org/gnome/desktop/peripherals/keyboard" = {
+              # gnome key repeat
+              repeat-interval = 7;
+              delay = 200;
+            };
+            "org/gnome/desktop/wm/preferences" = {
+              resize-with-right-button = true;
+              # mouse-button-modifier = '<Super>'; # default
+            };
+            "org/gnome/desktop/wm/keybindings" = {
+              minimize = [ "<Shift><Control><Super>h" ];
+              show-desktop = [ "<Super>d" ];
+              move-to-workspace-left = [ "<Super><Shift>h" ];
+              move-to-workspace-right = [ "<Super><Shift>l" ];
+              switch-to-workspace-left = [ "<Super><Control>h" ];
+              switch-to-workspace-right = [ "<Super><Control>l" ];
+              # mouse-button-modifier = '<Super>'; # default
+            };
+            "org/gnome/desktop/interface" = {
+              show-battery-percentage = true;
+              clock-show-weekday = true;
+              font-name = "IosevkaLyteTerm 12";
+              monospace-font-name = "IosevkaLyteTerm 12";
+              color-scheme = "prefer-dark";
+              # scaling-factor = 1.75;
+            };
+            "org/gnome/mutter" = {
+              experimental-features = [ "variable-refresh-rate" ];
+            };
+
+            "org/gnome/shell" = {
+              disable-user-extensions = false;
+              enabled-extensions = with pkgs.gnomeExtensions; [
+                tiling-shell.extensionUuid
+                appindicator.extensionUuid
+                blur-my-shell.extensionUuid
+              ];
+            };
+
+            "org/gnome/shell/extensions/tilingshell" = {
+              inner-gaps = 8;
+              outer-gaps = 8;
+              window-border-width = 2;
+              window-border-color = "rgba(116,199,236,0.47)";
+              focus-window-right = [ "<Super>l" ];
+              focus-window-left = [ "<Super>h" ];
+              focus-window-up = [ "<Super>k" ];
+              focus-window-down = [ "<Super>j" ];
+            };
           };
         };
-      };
 
-      programs.gnome-shell = {
-        enable = true;
-        extensions = [ { package = pkgs.gnomeExtensions.gsconnect; } ];
+        home = {
+          packages = with pkgs.gnomeExtensions; [
+            tiling-shell
+            blur-my-shell
+            appindicator
+          ];
+
+          file.".face" = {
+            enable = true;
+            source = builtins.fetchurl {
+              url = "https://lyte.dev/img/avatar3-square-512.png";
+              sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
+            };
+          };
+        };
+
+        programs.gnome-shell = {
+          enable = true;
+          extensions = [ { package = pkgs.gnomeExtensions.gsconnect; } ];
+        };
       };
     };
 

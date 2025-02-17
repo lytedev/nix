@@ -30,6 +30,7 @@
     virtual-machines
     postgres
     gaming
+    restic
   ];
 
   config = {

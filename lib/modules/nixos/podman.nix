@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf config.virtualisation.podman.enable {
+  config = lib.mkIf (config.virtualisation.oci-containers.backend == "podman") {
     environment = {
       systemPackages = with pkgs; [
         podman-compose
@@ -14,13 +14,13 @@
 
     virtualisation = {
       podman = {
-        dockerCompat = config.virtualisation.podman.enable;
+        dockerCompat = true;
         dockerSocket.enable = true;
         defaultNetwork.settings.dns_enabled = true;
       };
 
       oci-containers = {
-        backend = "podman";
+        # backend = "podman";
       };
     };
 

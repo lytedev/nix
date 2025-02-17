@@ -38,13 +38,12 @@
     secrets.ddns-pass.mode = "0400";
   };
   services.deno-netlify-ddns-client = {
-    passwordFile = config.sops.secrets.ddns-pass.path;
     enable = true;
+    passwordFile = config.sops.secrets.ddns-pass.path;
     username = "dragon.h";
-    # TODO: router doesn't even do ipv6 yet...
-    ipv6 = false;
   };
 
+  programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop.enable = true;
 

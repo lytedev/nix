@@ -19,6 +19,7 @@ inputs: {
   desktop = import ./desktop.nix;
   printing = import ./printing.nix;
   wifi = import ./wifi.nix;
+  restic = import ./restic.nix;
 
   remote-disk-key-entry-on-boot =
     {

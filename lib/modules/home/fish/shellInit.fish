@@ -33,8 +33,6 @@ set --export --universal EXA_COLORS '*=0'
 
 set --export --universal ERL_AFLAGS "-kernel shell_history enabled -kernel shell_history_file_bytes 1024000"
 
-set --export --universal BROWSER (which firefox)
-
 set --export --universal SOPS_AGE_KEY_FILE "$XDG_CONFIG_HOME/sops/age/keys.txt"
 
 if has_command skim

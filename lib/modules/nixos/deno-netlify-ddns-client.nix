@@ -33,7 +33,8 @@ in
     };
     ipv6 = mkOption {
       type = types.bool;
-      default = true;
+      # TODO: router doesn't support ipv6 yet
+      default = false;
     };
     requestTimeout = mkOption {
       type = types.int;
