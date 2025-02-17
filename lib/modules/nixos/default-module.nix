@@ -33,6 +33,7 @@
   ];
 
   config = {
+    lyte.shell.enable = lib.mkDefault true;
     nixpkgs = {
       config.allowUnfree = lib.mkDefault true;
       overlays = [ self.flakeLib.forSelfOverlay ];

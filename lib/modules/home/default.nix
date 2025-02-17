@@ -1278,7 +1278,7 @@ in
         ];
 
         home.file."${config.xdg.configHome}/ghostty" = {
-          source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/modules/home-manager/ghostty;
+          source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/lib/modules/home/ghostty;
         };
       };
     };
