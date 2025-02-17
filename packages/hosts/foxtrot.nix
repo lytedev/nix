@@ -71,7 +71,7 @@
   home-manager.users.daniel = {
     lyte.shell.enable = true;
     lyte.desktop.enable = true;
-    home.file."~/.config/easyeffects/output" = {
+    home.file.".config/easyeffects/output" = {
       enable = true;
       source = fetchGit {
         url = "https://github.com/ceiphr/ee-framework-presets";
