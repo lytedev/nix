@@ -678,7 +678,7 @@ in
   senpai =
     { lib, config, ... }:
     {
-      config = lib.mkIf config.lyte.shell {
+      config = lib.mkIf config.lyte.shell.enable {
         programs.senpai = {
           enable = true;
           config = {
