@@ -52,9 +52,9 @@ in
     };
   };
 
-  config = {
+  config = mkIf cfg.enable {
     systemd.timers.deno-netlify-ddns-client = {
-      enable = mkIf cfg.enable true;
+      enable = true;
       after = [ "network.target" ];
       wantedBy = [ "timers.target" ];
       timerConfig = {
@@ -65,7 +65,7 @@ in
     };
 
     systemd.services.deno-netlify-ddns-client = {
-      enable = mkIf cfg.enable true;
+      enable = true;
       after = [ "network.target" ];
       script = ''
         set -eu

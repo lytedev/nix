@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, ... }@inputs:
 let
   forSelfOverlay =
     if builtins.hasAttr "overlays" self && builtins.hasAttr "forSelf" self.overlays then
@@ -17,4 +17,6 @@ rec {
   forSystems = nixpkgs: nixpkgs.lib.genAttrs systems;
   pkgsFor = nixpkgs: system: (import nixpkgs { inherit system; }).extend forSelfOverlay;
   genPkgs = nixpkgs: func: (forSystems nixpkgs (system: func (pkgsFor nixpkgs system)));
+
+  inherit (import ./host.nix inputs) host stableHost;
 }

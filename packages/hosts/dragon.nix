@@ -49,6 +49,8 @@
   lyte.desktop.enable = true;
 
   home-manager.users.daniel = {
+    lyte.shell.enable = true;
+    lyte.desktop.enable = true;
     slippi-launcher = {
       enable = true;
       isoPath = "${config.users.users.daniel.home}/../games/roms/dolphin/melee.iso";
