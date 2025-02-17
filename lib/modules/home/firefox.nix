@@ -15,9 +15,9 @@
     programs.firefox = {
       # enable = true;
       profileVersion = null;
-      package = pkgs.firefox.override {
-        nativeMessagingHosts = with pkgs; [ bitwarden ];
-      };
+      # package = pkgs.firefox.override {
+      #   nativeMessagingHosts = with pkgs; [ bitwarden ];
+      # };
       /*
         TODO: this should be able to work on macos, no?
         TODO: enable color scheme/theme by default

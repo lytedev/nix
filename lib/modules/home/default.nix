@@ -45,7 +45,8 @@ in
         };
       };
 
-      config = {
+      config = lib.mkIf config.lyte.shell.enable {
+        programs.fish.enable = true;
         programs.helix.enable = true;
         programs.zellij.enable = true;
         programs.eza.enable = true;
@@ -1289,9 +1290,9 @@ in
         # zellij does not support modern terminal keyboard input:
         # https://github.com/zellij-org/zellij/issues/735
         programs.zellij = {
-          # enable = true;
-          # This causes fish to start zellij immediately
-          # enableFishIntegration = true;
+
+          # do not start immediately
+          enableFishIntegration = false;
 
           # uses home manager's toKDL generator
           settings = {

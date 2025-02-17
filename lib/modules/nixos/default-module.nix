@@ -10,6 +10,7 @@
   modulesPath,
   lib,
   config,
+  pkgs,
   ...
 }:
 {
@@ -92,6 +93,7 @@
 
     users.users.root = {
       openssh.authorizedKeys.keys = lib.mkDefault [ self.outputs.pubkey ];
+      shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
     };
 
     services = {
@@ -177,6 +179,7 @@
       createHome = true;
       openssh.authorizedKeys.keys = [ self.outputs.pubkey ];
       group = "daniel";
+      shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
       extraGroups = [
         "users"
         "wheel"
