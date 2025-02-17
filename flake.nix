@@ -9,7 +9,7 @@
       packages = uGenPkgs (import ./packages);
 
       nixosConfigurations = import ./packages/hosts inputs;
-      homeConfigurations = import ./packages/home inputs;
+      # homeConfigurations = import ./packages/home inputs;
 
       templates = import ./lib/templates;
 

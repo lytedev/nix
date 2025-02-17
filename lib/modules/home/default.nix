@@ -51,6 +51,7 @@ in
         programs.helix.enable = true;
         programs.zellij.enable = true;
         programs.eza.enable = true;
+        slippi-launcher.enable = lib.mkDefault false;
         programs.bat = {
           enable = true;
           config = {

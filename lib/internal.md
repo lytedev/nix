@@ -4,6 +4,10 @@
 
 **NOTE**: I want to establish a solid way to do this without `root@`.
 
+**TODO**: This could easily be wrapped up in a `nix run github:lytedev/nix#install` or something with fuzzy-finders for the variable options.
+
+**TODO**: could also probably get some helpers baked into an ISO?
+
 ```fish
 g a; set host beefcake; nix run nixpkgs#nixos-rebuild -- --flake ".#$host" \
   --target-host "root@$host" --build-host "root@$host" \
@@ -88,7 +92,9 @@ nix-shell --packages git \
 
 Then:
 
-1. Setup/copy any GPG/SSH keys.
+1. Tailscale connection and roles.
+
+2. Setup/copy any GPG/SSH keys.
 
 ```shell
 # from a machine with the key
@@ -100,13 +106,12 @@ $ gpg --import ~/p.key && rm ~/p.key
 $ gpg --edit-key daniel@lyte.dev # trust ultimately
 ```
 
-2. Setup/copy any password stores.
+3. Setup/copy any password stores.
 
 ```shell
 $ rsync -r ~/.local/share/password-store $host:~/.local/share/password-store
 ```
 
-3. Tailscale connection and roles.
 4. Firefox sync configured.
 
 # Temporary Firewall Changes
