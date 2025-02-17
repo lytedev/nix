@@ -678,8 +678,9 @@ in
   senpai =
     { lib, config, ... }:
     {
-      config = lib.mkIf config.programs.senpai.enable {
+      config = lib.mkIf config.lyte.shell {
         programs.senpai = {
+          enable = true;
           config = {
             address = "irc+insecure://beefcake.hare-cod.ts.net:6667";
             nickname = "lytedev";
