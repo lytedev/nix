@@ -27,6 +27,7 @@ in
         cargo
         desktop
         gnome
+        password-manager
 
         /*
           broot
@@ -650,28 +651,27 @@ in
     };
 
   password-manager =
-    { pkgs, ... }:
     {
-      imports = with homeManagerModules; [
-        pass
-      ];
-
-      home.packages = with pkgs; [
-        passage
-        rage
-        age-plugin-yubikey
-        bitwarden-cli
-        oath-toolkit
-        # bitwarden-desktop
-      ];
-    };
-
-  pass =
-    { pkgs, ... }:
+      lib,
+      config,
+      pkgs,
+      ...
+    }:
     {
-      programs.password-store = {
-        enable = true;
-        package = pkgs.pass.withExtensions (exts: [ exts.pass-otp ]);
+      config = lib.mkIf config.lyte.shell.enable {
+        programs.password-store = {
+          enable = true;
+          package = pkgs.pass.withExtensions (exts: [ exts.pass-otp ]);
+        };
+
+        home.packages = with pkgs; [
+          passage
+          rage
+          age-plugin-yubikey
+          bitwarden-cli
+          oath-toolkit
+          # bitwarden-desktop
+        ];
       };
     };
 
