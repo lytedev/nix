@@ -38,12 +38,9 @@ in
       options = {
         lyte = {
           shell = {
-            enable =
-              lib.mkEnableOption builtins.trace "looked at lyte options"
-                "Enable home-manager shell configuration for the user";
-          };
-          desktop = {
-            enable = lib.mkEnableOption "Enable home-manager desktop configuration for the user";
+            enable = lib.mkEnableOption (
+              builtins.trace "looked at lyte options" "Enable home-manager shell configuration for the user"
+            );
           };
         };
       };
@@ -335,7 +332,7 @@ in
 
           # include.path = local.gitconfig
 
-          gpg.format = "ssh";
+          # gpg.format = "ssh";
           log.date = "local";
 
           init.defaultBranch = "main";
@@ -1182,7 +1179,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf (config.lyte.shell && lib.strings.hasSuffix "linux" pkgs.system) {
+      config = lib.mkIf (config.lyte.shell.enable && (lib.strings.hasSuffix "linux" pkgs.system)) {
         programs.fish = {
           shellAliases = {
             disks = "df -h && lsblk";
