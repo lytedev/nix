@@ -61,29 +61,11 @@
     };
 
     # TODO: for each non-system user on the machine?
-    # home-manager = {
-
-    #   useGlobalPkgs = lib.mkDefault true;
-    #   backupFileExtension = lib.mkDefault "hm-backup";
-
-    #   sharedModules = with self.outputs.homeManagerModules; [
-    #     default
-    #   ];
-
-    #   users = {
-    #     root = {
-    #       home.stateVersion = lib.mkDefault config.system.stateVersion;
-    #       # imports = with self.outputs.homeManagerModules; [
-    #       # ];
-    #     };
-    #     daniel = {
-    #       home.stateVersion = lib.mkDefault config.system.stateVersion;
-    #       imports = with self.outputs.homeManagerModules; [
-    #         daniel
-    #       ];
-    #     };
-    #   };
-    # };
+    home-manager = {
+      useGlobalPkgs = lib.mkDefault true;
+      useUserPackages = lib.mkDefault true;
+      backupFileExtension = lib.mkDefault "hm-backup";
+    };
 
     systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp"; # TODO: why did I do this again?
     boot.tmp.cleanOnBoot = lib.mkDefault true;
