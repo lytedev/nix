@@ -220,7 +220,12 @@ in
     };
 
   desktop =
-    { config, lib, ... }:
+    {
+      pkgs,
+      config,
+      lib,
+      ...
+    }:
     {
       imports = with homeManagerModules; [
         firefox
@@ -236,6 +241,17 @@ in
       config = lib.mkIf config.lyte.desktop.enable {
         programs.firefox.enable = true;
         programs.ghostty.enable = true;
+        home.pointerCursor = {
+          name = "Bibata-Modern-Classic";
+          package = pkgs.bibata-cursors;
+          size = 40;
+        };
+        gtk.cursorTheme = {
+          name = "Bibata-Modern-Classic";
+          package = pkgs.bibata-cursors;
+          size = 40;
+        };
+        gtk.font = pkgs.iosevkaLyteTerm;
       };
     };
 
