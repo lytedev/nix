@@ -68,13 +68,6 @@
         };
       };
 
-      # TODO: for each non-system user on the machine?
-      home-manager = {
-        useGlobalPkgs = lib.mkDefault true;
-        useUserPackages = lib.mkDefault true;
-        backupFileExtension = lib.mkDefault "hm-backup";
-      };
-
       systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp"; # TODO: why did I do this again?
       boot.tmp.cleanOnBoot = lib.mkDefault true;
       programs.gnupg.agent.enable = lib.mkDefault true;
@@ -181,11 +174,18 @@
         ];
         packages = [ ];
       };
-      home-manager.users.daniel = {
-        home.stateVersion = lib.mkDefault config.system.stateVersion;
-        imports = with self.outputs.homeManagerModules; [
-          default
-        ];
+      home-manager = {
+        useGlobalPkgs = lib.mkDefault true;
+        useUserPackages = lib.mkDefault true;
+        backupFileExtension = lib.mkDefault "hm-backup";
+        users = {
+          daniel = {
+            home.stateVersion = config.system.stateVersion;
+            imports = with self.outputs.homeManagerModules; [
+              default
+            ];
+          };
+        };
       };
     }
     // lib.mkIf config.family-account.enable {
