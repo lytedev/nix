@@ -173,45 +173,6 @@ in
     };
   */
 
-  thinker = nixpkgs-unstable.lib.nixosSystem {
-    system = "x86_64-linux";
-    modules = with nixosModules; [
-      home-manager-unstable-defaults
-
-      {
-        _module.args = {
-          disks = [ "/dev/nvme0n1" ];
-          swapSize = "32G";
-        };
-      }
-      outputs.diskoConfigurations.standard
-      hardware.nixosModules.lenovo-thinkpad-t480
-      hardware.nixosModules.common-pc-laptop-ssd
-
-      music-production
-      common
-      password-manager
-      graphical-workstation
-      # plasma6
-      laptop
-      gaming
-
-      ./nixos/thinker.nix
-
-      {
-        home-manager.users.daniel = {
-          imports = with homeManagerModules; [
-            senpai
-            iex
-            cargo
-            linux-desktop-environment-config
-            slippi.homeManagerModules.default
-          ];
-        };
-      }
-    ];
-  };
-
   musicbox = nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = with nixosModules; [
