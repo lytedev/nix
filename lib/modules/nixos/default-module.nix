@@ -84,7 +84,9 @@
   };
 
   config = {
-    system.configurationRevision = lib.mkIf (self ? rev) self.rev;
+    system.configurationRevision = toString (
+      self.shortRev or self.dirtyShortRev or self.lastModified or "unknown"
+    );
     environment.etc = {
       "lytedev/rev".text = config.system.configurationRevision;
     };
