@@ -25,7 +25,7 @@
         TODO: extensions and their config/sync?
       */
       profiles = {
-        daniel = {
+        primary = {
           id = 0;
           settings = {
             "alerts.useSystemBackend" = true;

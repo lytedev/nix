@@ -68,15 +68,18 @@
   programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop.enable = true;
+  family-account.enable = true;
 
   home-manager.users.daniel = {
     lyte.shell.enable = true;
     lyte.desktop.enable = true;
-    home.file.".config/easyeffects/output" = {
-      enable = true;
-      source = fetchGit {
-        url = "https://github.com/ceiphr/ee-framework-presets";
-        rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
+    home = {
+      file.".config/easyeffects/output" = {
+        enable = true;
+        source = fetchGit {
+          url = "https://github.com/ceiphr/ee-framework-presets";
+          rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
+        };
       };
     };
     services.easyeffects = {

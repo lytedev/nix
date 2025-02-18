@@ -39,9 +39,7 @@ in
       options = {
         lyte = {
           shell = {
-            enable = lib.mkEnableOption (
-              builtins.trace "looked at lyte options" "Enable home-manager shell configuration for the user"
-            );
+            enable = lib.mkEnableOption "Enable home-manager shell configuration for the user";
           };
         };
       };
@@ -262,15 +260,24 @@ in
   fish = import ./fish.nix;
 
   jujutsu =
-    { config, lib, ... }:
     {
-      config = lib.mkIf (builtins.hasAttr "primary" config.accounts.email.accounts) {
+      fullName,
+      config,
+      lib,
+      ...
+    }:
+    let
+      email = config.accounts.email.accounts.primary.address;
+
+    in
+    {
+      config = {
         programs.jujutsu = {
           enable = true;
           settings = {
             user = {
-              email = config.accounts.email.accounts.primary.address;
-              name = "Daniel Flanagan";
+              inherit email;
+              name = fullName;
             };
           };
         };
@@ -278,15 +285,20 @@ in
     };
 
   git =
-    { lib, ... }:
+    {
+      config,
+      lib,
+      fullName,
+      ...
+    }:
     let
-      email = lib.mkDefault "daniel@lyte.dev";
+      email = config.accounts.email.accounts.primary.address;
     in
     {
       programs.git = {
         enable = true;
 
-        userName = lib.mkDefault "Daniel Flanagan";
+        userName = lib.mkDefault fullName;
         userEmail = email;
 
         delta = {
@@ -475,14 +487,6 @@ in
             blur-my-shell
             appindicator
           ];
-
-          file.".face" = {
-            enable = true;
-            source = builtins.fetchurl {
-              url = "https://lyte.dev/img/avatar3-square-512.png";
-              sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
-            };
-          };
         };
 
         programs.gnome-shell = {
@@ -1278,24 +1282,14 @@ in
   daniel =
     { ... }:
     {
-
       home = {
         username = "daniel";
         homeDirectory = "/home/daniel/.home";
       };
 
-      accounts.email.accounts = {
-        primary = {
-          primary = true;
-          address = "daniel@lyte.dev";
-        };
-        legacy = {
-          address = "wraithx2@gmail.com";
-        };
-        io = {
-          # TODO: finalize deprecation
-          address = "daniel@lytedev.io";
-        };
+      accounts.email.accounts.primary = {
+        primary = true;
+        address = "daniel@lyte.dev";
       };
     };
 }

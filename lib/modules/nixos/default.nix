@@ -48,14 +48,4 @@ inputs: {
         };
       };
     };
-
-  radio-tools =
-    { pkgs, ... }:
-    {
-      environment = {
-        systemPackages = with pkgs; [
-          chirp
-        ];
-      };
-    };
 }
