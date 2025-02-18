@@ -8,5 +8,6 @@ in
   foxtrot = host ./foxtrot.nix { };
   thinker = host ./thinker.nix { };
   htpc = stableHost ./htpc.nix { };
+  router = stableHost ./router.nix { };
   # arm-dragon = host ./dragon.nix { system = "aarch64-linux"; };
 }
