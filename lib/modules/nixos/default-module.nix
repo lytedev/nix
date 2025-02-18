@@ -45,6 +45,7 @@
           shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
           extraGroups = [
             "users"
+            "power"
             "video"
           ];
         };
@@ -229,6 +230,7 @@
         "video"
         "dialout"
         "uucp"
+        "power"
         "kvm"
       ];
       packages = [ ];
