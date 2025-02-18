@@ -84,6 +84,11 @@
   };
 
   config = {
+    system.configurationRevision = lib.mkIf (self ? rev) self.rev;
+    environment.etc = {
+      "lytedev/rev".text = config.system.configurationRevision;
+    };
+
     lyte.shell.enable = lib.mkDefault true;
     nixpkgs = {
       config.allowUnfree = lib.mkDefault true;
