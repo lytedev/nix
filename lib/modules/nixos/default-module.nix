@@ -89,6 +89,7 @@
     );
     environment.etc = {
       "lytedev/rev".text = config.system.configurationRevision;
+      "lytedev/lastModified".text = self.lastModified or "unknown";
     };
 
     lyte.shell.enable = lib.mkDefault true;
