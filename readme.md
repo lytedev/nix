@@ -17,6 +17,15 @@ machine configuration, secret, and package management in a single flake. ❤️ 
 can't recommend you actually use this in any way, but hopefully some stuff in
 here is useful inspiration.
 
+**NOTE**: I use some out-of-store symlinks for quicker configuration iteration,
+so you will ultimately want to clone this repo somewhere and create the
+following symlinks:
+
+```shell
+ln -s $REPO /etc/nix/flake
+ln -s $REPO /etc/nixos # only for nixos systems
+```
+
 # Quick Start
 
 ```shell_session

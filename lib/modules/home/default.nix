@@ -431,8 +431,9 @@ in
 
             "org/gnome/desktop/peripherals/keyboard" = {
               # gnome key repeat
-              repeat-interval = 7;
-              delay = 200;
+              repeat = true;
+              repeat-interval = lib.hm.gvariant.mkUint32 10;
+              delay = lib.hm.gvariant.mkUint32 200;
             };
             "org/gnome/desktop/wm/preferences" = {
               resize-with-right-button = true;
