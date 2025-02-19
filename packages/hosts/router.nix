@@ -116,6 +116,7 @@ in
       openPorts = {
         tcp = {
           "Accept SSH to router" = 2201;
+          "Accept DNS" = 53;
         };
         udp = {
           "Accept DNS" = 53;

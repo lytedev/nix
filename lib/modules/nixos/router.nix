@@ -5,83 +5,95 @@
 }:
 let
   cfg = config.lyte.router;
+  inherit (builtins) mapAttrs concatStringsSep toString;
+  inherit (lib)
+    mkEnableOption
+    mkOption
+    types
+    mkIf
+    mkDefault
+    defaultTo
+    ;
+  inherit (lib.attrsets) foldlAttrs mapAttrsToList mapAttrs';
+  inherit (lib.lists) flatten toList;
+
 in
 {
   options.lyte.router = {
-    enable = lib.mkEnableOption "Enable home router functionality";
-    hostname = lib.mkOption {
+    enable = mkEnableOption "Enable home router functionality";
+    hostname = mkOption {
       default = "router";
       description = "The hostname of the router. NOT the FQDN. This value concatenated with the domain will form the FQDN of this router host.";
-      type = lib.types.str;
+      type = types.str;
       example = "my-home-router";
     };
-    domain = lib.mkOption {
+    domain = mkOption {
       # default = null;
       description = "The domain of the router.";
-      type = lib.types.str;
+      type = types.str;
       example = "lan";
     };
 
-    openPorts = lib.mkOption { };
-    hosts = lib.mkOption { };
+    openPorts = mkOption { };
+    hosts = mkOption { };
 
     interfaces = {
       wan = {
-        name = lib.mkOption {
+        name = mkOption {
           default = "wan";
-          type = lib.types.str;
+          type = types.str;
         };
-        mac = lib.mkOption {
-          type = lib.types.str;
+        mac = mkOption {
+          type = types.str;
         };
       };
       lan = {
-        name = lib.mkOption {
+        name = mkOption {
           default = "lan";
-          type = lib.types.str;
+          type = types.str;
         };
-        mac = lib.mkOption {
-          type = lib.types.str;
+        mac = mkOption {
+          type = types.str;
         };
       };
     };
 
     # TODO: would be nice to support multiple VLANs?
     ipv4 = {
-      address = lib.mkOption {
+      address = mkOption {
         default = "192.168.0.1";
         description = "The IPv4 address of the router.";
-        type = lib.types.str;
+        type = types.str;
         example = "10.0.0.1";
       };
-      cidr = lib.mkOption {
+      cidr = mkOption {
         # TODO: derive IPv4 from CIDR?
         description = ''The CIDR to route. If null, will use "''${config.lyte.router.ipv4}/16".'';
         default = null;
         example = "10.0.0.0/8";
-        # type = lib.types.str;
+        # type = types.str;
         defaultText = ''''${config.lyte.router.ipv4}/16'';
       };
-      netmask = lib.mkOption {
+      netmask = mkOption {
         # TODO: derive from CIDR?
         default = "255.255.255.0";
-        type = lib.types.str;
+        type = types.str;
       };
       dhcp-lease-space = {
-        min = lib.mkOption {
+        min = mkOption {
           default = "192.168.0.30";
-          type = lib.types.str;
+          type = types.str;
         };
-        max = lib.mkOption {
+        max = mkOption {
           default = "192.168.0.250";
-          type = lib.types.str;
+          type = types.str;
         };
       };
     };
   };
-  config = lib.mkIf cfg.enable (
+  config = mkIf cfg.enable (
     let
-      cidr = lib.defaultTo "${cfg.ipv4.address}/16" cfg.ipv4.cidr;
+      cidr = defaultTo "${cfg.ipv4.address}/16" cfg.ipv4.cidr;
       wan = cfg.interfaces.wan.name;
       lan = cfg.interfaces.lan.name;
     in
@@ -138,30 +150,63 @@ in
           let
             mkOpenPortRule =
               protocol: rules:
-              builtins.concatStringsSep "\n    " (
-                lib.attrsets.mapAttrsToList (
-                  name: ports:
-                  let
-                    nfports = builtins.concatStringsSep ", " (lib.lists.toList (builtins.toString ports));
-                  in
-                  ''${protocol} dport {${nfports}} accept comment "${name}"''
-                ) rules
-              );
+              mapAttrsToList (
+                name: ports:
+                ''${protocol} dport {${concatStringsSep ", " (map toString (toList ports))}} accept comment "${name}"''
+              ) rules;
 
             tcpRulesString = mkOpenPortRule "tcp" cfg.openPorts.tcp;
             udpRulesString = mkOpenPortRule "udp" cfg.openPorts.udp;
 
-            tcpHostRulesString = mkOpenPortRule "tcp" cfg.hosts.all.nat;
-            udpHostRulesString = mkOpenPortRule "udp" cfg.hosts.all.nat;
+            hostRules = flatten (
+              mapAttrsToList (
+                hostname:
+                {
+                  nat ? { },
+                  ...
+                }:
+                mapAttrsToList (
+                  protocol: rules:
+                  mkOpenPortRule protocol (
+                    mapAttrs' (name: value: {
+                      name = "NAT ${name} to ${hostname}";
+                      value = value;
+                    }) rules
+                  )
+                ) nat
+              ) cfg.hosts
+            );
 
-            builtins.mapAttrs (name: { nat ? {} }: nat) cfg.hosts
-
-            acceptPorts = builtins.concatStringsSep "\n    " [
+            acceptPorts = flatten [
               tcpRulesString
               udpRulesString
-              tcpHostRulesString
-              udpHostRulesString
+              hostRules
             ];
+
+            # iifname ${wan} tcp dport {22} dnat to ${cfg.hosts.beefcake.ip}
+            # iifname ${wan} tcp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
+            # iifname ${wan} udp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
+            # iifname ${wan} tcp dport {26966} dnat to ${cfg.hosts.beefcake.ip}
+            # iifname ${wan} tcp dport {25565} dnat to ${cfg.hosts.bald.ip}
+            # iifname ${wan} udp dport {25565} dnat to ${cfg.hosts.bald.ip}
+            # iifname ${wan} udp dport {34197} dnat to ${cfg.hosts.beefcake.ip}
+            #
+
+            mkNatRule =
+              protocol: ports: address:
+              ''iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (toList ports))}} dnat to ${address}'';
+
+            natPorts = flatten (
+              mapAttrsToList (
+                hostname:
+                {
+                  ip,
+                  nat ? { },
+                  ...
+                }:
+                mapAttrsToList (protocol: rules: mkNatRule protocol (mapAttrsToList (_: ports: ports)) ip) nat
+              ) cfg.hosts
+            );
           in
           {
             enable = true;
@@ -194,6 +239,7 @@ in
                 iifname { "${wan}" } oifname { "${lan}" } ct state { established, related } accept comment "Allow established back to LAN"
               }
             */
+
             ruleset = ''
               table inet filter {
                 chain input {
@@ -221,17 +267,7 @@ in
                   udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
                   udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
 
-                  ${acceptPorts}
-
-                  tcp dport 2201 accept comment "Accept SSH on port 2201"
-                  tcp dport 53 accept comment "Accept DNS"
-                  udp dport 53 accept comment "Accept DNS"
-
-                  tcp dport { 80, 443 } accept comment "Allow HTTP/HTTPS to server (see nat prerouting)"
-                  udp dport { 80, 443 } accept comment "Allow QUIC to server (see nat prerouting)"
-                  tcp dport { 22 } accept comment "Allow SSH to server (see nat prerouting)"
-                  tcp dport { 25565 } accept comment "Allow Minecraft server connections (see nat prerouting)"
-                  udp dport { 34197 } accept comment "Allow Factorio server connections (see nat prerouting)"
+                  ${concatStringsSep "\n    " acceptPorts}
 
                   iifname "${lan}" accept comment "Allow local network to access the router"
                   iifname "tailscale0" accept comment "Allow local network to access the router"
@@ -407,7 +443,7 @@ in
           dhcp-host =
             [
             ]
-            ++ (lib.attrsets.mapAttrsToList (
+            ++ (mapAttrsToList (
               name:
               {
                 ip,
@@ -422,8 +458,8 @@ in
             [
               "/${cfg.hostname}.${cfg.domain}/${cfg.ipv4.address}"
             ]
-            ++ (lib.lists.flatten (
-              lib.attrsets.mapAttrsToList (
+            ++ (flatten (
+              mapAttrsToList (
                 name:
                 {
                   ip,
