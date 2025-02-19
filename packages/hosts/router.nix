@@ -7,50 +7,16 @@
   ...
 }:
 let
-  /*
-    NOTE: My goal is to be able to apply most of the common tweaks to the router
-    either live on the system for ad-hoc changes (such as forwarding a port for a
-    multiplayer game) or to tweak these values just below without reaching deeper
-    into the modules' implementation of these configuration values
-    NOTE: I could turn this into a cool NixOS module?
-    TODO: review https://francis.begyn.be/blog/nixos-home-router
-    TODO: more recent: https://github.com/ghostbuster91/blogposts/blob/a2374f0039f8cdf4faddeaaa0347661ffc2ec7cf/router2023-part2/main.md
-  */
-  hosts = {
-    dragon = {
-      ip = "192.168.0.10";
-    };
-    bald = {
-      ip = "192.168.0.11";
-      additionalHosts = [
-        "ourcraft.lyte.dev"
-      ];
-    };
-    beefcake = {
-      ip = "192.168.0.9";
-      additionalHosts = [
-        ".beefcake.lan"
-        "a.lyte.dev"
-        "atuin.h.lyte.dev"
-        "audio.lyte.dev"
-        "bw.lyte.dev"
-        "files.lyte.dev"
-        "finances.h.lyte.dev"
-        "git.lyte.dev"
-        "grafana.h.lyte.dev"
-        "idm.h.lyte.dev"
-        "matrix.lyte.dev"
-        "nextcloud.h.lyte.dev"
-        "nix.h.lyte.dev"
-        "onlyoffice.h.lyte.dev"
-        "paperless.h.lyte.dev"
-        "prometheus.h.lyte.dev"
-        "video.lyte.dev"
-        "vpn.h.lyte.dev"
-      ];
-    };
-  };
 in
+/*
+  NOTE: My goal is to be able to apply most of the common tweaks to the router
+  either live on the system for ad-hoc changes (such as forwarding a port for a
+  multiplayer game) or to tweak these values just below without reaching deeper
+  into the modules' implementation of these configuration values
+  NOTE: I could turn this into a cool NixOS module?
+  TODO: review https://francis.begyn.be/blog/nixos-home-router
+  TODO: more recent: https://github.com/ghostbuster91/blogposts/blob/a2374f0039f8cdf4faddeaaa0347661ffc2ec7cf/router2023-part2/main.md
+*/
 {
   system.stateVersion = "24.11";
 
@@ -101,7 +67,7 @@ in
   ];
 
   sops = {
-    defaultSopsFile = ../secrets/router/secrets.yml;
+    defaultSopsFile = ../../secrets/router/secrets.yml;
     age = {
       sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
       keyFile = "/var/lib/sops-nix/key.txt";
@@ -117,6 +83,25 @@ in
     passwordFile = config.sops.secrets.netlify-ddns-password.path;
   };
 
+  services.openssh.listenAddresses = [
+    {
+      addr = "0.0.0.0";
+      port = 2201;
+    }
+    {
+      addr = "0.0.0.0";
+      port = 22;
+    }
+    {
+      addr = "[::]";
+      port = 2201;
+    }
+    {
+      addr = "[::]";
+      port = 22;
+    }
+  ];
+
   lyte = {
     shell.enable = true;
     router = {
@@ -127,12 +112,40 @@ in
         wan.mac = "00:01:2e:82:73:59";
         lan.mac = "00:01:2e:82:73:5a";
       };
-      # the main meat and potatoes for most routers, the firewall configuration
-      # TODO: IPv6
-      nftables = {
-        enable = true;
-        checkRuleset = true;
-        flushRuleset = true;
+
+      hosts = {
+        dragon = {
+          ip = "192.168.0.10";
+        };
+        bald = {
+          ip = "192.168.0.11";
+          additionalHosts = [
+            "ourcraft.lyte.dev"
+          ];
+        };
+        beefcake = {
+          ip = "192.168.0.9";
+          additionalHosts = [
+            ".beefcake.lan"
+            "a.lyte.dev"
+            "atuin.h.lyte.dev"
+            "audio.lyte.dev"
+            "bw.lyte.dev"
+            "files.lyte.dev"
+            "finances.h.lyte.dev"
+            "git.lyte.dev"
+            "grafana.h.lyte.dev"
+            "idm.h.lyte.dev"
+            "matrix.lyte.dev"
+            "nextcloud.h.lyte.dev"
+            "nix.h.lyte.dev"
+            "onlyoffice.h.lyte.dev"
+            "paperless.h.lyte.dev"
+            "prometheus.h.lyte.dev"
+            "video.lyte.dev"
+            "vpn.h.lyte.dev"
+          ];
+        };
       };
 
       # NOTE: see flake.nix 'nnf.nixosModules.default'
@@ -190,209 +203,16 @@ in
       */
     };
 
-    systemd.network = {
-      enable = true;
-      # wait-online.anyInterface = true;
-
-      # configure known names for the network interfaces
-      links = {
-        "20-${interfaces.wan.name}" = {
-          enable = true;
-          matchConfig = {
-            MACAddress = interfaces.wan.mac;
-          };
-          linkConfig = {
-            Name = interfaces.wan.name;
-          };
-        };
-        "30-${interfaces.lan.name}" = {
-          enable = true;
-          matchConfig = {
-            MACAddress = interfaces.lan.mac;
-          };
-          linkConfig = {
-            Name = interfaces.lan.name;
-          };
-        };
-      };
-
-      # configure networks for the interfaces
-      networks = {
-        # LAN configuration is very simple and mostly forwarded between
-        # TODO: IPv6
-        "50-${interfaces.lan.name}" = {
-          matchConfig.Name = "${interfaces.lan.name}";
-          linkConfig = {
-            RequiredForOnline = "enslaved";
-            # Name = interfaces.lan.name;
-          };
-
-          address = [
-            cidr
-          ];
-          networkConfig = {
-            # Description = "LAN network - connection to switch in house";
-            ConfigureWithoutCarrier = true;
-            # IPv6AcceptRA = false;
-            IPv6SendRA = true;
-            DHCPPrefixDelegation = true;
-          };
-        };
-
-        /*
-          WAN configuration requires DHCP to get addresses
-          we also disable some options to be certain we retain as much networking
-          control as we reasonably can, such as not letting the ISP determine our
-          hostname or DNS configuration
-          TODO: IPv6 (prefix delegation)
-        */
-        "40-${interfaces.wan.name}" = {
-          matchConfig.Name = "${interfaces.wan.name}";
-          networkConfig = {
-            Description = "WAN network - connection to fiber ISP jack";
-            DHCP = true;
-            /*
-              IPv6AcceptRA = true;
-              IPv6PrivacyExtensions = true;
-              IPForward = true;
-            */
-          };
-          dhcpV6Config = {
-            /*
-              ForceDHCPv6PDOtherInformation = true;
-              UseHostname = false;
-              UseDNS = false;
-              UseNTP = false;
-            */
-            PrefixDelegationHint = "::/56";
-          };
-          dhcpV4Config = {
-            Hostname = hostname;
-            UseHostname = false;
-            UseDNS = false;
-            UseNTP = false;
-            UseSIP = false;
-            UseRoutes = false;
-            UseGateway = true;
-          };
-          linkConfig = {
-            RequiredForOnline = "routable";
-            # Name = interfaces.wan.name;
-          };
-          ipv6AcceptRAConfig = {
-            DHCPv6Client = "always";
-            UseDNS = false;
-          };
-        };
-      };
-    };
-
-    services.resolved.enable = false;
-
     /*
       dnsmasq serves as our DHCP and DNS server
       almost all the configuration should be derived from the values at the top of
       this file
     */
-    services.dnsmasq = {
-      enable = true;
-      settings = {
-        listen-address = "::,127.0.0.1,${ip}";
-        port = 53;
-
-        /*
-          dhcp-authoritative = true;
-          dnssec = true;
-        */
-        enable-ra = true;
-
-        server = [
-          "1.1.1.1"
-          "9.9.9.9"
-          "8.8.8.8"
-        ];
-
-        domain-needed = true;
-        bogus-priv = true;
-        no-resolv = true;
-
-        cache-size = "10000";
-
-        dhcp-range = with dhcp_lease_space; [
-          "${interfaces.lan.name},${min},${max},${netmask},24h"
-          "::,constructor:${interfaces.lan.name},ra-stateless,ra-names,4h"
-        ];
-        except-interface = interfaces.wan.name;
-        interface = interfaces.lan.name;
-        dhcp-host =
-          [
-          ]
-          ++ (lib.attrsets.mapAttrsToList (
-            name:
-            {
-              ip,
-              identifier ? name,
-              time ? "12h",
-              ...
-            }:
-            "${name},${ip},${identifier},${time}"
-          ) hosts);
-
-        address =
-          [
-            "/${hostname}.${domain}/${ip}"
-          ]
-          ++ (lib.lists.flatten (
-            lib.attrsets.mapAttrsToList (
-              name:
-              {
-                ip,
-                additionalHosts ? [ ],
-                identifier ? name,
-                time ? "12h",
-              }:
-              [
-                "/${name}.${domain}/${ip}"
-                (lib.lists.forEach additionalHosts (h: "/${h}/${ip}"))
-              ]
-            ) hosts
-          ));
-
-        # local domains
-        local = "/lan/";
-        domain = "lan";
-        expand-hosts = true;
-
-        # don't use /etc/hosts as this would advertise surfer as localhost
-        no-hosts = true;
-      };
-    };
 
     /*
       since the home network reserves port 22 for ssh to the big server and to
       gitea, the router uses port 2201 for ssh
     */
-    services.openssh.listenAddresses = [
-      {
-        addr = "0.0.0.0";
-        port = 2201;
-      }
-      {
-        addr = "0.0.0.0";
-        port = 22;
-      }
-      {
-        addr = "[::]";
-        port = 2201;
-      }
-      {
-        addr = "[::]";
-        port = 22;
-      }
-    ];
-
-    services.fail2ban.enable = true;
-
     /*
       NOTE: everything from here on is deprecated or old stuff
 
