@@ -9,5 +9,6 @@ in
   thinker = host ./thinker.nix { };
   htpc = stableHost ./htpc.nix { };
   router = stableHost ./router.nix { };
+  bigtower = stableHost ./bigtower.nix { };
   # arm-dragon = host ./dragon.nix { system = "aarch64-linux"; };
 }

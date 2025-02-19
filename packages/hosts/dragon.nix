@@ -8,7 +8,10 @@
 }:
 {
   system.stateVersion = "24.11";
-  networking.hostName = "dragon";
+  networking = {
+    hostName = "dragon";
+    wifi = true;
+  };
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
@@ -44,7 +47,6 @@
   };
 
   programs.steam.enable = true;
-  networking.wifi.enable = true;
   lyte.desktop.enable = true;
 
   home-manager.users.daniel = {
