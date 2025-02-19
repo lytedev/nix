@@ -18,6 +18,7 @@ in
   };
   config = lib.mkIf cfg.enable {
     services.xserver.desktopManager.gnome.enable = true;
+    environment.systemPackages = [ pkgs.wl-clipboard ];
 
     fonts.packages = [
       (
