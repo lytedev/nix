@@ -69,4 +69,8 @@
   };
 
   services.tailscale.useRoutingFeatures = "server";
+
+  home-manager.users.daniel = {
+    lyte.shell.enable = true;
+  };
 }
