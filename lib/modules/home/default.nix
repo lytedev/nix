@@ -14,6 +14,7 @@ in
     {
       imports = with homeManagerModules; [
         slippi.homeManagerModules.default
+        shell
         fish
         helix
         git
@@ -36,6 +37,19 @@ in
         */
       ];
 
+      config = {
+        slippi-launcher.enable = lib.mkDefault false;
+      };
+    };
+
+  shell =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    {
       options = {
         lyte = {
           shell = {
@@ -49,7 +63,6 @@ in
         programs.helix.enable = true;
         programs.zellij.enable = true;
         programs.eza.enable = true;
-        slippi-launcher.enable = lib.mkDefault false;
         programs.bat = {
           enable = true;
           config = {

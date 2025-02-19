@@ -1,7 +1,5 @@
 {
   hardware,
-  pkgs,
-  lib,
   config,
   ...
 }:
@@ -9,7 +7,7 @@
   system.stateVersion = "24.05";
   networking = {
     hostName = "bigtower";
-    wifi = true;
+    wifi.enable = true;
   };
 
   fileSystems."/" = {

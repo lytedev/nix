@@ -1,12 +1,11 @@
 {
+  hardware,
   config,
-  modulesPath,
   ...
 }:
 {
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-  ];
+  system.stateVersion = "24.05";
+  networking.hostName = "rascal";
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"
@@ -33,6 +32,11 @@
     device = "/dev/sda";
   };
 
+  imports = with hardware; [
+    common-cpu-amd
+    common-pc-ssd
+  ];
+
   users.groups.beefcake = { };
   users.users = {
     beefcake = {
@@ -46,25 +50,6 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOEI82VdbyR1RYqSnFtlffHBtHFdXO0v9RmQH7GkfXo restic@beefcake"
       ];
     };
-
-    daniel = {
-      # used for restic backups
-      isNormalUser = true;
-      extraGroups = [
-        "users"
-        "wheel"
-        "video"
-        "dialout"
-        "uucp"
-      ];
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPLXOjupz3ScYjgrF+ehrbp9OvGAWQLI6fplX6w9Ijb daniel@lyte.dev"
-      ];
-    };
-
-    root = {
-      openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys;
-    };
   };
 
   services.openssh.extraConfig = ''
@@ -75,8 +60,7 @@
   '';
 
   networking = {
-    hostName = "rascal";
-    networkmanager.enable = true;
+    wifi.enable = true;
     firewall = {
       enable = true;
       allowPing = true;
@@ -85,6 +69,4 @@
   };
 
   services.tailscale.useRoutingFeatures = "server";
-
-  system.stateVersion = "24.05";
 }
