@@ -10,7 +10,7 @@
   system.stateVersion = "24.11";
   networking = {
     hostName = "dragon";
-    wifi = true;
+    wifi.enable = true;
   };
 
   boot = {
