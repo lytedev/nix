@@ -55,8 +55,12 @@ ssh "root@$host" nixos-rebuild --rollback switch
 
 ## Provisioning New NixOS Hosts
 
-Note that for best results the target flake attribute should first be built and
-cached to the binary cache at `nix.h.lyte.dev`.
+```shell
+nix run --extra-experimental-features 'nix-command flakes' \
+  --accept-flake-config git+https://git.lyte.dev/lytedev/nix#installer
+```
+
+Or you can install manually with the process below:
 
 ```bash
 # establish network access
@@ -79,7 +83,7 @@ nix-shell --packages git --run "sudo nix run \
   github:nix-community/disko -- \
     --flake 'git+https://git.lyte.dev/lytedev/nix#${PARTITION_SCHEME}' \
     --mode disko \
-    --arg disks '[ \"/dev/${DISK}\" ]'"
+    --arg disk '\"/dev/${DISK}\"'"
 
 # install
 nix-shell --packages git \

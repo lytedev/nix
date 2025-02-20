@@ -3,7 +3,7 @@
   ...
 }:
 pkgs.writeShellApplication {
-  name = "suspend-flink-job";
+  name = "installer";
   runtimeInputs = with pkgs; [
     fzf
     jq
@@ -21,7 +21,8 @@ pkgs.writeShellApplication {
     nixos_host="$(nix eval --json git+https://git.lyte.dev/lytedev/nix#nixosConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select NixOS configuration')"
     partition_scheme="$(nix eval --json git+https://git.lyte.dev/lytedev/nix#diskoConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select disk partition scheme (must match NixOS configuration!)')"
     disk_path="/dev/$(lsblk -d --raw | tail -n +2 | fzf --prompt 'Select local disk device' | awk '{print $1}')"
-    disk_pass="$(echo "$pass1" | tr -d "\n")"
+
+    echo "$pass1" | tr -d "\n" > /tmp/secret.key
 
     nix-shell --packages git --run "sudo nix run \
       --extra-experimental-features nix-command \
@@ -29,7 +30,7 @@ pkgs.writeShellApplication {
       github:nix-community/disko -- \
         --flake 'git+https://git.lyte.dev/lytedev/nix#$partition_scheme' \
         --mode disko \
-        --arg disk '$disk_path'"
+        --arg disk '\"$disk_path\"'"
 
     nix-shell --packages git \
       --run "sudo nixos-install \
