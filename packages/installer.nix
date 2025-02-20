@@ -10,10 +10,14 @@ pkgs.writeShellApplication {
     gawk
   ];
   text = ''
-    dir="$(mktemp -d)"
-    cd "$dir"
-    git clone https://git.lyte.dev/lytedev/nix
-    cd nix
+    repo='https://git.lyte.dev/lytedev/nix'
+    if [[ -f flake.nix ]]; then
+      dir="$(mktemp -d)"
+      echo "No flake detected. Cloning '$repo' to '$dir/nix'
+      cd "$dir"
+      git clone "$repo"
+      cd nix
+    fi
 
     read -s -r -p 'Disk Encryption Password:' pass1
     echo
