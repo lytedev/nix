@@ -18,8 +18,8 @@ pkgs.writeShellApplication {
       echo "error: disk encryption passwords did not match!"
       exit 1
     fi
-    nixos_host="$(nix --extra-experimental-features 'nix-command flakes' eval --json git+https://git.lyte.dev/lytedev/nix#nixosConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select NixOS configuration')"
-    partition_scheme="$(nix --extra-experimental-features 'nix-command flakes' eval --json git+https://git.lyte.dev/lytedev/nix#diskoConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select disk partition scheme (must match NixOS configuration!)')"
+    nixos_host="$(nix --extra-experimental-features 'nix-command flakes' eval --accept-flake-config --json git+https://git.lyte.dev/lytedev/nix#nixosConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select NixOS configuration')"
+    partition_scheme="$(nix --extra-experimental-features 'nix-command flakes' eval --accept-flake-config --json git+https://git.lyte.dev/lytedev/nix#diskoConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select disk partition scheme (must match NixOS configuration!)')"
     disk_path="/dev/$(lsblk -d --raw | tail -n +2 | fzf --prompt 'Select local disk device' | awk '{print $1}')"
 
     echo "$pass1" | tr -d "\n" > /tmp/secret.key
