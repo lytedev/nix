@@ -117,6 +117,21 @@ rec {
     };
   };
 
+  standardEncrypted =
+    {
+      disk,
+      espSize ? "4G",
+      ...
+    }:
+    standard {
+      inherit disk;
+      esp = {
+        label = "ESP";
+        size = espSize;
+        name = "ESP";
+      };
+    };
+
   standard =
     {
       esp ? {

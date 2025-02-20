@@ -19,9 +19,12 @@
     };
   };
 
-  services.tailscale.useRoutingFeatures = "server";
+  hardware.bluetooth.enable = true;
 
+  programs.steam.enable = true;
+  lyte.desktop.enable = true;
   home-manager.users.daniel = {
     lyte.shell.enable = true;
+    lyte.shell.desktop = true;
   };
 }

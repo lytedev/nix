@@ -8,4 +8,6 @@ in
   iosevkaLyteTermSubset = pkgs.callPackage ./iosevkaLyteTermSubset.nix {
     inherit iosevkaLyteTerm;
   };
+
+  installer = pkgs.callPackage ./installer.nix { };
 }
