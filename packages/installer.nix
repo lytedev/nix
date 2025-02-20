@@ -11,7 +11,7 @@ pkgs.writeShellApplication {
   ];
   text = ''
     repo='https://git.lyte.dev/lytedev/nix'
-    if [[ -f flake.nix ]]; then
+    if ! [[ -f flake.nix ]]; then
       dir="$(mktemp -d)"
       echo "No flake detected. Cloning '$repo' to '$dir/nix'"
       cd "$dir"
