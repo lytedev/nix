@@ -1,4 +1,4 @@
-{ ... }:
+{ diskoConfigurations, ... }:
 {
   system.stateVersion = "24.11";
   networking.hostName = "lyte-generic-headless";
@@ -19,8 +19,13 @@
     };
   };
 
+  imports = [
+    (diskoConfigurations.standardEncrypted { disk = "/dev/nvme0n1"; })
+  ];
+
   services.tailscale.useRoutingFeatures = "server";
 
+  lyte.shell.enable = true;
   home-manager.users.daniel = {
     lyte.shell.enable = true;
   };
