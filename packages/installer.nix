@@ -41,6 +41,7 @@ pkgs.writeShellApplication {
       --run "sudo nixos-install \
         --no-write-lock-file \
         --flake 'git+https://git.lyte.dev/lytedev/nix#$nixos_host' \
+        --accept-flake-config \
         --option trusted-substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
         --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M='"  '';
 }
