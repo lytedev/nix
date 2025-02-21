@@ -11,6 +11,8 @@ in
   router = stableHost ./router.nix { };
   bigtower = stableHost ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
+  flipflop = host ./flipflop.nix { };
+  thablet = host ./thablet.nix { };
 
   generic-headless = stableHost ./generic-headless.nix { };
   generic = stableHost ./generic.nix { };
