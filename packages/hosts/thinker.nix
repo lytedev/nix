@@ -1,7 +1,7 @@
 { diskoConfigurations, hardware, ... }:
 {
   system.stateVersion = "24.11";
-  networking.hostName = "foxtrot";
+  networking.hostName = "thinker";
 
   boot = {
     loader = {
