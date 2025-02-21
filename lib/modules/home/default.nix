@@ -494,13 +494,13 @@ in
           };
         };
 
-        # home = {
-        #   packages = with pkgs.gnomeExtensions; [
-        #     tiling-shell
-        #     blur-my-shell
-        #     appindicator
-        #   ];
-        # };
+        home = {
+          packages = with pkgs.gnomeExtensions; [
+            tiling-shell
+            blur-my-shell
+            appindicator
+          ];
+        };
 
         programs.gnome-shell = {
           enable = true;
@@ -512,7 +512,6 @@ in
                 tiling-shell
                 blur-my-shell
                 appindicator
-                hibernate-status-button
               ]
             );
         };
