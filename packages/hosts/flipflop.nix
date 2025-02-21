@@ -1,4 +1,5 @@
 {
+  diskoConfigurations,
   hardware,
   pkgs,
   lib,
