@@ -1,4 +1,5 @@
 {
+  hardware,
   pkgs,
   lib,
   config,
@@ -63,7 +64,6 @@
   boot.extraModulePackages = with config.boot.kernelPackages; [ acpi_call ];
 
   hardware = {
-    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
     graphics = {
       enable = true;
       enable32Bit = true;
@@ -79,6 +79,12 @@
     enable = true;
     powerOnBoot = false;
   };
+
+  imports = with hardware; [
+    (diskoConfigurations.standardEncrypted { disk = "/dev/nvme0n1"; })
+    common-cpu-intel
+    common-pc-ssd
+  ];
 
   services.power-profiles-daemon = {
     enable = true;
