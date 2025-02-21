@@ -126,10 +126,9 @@ in
           };
 
           packages = with pkgs; [
-            # tools I use when editing nix code
-            # kanidm
-            alejandra
-            gnupg
+            nixfmt-rfc-style
+            nixd
+            nil
             (pkgs.buildEnv {
               name = "my-common-scripts";
               paths = [ ./scripts/common ];
