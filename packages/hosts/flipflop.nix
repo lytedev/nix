@@ -85,7 +85,10 @@
   };
 
   imports = with hardware; [
-    (diskoConfigurations.standardEncrypted { disk = "/dev/nvme0n1"; })
+    (diskoConfigurations.standardWithHibernateSwap {
+      disk = "/dev/nvme0n1";
+      swapSize = "16G";
+    })
     common-cpu-intel
     common-pc-ssd
   ];

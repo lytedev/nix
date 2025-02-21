@@ -19,6 +19,8 @@ pkgs.writeShellApplication {
       cd nix
     fi
 
+    read -s -r -p 'Swap Size:' swap_size
+    echo
     read -s -r -p 'Disk Encryption Password:' pass1
     echo
     read -s -r -p 'Disk Encryption Password (Again):' pass2
@@ -44,7 +46,8 @@ pkgs.writeShellApplication {
       github:nix-community/disko -- \
         --flake '.#$partition_scheme' \
         --mode disko \
-        --arg disk '\"$disk_path\"'"
+        --arg disk '\"$disk_path\"' \
+        --arg swapSize '\"$swap_size\"'"
 
     nix-shell --packages git \
       --run "sudo nixos-install \
