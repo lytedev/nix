@@ -108,13 +108,4 @@
         ];
       };
   };
-
-  home-manager.users.daniel = {
-    home = {
-      pointerCursor = {
-        size = 40;
-      };
-    };
-  };
-
 }
