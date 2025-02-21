@@ -8,7 +8,10 @@
 }:
 {
   system.stateVersion = "24.11";
-  networking.hostName = "flipflop";
+  networking = {
+    hostName = "flipflop";
+    wifi.enable = true;
+  };
 
   boot.loader.systemd-boot.enable = true;
 
@@ -87,25 +90,23 @@
     common-pc-ssd
   ];
 
-  services.power-profiles-daemon = {
-    enable = true;
-  };
-
-  networking = {
-    firewall =
-      let
-        terraria = 7777;
-        stardew-valley = 24642;
-      in
-      {
-        allowedTCPPorts = [
-          terraria
-          stardew-valley
-        ];
-        allowedUDPPorts = [
-          terraria
-          stardew-valley
-        ];
+  lyte.desktop.enable = true;
+  home-manager.users.daniel = {
+    lyte.shell.enable = true;
+    lyte.desktop.enable = true;
+    home = {
+      stateVersion = "24.11";
+      file.".config/easyeffects/output" = {
+        enable = true;
+        source = fetchGit {
+          url = "https://github.com/ceiphr/ee-framework-presets";
+          rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
+        };
       };
+    };
+    services.easyeffects = {
+      enable = true;
+      preset = "philonmetal";
+    };
   };
 }
