@@ -19,7 +19,6 @@
       "amdgpu.sg_display=0"
       "boot.shell_on_fail=1"
       "acpi_osi=\"!Windows 2020\""
-      "resume_offset=3421665"
     ];
     initrd.availableKernelModules = [
       "xhci_pci"
