@@ -440,7 +440,6 @@ in
               screensaver = [ "<Shift><Control><Super>l" ]; # lock screen
               mic-mute = [ "<Shift><Super>v" ];
             };
-
             "org/gnome/desktop/peripherals/touchpad" = {
               disable-while-typing = false;
             };

@@ -33,7 +33,12 @@
     framework-13-7040-amd
   ];
 
-  networking.networkmanager.wifi.powersave = false;
+  networking.networkmanager = {
+    wifi = {
+      macAddress = "random";
+      powersave = false;
+    };
+  };
   hardware = {
     framework.amd-7040.preventWakeOnAC = true;
     bluetooth = {
