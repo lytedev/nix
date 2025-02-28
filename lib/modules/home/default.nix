@@ -441,6 +441,9 @@ in
               mic-mute = [ "<Shift><Super>v" ];
             };
 
+            "org/gnome/desktop/peripherals/touchpad" = {
+              disable-while-typing = false;
+            };
             "org/gnome/desktop/peripherals/keyboard" = {
               # gnome key repeat
               repeat = true;

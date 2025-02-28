@@ -1264,6 +1264,7 @@
           createHome = false;
           home = dir;
           group = user;
+          linger = true;
         };
         virtualisation.oci-containers.containers.minecraft-flanilla = {
           autoStart = false;
@@ -1347,6 +1348,7 @@
           createHome = false;
           home = lib.mkForce dir;
           group = user;
+          # linger = true;
         };
         virtualisation.oci-containers.containers.minecraft-flanilla-creative = {
           autoStart = false;
@@ -1375,7 +1377,6 @@
             ENABLE_COMMAND_BLOCK = "true";
           };
           ports = [ "${toString port}:25565" ];
-
           volumes = [
             "${dir}/data:/data"
             "${dir}/worlds:/worlds"

@@ -143,7 +143,7 @@ in
               "SSH" = 22;
               "HTTP" = 80;
               "HTTPS" = 443;
-              "Minecraft Flanilla" = 26966;
+              "Minecraft Flanilla Creative" = 26968;
             };
             udp = {
               "QUIC" = [
