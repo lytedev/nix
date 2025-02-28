@@ -89,7 +89,7 @@
     extra-substituters = [
       "https://cache.nixos.org/"
       "https://nix-community.cachix.org"
-      # "https://nix.h.lyte.dev"
+      "https://nix.h.lyte.dev"
 
       # since we are forcing most inputs to follow our nixpkgs, we don't bother settings up caches and just use our own
       # "https://helix.cachix.org"
@@ -99,7 +99,7 @@
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      # "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
+      "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
 
       # "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
       # "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
