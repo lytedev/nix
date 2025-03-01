@@ -4,6 +4,7 @@
   default = pkgs.mkShell {
     inherit (self.outputs.checks.${pkgs.system}.git-hooks) shellHook;
     packages = with pkgs; [
+      colmena
       nil
       nixd
       nixfmt-rfc-style

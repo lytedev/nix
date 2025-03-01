@@ -24,6 +24,9 @@
 
       formatter = uGenPkgs (p: p.nixfmt-rfc-style);
 
+      colmena = import ./lib/colmena inputs;
+      colmenaHive = inputs.colmena.lib.makeHive inputs.self.outputs.colmena;
+
       /*
         TODO: nix-on-droid for phone terminal usage? mobile-nixos?
         TODO: nix-darwin for work?
@@ -71,6 +74,10 @@
     ghostty.url = "github:ghostty-org/ghostty";
     ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
+
+    colmena.url = "github:zhaofengli/colmena";
+    colmena.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    colmena.inputs.stable.follows = "nixpkgs";
 
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
 
