@@ -19,7 +19,7 @@ pkgs.writeShellApplication {
       cd nix
     fi
 
-    read -s -r -p 'Swap Size:' swap_size
+    read -r -p 'Swap Size:' swap_size
     echo
     read -s -r -p 'Disk Encryption Password:' pass1
     echo
