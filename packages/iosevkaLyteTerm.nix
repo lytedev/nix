@@ -127,7 +127,7 @@ in
     '';
   }).overrideAttrs
   rec {
-    pname = "Iosevka";
+    pname = "Iosevka${set}";
     version = "33.0.0";
 
     src = fetchFromGitHub {
