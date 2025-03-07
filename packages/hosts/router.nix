@@ -102,6 +102,10 @@ in
     }
   ];
 
+  home-manager.users.daniel = {
+    lyte.shell.enable = true;
+  };
+
   lyte = {
     shell.enable = true;
     router = {
