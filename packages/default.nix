@@ -3,6 +3,8 @@ let
   iosevkaLyteTerm = pkgs.callPackage ./iosevkaLyteTerm.nix { };
 in
 {
+  iosevka = pkgs.callPackage ./iosevka.nix { };
+
   inherit iosevkaLyteTerm;
 
   iosevkaLyteTermSubset = pkgs.callPackage ./iosevkaLyteTermSubset.nix {

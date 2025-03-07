@@ -1,4 +1,4 @@
-{ iosevka, ... }:
+{ fetchFromGitHub, iosevka, ... }:
 let
   set = "LyteTerm";
 in
@@ -126,7 +126,19 @@ in
       punctuation-dot = 'round'
     '';
   }).overrideAttrs
-  {
+  rec {
+    pname = "Iosevka";
+    version = "33.0.0";
+
+    src = fetchFromGitHub {
+      owner = "be5invis";
+      repo = "iosevka";
+      rev = "v${version}";
+      hash = "sha256-Wwh6EGngF+0vkNWnHU9isb24i/8gHBLQ3XMniF7dFTk=";
+    };
+
+    npmDepsHash = "sha256-Luzut1FLNS1MQ90ObbMNdKImOLhn/acrR1rja0jO0MI=";
+
     buildPhase = ''
       export HOME=$TMPDIR
       runHook preBuild
