@@ -148,12 +148,15 @@
       systemd.services."build-lytedev-flake" = {
         # TODO: might want to add root for the most recent results?
         script = ''
+          flake="git+https://git.lyte.dev/lytedev/nix.git"
           # build self (main server) configuration
-          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git --accept-flake-config
+          nixos-rebuild build --flake "$flake#beefcake" --accept-flake-config
           # build desktop configuration
-          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#dragon --accept-flake-config
+          nixos-rebuild build --flake "$flake#dragon" --accept-flake-config
           # build main laptop configuration
-          nixos-rebuild build --flake git+https://git.lyte.dev/lytedev/nix.git#foxtrot --accept-flake-config
+          nixos-rebuild build --flake "$flake#foxtrot" --accept-flake-config
+          # ensure dev shell packages are built (and cached)
+          nix develop "$flake" --build
         '';
         path = with pkgs; [
           openssh
