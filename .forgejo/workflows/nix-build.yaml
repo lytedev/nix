@@ -30,6 +30,10 @@ jobs:
       run: |
         nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#foxtrot
 
+    - name: Build default devShell
+      run: |
+        nix develop . --build 
+
     # - name: Save nix store
     #   uses: actions/cache/save@v4
     #   with:
