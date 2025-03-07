@@ -1,5 +1,4 @@
 {
-  self,
   nixpkgs,
   nixpkgs-unstable,
   ...
@@ -21,11 +20,12 @@ rec {
   modifications =
     final: prev:
     let
-      inherit (inputs) helix ghostty;
+      inherit (inputs) helix ghostty colmena;
     in
     {
       ghostty = ghostty.outputs.packages.${prev.system}.default;
       helix = helix.outputs.packages.${prev.system}.default;
+      colmena = colmena.outputs.packages.${prev.system}.colmena;
 
       bitwarden = prev.bitwarden.overrideAttrs (old: {
         preBuild = ''

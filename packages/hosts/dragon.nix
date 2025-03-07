@@ -46,6 +46,7 @@
     username = "dragon.h";
   };
 
+  services.postgresql.enable = true;
   programs.steam.enable = true;
   lyte.desktop.enable = true;
 
