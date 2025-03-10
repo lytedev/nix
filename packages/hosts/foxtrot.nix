@@ -91,4 +91,5 @@
       preset = "philonmetal";
     };
   };
+  services.postgresql.enable = true;
 }
