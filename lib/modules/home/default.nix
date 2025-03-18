@@ -294,6 +294,9 @@ in
               inherit email;
               name = fullName;
             };
+            ui = {
+              paginate = "never";
+            };
           };
         };
       };
