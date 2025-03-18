@@ -51,7 +51,10 @@
   lyte.desktop.enable = true;
 
   home-manager.users.daniel = {
-    lyte.shell.enable = true;
+    lyte.shell = {
+      enable = true;
+      learn-jujutsu-not-git.enable = true;
+    };
     lyte.desktop.enable = true;
     slippi-launcher = {
       enable = true;

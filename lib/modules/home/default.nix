@@ -54,6 +54,9 @@ in
         lyte = {
           shell = {
             enable = lib.mkEnableOption "Enable home-manager shell configuration for the user";
+            learn-jujutsu-not-git = {
+              enable = lib.mkEnableOption "Soft-disable the 'git' command in an effort to force me to learn jujutsu (jj)";
+            };
           };
         };
       };
@@ -308,7 +311,7 @@ in
     in
     {
       programs.git = {
-        enable = true;
+        enable = !config.lyte.shell.learn-jujutsu-not-git.enable;
 
         userName = lib.mkDefault fullName;
         userEmail = email;
@@ -404,16 +407,30 @@ in
       };
 
       programs.fish.functions = {
-        g = {
-          wraps = "git";
-          body = ''
-            if test (count $argv) -gt 0
-              git $argv
-            else
-              git status
-            end
-          '';
-        };
+        g =
+          if config.lyte.shell.learn-jujutsu-not-git.enable then
+            {
+              wraps = "jj";
+              body = ''
+                if test (count $argv) -gt 0
+                  jj $argv
+                else
+                  jj status
+                end
+              '';
+            }
+
+          else
+            {
+              wraps = "git";
+              body = ''
+                if test (count $argv) -gt 0
+                  git $argv
+                else
+                  git status
+                end
+              '';
+            };
         lag = {
           wraps = "g";
           body = ''
