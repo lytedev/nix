@@ -2,6 +2,7 @@
 let
   inherit (self) outputs;
   inherit (outputs) homeManagerModules style;
+  inherit (self.flakeLib) conditionalOutOfStoreSymlink;
 in
 {
   default =
@@ -52,6 +53,9 @@ in
     {
       options = {
         lyte = {
+          useOutOfStoreSymlinks = {
+            enable = lib.mkEnableOption "Enable the use of mkOutOfStoreSymlink for certain configuration files for faster editing, but means /etc/nixos and /etc/nix/flake must point to this flake in order to work";
+          };
           shell = {
             enable = lib.mkEnableOption "Enable home-manager shell configuration for the user";
             learn-jujutsu-not-git = {
@@ -204,17 +208,6 @@ in
           enableZshIntegration = config.programs.zsh.enable;
         };
       };
-    };
-
-  eww =
-    { config, ... }:
-    {
-      # programs.eww = {
-      #   enable = true;
-      # };
-
-      home.file.".config/eww".source =
-        config.lib.file.mkOutOfStoreSymlink /etc/nixos/modules/home-manager/eww;
     };
 
   cargo =
@@ -675,7 +668,7 @@ in
             disks = "df -h && lsblk";
             sctl = "sudo systemctl";
             bt = "bluetoothctl";
-            pa = "pulsemixer";
+            pa = "nix run nixpkgs#pulsemixer";
             sctlu = "systemctl --user";
           };
 
@@ -767,7 +760,7 @@ in
         ];
 
         home.file."${config.xdg.configHome}/ghostty" = {
-          source = config.lib.file.mkOutOfStoreSymlink /etc/nix/flake/lib/modules/home/ghostty;
+          source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ghostty ./ghostty;
         };
       };
     };

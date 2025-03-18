@@ -2,10 +2,11 @@
   outputs =
     inputs:
     let
-      lib = import ./lib inputs;
-      uGenPkgs = lib.genPkgs inputs.nixpkgs-unstable;
+      flakeLib = import ./lib inputs;
+      uGenPkgs = flakeLib.genPkgs inputs.nixpkgs-unstable;
     in
     {
+      inherit flakeLib;
       packages = uGenPkgs (import ./packages);
 
       nixosConfigurations = import ./packages/hosts inputs;
@@ -33,10 +34,7 @@
         TODO: nixos ISO?
       */
     }
-    // (import ./lib/constants.nix inputs)
-    // {
-      flakeLib = lib;
-    };
+    // (import ./lib/constants.nix inputs);
 
   inputs = {
     # stable inputs

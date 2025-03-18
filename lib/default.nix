@@ -18,5 +18,12 @@ rec {
   pkgsFor = nixpkgs: system: (import nixpkgs { inherit system; }).extend forSelfOverlay;
   genPkgs = nixpkgs: func: (forSystems nixpkgs (system: func (pkgsFor nixpkgs system)));
 
+  conditionalOutOfStoreSymlink =
+    config: outOfStoreSymlink: relPath:
+    if config.lyte.useOutOfStoreSymlinks.enable then
+      config.lib.file.mkOutOfStoreSymlink outOfStoreSymlink
+    else
+      relPath;
+
   inherit (import ./host.nix inputs) host stableHost;
 }
