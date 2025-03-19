@@ -33,6 +33,7 @@
     common-gpu-amd
     common-pc-ssd
   ];
+
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
 
@@ -49,6 +50,7 @@
   services.postgresql.enable = true;
   programs.steam.enable = true;
   lyte.desktop.enable = true;
+  virtualisation.podman.enable = true;
 
   home-manager.users.daniel = {
     lyte = {

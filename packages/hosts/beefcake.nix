@@ -108,7 +108,7 @@
     };
   };
 
-  virtualisation.oci-containers.backend = "podman";
+  virtualisation.podman.enable = true;
 
   services.deno-netlify-ddns-client = {
     enable = true;
@@ -1066,9 +1066,10 @@
             labels = [
               # type ":host" does not depend on docker/podman/lxc
               "podman"
-              "nix:docker://git.lyte.dev/lytedev/nix:latest"
-              "beefcake:host"
-              "nixos-host:host"
+              "nix-2.24.12:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-2.24.12"
+              "nix-latest:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-latest"
+              # "beefcake:host"
+              # "nixos-host:host"
             ];
             tokenFile = config.sops.secrets."forgejo-runner.env".path;
             hostPackages = with pkgs; [
