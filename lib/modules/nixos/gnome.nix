@@ -6,7 +6,6 @@
 }:
 {
   config = lib.mkIf config.services.xserver.desktopManager.gnome.enable {
-
     services = {
       xserver = {
         enable = true;

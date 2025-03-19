@@ -90,9 +90,12 @@
     system.configurationRevision = toString (
       self.shortRev or self.dirtyShortRev or self.lastModified or "unknown"
     );
-    environment.etc = {
-      "lytedev/rev".text = config.system.configurationRevision;
-      "lytedev/lastModified".text = toString (self.lastModified or "unknown");
+    environment = {
+      systemPackages = with pkgs; [ ghostty-terminfo ];
+      etc = {
+        "lytedev/rev".text = config.system.configurationRevision;
+        "lytedev/lastModified".text = toString (self.lastModified or "unknown");
+      };
     };
 
     lyte.shell.enable = lib.mkDefault true;

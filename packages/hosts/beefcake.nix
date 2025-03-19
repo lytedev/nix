@@ -20,7 +20,30 @@
 }:
 {
   system.stateVersion = "24.05";
-  networking.hostName = "beefcake";
+  networking = {
+    nat = {
+      # for NAT'ing to nixos-containers
+      enable = true;
+      internalInterfaces = [ "ve-+" ];
+      externalInterface = "eno1";
+    };
+    # bridges.br0.interfaces = [ "eno1" ]; # Adjust interface accordingly
+
+    # Get bridge-ip with DHCP
+    # useDHCP = false;
+    # interfaces."br0".useDHCP = true;
+
+    # Set bridge-ip static
+    # interfaces."br0".ipv4.addresses = [{
+    #   address = "10.233.2.0";
+    #   prefixLength = 24;
+    # }];
+    # defaultGateway = "192.168.100.1";
+    # nameservers = [ "192.168.100.1" ];
+
+    networkmanager.unmanaged = [ "interface-name:ve-*" ];
+    hostName = "beefcake";
+  };
 
   boot = {
     zfs = {

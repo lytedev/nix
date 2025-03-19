@@ -12,4 +12,5 @@ in
   };
 
   installer = pkgs.callPackage ./installer.nix { };
+  ghostty-terminfo = pkgs.callPackage ./ghostty-terminfo.nix { };
 }
