@@ -185,6 +185,7 @@
           openssh
           git
           nixos-rebuild
+          nix
         ];
         serviceConfig = {
           # TODO: mkdir -p...?
