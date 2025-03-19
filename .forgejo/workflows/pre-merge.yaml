@@ -1,0 +1,33 @@
+on: [push]
+jobs:
+  build-host:
+    runs-on: nixos-host
+    strategy:
+      matrix:
+        info:
+          - host: beefcake
+          - host: router
+          - host: dragon
+          - host: foxtrot
+          - host: flipflop
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build host
+      run: |
+        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#${{ matrix.info.host }} --accept-flake-config
+
+  build-devshell:
+    runs-on: nixos-host
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build default devShell
+      run: |
+        nix develop . --build --accept-flake-config
+
+  flake-check:
+    runs-on: nixos-host
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check nix flake
+      run: |
+        nix flake check --accept-flake-config

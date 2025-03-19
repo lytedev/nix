@@ -5,8 +5,7 @@
 Nix for <code>lytedev</code>
 </h1>
 
-[![flake check status](https://git.lyte.dev/lytedev/nix/badges/workflows/nix-flake-check.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=nix-flake-check.yaml)
-[![build status](https://git.lyte.dev/lytedev/nix/badges/workflows/nix-build.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=nix-build.yaml)
+[![pre-merge status](https://git.lyte.dev/lytedev/nix/badges/workflows/pre-merge.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=pre-merge.yaml)
 
 </div>
 

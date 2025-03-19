@@ -5,7 +5,11 @@
   ...
 }:
 {
-  config = lib.mkIf config.virtualisation.podman.enable {
+  options = {
+    podman.enable = lib.mkEnableOption "Enable podman and associated general NixOS defaults";
+  };
+
+  config = lib.mkIf config.podman.enable {
     environment = {
       systemPackages = with pkgs; [
         podman-tui
@@ -15,7 +19,7 @@
 
     virtualisation = {
       podman = {
-        # enable = true;
+        enable = true;
         dockerCompat = true;
         dockerSocket.enable = true;
         defaultNetwork.settings.dns_enabled = true;

@@ -108,7 +108,7 @@
     };
   };
 
-  virtualisation.podman.enable = true;
+  podman.enable = true;
 
   services.deno-netlify-ddns-client = {
     enable = true;
@@ -131,6 +131,51 @@
   home-manager.users.daniel = {
     lyte.shell.enable = true;
   };
+
+  /*
+    TODO: non-root processes and services that access secrets need to be part of
+    the 'keys' group
+
+    systemd.services.some-service = {
+      serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
+    };
+    or
+    users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
+
+    TODO: declarative directory quotas? for storage/$USER and /home/$USER
+  */
+
+  /*
+    # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
+    services.lidarr = {
+      enable = true;
+      dataDir = "/storage/lidarr";
+    };
+
+    services.radarr = {
+      enable = true;
+      dataDir = "/storage/radarr";
+    };
+
+    services.sonarr = {
+      enable = true;
+      dataDir = "/storage/sonarr";
+    };
+
+    services.bazarr = {
+      enable = true;
+      listenPort = 6767;
+    };
+
+    networking.firewall.allowedTCPPorts = [9876 9877];
+    networking.firewall.allowedUDPPorts = [9876 9877];
+    networking.firewall.allowedUDPPortRanges = [
+      {
+        from = 27000;
+        to = 27100;
+      }
+    ];
+  */
 
   imports = [
     hardware.common-cpu-intel
@@ -842,8 +887,9 @@
       ];
     }
     (
-      { ... }:
+      { lib, ... }:
       let
+        runnerCount = 16;
         theme = pkgs.fetchzip {
           url = "https://github.com/catppuccin/gitea/releases/download/v1.0.1/catppuccin-gitea.tar.gz";
           sha256 = "sha256-et5luA3SI7iOcEIQ3CVIu0+eiLs8C/8mOitYlWQa/uI=";
@@ -1027,64 +1073,77 @@
             mode = "0400";
           };
         };
-        systemd.services.gitea-runner-beefcake.after = [ "sops-nix.service" ];
 
-        systemd.services.forgejo = {
-          preStart = lib.mkAfter ''
-            rm -rf ${config.services.forgejo.stateDir}/custom/public
-            mkdir -p ${config.services.forgejo.stateDir}/custom/public/
-            mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/
-            mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/img/
-            mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/css/
-            mkdir -p ${config.services.forgejo.stateDir}/custom/templates/custom/
-            ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.png
-            ln -sf ${logos.svg} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.svg
-            ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.png
-            ln -sf ${logos.svg-with-background} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.svg
-            ln -sf ${theme}/theme-catppuccin-mocha-sapphire.css ${config.services.forgejo.stateDir}/custom/public/assets/css/
-            ln -sf ${forgejoCustomCss} ${config.services.forgejo.stateDir}/custom/public/assets/css/iosevkalyte.css
-            ln -sf ${forgejoCustomHeaderTmpl} ${config.services.forgejo.stateDir}/custom/templates/custom/header.tmpl
-            ln -sf ${forgejoCustomHomeTmpl} ${config.services.forgejo.stateDir}/custom/templates/home.tmpl
-          '';
-        };
+        systemd.services =
+          lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake${builtins.toString n}") runnerCount)
+            (name: {
+              after = [ "sops-nix.service" ];
+            })
+          // {
+            forgejo = {
+              preStart = lib.mkAfter ''
+                rm -rf ${config.services.forgejo.stateDir}/custom/public
+                mkdir -p ${config.services.forgejo.stateDir}/custom/public/
+                mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/
+                mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/img/
+                mkdir -p ${config.services.forgejo.stateDir}/custom/public/assets/css/
+                mkdir -p ${config.services.forgejo.stateDir}/custom/templates/custom/
+                ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.png
+                ln -sf ${logos.svg} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.svg
+                ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.png
+                ln -sf ${logos.svg-with-background} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.svg
+                ln -sf ${theme}/theme-catppuccin-mocha-sapphire.css ${config.services.forgejo.stateDir}/custom/public/assets/css/
+                ln -sf ${forgejoCustomCss} ${config.services.forgejo.stateDir}/custom/public/assets/css/iosevkalyte.css
+                ln -sf ${forgejoCustomHeaderTmpl} ${config.services.forgejo.stateDir}/custom/templates/custom/header.tmpl
+                ln -sf ${forgejoCustomHomeTmpl} ${config.services.forgejo.stateDir}/custom/templates/home.tmpl
+              '';
+            };
+          };
+
+        # gitea-runner-beefcake.after = [ "sops-nix.service" ];
 
         services.gitea-actions-runner = {
           # TODO: simple git-based automation would be dope? maybe especially for
           # mirroring to github super easy?
           package = pkgs.forgejo-runner;
-          instances."beefcake" = {
-            enable = true;
-            name = "beefcake";
-            url = "https://git.lyte.dev";
-            settings = {
-              container = {
-                # use the shared network which is bridged by default
-                # this lets us hit git.lyte.dev just fine
-                network = "podman";
-              };
-            };
-            labels = [
-              # type ":host" does not depend on docker/podman/lxc
-              "podman"
-              "nix-2.24.12:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-2.24.12"
-              "nix-latest:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-latest"
-              # "beefcake:host"
-              # "nixos-host:host"
-            ];
-            tokenFile = config.sops.secrets."forgejo-runner.env".path;
-            hostPackages = with pkgs; [
-              nix
-              bash
-              coreutils
-              curl
-              gawk
-              gitMinimal
-              gnused
-              nodejs
-              gnutar # needed for cache action
-              wget
-            ];
-          };
+
+          instances =
+            lib.genAttrs (builtins.genList (n: "beefcake${builtins.toString n}") runnerCount)
+              (name: {
+                enable = true;
+                name = "beefcake";
+                url = "https://git.lyte.dev"; # TODO: get from nix config?
+                settings = {
+                  container = {
+                    # use the shared network which is bridged by default
+                    # this lets us hit git.lyte.dev just fine
+                    # network = "podman";
+                    network = "host";
+                  };
+                };
+                labels = [
+                  # type ":host" does not depend on docker/podman/lxc
+                  # "beefcake:host"
+                  "beefcake:host"
+                  "nixos-host:host"
+                  # "podman"
+                  # "nix-2.24.12:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-v3-nix-v2.24.12"
+                  # "nix-latest:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-latest"
+                ];
+                tokenFile = config.sops.secrets."forgejo-runner.env".path;
+                hostPackages = with pkgs; [
+                  nix
+                  bash
+                  coreutils
+                  curl
+                  gawk
+                  gitMinimal
+                  gnused
+                  nodejs
+                  gnutar # needed for cache action
+                  wget
+                ];
+              });
         };
         # environment.systemPackages = with pkgs; [nodejs];
         services.caddy.virtualHosts."git.lyte.dev" = {
@@ -2164,49 +2223,4 @@
       }
     )
   ];
-
-  /*
-    TODO: non-root processes and services that access secrets need to be part of
-    the 'keys' group
-
-    systemd.services.some-service = {
-      serviceConfig.SupplementaryGroups = [ config.users.groups.keys.name ];
-    };
-    or
-    users.users.example-user.extraGroups = [ config.users.groups.keys.name ];
-
-    TODO: declarative directory quotas? for storage/$USER and /home/$USER
-  */
-
-  /*
-    # https://github.com/NixOS/nixpkgs/blob/04af42f3b31dba0ef742d254456dc4c14eedac86/nixos/modules/services/misc/lidarr.nix#L72
-    services.lidarr = {
-      enable = true;
-      dataDir = "/storage/lidarr";
-    };
-
-    services.radarr = {
-      enable = true;
-      dataDir = "/storage/radarr";
-    };
-
-    services.sonarr = {
-      enable = true;
-      dataDir = "/storage/sonarr";
-    };
-
-    services.bazarr = {
-      enable = true;
-      listenPort = 6767;
-    };
-
-    networking.firewall.allowedTCPPorts = [9876 9877];
-    networking.firewall.allowedUDPPorts = [9876 9877];
-    networking.firewall.allowedUDPPortRanges = [
-      {
-        from = 27000;
-        to = 27100;
-      }
-    ];
-  */
 }

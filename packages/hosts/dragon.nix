@@ -50,7 +50,7 @@
   services.postgresql.enable = true;
   programs.steam.enable = true;
   lyte.desktop.enable = true;
-  virtualisation.podman.enable = true;
+  podman.enable = true;
 
   home-manager.users.daniel = {
     lyte = {
