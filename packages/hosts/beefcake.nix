@@ -1067,8 +1067,10 @@
               # type ":host" does not depend on docker/podman/lxc
               "podman"
               "nix:docker://git.lyte.dev/lytedev/nix:latest"
-              "beefcake:host"
-              "nixos-host:host"
+              "nix-latest:docker://ghcr.io/nixos/nix:latest"
+              "nix-stable:docker://ghcr.io/nixos/nix:2.26.3"
+              # "beefcake:host"
+              # "nixos-host:host"
             ];
             tokenFile = config.sops.secrets."forgejo-runner.env".path;
             hostPackages = with pkgs; [
