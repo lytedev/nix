@@ -108,8 +108,10 @@
       # registry = lib.mapAttrs (_: value: { flake = value; }) self.inputs;
 
       settings = {
-        trusted-users = lib.mkDefault [ "@wheel" ];
-        extra-experimental-features = lib.mkDefault [
+        trusted-users = [
+          "@wheel"
+        ];
+        extra-experimental-features = [
           "nix-command"
           "flakes"
         ];
