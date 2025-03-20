@@ -11,6 +11,7 @@ jobs:
           - host: dragon
           - host: foxtrot
           - host: flipflop
+          - host: steamdeck
     steps:
     - uses: actions/checkout@v4
     - name: Build host

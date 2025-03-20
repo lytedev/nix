@@ -119,7 +119,8 @@ buildNpmPackage rec {
     runHook preBuild
 
     # pipe to cat to disable progress bar
-    npm run build --no-update-notifier --targets ttf::$pname -- --jCmd=$NIX_BUILD_CORES --verbosity=9 | cat
+    # force use of only two cores here to avoid oomkilling most machines
+    npm run build --no-update-notifier --targets ttf::$pname -- --jCmd=2 --verbosity=9 | cat
 
     runHook postBuild
   '';

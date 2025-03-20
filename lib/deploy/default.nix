@@ -1,5 +1,19 @@
 { deploy-rs, self, ... }:
 let
+  deployPkgs =
+    system:
+    import self.inputs.nixpkgs {
+      inherit system;
+      overlays = [
+        deploy-rs.overlays.default
+        (final: prev: {
+          deploy-rs = {
+            inherit (prev) deploy-rs;
+            lib = deploy-rs.lib;
+          };
+        })
+      ];
+    };
   deployer =
     host: opts:
     {
@@ -9,7 +23,9 @@ let
       interactiveSudo = true;
       profiles.system = {
         user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.${host};
+        path =
+          (deployPkgs self.nixosConfigurations.${host}.pkgs.system).deploy-rs.lib.x86_64-linux.activate.nixos
+            self.nixosConfigurations.${host};
       };
     }
     // opts;
