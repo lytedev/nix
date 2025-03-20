@@ -4,6 +4,8 @@ let
     {
       nixpkgs,
       home-manager,
+      extraModules ? [ ],
+      extraOverlays ? [ ],
       ...
     }:
     (
@@ -19,10 +21,17 @@ let
             hardware = inputs.hardware.outputs.nixosModules;
             diskoConfigurations = inputs.self.outputs.diskoConfigurations;
           };
-          modules = [
-            inputs.self.outputs.nixosModules.default
-            (import path)
-          ];
+          modules =
+            [
+              {
+                nixpkgs.overlays = extraOverlays;
+              }
+            ]
+            ++ extraModules
+            ++ [
+              inputs.self.outputs.nixosModules.default
+              (import path)
+            ];
         })
       )
     );
@@ -32,5 +41,11 @@ in
   host = baseHost {
     nixpkgs = inputs.nixpkgs-unstable;
     home-manager = inputs.home-manager-unstable;
+  };
+  steamdeckHost = baseHost {
+    nixpkgs = inputs.nixpkgs-unstable;
+    home-manager = inputs.home-manager-unstable;
+    extraModules = [ inputs.jovian.outputs.nixosModules.default ];
+    # do NOT manually include the jovian overlay here
   };
 }

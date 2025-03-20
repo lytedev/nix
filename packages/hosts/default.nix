@@ -1,6 +1,6 @@
 inputs:
 let
-  inherit (inputs.self.flakeLib) host stableHost;
+  inherit (inputs.self.flakeLib) host stableHost steamdeckHost;
 in
 {
   beefcake = stableHost ./beefcake.nix { };
@@ -12,6 +12,9 @@ in
   bigtower = stableHost ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
   flipflop = host ./flipflop.nix { };
+
+  steamdeck = steamdeckHost ./steamdeck.nix { };
+  steamdeckoled = steamdeckHost ./steamdeckoled.nix { };
 
   generic-headless = stableHost ./generic-headless.nix { };
   generic = stableHost ./generic.nix { };

@@ -48,9 +48,14 @@
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    # "unstable" inputs
+    # unstable inputs
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
+    home-manager-unstable.url = "github:nix-community/home-manager";
+    home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     hardware.url = "github:NixOS/nixos-hardware";
+
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -60,33 +65,26 @@
     git-hooks.url = "github:cachix/git-hooks.nix";
     git-hooks.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    home-manager-unstable.url = "github:nix-community/home-manager";
-    home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    helix.url = "github:helix-editor/helix/master";
-    helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
     slippi.url = "github:lytedev/slippi-nix";
     # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
     slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
     slippi.inputs.home-manager.follows = "home-manager-unstable";
 
-    # jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
+    # inputs with their own cache I want to use
+    helix.url = "github:helix-editor/helix/master";
+    # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
     # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     ghostty.url = "github:ghostty-org/ghostty";
-    ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
-    ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
+    # ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
+    # ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
-
-    mobile-nixos = {
-      url = "github:lytedev/mobile-nixos";
-      flake = false;
-    };
+    # nnf.url = "github:thelegy/nixos-nftables-firewall";
   };
 
   nixConfig = {
@@ -100,9 +98,8 @@
       "https://nix-community.cachix.org"
       "https://nix.h.lyte.dev"
 
-      # since we are forcing most inputs to follow our nixpkgs, we don't bother settings up caches and just use our own
-      # "https://helix.cachix.org"
-      # "https://ghostty.cachix.org"
+      "https://helix.cachix.org"
+      "https://ghostty.cachix.org"
     ];
 
     extra-trusted-public-keys = [
@@ -110,9 +107,8 @@
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
 
-      # "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
-      # "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-      # "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+      "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+      "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
     ];
   };
 }
