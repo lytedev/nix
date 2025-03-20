@@ -15,6 +15,7 @@ jobs:
     - name: Build host
       run: |
         nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#${{ matrix.info.host }} --accept-flake-config
+        echo 'nix command completed successfully'
 
   build-devshell:
     runs-on: nixos-host
@@ -23,6 +24,7 @@ jobs:
     - name: Build default devShell
       run: |
         nix develop . --build --accept-flake-config
+        echo 'nix command completed successfully'
 
   flake-check:
     runs-on: nixos-host
@@ -31,3 +33,4 @@ jobs:
     - name: Check nix flake
       run: |
         nix flake check --accept-flake-config
+        echo 'nix command completed successfully'
