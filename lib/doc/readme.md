@@ -1,6 +1,6 @@
-# Internal Usage
+# Documentation
 
-## Secrets?
+## Internal Setup
 
 If you're deploying anything secrets-related, you will need the proper keys:
 
@@ -9,7 +9,7 @@ $ mkdir -p ${XDG_CONFIG_HOME:-~/.config}/sops/age
 $ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
 ```
 
-## Update Server
+# Updates
 
 **NOTE**: I want to establish a solid way to do this without `root@`.
 
@@ -62,7 +62,7 @@ nix run nixpkgs#nixos-rebuild -- --flake ".#$host" \
 ssh "root@$host" nixos-rebuild --rollback switch
 ```
 
-## Provisioning New NixOS Hosts
+# Provisioning New NixOS Hosts
 
 ```shell
 nix run --extra-experimental-features 'nix-command flakes' \
@@ -103,7 +103,7 @@ nix-shell --packages git \
     --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev:HeVWtne31ZG8iMf+c15VY3/Mky/4ufXlfTpT8+4Xbs0='"
 ```
 
-Then:
+### Post-Installation Setup
 
 1. Tailscale connection and roles.
 
@@ -129,4 +129,23 @@ $ rsync -r ~/.local/share/password-store $host:~/.local/share/password-store
 
 # Temporary Firewall Changes
 
-Source: https://discourse.nixos.org/t/how-to-temporarily-open-a-tcp-port-in-nixos/12306/2
+```shell
+$ nixos-firewall-tool --help
+```
+
+Or if we're performing ad-hoc operations on the router's nftables rules as root:
+
+```shell
+# add a rule
+$ nft add rule ...
+
+# find a rule
+$ nft -a list table $table
+# examples:
+$ nft -a list table nat
+$ nft -a list table filter
+$ nft -a list table ip
+
+# delete a rule
+$ nft delete rule $table $chain handle $handle
+```
