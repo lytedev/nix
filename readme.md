@@ -7,7 +7,7 @@ Nix for <code>lytedev</code>
 
 [![pre-merge status](https://git.lyte.dev/lytedev/nix/badges/workflows/pre-merge.yaml/badge.svg)](https://git.lyte.dev/lytedev/nix/actions?workflow=pre-merge.yaml)
 
-Desktop - Laptop - Servers - Routers - Packages - Templates
+[NixOS Modules](./lib/modules/nixos/default.nix) - [Home Manager Modules](./lib/modules/home/default.nix) - [Desktop](./packages/hosts/dragon.nix) - [Laptop](./packages/hosts/foxtrot.nix) - [Server](./packages/hosts/beefcake.nix) - [Router](./packages/hosts/router.nix) - [Packages](./packages/default.nix) - [Templates](./lib/templates/default.nix) - [Docs](./lib/doc)
 
 </div>
 
@@ -27,18 +27,3 @@ refactors of the code for no real gain.
 - Machines that I interact with only remotely (`shell` class)
 - Machines that I interact with directly, such as a laptop or my desktop
   workstation (`desktop` class)
-
-## Notable Links
-
-- [Set of NixOS modules](./lib/modules/nixos/default.nix)
-  - [Home router module](./lib/modules/nixos/router.nix)
-- [Set of Home Manager modules](./lib/modules/home/default.nix)
-- [NixOS hosts](./packages/hosts/default.nix)
-  - [Desktop workstation](./packages/hosts/dragon.nix)
-  - [Primary laptop](./packages/hosts/foxtrot.nix)
-  - [Server](./packages/hosts/beefcake.nix)
-  - [Router](./packages/hosts/router.nix)
-
-# Docs
-
-See [lib/doc](./lib/doc/).
