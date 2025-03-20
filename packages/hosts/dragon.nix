@@ -59,8 +59,8 @@
         enable = true;
         learn-jujutsu-not-git.enable = true;
       };
+      desktop.enable = true;
     };
-    lyte.desktop.enable = true;
     slippi-launcher = {
       enable = true;
       isoPath = "${config.users.users.daniel.home}/../games/roms/dolphin/melee.iso";

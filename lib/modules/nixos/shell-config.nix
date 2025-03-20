@@ -43,7 +43,7 @@ in
         MANPAGER = "bat --style=plain";
       };
       systemPackages = with pkgs; [
-        ghostty-terminfo
+        # ghostty-terminfo
         aria2
         bat
         bottom
