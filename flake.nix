@@ -4,6 +4,12 @@
     let
       flakeLib = import ./lib inputs;
       uGenPkgs = flakeLib.genPkgs inputs.nixpkgs-unstable;
+
+      deployChecks = (
+        builtins.mapAttrs (
+          system: deployLib: deployLib.deployChecks inputs.self.deploy
+        ) inputs.deploy-rs.lib
+      );
     in
     {
       inherit flakeLib;
@@ -15,7 +21,7 @@
       templates = import ./lib/templates;
 
       diskoConfigurations = import ./lib/disko inputs;
-      checks = uGenPkgs (import ./packages/checks inputs);
+      checks = deployChecks // (uGenPkgs (import ./packages/checks inputs));
       devShells = uGenPkgs (import ./packages/shells inputs);
 
       nixosModules = import ./lib/modules/nixos inputs;
@@ -25,8 +31,7 @@
 
       formatter = uGenPkgs (p: p.nixfmt-rfc-style);
 
-      colmena = import ./lib/colmena inputs;
-      colmenaHive = inputs.colmena.lib.makeHive inputs.self.outputs.colmena;
+      deploy = import ./lib/deploy inputs;
 
       /*
         TODO: nix-on-droid for phone terminal usage? mobile-nixos?
@@ -73,9 +78,8 @@
     ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    colmena.url = "github:zhaofengli/colmena";
-    colmena.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    colmena.inputs.stable.follows = "nixpkgs";
+    deploy-rs.url = "github:serokell/deploy-rs";
+    deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # nnf.url = "github:thelegy/nixos-nftables-firewall?rev=71fc2b79358d0dbacde83c806a0f008ece567b7b";
 
