@@ -1,5 +1,14 @@
 # Internal Usage
 
+## Secrets?
+
+If you're deploying anything secrets-related, you will need the proper keys:
+
+```shell_session
+$ mkdir -p ${XDG_CONFIG_HOME:-~/.config}/sops/age
+$ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
+```
+
 ## Update Server
 
 **NOTE**: I want to establish a solid way to do this without `root@`.
