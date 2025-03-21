@@ -66,6 +66,7 @@
     "acpi_call"
   ];
   boot.extraModulePackages = with config.boot.kernelPackages; [ acpi_call ];
+  boot.kernelParams = [ "mem_sleep_default=deep" ];
 
   hardware = {
     graphics = {
