@@ -91,7 +91,6 @@
       self.shortRev or self.dirtyShortRev or self.lastModified or "unknown"
     );
     environment = {
-      systemPackages = with pkgs; [ ghostty-terminfo ];
       etc = {
         "lytedev/rev".text = config.system.configurationRevision;
         "lytedev/lastModified".text = toString (self.lastModified or "unknown");
@@ -152,21 +151,21 @@
     hardware.enableRedistributableFirmware = lib.mkDefault true;
 
     users.users.root = {
-      openssh.authorizedKeys.keys = lib.mkDefault [ self.outputs.pubkey ];
+      openssh.authorizedKeys.keys = [ self.outputs.pubkey ];
       shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
     };
 
     services = {
       openssh = {
-        enable = lib.mkDefault true;
+        enable = true;
 
         settings = {
-          PasswordAuthentication = lib.mkDefault false;
-          KbdInteractiveAuthentication = lib.mkDefault false;
-          PermitRootLogin = lib.mkForce "prohibit-password";
+          PasswordAuthentication = false;
+          KbdInteractiveAuthentication = false;
+          PermitRootLogin = "prohibit-password";
         };
 
-        openFirewall = lib.mkDefault true;
+        openFirewall = true;
 
         /*
           listenAddresses = [
@@ -192,7 +191,6 @@
         options = lib.mkDefault "ctrl:nocaps";
       };
       smartd.enable = lib.mkDefault true;
-      fwupd.enable = lib.mkDefault true;
     };
 
     console = {

@@ -60,7 +60,8 @@
   '';
 
   networking = {
-    wifi.enable = true;
+    useDHCP = true;
+    wifi.enable = false;
     firewall = {
       enable = true;
       allowPing = true;
@@ -70,7 +71,8 @@
 
   services.tailscale.useRoutingFeatures = "server";
 
+  lyte.shell.enable = false;
   home-manager.users.daniel = {
-    lyte.shell.enable = true;
+    lyte.shell.enable = false;
   };
 }

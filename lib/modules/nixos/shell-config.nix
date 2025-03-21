@@ -19,6 +19,9 @@ in
   config = lib.mkIf cfg.enable {
     programs.nix-index.enable = true;
     programs.command-not-found.enable = false;
+    services = {
+      fwupd.enable = lib.mkDefault true;
+    };
     users = {
       defaultUserShell = pkgs.fish;
     };
@@ -40,6 +43,7 @@ in
         MANPAGER = "bat --style=plain";
       };
       systemPackages = with pkgs; [
+        ghostty-terminfo
         aria2
         bat
         bottom
