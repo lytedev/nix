@@ -54,8 +54,6 @@
     home-manager-unstable.url = "github:nix-community/home-manager";
     home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    hardware.url = "github:NixOS/nixos-hardware";
-
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -70,12 +68,16 @@
     slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
     slippi.inputs.home-manager.follows = "home-manager-unstable";
 
+    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
+    # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    # other inputs
+    hardware.url = "github:NixOS/nixos-hardware";
+    # nnf.url = "github:thelegy/nixos-nftables-firewall";
+
     # inputs with their own cache I want to use
     helix.url = "github:helix-editor/helix/master";
     # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
-    # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     ghostty.url = "github:ghostty-org/ghostty";
     # ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
@@ -83,8 +85,6 @@
 
     deploy-rs.url = "github:serokell/deploy-rs";
     # deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    # nnf.url = "github:thelegy/nixos-nftables-firewall";
   };
 
   nixConfig = {

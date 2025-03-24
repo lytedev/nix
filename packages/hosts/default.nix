@@ -1,6 +1,11 @@
 inputs:
 let
-  inherit (inputs.self.flakeLib) host stableHost steamdeckHost;
+  inherit (inputs.self.flakeLib)
+    host
+    stableHost
+    steamdeckHost
+    baseHost
+    ;
 in
 {
   beefcake = stableHost ./beefcake.nix { };
@@ -18,6 +23,26 @@ in
 
   generic-headless = stableHost ./generic-headless.nix { };
   generic = stableHost ./generic.nix { };
+
+  liveImage = baseHost rec {
+    nixpkgs = inputs.nixpkgs-unstable;
+    home-manager = inputs.home-manager-unstable;
+    extraModules = [
+      (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix")
+      {
+        system.stateVersion = "25.05";
+        networking.hostName = "live-nixos-lyte";
+        networking.networkmanager.enable = false;
+
+        lyte.shell.enable = true;
+        lyte.desktop.enable = true;
+        home-manager.users.daniel = {
+          lyte.shell.enable = true;
+          lyte.desktop.enable = true;
+        };
+      }
+    ];
+  } ./live.nix { };
 
   # arm-dragon = host ./dragon.nix { system = "aarch64-linux"; };
 }

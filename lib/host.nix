@@ -37,6 +37,7 @@ let
     );
 in
 {
+  inherit baseHost;
   stableHost = baseHost { inherit (inputs) nixpkgs home-manager; };
   host = baseHost {
     nixpkgs = inputs.nixpkgs-unstable;

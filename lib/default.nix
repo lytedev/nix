@@ -25,5 +25,10 @@ rec {
     else
       relPath;
 
-  inherit (import ./host.nix inputs) host stableHost steamdeckHost;
+  inherit (import ./host.nix inputs)
+    host
+    stableHost
+    steamdeckHost
+    baseHost
+    ;
 }
