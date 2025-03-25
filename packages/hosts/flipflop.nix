@@ -78,6 +78,7 @@
         intel-vaapi-driver
       ];
     };
+    sensor.iio.enable = true; # auto-rotation in tablet mode
   };
 
   hardware.bluetooth = {
