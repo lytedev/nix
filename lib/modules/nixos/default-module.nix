@@ -52,7 +52,8 @@
           ];
         };
         home-manager.users.flanfam = {
-          # TODO: .face
+          lyte.shell.enable = lib.mkDefault true;
+          lyte.desktop.enable = lib.mkDefault true;
           accounts.email.accounts.primary = {
             primary = true;
             address = "home@lyte.dev";
@@ -62,7 +63,7 @@
             homeDirectory = "/home/flanfam";
             stateVersion = lib.mkDefault config.system.stateVersion;
             file.".face" = {
-              enable = config.home-manager.users.daniel.lyte.desktop.enable;
+              enable = true;
               source = builtins.fetchurl {
                 url = "https://lyte.dev/icon.png";
                 sha256 = "sha256:0nf22gwasc64yc5317d0k0api0fwyrf4g3wxljdi2p3ki079ky53";
