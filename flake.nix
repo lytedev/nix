@@ -3,13 +3,7 @@
     inputs:
     let
       flakeLib = import ./lib inputs;
-      uGenPkgs = flakeLib.genPkgs inputs.nixpkgs-unstable;
-
-      deployChecks = (
-        builtins.mapAttrs (
-          system: deployLib: deployLib.deployChecks inputs.self.deploy
-        ) inputs.deploy-rs.lib
-      );
+      inherit (flakeLib) uGenPkgs;
     in
     {
       inherit flakeLib;
@@ -21,7 +15,7 @@
       templates = import ./lib/templates;
 
       diskoConfigurations = import ./lib/disko inputs;
-      checks = deployChecks // (uGenPkgs (import ./packages/checks inputs));
+      checks = flakeLib.deployChecks // (uGenPkgs (import ./packages/checks inputs));
       devShells = uGenPkgs (import ./packages/shells inputs);
 
       nixosModules = import ./lib/modules/nixos inputs;

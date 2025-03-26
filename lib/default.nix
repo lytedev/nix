@@ -31,4 +31,11 @@ rec {
     steamdeckHost
     baseHost
     ;
+
+  uGenPkgs = genPkgs inputs.nixpkgs-unstable;
+
+  deployChecks = builtins.mapAttrs (
+    system: deployLib: deployLib.deployChecks self.deploy
+  ) inputs.deploy-rs.lib;
+
 }
