@@ -39,28 +39,40 @@
     # stable inputs
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-24.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # unstable inputs
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    home-manager-unstable.url = "github:nix-community/home-manager";
-    home-manager-unstable.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    home-manager-unstable = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
 
-    disko.url = "github:nix-community/disko/master";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    disko = {
+      url = "github:nix-community/disko/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
 
-    git-hooks.url = "github:cachix/git-hooks.nix";
-    git-hooks.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
 
-    slippi.url = "github:lytedev/slippi-nix";
-    # slippi.url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
-    slippi.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    slippi.inputs.home-manager.follows = "home-manager-unstable";
+    slippi = {
+      url = "github:lytedev/slippi-nix";
+      # url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.home-manager.follows = "home-manager-unstable";
+    };
 
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
     # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
