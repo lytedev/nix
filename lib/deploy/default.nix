@@ -19,7 +19,7 @@ let
     {
       hostname = "${host}.hare-cod.ts.net";
       remoteBuild = true; # should pull from cache # TODO: verify this
-      fastConnection = true;
+      # fastConnection = true;
       interactiveSudo = true;
       profiles.system = {
         user = "root";

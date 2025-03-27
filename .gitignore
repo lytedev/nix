@@ -5,3 +5,5 @@ result
 
 *.log
 *.qcow2
+
+mise.local.toml
