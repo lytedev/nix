@@ -18,8 +18,9 @@ let
       ];
     */
 
-    cargoHash = pkgs.lib.fakeHash;
-    useFetchCargoVendor = true;
+    cargoLock = {
+      lockFile = ./Cargo.lock;
+    };
   };
 in
 {
