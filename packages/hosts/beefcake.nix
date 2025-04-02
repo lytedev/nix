@@ -1035,6 +1035,9 @@
             log = {
               # LEVEL = "Debug";
             };
+            security = {
+              REVERSE_PROXY_TRUSTED_PROXIES = "127.0.0.0/8,::1/128";
+            };
             ui = {
               THEMES = "catppuccin-mocha-sapphire,forgejo-auto,forgejo-light,forgejo-dark";
               DEFAULT_THEME = "catppuccin-mocha-sapphire";
@@ -1146,11 +1149,14 @@
               });
         };
         # environment.systemPackages = with pkgs; [nodejs];
-        services.caddy.virtualHosts."git.lyte.dev" = {
-          extraConfig = ''
-            reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
-          '';
-        };
+        # TODO: goes through anubis now
+        # services.caddy.virtualHosts."git.lyte.dev" = {
+        #   extraConfig = ''
+        #     reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT} {
+        #       header_up X-Real-Ip {remote_host}
+        #     }
+        #   '';
+        # };
         services.caddy.virtualHosts."http://git.beefcake.lan" = {
           extraConfig = ''
             reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
@@ -1334,6 +1340,64 @@
           ];
       */
     }
+    (
+      { config, ... }:
+      let
+        user = "anubis";
+        dir = "/storage/anubis";
+        port = 8529;
+      in
+      {
+        users.groups.${user} = { };
+        users.users.${user} = {
+          isSystemUser = true;
+          createHome = false;
+          home = dir;
+          group = user;
+          linger = true;
+        };
+        # systemd.services.podman-anubis.serviceConfig = {
+        #   User = user;
+        #   Group = user;
+        # };
+        systemd.tmpfiles.settings = {
+          "10-${user}" = {
+            "${dir}" = {
+              "d" = {
+                mode = "0770";
+                user = user;
+                group = user;
+              };
+            };
+          };
+        };
+        virtualisation.oci-containers.containers.forgejo-anubis = {
+          autoStart = true;
+          image = "ghcr.io/techarohq/anubis:latest"; # TODO: set specific version
+          extraOptions = [ "--network=host" ];
+          # user = "${toString user}:${toString config.users.groups.${user}.gid}";
+          environment = {
+            BIND = ":${toString port}";
+            DIFFICULTY = "5";
+            METRICS_BIND = "127.0.0.1:9091";
+            SERVE_ROBOTS_TXT = "true";
+            TARGET = "http://127.0.0.1:${toString config.services.forgejo.settings.server.HTTP_PORT}";
+            POLICY_FNAME = "/data/cfg/botPolicy.json";
+          };
+          ports = [ "127.0.0.1:${toString port}:${toString port}" ];
+          volumes = [
+            "${./beefcake/anubis-policy.json}:/data/cfg/botPolicy.json:ro"
+          ];
+        };
+        services.caddy.virtualHosts."git.lyte.dev" = {
+          extraConfig = ''
+            reverse_proxy :${toString port} {
+              header_up X-Real-Ip {remote_host}
+            }
+          '';
+        };
+      }
+    )
     (
       { ... }:
       let
