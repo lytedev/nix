@@ -2,6 +2,14 @@
 
 # TODO: warn on merge conflicts?
 cd "${NOTES_PATH}" || exit
+if [[ -d .jj ]]; then
+  echo "jujutsu not supported yet"
+  exit 1
+  # jj git fetch
+  # jj new 
+  # jj desc -m 'chore: update notes'
+  # jj bookmark set master
+fi
 git add -A
 git commit -m Updates
 git fetch && git merge origin/master && git push
