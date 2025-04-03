@@ -1378,7 +1378,7 @@
           # user = "${toString user}:${toString config.users.groups.${user}.gid}";
           environment = {
             BIND = ":${toString port}";
-            DIFFICULTY = "5";
+            DIFFICULTY = "4";
             METRICS_BIND = "127.0.0.1:9091";
             SERVE_ROBOTS_TXT = "true";
             TARGET = "http://127.0.0.1:${toString config.services.forgejo.settings.server.HTTP_PORT}";

@@ -19,10 +19,10 @@ let
     {
       hostname = "${host}.hare-cod.ts.net";
       remoteBuild = true; # should pull from cache # TODO: verify this
-      # fastConnection = true;
-      interactiveSudo = true;
+      fastConnection = false;
+      interactiveSudo = false;
       profiles.system = {
-        user = "root";
+        sshUser = "root";
         path =
           (deployPkgs self.nixosConfigurations.${host}.pkgs.system).deploy-rs.lib.x86_64-linux.activate.nixos
             self.nixosConfigurations.${host};
