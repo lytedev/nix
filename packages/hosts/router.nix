@@ -177,6 +177,7 @@ in
             "prometheus.h.lyte.dev"
             "video.lyte.dev"
             "vpn.h.lyte.dev"
+            "element.lyte.dev"
           ];
         };
       };

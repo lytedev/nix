@@ -2279,11 +2279,47 @@
           reverse_proxy /_matrix/* :${sPort}
           reverse_proxy /_synapse/client/* :${sPort}
         '';
-        services.caddy.virtualHosts."lyte.dev:8448".extraConfig = ''
+        services.caddy.virtualHosts."http://matrix.lyte.dev:8448".extraConfig = ''
           reverse_proxy /_matrix/* :${sPort}
         '';
         # TODO: backups
         # TODO: reverse proxy
+      }
+    )
+    (
+      {
+        pkgs,
+        ...
+      }:
+      {
+        services.caddy = {
+          virtualHosts = {
+            "element.lyte.dev" = {
+              extraConfig = ''
+                header {
+                  Access-Control-Allow-Origin "{http.request.header.Origin}"
+                  ## Access-Control-Allow-Credentials true
+                  ## Access-Control-Allow-Methods *
+                  ## Access-Control-Allow-Headers *
+                  ## Vary Origin
+                  defer
+                }
+
+                file_server browse {
+                  ## browse template
+                  ## hide .*
+                  root ${pkgs.element-web}/
+                }
+
+                handle /config.json {
+                  root * ${./beefcake/element-web}
+                  file_server
+                }
+              '';
+            };
+          };
+          # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+        };
       }
     )
   ];

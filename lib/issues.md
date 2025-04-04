@@ -1,3 +1,4 @@
+- [ ] setup element-web
 - [ ] forgejo slow
   - might be resolved with anubis
   - still seems like runners hitting the server causes CPU to hover around 50% (of one thread)
