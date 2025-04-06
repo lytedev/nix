@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+# --- Configuration ---
+# The revset defining which revisions to check.
+# 'all() & description("")' finds all revisions with an empty description.
+# You might want to narrow this, e.g., 'description("") & ::@' for ancestors of HEAD
+# or 'description("") & trunk()..' for revisions since trunk.
+REVISION_SET='~root() & ::@ & description(exact:"")'
+
+# The prompt template for aichat.
+# It will receive the diff content via standard input.
+# Customize this prompt for better results.
+AI_PROMPT='Based *only* on the following code diff, write a concise, imperative-mood convco-compatible Conventional Commit message description (body only, no subject line). Focus on *what* the change does, if apparent from the diff. Do not include preamble like "This commit..." or "The AI generated...". Output only the raw description text. Avoid proper title casing in the first line. Examples:
+
+```txt
+fix: truncate string to required length
+
+The underlying API expects an 80-character limit that we were not always ensuring we accounted for.
+```'
+
+# --- Script Logic ---
+
+echo "Searching for revisions matching revset: ${REVISION_SET}"
+
+# Use jj log with a template to get only the change IDs of matching revisions.
+# The --no-graph avoids graph characters in the output.
+jj log --no-graph --template 'concat(change_id, "\n")' -r "$REVISION_SET" | while read -r change_id; do
+    if [ -z "$change_id" ]; then
+        continue # Skip empty lines if any
+    fi
+
+    echo "----------------------------------------"
+    echo "Processing revision: ${change_id}"
+
+    # Get the diff introduced by this specific revision using git diff format.
+    # The `^!` notation means "diff against the parent(s)".
+    # Using --git ensures a format LLMs are often trained on.
+    diff_content=$(jj diff --git -r "${change_id}")
+
+    if [ $? -ne 0 ]; then
+        echo "  Error getting diff for revision ${change_id}. Skipping."
+        continue
+    fi
+
+    if [ -z "$diff_content" ]; then
+        echo "  Skipping revision ${change_id}: No diff content found (perhaps an empty or merge commit?)."
+        continue
+    fi
+
+    echo "$diff_content"
+    echo "Above is the diff from ${change_id}. Press ENTER to continue with summary OR ^C to cancel."
+    read -r
+
+    echo "  Generating description using aichat..."
+
+    # Use printf to safely pass the prompt and pipe the diff content to aichat's stdin.
+    # Capture the output from aichat.
+    # The model needs to understand it should read the context (diff) from stdin.
+    generated_desc=$(printf "%s\n\n%s" "${AI_PROMPT}" "${diff_content}" | comma aichat)
+
+    if [ $? -ne 0 ]; then
+        echo "  Error running aichat for revision ${change_id}. Skipping."
+        continue
+    fi
+
+    if [ -z "$generated_desc" ]; then
+        echo "  Warning: aichat did not generate a description for ${change_id}. Skipping."
+        continue
+    fi
+
+    # Basic cleanup: remove leading/trailing whitespace and potential markdown fences
+    cleaned_desc=$(echo "$generated_desc" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^```/d')
+
+    if [ -z "$cleaned_desc" ]; then
+        echo "  Warning: Description became empty after cleanup for ${change_id}. Skipping."
+        continue
+    fi
+
+    echo "  Applying generated description:"
+    echo "---"
+    echo "${cleaned_desc}"
+    echo "---"
+
+    # Apply the cleaned description using jj describe
+    jj describe "${change_id}" -m "${cleaned_desc}"
+
+    if [ $? -eq 0 ]; then
+        echo "  Successfully described revision ${change_id}."
+    else
+        echo "  Error applying description to revision ${change_id}."
+        # Decide if you want to stop the script on error:
+        # exit 1
+    fi
+done
