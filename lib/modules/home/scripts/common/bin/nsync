@@ -3,12 +3,14 @@
 # TODO: warn on merge conflicts?
 cd "${NOTES_PATH}" || exit
 if [[ -d .jj ]]; then
+  echo 'Describing local changes...'
+  jj desc -m 'chore: update notes'
   echo 'Fetching...'
   jj git fetch
   echo 'Creating new revset with remote changes and local changes...'
   jj new master@origin @
-  echo 'Describing changes...'
-  jj desc -m 'chore: update notes'
+  echo 'Describing merged changes...'
+  jj desc -m 'chore: merge'
   echo 'Marking current revset as master...'
   jj bookmark set master --revision @
   echo 'Pushing master...'
