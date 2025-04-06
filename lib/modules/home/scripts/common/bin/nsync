@@ -3,12 +3,17 @@
 # TODO: warn on merge conflicts?
 cd "${NOTES_PATH}" || exit
 if [[ -d .jj ]]; then
-  echo "jujutsu not supported yet"
-  exit 1
-  # jj git fetch
-  # jj new 
-  # jj desc -m 'chore: update notes'
-  # jj bookmark set master
+  echo 'Fetching...'
+  jj git fetch
+  echo 'Creating new revset with remote changes and local changes...'
+  jj new master@origin @
+  echo 'Describing changes...'
+  jj desc -m 'chore: update notes'
+  echo 'Marking current revset as master...'
+  jj bookmark set master --revision @
+  echo 'Pushing master...'
+  jj git push -b master
+  exit 0
 fi
 git add -A
 git commit -m Updates
