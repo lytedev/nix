@@ -8,8 +8,21 @@ let
     final: prev:
     let
       inherit (inputs) helix ghostty;
+      unstable-packages = import nixpkgs-unstable {
+        system = final.system;
+        config.allowUnfree = true;
+      };
+      stable-packages = import nixpkgs {
+        system = final.system;
+        config.allowUnfree = true;
+      };
     in
     {
+      inherit unstable-packages stable-packages;
+
+      # force certain packages to always be unstable
+      inherit (unstable-packages) kanidm jujutsu;
+
       ghostty = ghostty.outputs.packages.${prev.system}.default;
       helix = helix.outputs.packages.${prev.system}.default;
 
@@ -28,14 +41,6 @@ let
           substituteAll ${../../packages/bitwarden.json} $out/lib/mozilla/native-messaging-hosts/com.8bit.bitwarden.json
         '';
       });
-      unstable-packages = import nixpkgs-unstable {
-        system = final.system;
-        config.allowUnfree = true;
-      };
-      stable-packages = import nixpkgs {
-        system = final.system;
-        config.allowUnfree = true;
-      };
     }
     // (import ../../packages { pkgs = prev; });
 in

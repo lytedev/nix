@@ -32,6 +32,7 @@
     gaming
     restic
     router
+    kanidm
 
     (
       { config, ... }:

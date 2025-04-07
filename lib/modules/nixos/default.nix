@@ -21,6 +21,7 @@ inputs: {
   wifi = import ./wifi.nix;
   restic = import ./restic.nix;
   router = import ./router.nix;
+  kanidm = import ./kanidm.nix;
 
   remote-disk-key-entry-on-boot =
     {

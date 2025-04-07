@@ -1622,7 +1622,6 @@
           };
 
           services.kanidm = {
-            package = pkgs.unstable-packages.kanidm;
             enableServer = true;
             serverSettings = {
               inherit domain;
@@ -1631,6 +1630,7 @@
               tls_chain = "${storage}/certs/idm.h.lyte.dev.crt";
               tls_key = "${storage}/certs/idm.h.lyte.dev.key";
               log_level = "info";
+              # ldapbindaddress = "127.0.0.1:3636";
               online_backup = {
                 path = "${storage}/backups/";
                 schedule = "00 22 * * *";
@@ -1638,7 +1638,6 @@
               };
             };
 
-            enablePam = false;
             unixSettings = {
               # pam_allowed_login_groups = [];
             };

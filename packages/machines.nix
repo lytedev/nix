@@ -42,10 +42,6 @@ in
         fonts
 
         ./nixos/beefcake.nix
-
-        {
-          services.kanidm.package = (unstable.pkgsFor system).kanidm;
-        }
       ];
     };
 

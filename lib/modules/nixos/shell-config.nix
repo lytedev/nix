@@ -17,6 +17,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    services.kanidm.enableClient = true;
     programs.nix-index.enable = true;
     programs.command-not-found.enable = false;
     services = {
