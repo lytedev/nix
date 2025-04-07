@@ -132,6 +132,7 @@ in
       hosts = {
         dragon = {
           ip = "192.168.0.10";
+          nat.tcp.SSH = 4822;
         };
         bald = {
           ip = "192.168.0.11";
