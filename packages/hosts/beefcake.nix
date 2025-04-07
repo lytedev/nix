@@ -839,6 +839,43 @@
         };
     }
     {
+      sops.secrets.scanner_user_password = {
+        mode = "0400";
+        owner = "scanner";
+        group = "scanner";
+      };
+      users.groups.scanner = { };
+      users.users.scanner = {
+        # used for scanner devices to upload files to
+        isSystemUser = true;
+        createHome = true;
+        home = "/storage/scanner";
+        group = "scanner";
+        extraGroups = [ "sftponly" ];
+        hashedPasswordFile = config.sops.secrets.scanner_user_password.path;
+      };
+      services.openssh.extraConfig = ''
+        Match User scanner
+          ChrootDirectory /storage/scanner
+          ForceCommand internal-sftp
+          AllowTcpForwarding no
+          PubkeyAuthentication no
+          # PreferredAuthentications password
+          PasswordAuthentication yes
+      '';
+      systemd.tmpfiles.settings = {
+        "10-scanner-dir" = {
+          "/storage/scanner" = {
+            "d" = {
+              mode = "0750";
+              user = "scanner";
+              group = "paperless";
+            };
+          };
+        };
+      };
+    }
+    {
       systemd.tmpfiles.settings = {
         "10-caddy" = {
           "/storage/files.lyte.dev" = {
