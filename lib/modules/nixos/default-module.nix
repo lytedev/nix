@@ -152,6 +152,9 @@
           PasswordAuthentication = false;
           KbdInteractiveAuthentication = false;
           PermitRootLogin = "prohibit-password";
+          PermitEmptyPasswords = false;
+          GSSAPIAuthentication = false;
+          KerberosAuthentication = false;
         };
 
         openFirewall = true;

@@ -4,19 +4,34 @@
   lib,
   ...
 }:
+let
+  domain = "idm.h.lyte.dev";
+in
 {
+  imports = [
+    {
+      services.kanidm.package = pkgs.unstable-packages.kanidm;
+    }
+  ];
   config = lib.mkIf config.services.kanidm.enableClient {
     services.kanidm = {
       # enableClient = true;
       enablePam = true;
-      package = pkgs.unstable-packages.kanidm;
-
-      clientSettings.uri = "https://idm.h.lyte.dev";
+      clientSettings.uri = "https://${domain}";
       unixSettings = {
         # hsm_pin_path = "/somewhere/else";
-        pam_allowed_login_groups = [ ];
+        pam_allowed_login_groups = [ "administrators" ];
       };
+
     };
+
+    services.openssh.settings = {
+      PubkeyAuthentication = true;
+      UsePAM = true;
+      AuthorizedKeysCommand = "/usr/sbin/kanidm_ssh_authorizedkeys %u";
+      AuthorizedKeysCommandUser = "nobody";
+    };
+
     systemd.tmpfiles.rules = [
       "d /etc/kanidm 1755 nobody users -"
     ];

@@ -5,10 +5,9 @@
 }:
 let
   domain = "idm.h.lyte.dev";
-  name = "kanidm";
-  user = name;
-  group = name;
-  storage = "/storage/${name}";
+  user = config.systemd.services.kanidm.serviceConfig.User;
+  group = config.systemd.services.kanidm.serviceConfig.Group;
+  storage-root = "/storage/kanidm";
 in
 {
   # kanidm
@@ -26,34 +25,24 @@ in
     };
 
     systemd.services."copy-kanidm-certificates-from-caddy" = {
+      unitConfig = {
+        After = [
+          "systemd-tmpfiles-setup.service"
+          "systemd-tmpfiles-resetup.service"
+        ];
+      };
+
       # get the certificates that caddy provisions for us
       script = ''
         umask 077
-        # this line should be unnecessary now that we have this in tmpfiles
-        install -d -m 0700 -o "${name}" -g "${name}" "${storage}/data" "${storage}/certs"
+        install -d -m 0700 -o "${user}" -g "${group}" "${storage-root}/certs"
         cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/idm.h.lyte.dev
-        install -m 0700 -o "${name}" -g "${name}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage}/certs"
+        install -m 0700 -o "${user}" -g "${group}" idm.h.lyte.dev.key idm.h.lyte.dev.crt "${storage-root}/certs"
       '';
       path = with pkgs; [ rsync ];
       serviceConfig = {
         Type = "oneshot";
         User = "root";
-      };
-    };
-
-    systemd.tmpfiles.settings."10-kanidm" = {
-      "${config.services.kanidm.serverSettings.online_backup.path}".d = {
-        user = name;
-        group = name;
-        mode = "0700";
-      };
-      "${storage}/data".d = {
-        inherit user group;
-        mode = "0700";
-      };
-      "${storage}/certs".d = {
-        inherit user group;
-        mode = "0700";
       };
     };
 
@@ -63,12 +52,12 @@ in
         inherit domain;
         origin = "https://${domain}";
         bindaddress = "127.0.0.1:8443";
-        tls_chain = "${storage}/certs/idm.h.lyte.dev.crt";
-        tls_key = "${storage}/certs/idm.h.lyte.dev.key";
+        tls_chain = "${storage-root}/certs/idm.h.lyte.dev.crt";
+        tls_key = "${storage-root}/certs/idm.h.lyte.dev.key";
         log_level = "info";
-        # ldapbindaddress = "127.0.0.1:3636";
+        ldapbindaddress = "0.0.0.0:3636";
         online_backup = {
-          path = "${storage}/backups/";
+          path = "${storage-root}/backups/";
           schedule = "00 22 * * *";
           versions = 50;
         };
@@ -79,52 +68,97 @@ in
       };
 
       enableClient = true;
-      clientSettings = {
-        uri = "https://idm.h.lyte.dev";
-      };
+      clientSettings.uri = "https://${domain}";
 
       provision = {
-        # enable = true;
-        # instanceUrl = "https://${domain}";
+        enable = false;
+        instanceUrl = "https://${domain}";
         # adminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
         # idmAdminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
-        # autoRemove = true;
-        # groups = {
-        #   myGroup = {
-        #     members = ["myUser" /* ...*/];
-        #   }
-        # };
-        # persons = {
-        #   myUser = {
-        #     displayName = "display name";
-        #     legalName = "My User";
-        #     mailAddresses = ["myuser@example.com"];
-        #     groups = ["myGroup"];
-        #   }
-        # };
-        # systems = {
-        #   oauth2 = {
-        #     mySystem = {
-        #       enableLegacyCrypto = false;
-        #       enableLocalhostRedirects = true; # only for public
-        #       allowInsecureClientDisablePkce = false;
-        #       basicSecretFile = config.sops.secrets.basic-secret-file...
-        #       claimMap = {};
-        #     };
-        #   };
-        # };
+        autoRemove = true;
+        groups = {
+          administrators = {
+            members = [ "daniel" ];
+          };
+          family = {
+            members = [
+              "valerie"
+              "daniel"
+            ];
+          };
+          broad-family = {
+            members = [
+              # ...
+            ];
+          };
+          trusted-friends = {
+            members = [
+              # ...
+            ];
+          };
+          non-technical-friends = {
+            members = [
+              # ...
+            ];
+          };
+        };
+        persons = {
+          daniel = {
+            displayName = "Daniel Flanagan";
+            legalName = "Daniel Flanagan";
+            mailAddresses = [ "daniel@lyte.dev" ];
+            groups = [
+              "administrators"
+              "family"
+            ];
+          };
+          valerie = {
+            displayName = "Valerie";
+            mailAddresses = [ ];
+            groups = [
+              "family"
+            ];
+          };
+        };
+        systems = {
+          oauth2 = {
+            test1 = {
+              displayName = "Test One";
+              originUrl = "http://localhost:5173/";
+              originLanding = "http://localhost:5173/idm/origin-landing";
+              enableLegacyCrypto = false;
+              enableLocalhostRedirects = true; # only for public
+              # public = true;
+              allowInsecureClientDisablePkce = false;
+              # basicSecretFile =
+              # claimMap = { };
+            };
+          };
+        };
       };
     };
 
-    services.caddy.virtualHosts."idm.h.lyte.dev" = {
-      extraConfig = ''reverse_proxy https://idm.h.lyte.dev:8443'';
+    services.caddy.virtualHosts.${domain} = {
+      extraConfig = ''reverse_proxy https://${domain}:8443'';
+    };
+
+    systemd.services.kanidm = {
+      unitConfig = {
+        After = [
+          "systemd-tmpfiles-setup.service"
+          "systemd-tmpfiles-resetup.service"
+          "copy-kanidm-certificates-from-caddy.service"
+        ];
+      };
     };
 
     networking = {
       extraHosts = ''
-        ::1 idm.h.lyte.dev
-        127.0.0.1 idm.h.lyte.dev
+        ::1 ${domain}
+        127.0.0.1 ${domain}
       '';
     };
+
+    networking.firewall.allowedTCPPorts = [ 3636 ];
   };
 }
