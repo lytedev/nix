@@ -1622,7 +1622,9 @@
           };
 
           services.kanidm = {
+            enableClient = true;
             enableServer = true;
+            # package = pkgs.kanidm;
             serverSettings = {
               inherit domain;
               origin = "https://${domain}";
@@ -1642,30 +1644,33 @@
               # pam_allowed_login_groups = [];
             };
 
-            enableClient = true;
             clientSettings = {
               uri = "https://idm.h.lyte.dev";
             };
 
             provision = {
-              # enable = true;
+              enable = true;
               # instanceUrl = "https://${domain}";
               # adminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
               # idmAdminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
-              # autoRemove = true;
-              # groups = {
-              #   myGroup = {
-              #     members = ["myUser" /* ...*/];
-              #   }
-              # };
-              # persons = {
-              #   myUser = {
-              #     displayName = "display name";
-              #     legalName = "My User";
-              #     mailAddresses = ["myuser@example.com"];
-              #     groups = ["myGroup"];
-              #   }
-              # };
+              autoRemove = true;
+              groups = {
+                # "idm_admins@${domain}"
+                # "system_admins@${domain}"
+                # "domain_admins@${domain}"
+                #   superadmin = {
+                #     members = [
+                #       "daniel" # ...
+                #     ];
+                #   };
+              };
+              persons = {
+                daniel = {
+                  displayName = "Daniel Flanagan";
+                  legalName = "Daniel Flanagan";
+                  mailAddresses = [ "daniel@lyte.dev" ];
+                };
+              };
               # systems = {
               #   oauth2 = {
               #     mySystem = {

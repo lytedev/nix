@@ -108,6 +108,7 @@ in
 
         programs.jujutsu = {
           enable = true;
+          package = pkgs.unstable-packages.jujutsu;
         };
 
         programs.jq = {

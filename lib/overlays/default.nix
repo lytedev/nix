@@ -20,9 +20,6 @@ let
     {
       inherit unstable-packages stable-packages;
 
-      # force certain packages to always be unstable
-      inherit (unstable-packages) kanidm jujutsu;
-
       ghostty = ghostty.outputs.packages.${prev.system}.default;
       helix = helix.outputs.packages.${prev.system}.default;
 

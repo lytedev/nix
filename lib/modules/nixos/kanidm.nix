@@ -5,12 +5,15 @@
   ...
 }:
 {
+  imports = [
+    {
+      services.kanidm.package = pkgs.unstable-packages.kanidm;
+    }
+  ];
   config = lib.mkIf config.services.kanidm.enableClient {
     services.kanidm = {
       # enableClient = true;
       enablePam = true;
-      package = pkgs.unstable-packages.kanidm;
-
       clientSettings.uri = "https://idm.h.lyte.dev";
       unixSettings = {
         # hsm_pin_path = "/somewhere/else";
