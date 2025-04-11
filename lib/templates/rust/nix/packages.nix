@@ -19,7 +19,7 @@ let
     */
 
     cargoLock = {
-      lockFile = ./Cargo.lock;
+      lockFile = ../Cargo.lock;
     };
   };
 in
