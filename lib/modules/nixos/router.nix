@@ -193,8 +193,8 @@ in
             #
 
             mkNatRule =
-              protocol: ports: address:
-              ''iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (toList ports))}} dnat to ${address}'';
+              protocol: ports: address: comment:
+              ''iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # ${comment}'';
 
             natPorts = flatten (
               mapAttrsToList (
@@ -204,7 +204,10 @@ in
                   nat ? { },
                   ...
                 }:
-                mapAttrsToList (protocol: rules: mkNatRule protocol (mapAttrsToList (_: ports: ports)) ip) nat
+                # TODO: embed comment?
+                mapAttrsToList (
+                  protocol: rules: mkNatRule protocol (mapAttrsToList (_: ports: ports) rules) ip "comment"
+                ) nat
               ) cfg.hosts
             );
           in
@@ -296,13 +299,15 @@ in
                   iifname ${lan} accept
                   iifname tailscale0 accept
 
-                  iifname ${wan} tcp dport {22} dnat to ${cfg.hosts.beefcake.ip}
-                  iifname ${wan} tcp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
-                  iifname ${wan} udp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
-                  iifname ${wan} tcp dport {26966} dnat to ${cfg.hosts.beefcake.ip}
-                  iifname ${wan} tcp dport {25565} dnat to ${cfg.hosts.bald.ip}
-                  iifname ${wan} udp dport {25565} dnat to ${cfg.hosts.bald.ip}
-                  iifname ${wan} udp dport {34197} dnat to ${cfg.hosts.beefcake.ip}
+                  ${concatStringsSep "\n    " (builtins.trace (toString natPorts) natPorts)}
+
+                  # iifname ${wan} tcp dport {22} dnat to ${cfg.hosts.beefcake.ip}
+                  # iifname ${wan} tcp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
+                  # iifname ${wan} udp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
+                  # iifname ${wan} tcp dport {26966} dnat to ${cfg.hosts.beefcake.ip}
+                  # iifname ${wan} tcp dport {25565} dnat to ${cfg.hosts.bald.ip}
+                  # iifname ${wan} udp dport {25565} dnat to ${cfg.hosts.bald.ip}
+                  # iifname ${wan} udp dport {34197} dnat to ${cfg.hosts.beefcake.ip}
                 }
 
                 chain postrouting {
@@ -316,7 +321,7 @@ in
 
       systemd.network = {
         enable = true;
-        # wait-online.anyInterface = true;
+        wait-online.anyInterface = true;
 
         # configure known names for the network interfaces by their mac addresses
         links = {

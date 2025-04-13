@@ -80,6 +80,8 @@ in
     };
   };
   services.deno-netlify-ddns-client = {
+    enable = true;
+    username = "router.h";
     passwordFile = config.sops.secrets.netlify-ddns-password.path;
   };
 
@@ -149,6 +151,8 @@ in
               "HTTP" = 80;
               "HTTPS" = 443;
               "Minecraft Flanilla Creative" = 26968;
+              "Jonland Minecraft" = 26974;
+              "Jonland Minecraft Voicechat" = 24454;
             };
             udp = {
               "QUIC" = [
@@ -156,6 +160,8 @@ in
                 443
               ];
               "Factorio" = 34197;
+              "Jonland Minecraft" = 26974;
+              "Jonland Minecraft Voicechat" = 24454;
             };
           };
           additionalHosts = [

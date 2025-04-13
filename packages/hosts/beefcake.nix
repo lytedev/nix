@@ -1286,58 +1286,125 @@
           networking.firewall.allowedTCPPorts = [
             26965
           ];
-        }
-        {
-          # dawncraft minecraft server
-          systemd.tmpfiles.rules = [
-            "d /storage/dawncraft/ 0770 1000 1000 -"
-            "d /storage/dawncraft/data/ 0770 1000 1000 -"
-            "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
-            "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
+      */
+    }
+    {
+      # jonland minecraft server
+      systemd.tmpfiles.rules = [
+        "d /storage/jonland/ 0777 1000 1000 -"
+        "d /storage/jonland/data/ 0777 1000 1000 -"
+        "d /storage/jonland/worlds/ 0777 1000 1000 -"
+        "d /storage/jonland/downloads/ 0777 1000 1000 -"
+      ];
+      virtualisation.oci-containers.containers.minecraft-jonland = {
+        autoStart = true;
+
+        # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+        image = "docker.io/itzg/minecraft-server";
+        # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
+        extraOptions = [
+          "--tty"
+          "--interactive"
+        ];
+        environment = {
+          EULA = "true";
+          ## UID = toString config.users.users.jland.uid;
+          ## GID = toString config.users.groups.jland.gid;
+          STOP_SERVER_ANNOUNCE_DELAY = "20";
+          TZ = "America/Chicago";
+          VERSION = "1.21.1";
+          MEMORY = "8G";
+          MAX_MEMORY = "16G";
+          TYPE = "NEOFORGE";
+          NEOFORGE_VERSION = "21.1.145";
+          ALLOW_FLIGHT = "true";
+          ENABLE_QUERY = "true";
+
+          MODPACK = "/data/origination-files/shadic_minecraft.zip";
+
+          ## TYPE = "AUTO_CURSEFORGE";
+          ## CF_SLUG = "monumental-experience";
+          ## CF_FILE_ID = "4826863"; # 2.2.53
+
+          ## due to
+          ## Nov 02 13:45:22 beefcake minecraft-jland[2738672]: me.itzg.helpers.errors.GenericException: The modpack authors have indicated this file is not allowed for project distribution. Please download the client zip file from https://www.curseforge.com/minecraft/modpacks/monumental-experience and pass via CF_MODPACK_ZIP environment variable or place indownloads repo directory.
+          ## we must upload manually
+          ## CF_MODPACK_ZIP = "/data/origination-files/Monumental+Experience-2.2.53.zip";
+
+          ## ENABLE_AUTOPAUSE = "true"; # TODO: must increate or disable max-tick-time
+          ## May also have mod/loader incompatibilities?
+          ## https://docker-minecraft-server.readthedocs.io/en/latest/misc/autopause-autostop/autopause/
+        };
+        environmentFiles = [
+          # config.sops.secrets."jland.env".path
+        ];
+        ports = [ "26974:25565" ];
+        volumes = [
+          "/storage/jonland/data:/data"
+          "/storage/jonland/worlds:/worlds"
+        ];
+      };
+      networking.firewall.allowedTCPPorts = [
+        26974
+        24454 # voice chat mod?
+      ];
+      networking.firewall.allowedUDPPorts = [
+        26974
+        24454 # voice chat mod?
+      ];
+    }
+    {
+      # dawncraft minecraft server
+      /*
+        systemd.tmpfiles.rules = [
+          "d /storage/dawncraft/ 0770 1000 1000 -"
+          "d /storage/dawncraft/data/ 0770 1000 1000 -"
+          "d /storage/dawncraft/worlds/ 0770 1000 1000 -"
+          "d /storage/dawncraft/downloads/ 0770 1000 1000 -"
+        ];
+        virtualisation.oci-containers.containers.minecraft-dawncraft = {
+          autoStart = false;
+
+          # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
+          image = "docker.io/itzg/minecraft-server";
+          extraOptions = [
+            "--tty"
+            "--interactive"
           ];
-          virtualisation.oci-containers.containers.minecraft-dawncraft = {
-            autoStart = false;
+          environment = {
+            EULA = "true";
 
-            # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
-            image = "docker.io/itzg/minecraft-server";
-            extraOptions = [
-              "--tty"
-              "--interactive"
-            ];
-            environment = {
-              EULA = "true";
+            STOP_SERVER_ANNOUNCE_DELAY = "20";
+            TZ = "America/Chicago";
+            VERSION = "1.18.2";
+            MEMORY = "8G";
+            MAX_MEMORY = "32G";
 
-              STOP_SERVER_ANNOUNCE_DELAY = "20";
-              TZ = "America/Chicago";
-              VERSION = "1.18.2";
-              MEMORY = "8G";
-              MAX_MEMORY = "32G";
+            ALLOW_FLIGHT = "true";
+            ENABLE_QUERY = "true";
+            SERVER_PORT = "26968";
+            QUERY_PORT = "26968";
 
-              ALLOW_FLIGHT = "true";
-              ENABLE_QUERY = "true";
-              SERVER_PORT = "26968";
-              QUERY_PORT = "26968";
+            TYPE = "AUTO_CURSEFORGE";
+            CF_SLUG = "dawn-craft";
 
-              TYPE = "AUTO_CURSEFORGE";
-              CF_SLUG = "dawn-craft";
-
-              CF_EXCLUDE_MODS = "368398";
-              CF_FORCE_SYNCHRONIZE = "true";
-              # CF_FILE_ID = "5247696"; # 2.0.7 server
-            };
-            environmentFiles = [
-              config.sops.secrets."dawncraft.env".path
-            ];
-            ports = ["26968:26968/tcp" "26968:26968/udp"];
-            volumes = [
-              "/storage/dawncraft/data:/data"
-              "/storage/dawncraft/worlds:/worlds"
-              "/storage/dawncraft/downloads:/downloads"
-            ];
+            CF_EXCLUDE_MODS = "368398";
+            CF_FORCE_SYNCHRONIZE = "true";
+            # CF_FILE_ID = "5247696"; # 2.0.7 server
           };
-          networking.firewall.allowedTCPPorts = [
-            26968
+          environmentFiles = [
+            config.sops.secrets."dawncraft.env".path
           ];
+          ports = ["26968:26968/tcp" "26968:26968/udp"];
+          volumes = [
+            "/storage/dawncraft/data:/data"
+            "/storage/dawncraft/worlds:/worlds"
+            "/storage/dawncraft/downloads:/downloads"
+          ];
+        };
+        networking.firewall.allowedTCPPorts = [
+          26968
+        ];
       */
     }
     (
