@@ -1308,7 +1308,7 @@
         ];
         environment = {
           EULA = "true";
-          DISABLE_HEALTHCHECK = "true";
+          DISABLE_HEALRTHCHECK = "true";
           ## UID = toString config.users.users.jonland.uid;
           ## GID = toString config.users.groups.jonland.gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
