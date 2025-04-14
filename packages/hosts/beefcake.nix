@@ -1308,7 +1308,7 @@
         ];
         environment = {
           EULA = "true";
-          DISABLE_HEALRTHCHECK = "true";
+          DISABLE_HEALTHCHECK = "true";
           ## UID = toString config.users.users.jonland.uid;
           ## GID = toString config.users.groups.jonland.gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
@@ -1341,7 +1341,7 @@
         ];
         ports = [
           "26974:25565"
-          "24454:24454"
+          "24454:24454/udp"
         ];
         volumes = [
           "/storage/jonland/data:/data"
