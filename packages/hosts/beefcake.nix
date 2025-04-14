@@ -1301,15 +1301,16 @@
 
         # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
         image = "docker.io/itzg/minecraft-server";
-        # user = "${toString config.users.users.jland.uid}:${toString config.users.groups.jland.gid}";
+        # user = "${toString config.users.users.jonland.uid}:${toString config.users.groups.jonland.gid}";
         extraOptions = [
           "--tty"
           "--interactive"
         ];
         environment = {
           EULA = "true";
-          ## UID = toString config.users.users.jland.uid;
-          ## GID = toString config.users.groups.jland.gid;
+          DISABLE_HEALTHCHECK = "true";
+          ## UID = toString config.users.users.jonland.uid;
+          ## GID = toString config.users.groups.jonland.gid;
           STOP_SERVER_ANNOUNCE_DELAY = "20";
           TZ = "America/Chicago";
           VERSION = "1.21.1";
