@@ -1338,7 +1338,10 @@
         environmentFiles = [
           # config.sops.secrets."jland.env".path
         ];
-        ports = [ "26974:25565" ];
+        ports = [
+          "26974:25565"
+          "24454:24454"
+        ];
         volumes = [
           "/storage/jonland/data:/data"
           "/storage/jonland/worlds:/worlds"
