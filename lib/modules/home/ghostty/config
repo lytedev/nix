@@ -2058,7 +2058,8 @@ gtk-wide-tabs = true
 
 # If `true` (default), applications running in the terminal can show desktop
 # notifications using certain escape sequences such as OSC 9 or OSC 777.
-desktop-notifications = true
+# TODO: https://github.com/ghostty-org/ghostty/discussions/3555
+desktop-notifications = false
 
 # If `true`, the bold text will use the bright color palette.
 bold-is-bright = false
