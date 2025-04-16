@@ -1,6 +1,7 @@
 {
   hardware,
   config,
+  pkgs,
   ...
 }:
 {
@@ -65,6 +66,10 @@
     };
   };
   powerManagement.cpuFreqGovernor = "performance";
+
+  environment.systemPackages = with pkgs; [
+    lutris
+  ];
 
   programs.steam.enable = true;
   lyte.desktop.enable = true;
