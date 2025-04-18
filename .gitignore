@@ -7,3 +7,5 @@ result
 *.qcow2
 
 mise.local.toml
+
+.aider*

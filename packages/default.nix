@@ -13,4 +13,5 @@ in
   hello_world_script = pkgs.writeScriptBin "hello_world_script" (
     builtins.readFile ./rust/hello_world_script/main.rs
   );
+  vibe = pkgs.writeScriptBin "vibe" (builtins.readFile ./vibe.bash);
 }

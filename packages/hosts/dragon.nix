@@ -74,4 +74,6 @@
       port = 4822;
     }
   ];
+
+  environment.systemPackages = with pkgs; [ vibe ];
 }
