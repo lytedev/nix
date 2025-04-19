@@ -22,6 +22,7 @@ inputs: {
   restic = import ./restic.nix;
   router = import ./router.nix;
   kanidm = import ./kanidm.nix;
+  livebook = import ./livebook.nix;
 
   remote-disk-key-entry-on-boot =
     {

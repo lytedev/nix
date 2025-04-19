@@ -1,4 +1,4 @@
-keys:
+keys: &all-keys
   # list any public keys here
 
   # if you need the private key, refer to the readme
@@ -20,6 +20,9 @@ creation_rules:
     key_groups:
     - age:
       - *daniel
+  - path_regex: secrets/shared/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age: *all-keys
   - path_regex: secrets/beefcake/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:

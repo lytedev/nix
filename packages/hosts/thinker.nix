@@ -21,6 +21,7 @@
     common-pc-laptop-ssd
   ];
 
+  services.livebook.enableUserService = true;
   hardware.bluetooth.enable = true;
   programs.steam.enable = true;
   networking.wifi.enable = true;
