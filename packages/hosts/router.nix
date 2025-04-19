@@ -129,8 +129,6 @@ in
         };
       };
 
-      # TODO: nftables
-
       hosts = {
         dragon = {
           ip = "192.168.0.10";
