@@ -1,0 +1,14 @@
+{
+  "x86_64-linux": {
+    "headless": {
+      "stable": {
+        "name": "factorio_headless_x64-2.0.15.tar.xz",
+        "needsAuth": false,
+        "sha256": "cLRBy4B4EaYFhsARBySMHY164EO9HyNnX8kk+6qlONg=",
+        "tarDirectory": "x64",
+        "url": "https://factorio.com/get-download/2.0.15/headless/linux64",
+        "version": "2.0.15"
+      }
+    }
+  }
+}
