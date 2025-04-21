@@ -1293,8 +1293,6 @@
       systemd.tmpfiles.rules = [
         "d /storage/jonland/ 0777 1000 1000 -"
         "d /storage/jonland/data/ 0777 1000 1000 -"
-        "d /storage/jonland/worlds/ 0777 1000 1000 -"
-        "d /storage/jonland/downloads/ 0777 1000 1000 -"
       ];
       virtualisation.oci-containers.containers.minecraft-jonland = {
         autoStart = true;
@@ -1345,7 +1343,6 @@
         ];
         volumes = [
           "/storage/jonland/data:/data"
-          "/storage/jonland/worlds:/worlds"
         ];
       };
       networking.firewall.allowedTCPPorts = [
