@@ -5,16 +5,15 @@
 }:
 let
   cfg = config.lyte.router;
-  inherit (builtins) mapAttrs concatStringsSep toString;
+  inherit (builtins) concatStringsSep toString;
   inherit (lib)
     mkEnableOption
     mkOption
     types
     mkIf
-    mkDefault
     defaultTo
     ;
-  inherit (lib.attrsets) foldlAttrs mapAttrsToList mapAttrs';
+  inherit (lib.attrsets) mapAttrsToList mapAttrs';
   inherit (lib.lists) flatten toList;
 
 in

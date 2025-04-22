@@ -96,6 +96,7 @@
   ];
 
   lyte.desktop.enable = true;
+  lyte.laptop.enable = true;
   family-account.enable = true;
   home-manager.users.daniel = {
     lyte = {

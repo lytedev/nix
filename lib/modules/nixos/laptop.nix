@@ -5,6 +5,10 @@
   ...
 }:
 {
+  options.lyte.laptop = {
+    enable = lib.mkEnableOption "Enable certain laptop-specific configuration options.";
+  };
+
   config = lib.mkIf config.lyte.laptop.enable {
     environment.systemPackages = with pkgs; [
       acpi
@@ -17,25 +21,34 @@
 
     services.upower.enable = true;
 
-    # NOTE: I previously let plasma settings handle this
+    # TODO: s3/deep mem_sleep option for /sys/power/mem_sleep if available?
+
+    systemd.sleep.extraConfig = "HibernateDelaySec=11m";
+
     services.logind = {
       lidSwitch = "suspend-then-hibernate";
       extraConfig = ''
         KillUserProcesses=no
-        HandlePowerKey=suspend
+
+        HandlePowerKey=suspend-then-hibernate
         HandlePowerKeyLongPress=poweroff
+
         HandleRebootKey=reboot
         HandleRebootKeyLongPress=poweroff
-        HandleSuspendKey=suspend
+
+        HandleSuspendKey=suspend-then-hibernate
         HandleSuspendKeyLongPress=hibernate
+
         HandleHibernateKey=hibernate
         HandleHibernateKeyLongPress=ignore
-        HandleLidSwitch=suspend
+
+        HandleLidSwitch=suspend-then-hibernate
         HandleLidSwitchExternalPower=suspend
         HandleLidSwitchDocked=suspend
         HandleLidSwitchDocked=suspend
+
         IdleActionSec=11m
-        IdleAction=ignore
+        IdleAction=suspend
       '';
     };
   };

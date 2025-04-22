@@ -72,6 +72,7 @@
   programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop.enable = true;
+  lyte.laptop.enable = true;
   family-account.enable = true;
   podman.enable = true;
   home-manager.users.daniel = {

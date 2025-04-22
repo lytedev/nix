@@ -33,6 +33,7 @@
     restic
     router
     kanidm
+    laptop
 
     (
       { config, ... }:
