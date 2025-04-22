@@ -48,7 +48,7 @@
         HandleLidSwitchDocked=suspend
 
         IdleActionSec=11m
-        IdleAction=suspend
+        IdleAction=hibernate
       '';
     };
   };
