@@ -16,7 +16,7 @@
   };
 
   imports = with hardware; [
-    diskoConfigurations.foxtrot
+    diskoConfigurations.thinker
     lenovo-thinkpad-t480
     common-pc-laptop-ssd
   ];
