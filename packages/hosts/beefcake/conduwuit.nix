@@ -291,7 +291,7 @@ in
       {
         sops.secrets.matrix-registration-token-file.mode = "0400";
         services.conduwuit = {
-          enable = true;
+          enable = false;
           settings = {
             global = {
               allow_check_for_updates = true;
