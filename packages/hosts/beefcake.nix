@@ -91,7 +91,10 @@
       ./beefcake/conduwuit.nix
       ./beefcake/element-web.nix
       ./beefcake/arr.nix
+      ./beefcake/spacetimedb.nix
     ]);
+
+  services.spacetimedb.enable = true;
 
   /*
     if fans are loud:
