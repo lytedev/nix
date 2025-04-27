@@ -230,7 +230,7 @@ in
   services.gitea-actions-runner = {
     # TODO: simple git-based automation would be dope? maybe especially for
     # mirroring to github super easy?
-    package = pkgs.forgejo-runner;
+    # package = pkgs.forgejo-runner;
 
     instances =
       lib.genAttrs (builtins.genList (n: "beefcake${builtins.toString n}") runnerCount)
