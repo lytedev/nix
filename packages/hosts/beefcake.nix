@@ -92,6 +92,7 @@
       ./beefcake/element-web.nix
       ./beefcake/arr.nix
       ./beefcake/spacetimedb.nix
+      ./beefcake/cdn.nix
     ]);
 
   services.spacetimedb.enable = true;

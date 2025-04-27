@@ -176,6 +176,7 @@ in
             "matrix.lyte.dev"
             "nextcloud.h.lyte.dev"
             "nix.h.lyte.dev"
+            "tasks.h.lyte.dev"
             "onlyoffice.h.lyte.dev"
             "paperless.h.lyte.dev"
             "prometheus.h.lyte.dev"
