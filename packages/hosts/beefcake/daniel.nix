@@ -1,23 +1,5 @@
 {
   # daniel augments
-  systemd.tmpfiles.settings = {
-    "10-daniel" = {
-      "/storage/daniel" = {
-        "d" = {
-          mode = "0700";
-          user = "daniel";
-          group = "nogroup";
-        };
-      };
-      "/storage/daniel/critical" = {
-        "d" = {
-          mode = "0700";
-          user = "daniel";
-          group = "nogroup";
-        };
-      };
-    };
-  };
   users.groups.daniel.members = [ "daniel" ];
   users.users.daniel = {
     extraGroups = [
@@ -28,11 +10,9 @@
       "audiobookshelf" # write access to audiobookshelf files
       "flanilla" # minecraft server manager
       "forgejo"
+      "family"
     ];
   };
-  services.restic.commonPaths = [
-    "/storage/daniel"
-  ];
   services.postgresql = {
     ensureDatabases = [ "daniel" ];
     ensureUsers = [
