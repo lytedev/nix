@@ -336,6 +336,7 @@ in
     };
   services.caddy.virtualHosts."git.lyte.dev" = {
     extraConfig = ''
+      redir /.within.website/x/cmd/anubis/static/img/* https://lyte.dev/img/logo.svg 302
       reverse_proxy :${toString anubis.port} {
         header_up X-Real-Ip {remote_host}
       }
