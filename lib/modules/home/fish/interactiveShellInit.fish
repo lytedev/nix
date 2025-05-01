@@ -87,18 +87,32 @@ function _user_prompt
     set_color -b normal normal
 end
 
-function _maybe_git_summary
-    set_color -b normal yellow
-    set cur_sha (git rev-parse --short HEAD 2>/dev/null)
-    if test $status = 0
-        set num_changes (git status --porcelain | wc -l | string trim)
-        if test $num_changes = 0
-            set num_changes "✔"
-        else
-            set num_changes "+$num_changes"
-        end
-        printf " %s %s %s" (git branch --show-current) $cur_sha $num_changes
+function _maybe_vcs_summary
+    _maybe_jujutsu_summary || _maybe_git_summary
+end
+
+function _maybe_jujutsu_summary
+    set jujutsu_text (jj log --limit 1 --revisions @ --no-graph --no-pager --color=never --template 'if(self.local_bookmarks().len() < 1, "", self.local_bookmarks().map(|n| n.name()).join(",") ++ ">") ++ self.change_id().shortest() ++ ":" ++ self.commit_id().shortest() ++ "(+" ++ self.diff().stat().total_added() ++ ",-" ++ self.diff().stat().total_removed() ++ ")"')
+    if test $status -ne 0
+        return 1
     end
+    set_color -b normal yellow
+    printf " %s" $jujutsu_text
+end
+
+function _maybe_git_summary
+    set cur_sha (git rev-parse --short HEAD 2>/dev/null)
+    if test $status -ne 0
+        return 1
+    end
+    set_color -b normal yellow
+    set num_changes (git status --porcelain | wc -l | string trim)
+    if test $num_changes = 0
+        set num_changes "✔"
+    else
+        set num_changes "+$num_changes"
+    end
+    printf " %s %s %s" (git branch --show-current) $cur_sha $num_changes
 end
 
 function _prompt_marker
@@ -129,7 +143,7 @@ function fish_prompt
     _maybe_elevated_access_prefix
     _user_and_host $last_cmd_status
     _cur_work_dir
-    _maybe_git_summary
+    _maybe_vcs_summary
     _maybe_aws_profile
     _last_cmd_duration
     _maybe_jobs_summary
