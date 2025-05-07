@@ -92,7 +92,7 @@ function _maybe_vcs_summary
 end
 
 function _maybe_jujutsu_summary
-    set jujutsu_text (jj log --limit 1 --revisions @ --no-graph --no-pager --color=never --template 'if(self.local_bookmarks().len() < 1, "", self.local_bookmarks().map(|n| n.name()).join(",") ++ ">") ++ self.change_id().shortest() ++ ":" ++ self.commit_id().shortest() ++ "(+" ++ self.diff().stat().total_added() ++ ",-" ++ self.diff().stat().total_removed() ++ ")"')
+    set jujutsu_text (jj log --limit 1 --revisions @ --no-graph --no-pager --color=never --template 'if(self.local_bookmarks().len() < 1, "", self.local_bookmarks().map(|n| n.name()).join(",") ++ ">") ++ self.change_id().shortest() ++ ":" ++ self.commit_id().shortest() ++ "(+" ++ self.diff().stat().total_added() ++ ",-" ++ self.diff().stat().total_removed() ++ ")"' 2>/dev/null)
     if test $status -ne 0
         return 1
     end
