@@ -2,7 +2,7 @@
   git,
   findutils,
   coreutils,
-  nodejs_23,
+  nodejs_24,
   nix,
   gnugrep,
   gawk,
@@ -32,7 +32,7 @@ dockerTools.buildLayeredImage {
     bash
     jq
     findutils
-    nodejs_23
+    nodejs_24
     coreutils
     cacert
     git

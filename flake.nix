@@ -91,6 +91,9 @@
 
     deploy-rs.url = "github:serokell/deploy-rs?shallow=1";
     # deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    iosevka-lyte.url = "github:lytedev/iosevka-lyte";
+    # iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
   };
 
   nixConfig = {
@@ -103,6 +106,7 @@
       "https://cache.nixos.org/"
       "https://nix-community.cachix.org"
       "https://nix.h.lyte.dev"
+      "https://iosevka-lyte.cachix.org"
 
       "https://helix.cachix.org"
       "https://ghostty.cachix.org"
@@ -112,6 +116,7 @@
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
+      "iosevka-lyte.cachix.org-1:5pX+LwVdlfWJtmubPErASJecnm1q3a/RoZmah1GU+FM="
 
       "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
       "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
