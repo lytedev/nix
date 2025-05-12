@@ -1,0 +1,9 @@
+[[language]]
+auto-format = true
+file-types = ["rs"]
+name = "rs"
+scope = "source.rs"
+language-servers = ["custom"]
+
+[language-server.custom]
+command = "/home/daniel/.home/.cargo/bin/lyte_lsp"

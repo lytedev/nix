@@ -1,0 +1,64 @@
+#Black: Surface 1
+palette = 0=#bcc0cc
+#Red: Red
+palette = 1=#d20f39
+#Green: Green
+palette = 2=#40a02b
+#Yellow: Peach
+palette = 3=#fe640b
+#Blue: Sapphire
+palette = 4=#209fb5
+#Magenta: Mauve
+palette = 5=#8839ef
+#Cyan: Blue
+palette = 6=#1e66f5
+#Gray: Subtext 1
+palette = 7=#5c5f77
+
+# Brights
+#Black: Surface 2
+palette  = 8=#acb0be
+
+##Red: Pink
+#palette  = 9=#ea76cb
+##Green: Teal
+#palette = 10=#179299
+##Yellow: Yellow
+#palette = 11=#df8e1d
+##Blue: Sapphire
+#palette = 12=#209fb5
+##Magenta: Lavender
+#palette = 13=#7287fd
+##Cyan: Sky
+#palette = 14=#04a5e5
+
+#Red: Red
+palette = 10=#d20f39
+#Green: Green
+palette = 11=#40a02b
+#Yellow: Peach
+palette = 12=#fe640b
+#Blue: Sapphire
+palette = 13=#209fb5
+#Magenta: Mauve
+palette = 14=#8839ef
+#Cyan: Blue
+palette = 15=#1e66f5
+
+#White: Subtext 0
+palette = 15=#6c6f85
+
+#Base
+background = #eff1f5
+#Text
+foreground = #4c4f69
+
+#Text
+cursor-color = #4c4f69
+#Text
+cursor-text = #4c4f69
+
+#Yellow
+selection-background = #df8e1d
+#Base
+selection-foreground = #eff1f5

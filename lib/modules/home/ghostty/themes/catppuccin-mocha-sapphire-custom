@@ -1,25 +1,64 @@
-palette = 0=#45475a
-palette = 1=#f38ba8
-palette = 2=#a6e3a1
-palette = 3=#fab387
-palette = 4=#74c7ec
-palette = 5=#cba6f7
-palette = 6=#f9e2af
-palette = 7=#bac2de
-palette = 8=#585b70
-palette = 9=#f38ba8
-palette = 10=#a6e3a1
-palette = 11=#fab387
-palette = 12=#74c7ec
-palette = 13=#cba6f7
-palette = 14=#f9e2af
+#Black: Surface 1
+palette = 0=#45475a 
+#Red: Red
+palette = 1=#f38ba8 
+#Green: Green
+palette = 2=#a6e3a1 
+#Yellow: Peach
+palette = 3=#fab387 
+#Blue: Sapphire
+palette = 4=#74c7ec 
+#Magenta: Mauve
+palette = 5=#cba6f7 
+#Cyan: Blue
+palette = 6=#89b4fa 
+#Gray: Subtext 1
+palette = 7=#bac2de 
+
+# Brights
+#Black: Surface 2
+palette  = 8=#585b70 
+
+#Red: Pink
+#palette  = 9=#f5c2e7 
+#Green: Teal
+#palette = 10=#94e2d5 
+#Yellow: Yellow
+#palette = 11=#fab387 
+#Blue: Sapphire
+#palette = 12=#74c7ec 
+#Magenta: Lavender
+#palette = 13=#b4befe 
+#Cyan: Sky
+#palette = 14=#89dceb 
+
+#Red: Red
+palette = 10=#f38ba8 
+#Green: Green
+palette = 11=#a6e3a1 
+#Yellow: Peach
+palette = 12=#fab387 
+#Blue: Sapphire
+palette = 13=#74c7ec 
+#Magenta: Mauve
+palette = 14=#cba6f7 
+#Cyan: Blue
+palette = 15=#89b4fa 
+
+#White: Subtext 0
 palette = 15=#a6adc8
 
-background = #1e1e2e
-foreground = #cdd6f4
+#Base
+background = #1e1e2e 
+#Text
+foreground = #cdd6f4 
 
-cursor-color = #cdd6f4
-cursor-text = #cdd6f4
+#Text
+cursor-color = #cdd6f4 
+#Text
+cursor-text = #cdd6f4 
 
-selection-background = #f9e2af
-selection-foreground = #1e1e2e
+#Yellow
+selection-background = #f9e2af 
+#Base
+selection-foreground = #1e1e2e 
