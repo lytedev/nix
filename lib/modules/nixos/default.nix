@@ -10,7 +10,7 @@ inputs: {
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
   gnome = import ./gnome.nix;
   laptop = import ./laptop.nix;
-  plasma6 = import ./plasma.nix;
+  plasma = import ./plasma.nix;
   gaming = import ./gaming.nix;
   pipewire = import ./pipewire.nix;
   podman = import ./podman.nix;

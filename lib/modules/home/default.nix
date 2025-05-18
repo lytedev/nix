@@ -235,6 +235,9 @@ in
       lib,
       ...
     }:
+    let
+      types = lib.types;
+    in
     {
       imports = with homeManagerModules; [
         firefox
@@ -244,6 +247,13 @@ in
         lyte = {
           desktop = {
             enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
+            environment = lib.mkOption {
+              type = types.enum [
+                "gnome"
+                "plasma"
+              ];
+              default = "gnome";
+            };
           };
         };
       };
@@ -463,6 +473,18 @@ in
       };
     };
 
+  plasma =
+    {
+      lib,
+      config,
+      ...
+    }:
+    {
+      config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "plasma")) {
+        dconf.enable = true;
+      };
+    };
+
   gnome =
     {
       lib,
@@ -471,7 +493,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf config.lyte.desktop.enable {
+      config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "gnome")) {
         dconf = {
           enable = true;
           settings = {

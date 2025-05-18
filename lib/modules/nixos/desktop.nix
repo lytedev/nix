@@ -7,17 +7,25 @@
 }:
 let
   cfg = config.lyte.desktop;
+  types = lib.types;
 in
 {
   options = {
     lyte = {
       desktop = {
         enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
+        environment = lib.mkOption {
+          type = types.enum [
+            "gnome"
+            "plasma"
+          ];
+          default = "gnome";
+        };
       };
     };
   };
   config = lib.mkIf cfg.enable {
-    services.xserver.desktopManager.gnome.enable = true;
+    services.pipewire.enable = true;
     environment.systemPackages = [ pkgs.wl-clipboard ];
 
     fonts.packages = [

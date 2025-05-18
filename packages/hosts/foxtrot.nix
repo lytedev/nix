@@ -71,7 +71,10 @@
 
   programs.steam.enable = true;
   networking.wifi.enable = true;
-  lyte.desktop.enable = true;
+  lyte.desktop = {
+    enable = true;
+    # environment = "plasma";
+  };
   lyte.laptop.enable = true;
   family-account.enable = true;
   podman.enable = true;
@@ -80,7 +83,10 @@
       enable = true;
       learn-jujutsu-not-git.enable = true;
     };
-    lyte.desktop.enable = true;
+    lyte.desktop = {
+      enable = true;
+      environment = "plasma";
+    };
     home = {
       file.".config/easyeffects/output" = {
         enable = true;

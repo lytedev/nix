@@ -24,6 +24,7 @@
     shell-defaults-and-applications
     desktop
     gnome
+    plasma
     wifi
     printing
     podman
