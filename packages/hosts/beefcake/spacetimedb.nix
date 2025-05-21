@@ -59,6 +59,14 @@ in
       script = ''${pkgs.unstable-packages.spacetimedb}/bin/spacetime --root-dir /storage/spacetimedb start --listen-addr="${cfg.bindHost}:${toString cfg.port}"'';
     };
 
+    services.caddy = {
+      virtualHosts = {
+        "spacetimedb.h.lyte.dev" = {
+          extraConfig = ''reverse_proxy :${toString cfg.port}'';
+        };
+      };
+    };
+
     networking.firewall.allowedTCPPorts = [ cfg.port ];
   };
 }
