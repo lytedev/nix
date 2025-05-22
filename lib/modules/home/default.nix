@@ -270,7 +270,7 @@ in
           package = pkgs.bibata-cursors;
           size = 40;
         };
-        gtk.font = pkgs.iosevkaLyteTerm;
+        # gtk.font = pkgs.iosevkaLyteTerm;
       };
     };
 
@@ -529,8 +529,8 @@ in
             "org/gnome/desktop/interface" = {
               show-battery-percentage = true;
               clock-show-weekday = true;
-              font-name = "IosevkaLyteTerm 12";
-              monospace-font-name = "IosevkaLyteTerm 12";
+              # font-name = "IosevkaLyteTerm 12";
+              # monospace-font-name = "IosevkaLyteTerm 12";
               color-scheme = "prefer-dark";
               # scaling-factor = 1.75;
             };
