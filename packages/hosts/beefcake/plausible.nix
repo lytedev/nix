@@ -36,11 +36,6 @@
       port = 8899;
       secretKeybaseFile = config.sops.secrets.plausible-secret-key-base.path;
     };
-    adminUser = {
-      activate = false;
-      email = "daniel@lyte.dev";
-      passwordFile = config.sops.secrets.plausible-admin-password.path;
-    };
   };
   sops.secrets = {
     plausible-secret-key-base = {

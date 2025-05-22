@@ -88,7 +88,7 @@
       ./beefcake/paperless.nix
       ./beefcake/actual.nix
       ./beefcake/factorio-servers.nix
-      ./beefcake/conduwuit.nix
+      # ./beefcake/conduwuit.nix
       ./beefcake/element-web.nix
       ./beefcake/arr.nix
       ./beefcake/spacetimedb.nix

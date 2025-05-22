@@ -244,10 +244,10 @@
             "${dir}/worlds:/worlds"
           ];
         };
-        systemd.services.podman-minecraft-flanilla.serviceConfig = {
-          User = user;
-          Group = user;
-        };
+        # systemd.services.podman-minecraft-flanilla.serviceConfig = {
+        # User = user;
+        # Group = user;
+        # };
         systemd.tmpfiles.settings = {
           "10-${user}-survival" = {
             "${dir}/data" = {
