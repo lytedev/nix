@@ -17,6 +17,7 @@ in
   bigtower = stableHost ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
   flipflop = host ./flipflop.nix { };
+  babyflip = host ./babyflip.nix { };
 
   steamdeck = steamdeckHost ./steamdeck.nix { };
   steamdeckoled = steamdeckHost ./steamdeckoled.nix { };

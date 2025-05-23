@@ -18,7 +18,7 @@ let
     host: opts:
     {
       hostname = "${host}.hare-cod.ts.net";
-      remoteBuild = true; # should pull from cache # TODO: verify this
+      remoteBuild = true; # should pull from cache
       fastConnection = false;
       interactiveSudo = false;
       profiles.system = {
@@ -34,9 +34,18 @@ in
   nodes = {
     beefcake = deployer "beefcake" { };
     dragon = deployer "dragon" { };
-    htpc = deployer "htpc" { };
+    htpc = deployer "htpc" {
+      remoteBuild = false;
+
+    };
     bigtower = deployer "bigtower" { };
     rascal = deployer "rascal" { };
+    foxtrot = deployer "foxtrot" { };
+    thinker = deployer "thinker" { };
+    flipflop = deployer "flipflop" { };
+    babyflip = deployer "babyflip" {
+      hostname = "nixos";
+    };
     router = (deployer "router") {
       sshOpts = [
         "-p"

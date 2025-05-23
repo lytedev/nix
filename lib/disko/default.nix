@@ -163,6 +163,63 @@ rec {
     };
   };
 
+  babyflip = {
+    disko.devices = {
+      disk = {
+        primary = {
+          type = "disk";
+          device = "/dev/nvme0n1";
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = ESP {
+                label = "disk-primary-ESP";
+                name = "disk-primary-ESP";
+              };
+              swap = {
+                size = "8G";
+                content = {
+                  type = "swap";
+                  discardPolicy = "both";
+                  resumeDevice = true;
+                };
+              };
+              luks = {
+                size = "100%";
+                content = {
+                  type = "luks";
+                  name = "crypted";
+                  keyFile = "/tmp/secret.key";
+                  content = {
+                    type = "btrfs";
+                    extraArgs = [ "-f" ];
+                    subvolumes = {
+                      "/nixos1-rootfs" = {
+                        mountpoint = "/";
+                        mountOptions = [ "compress=zstd" ];
+                      };
+                      "/nixos1-home" = {
+                        mountpoint = "/home";
+                        mountOptions = [ "compress=zstd" ];
+                      };
+                      "/nix" = {
+                        mountpoint = "/nix";
+                        mountOptions = [
+                          "compress=zstd"
+                          "noatime"
+                        ];
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
   foxtrot = {
     disko.devices = {
       disk = {

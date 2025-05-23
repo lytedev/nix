@@ -19,8 +19,6 @@ pkgs.writeShellApplication {
       cd nix
     fi
 
-    read -r -p 'Swap Size:' swap_size
-    echo
     read -s -r -p 'Disk Encryption Password:' pass1
     echo
     read -s -r -p 'Disk Encryption Password (Again):' pass2
@@ -45,14 +43,13 @@ pkgs.writeShellApplication {
       --extra-experimental-features flakes \
       github:nix-community/disko -- \
         --flake '.#$partition_scheme' \
-        --mode disko \
-        --arg disk '\"$disk_path\"' \
-        --arg swapSize '\"$swap_size\"'"
+        --mode disko"
 
     nix-shell --packages git \
       --run "sudo nixos-install \
         --no-write-lock-file \
         --flake '.#$nixos_host' \
         --option trusted-substituters 'https://cache.nixos.org https://nix.h.lyte.dev' \
-        --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M='"  '';
+        --option trusted-public-keys 'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M='"
+  '';
 }

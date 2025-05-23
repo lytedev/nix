@@ -300,6 +300,9 @@ in
             ui = {
               paginate = "never";
             };
+            template-aliases = {
+              "format_timestamp(timestamp)" = "timestamp.ago()";
+            };
             templates = {
               draft_commit_description = ''
                 concat(

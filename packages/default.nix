@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  # installer = pkgs.callPackage ./installer.nix { };
+  installer = pkgs.callPackage ./installer.nix { };
   ghostty-terminfo = pkgs.callPackage ./ghostty-terminfo.nix { };
   forgejo-actions-container = pkgs.callPackage ./forgejo-actions-container.nix { };
   hello_world = pkgs.callPackage ./rust/hello_world { };
