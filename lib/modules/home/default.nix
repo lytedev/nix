@@ -500,6 +500,9 @@ in
         dconf = {
           enable = true;
           settings = {
+            "org/gnome/desktop/input-sources" = {
+              xkb-options = [ "caps:ctrl_modifier" ];
+            };
             "org/gnome/settings-daemon/plugins/media-keys" = {
               screensaver = [ "<Shift><Control><Super>l" ]; # lock screen
               mic-mute = [ "<Shift><Super>v" ];
@@ -516,6 +519,7 @@ in
               repeat-interval = lib.hm.gvariant.mkUint32 10;
               delay = lib.hm.gvariant.mkUint32 200;
             };
+
             "org/gnome/desktop/wm/preferences" = {
               resize-with-right-button = true;
               # mouse-button-modifier = '<Super>'; # default

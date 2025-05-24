@@ -2,8 +2,6 @@
   diskoConfigurations,
   hardware,
   pkgs,
-  lib,
-  config,
   ...
 }:
 {
