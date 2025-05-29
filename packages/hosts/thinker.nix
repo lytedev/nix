@@ -1,4 +1,9 @@
-{ diskoConfigurations, hardware, ... }:
+{
+  pkgs,
+  diskoConfigurations,
+  hardware,
+  ...
+}:
 {
   system.stateVersion = "24.11";
   networking.hostName = "thinker";
@@ -47,4 +52,5 @@
       preset = "philonmetal";
     };
   };
+  environment.systemPackages = with pkgs; [ vibe ];
 }
