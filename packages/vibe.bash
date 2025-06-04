@@ -18,7 +18,9 @@ fi
 
 DEFAULT_MODEL="gemini/gemini-2.5-pro-preview-03-25"
 
-# if our current working directory is a subdirectory of a directory called "bill", we want to use a different default model: "billmodel", AI!
+if [[ "$(pwd)" == */bill/* ]]; then
+  DEFAULT_MODEL="billmodel"
+fi
 
 # MODEL="${MODEL:-gemini/gemini-2.0-flash}"
 # MODEL="bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0"
