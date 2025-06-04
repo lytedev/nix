@@ -20,11 +20,9 @@ DEFAULT_MODEL="gemini/gemini-2.5-pro-preview-03-25"
 
 if [[ $PWD =~ bill ]]; then
   echo "In a \$JOB project. You may want to ensure AWS_PROFILE is set properly!"
-  DEFAULT_MODEL="bedrock/anthropic.claude-sonnet-4-20250514-v1:0"
+  DEFAULT_MODEL="bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0"
 fi
 
-# MODEL="${MODEL:-gemini/gemini-2.0-flash}"
-# MODEL="bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0"
 MODEL="${MODEL:-$DEFAULT_MODEL}"
 echo "Using MODEL=${MODEL}"
 
