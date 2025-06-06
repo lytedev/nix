@@ -19,7 +19,7 @@ pkgs.writeShellApplication {
       cd nix
     fi
 
-    read -s -r -p 'Disk Encryption Password:' pass1
+    read -s -r -p 'Disk Encryption Password (in case encryption is used):' pass1
     echo
     read -s -r -p 'Disk Encryption Password (Again):' pass2
     echo
@@ -43,6 +43,7 @@ pkgs.writeShellApplication {
       --extra-experimental-features flakes \
       github:nix-community/disko -- \
         --flake '.#$partition_scheme' \
+        --arg disk '\"$disk_path\"' \
         --mode disko"
 
     nix-shell --packages git \

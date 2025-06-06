@@ -5,6 +5,7 @@ let
     stableHost
     steamdeckHost
     baseHost
+    stable
     ;
 in
 {
@@ -13,6 +14,7 @@ in
   foxtrot = host ./foxtrot.nix { };
   thinker = host ./thinker.nix { };
   htpc = stableHost ./htpc.nix { };
+  # htpc2 = stableHost ./htpc2.nix { };
   router = stableHost ./router.nix { };
   bigtower = stableHost ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
@@ -22,8 +24,14 @@ in
   steamdeck = steamdeckHost ./steamdeck.nix { };
   steamdeckoled = steamdeckHost ./steamdeckoled.nix { };
 
-  generic-headless = stableHost ./generic-headless.nix { };
-  generic = stableHost ./generic.nix { };
+  pv23 = baseHost (
+    stable
+    // {
+      extraModules = [
+        (inputs.self.diskoConfigurations.unencrypted { disk = "/dev/sda"; })
+      ];
+    }
+  ) ./generic.nix;
 
   liveImage = baseHost rec {
     nixpkgs = inputs.nixpkgs-unstable;

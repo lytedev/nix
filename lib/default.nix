@@ -27,6 +27,8 @@ rec {
 
   inherit (import ./host.nix inputs)
     host
+    stable
+    unstable
     stableHost
     steamdeckHost
     baseHost

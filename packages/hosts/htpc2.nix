@@ -1,6 +1,7 @@
 {
   hardware,
   config,
+  diskoConfigurations,
   ...
 }:
 {
@@ -8,14 +9,8 @@
   networking.hostName = "htpc";
 
   boot = {
-    loader = {
-      grub = {
-        enable = true;
-        device = "/dev/sda";
-        useOSProber = true;
-      };
-    };
-
+    loader.efi.canTouchEfiVariables = true;
+    loader.systemd-boot.enable = true;
     initrd = {
       availableKernelModules = [
         "xhci_pci"
@@ -31,19 +26,17 @@
     };
 
     kernelModules = [ "kvm-intel" ];
-    extraModulePackages = [
-      # pkgs.rtl8811au
-      config.boot.kernelPackages.rtl8812au
-      config.boot.kernelPackages.rtl8821au
+    extraModulePackages = with config.boot.kernelPackages; [
+      rtl8812au
+      rtl8821au
     ];
   };
 
-  fileSystems."/" = {
-    device = "/dev/disk/by-uuid/86d8ded0-1c6f-4a79-901c-2d59c11b5ca8";
-    fsType = "ext4";
-  };
-
   imports = with hardware; [
+    (diskoConfigurations.unencrypted {
+      disk = "/dev/nvme0n1";
+      name = "htpc";
+    })
     common-cpu-intel
     common-pc-ssd
   ];

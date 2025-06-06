@@ -35,18 +35,21 @@ let
         })
       )
     );
+  stable = { inherit (inputs) nixpkgs home-manager; };
+  unstable = {
+    nixpkgs = inputs.nixpkgs-unstable;
+    home-manager = inputs.home-manager-unstable;
+  };
 in
 {
-  inherit baseHost;
-  stableHost = baseHost { inherit (inputs) nixpkgs home-manager; };
-  host = baseHost {
-    nixpkgs = inputs.nixpkgs-unstable;
-    home-manager = inputs.home-manager-unstable;
-  };
-  steamdeckHost = baseHost {
-    nixpkgs = inputs.nixpkgs-unstable;
-    home-manager = inputs.home-manager-unstable;
-    extraModules = [ inputs.jovian.outputs.nixosModules.default ];
-    # do NOT manually include the jovian overlay here
-  };
+  inherit baseHost stable unstable;
+  stableHost = baseHost stable;
+  host = baseHost unstable;
+  steamdeckHost = baseHost (
+    unstable
+    // {
+      extraModules = [ inputs.jovian.outputs.nixosModules.default ];
+      # do NOT manually include the jovian overlay here
+    }
+  );
 }

@@ -1,7 +1,11 @@
-{ diskoConfigurations, ... }:
+{
+  lib,
+  diskoConfigurations,
+  ...
+}:
 {
   system.stateVersion = "24.11";
-  networking.hostName = "lyte-generic-headless";
+  networking.hostName = "lyte-generic";
 
   boot = {
     loader = {
@@ -20,7 +24,6 @@
   };
 
   imports = [
-    (diskoConfigurations.standardEncrypted { disk = "/dev/nvme0n1"; })
   ];
 
   hardware.bluetooth.enable = true;
