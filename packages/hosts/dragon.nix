@@ -75,5 +75,8 @@
     }
   ];
 
-  environment.systemPackages = with pkgs; [ vibe ];
+  environment.systemPackages = with pkgs; [
+    vibe
+    mcpm-aider
+  ];
 }

@@ -8,4 +8,5 @@
     builtins.readFile ./rust/hello_world_script/main.rs
   );
   vibe = pkgs.writeScriptBin "vibe" (builtins.readFile ./vibe.bash);
+  mcpm-aider = pkgs.writeScriptBin "mcpm-aider" (builtins.readFile ./mcp-manager.bash);
 }
