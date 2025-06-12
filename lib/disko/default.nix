@@ -376,17 +376,22 @@ rec {
   };
 
   unencrypted =
-    { disk, ... }:
+    {
+      disk,
+      name ? "primary",
+      boot-subvolume-size ? "5G",
+      ...
+    }:
     {
       disko.devices = {
         disk = {
-          primary = {
+          ${name} = {
             type = "disk";
             device = disk;
             content = {
               type = "gpt";
               partitions = {
-                ESP = ESP { size = "5G"; };
+                ESP = ESP { size = boot-subvolume-size; };
                 root = {
                   size = "100%";
                   content = {
