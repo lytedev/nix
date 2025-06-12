@@ -20,7 +20,10 @@ in
       clientSettings.uri = "https://${domain}";
       unixSettings = {
         # hsm_pin_path = "/somewhere/else";
-        pam_allowed_login_groups = [ "administrators" ];
+        pam_allowed_login_groups = [
+          "administrators"
+          "family"
+        ];
       };
 
     };
