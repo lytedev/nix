@@ -95,6 +95,7 @@
     common-pc-ssd
   ];
 
+  programs.steam.enable = true;
   lyte.desktop.enable = true;
   lyte.laptop.enable = true;
   family-account.enable = true;
