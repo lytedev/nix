@@ -82,6 +82,7 @@
       ./beefcake/atuin.nix
       ./beefcake/kanidm.nix
       ./beefcake/minecraft-server-containers.nix
+      ./beefcake/jonland.nix
       ./beefcake/audiobookshelf.nix
       ./beefcake/prometheus.nix
       ./beefcake/grafana.nix
