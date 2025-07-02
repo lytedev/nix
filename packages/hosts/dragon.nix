@@ -48,7 +48,7 @@
   };
 
   services.postgresql.enable = true;
-  programs.steam.enable = true;
+  # programs.steam.enable = true;
   lyte.desktop.enable = true;
   podman.enable = true;
 
@@ -75,6 +75,7 @@
     }
   ];
 
+  # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
     vibe
     mcpm-aider

@@ -29,7 +29,6 @@ in
         cargo
         desktop
         gnome
-        password-manager
 
         /*
           broot
@@ -68,7 +67,7 @@ in
       config = lib.mkIf config.lyte.shell.enable {
         programs.fish.enable = true;
         programs.helix.enable = true;
-        programs.zellij.enable = true;
+        programs.zellij.enable = lib.mkDefault false;
         programs.eza.enable = true;
         programs.bat = {
           enable = true;
@@ -100,10 +99,10 @@ in
         };
 
         programs.mise = {
-          enable = true;
-          enableFishIntegration = true;
-          enableBashIntegration = true;
-          enableZshIntegration = true;
+          enable = lib.mkDefault false;
+          enableFishIntegration = config.programs.mise.enable && config.programs.fish.enable;
+          enableBashIntegration = config.programs.mise.enable && config.programs.bash.enable;
+          enableZshIntegration = config.programs.mise.enable && config.programs.zsh.enable;
         };
 
         programs.jujutsu = {
@@ -750,31 +749,6 @@ in
       };
     };
 
-  password-manager =
-    {
-      lib,
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      config = lib.mkIf config.lyte.shell.enable {
-        programs.password-store = {
-          enable = true;
-          package = pkgs.pass.withExtensions (exts: [ exts.pass-otp ]);
-        };
-
-        home.packages = with pkgs; [
-          passage
-          rage
-          age-plugin-yubikey
-          bitwarden-cli
-          oath-toolkit
-          # bitwarden-desktop
-        ];
-      };
-    };
-
   senpai =
     { lib, config, ... }:
     {
@@ -785,6 +759,7 @@ in
             address = "irc+insecure://beefcake.hare-cod.ts.net:6667";
             nickname = "lytedev";
             password-cmd = [
+              # TODO: update to use bitwarden-cli?
               "pass"
               "soju"
             ];
@@ -793,6 +768,7 @@ in
 
         home.file."${config.xdg.configHome}/senpai/senpai.scfg" = {
           enable = true;
+          # TODO: update to use bitwarden-cli?
           text = ''
             address irc+insecure://beefcake:6667
             nickname lytedev
