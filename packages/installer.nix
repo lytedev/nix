@@ -33,7 +33,15 @@ pkgs.writeShellApplication {
 
     echo "$pass1" | tr -d "\n" > /tmp/secret.key
 
-    echo "This will install the host configuration for '$nixos_host' to '$disk_path' using partition scheme '$partition_scheme'. All data on the disk will be lost."
+    echo
+    echo "Most partition schemes will require at least a 'disk' argument. The current main partition scheme, zfsEncryptedUser, requires diskName and fullDiskDevicePath and these args must be provided in this format where the values are nix literals. Note no escaping is needed since this is not a shell prompt parsing your input:"
+    echo
+    echo '--arg diskName "machine-hostname" --arg fullDiskDevicePath "/dev/nvme0n1"'
+    echo
+    echo "Provide additional arguments:"
+    read -r args
+
+    echo "This will install the host configuration for '$nixos_host' using partition scheme '$partition_scheme' with args '$args'. All data on the disk will be lost."
     echo "Press enter to proceed. Press Ctrl-C to cancel."
     read -r
     echo "Starting..."
@@ -42,9 +50,7 @@ pkgs.writeShellApplication {
       --extra-experimental-features nix-command \
       --extra-experimental-features flakes \
       github:nix-community/disko -- \
-        --flake '.#$partition_scheme' \
-        --arg disk '\"$disk_path\"' \
-        --mode disko"
+        --flake '.#$partition_scheme' $args --mode disko"
 
     nix-shell --packages git \
       --run "sudo nixos-install \

@@ -8,6 +8,7 @@
 {
   system.stateVersion = "24.11";
   networking.hostName = "foxtrot";
+  networking.hostId = "00482f0a";
 
   boot = {
     loader = {
@@ -29,7 +30,7 @@
   };
 
   imports = with hardware; [
-    diskoConfigurations.foxtrot
+    diskoConfigurations.foxtrotZfs
     framework-13-7040-amd
   ];
 
