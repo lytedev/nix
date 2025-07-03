@@ -29,7 +29,6 @@ pkgs.writeShellApplication {
     fi
     nixos_host="$(nix --extra-experimental-features 'nix-command flakes' eval --accept-flake-config --json .#nixosConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select NixOS configuration')"
     partition_scheme="$(nix --extra-experimental-features 'nix-command flakes' eval --accept-flake-config --json .#diskoConfigurations --apply 'builtins.attrNames' | jq -r .[] | fzf --prompt 'Select disk partition scheme (must match NixOS configuration!)')"
-    disk_path="/dev/$(lsblk -d --raw | tail -n +2 | fzf --prompt 'Select local disk device' | awk '{print $1}')"
 
     echo "$pass1" | tr -d "\n" > /tmp/secret.key
 
