@@ -86,7 +86,7 @@
     };
     lyte.desktop = {
       enable = true;
-      environment = "plasma";
+      environment = "gnome";
     };
     home = {
       file.".config/easyeffects/output" = {

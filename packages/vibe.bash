@@ -27,4 +27,4 @@ MODEL="${MODEL:-$DEFAULT_MODEL}"
 echo "Using MODEL=${MODEL}"
 
 # avoid using the nixpkgs registry entry, we want the latest hotness from unstable
-AIDER_DARK_MODE=true nix shell "github:nixos/nixpkgs?rev=648a999c9cebef4b2ab474f4a85dd3679309bd28#aider-chat-full" -c aider --model "$MODEL" "$@"
+AIDER_DARK_MODE=true nix shell "github:nixos/nixpkgs?rev=d31a91c9b3bee464d054633d5f8b84e17a637862#aider-chat-full" -c aider --model "$MODEL" "$@"
