@@ -16,7 +16,7 @@ if [[ ! $* =~ --watch-files ]]; then
   echo 'TIP: Add "--watch-files" to interact with changes in your EDITOR.'
 fi
 
-DEFAULT_MODEL="gemini/gemini-2.5-pro-preview-03-25"
+DEFAULT_MODEL="gemini/gemini-2.5-pro-preview-06-05"
 
 if [[ $PWD =~ bill ]]; then
   echo "In a \$JOB project. You may want to ensure AWS_PROFILE is set properly!"

@@ -70,11 +70,11 @@
     };
   };
 
-  programs.steam.enable = true;
+  # programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop = {
     enable = true;
-    # environment = "plasma";
+    environment = "niri";
   };
   lyte.laptop.enable = true;
   family-account.enable = true;
@@ -86,7 +86,7 @@
     };
     lyte.desktop = {
       enable = true;
-      environment = "gnome";
+      environment = "niri";
     };
     home = {
       file.".config/easyeffects/output" = {
