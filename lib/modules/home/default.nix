@@ -253,6 +253,9 @@ in
               ];
               default = "gnome";
             };
+            extraEnvironments = lib.mkOption {
+              default = [ ];
+            };
           };
         };
       };
@@ -485,6 +488,42 @@ in
       config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "plasma")) {
         dconf.enable = true;
       };
+    };
+
+  niri =
+    {
+      lib,
+      config,
+      pkgs,
+      ...
+    }:
+    {
+      # imports = [ inputs.niri.homeModules.niri ];
+      config =
+        lib.mkIf
+          (
+            config.lyte.desktop.enable
+            && (
+              config.lyte.desktop.environment == "niri"
+              || builtins.elem "niri" config.lyte.desktop.extraEnvironments
+            )
+          )
+          {
+            # programs.niri.enable = true;
+            home = {
+              packages = with pkgs; [
+                fuzzel
+                swaybg
+                swaylock
+                swayosd
+                waybar
+              ];
+            };
+
+            home.file."${config.xdg.configHome}/niri" = {
+              source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/niri ./niri;
+            };
+          };
     };
 
   gnome =

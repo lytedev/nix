@@ -21,6 +21,9 @@ in
           ];
           default = "gnome";
         };
+        extraEnvironments = lib.mkOption {
+          default = [ ];
+        };
       };
     };
   };

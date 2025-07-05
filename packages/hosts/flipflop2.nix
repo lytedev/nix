@@ -2,7 +2,7 @@
   diskoConfigurations,
   hardware,
   pkgs,
-  lib,
+  # lib,
   config,
   ...
 }:
@@ -68,7 +68,10 @@
   ];
 
   programs.steam.enable = true;
-  lyte.desktop.enable = true;
+  lyte.desktop = {
+    enable = true;
+    extraEnvironments = [ "niri" ];
+  };
   lyte.laptop.enable = true;
   family-account.enable = true;
   home-manager.users.daniel = {
@@ -77,7 +80,10 @@
         enable = true;
         learn-jujutsu-not-git.enable = true;
       };
-      desktop.enable = true;
+      desktop = {
+        enable = true;
+        extraEnvironments = [ "niri" ];
+      };
     };
     home = {
       stateVersion = "25.05";
