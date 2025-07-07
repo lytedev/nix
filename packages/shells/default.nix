@@ -13,4 +13,9 @@
       markdown-oxide
     ];
   };
+
+  music-production = pkgs.mkShell {
+    # TODO: reaper? VSTs like Helm? Neural Amp modeler for guitar?
+    # I would love to be able to do basic recording and editing as well as live "performances" with effects chains etc.
+  };
 }
