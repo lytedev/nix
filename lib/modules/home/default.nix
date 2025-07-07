@@ -509,7 +509,7 @@ in
             )
           )
           {
-            # programs.niri.enable = true;
+            programs.niri.enable = true;
             home = {
               packages = with pkgs; [
                 fuzzel

@@ -75,6 +75,7 @@
   lyte.desktop = {
     enable = true;
     # environment = "plasma";
+    extraEnvironments = [ "niri" ];
   };
   lyte.laptop.enable = true;
   family-account.enable = true;
@@ -86,7 +87,7 @@
     };
     lyte.desktop = {
       enable = true;
-      environment = "gnome";
+      extraEnvironments = [ "niri" ];
     };
     home = {
       file.".config/easyeffects/output" = {
