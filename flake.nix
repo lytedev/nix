@@ -94,6 +94,10 @@
 
     iosevka-lyte.url = "github:lytedev/iosevka-lyte";
     # iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    niri.url = "github:sodiboo/niri-flake";
+    # niri.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # niri.inputs.nixpkgs-stable.follows = "nixpkgs";
   };
 
   nixConfig = {

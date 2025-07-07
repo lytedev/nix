@@ -41,6 +41,7 @@
     };
   };
   hardware = {
+    steam-hardware.enable = true;
     framework.amd-7040.preventWakeOnAC = true;
     bluetooth = {
       enable = true;
@@ -81,6 +82,9 @@
   family-account.enable = true;
   podman.enable = true;
   home-manager.users.daniel = {
+    lyte = {
+      useOutOfStoreSymlinks.enable = true;
+    };
     lyte.shell = {
       enable = true;
       learn-jujutsu-not-git.enable = true;

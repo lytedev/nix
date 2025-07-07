@@ -19,6 +19,7 @@ inputs: {
   desktop = import ./desktop.nix;
   printing = import ./printing.nix;
   wifi = import ./wifi.nix;
+  niri = import ./niri.nix inputs;
   restic = import ./restic.nix;
   router = import ./router.nix;
   kanidm = import ./kanidm.nix;

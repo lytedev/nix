@@ -15,6 +15,7 @@ inputs:
         nixpkgs.overlays = [ inputs.niri.overlays.niri ];
         programs.niri.enable = true;
 
+        # TODO: these are all probably home-manager module TODOs?
         # TODO: bar
         # TODO: notifications (mako?)
         # TODO: launcher (fuzzel?)

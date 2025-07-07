@@ -29,6 +29,7 @@ in
         cargo
         desktop
         gnome
+        niri
 
         /*
           broot
@@ -509,14 +510,16 @@ in
             )
           )
           {
-            programs.niri.enable = true;
+            # programs.niri.enable = true;
             home = {
               packages = with pkgs; [
                 fuzzel
                 swaybg
                 swaylock
                 swayosd
+                swayidle
                 waybar
+                mako
               ];
             };
 
