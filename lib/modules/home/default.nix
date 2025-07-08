@@ -257,6 +257,10 @@ in
         };
       };
       config = lib.mkIf config.lyte.desktop.enable {
+        home.file."~/.local/share/fonts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "/run/current-system/sw/share/X11/fonts";
+        };
+
         programs.firefox.enable = true;
         programs.ghostty.enable = true;
         home.pointerCursor = {

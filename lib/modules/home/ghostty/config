@@ -997,8 +997,8 @@ keybind = ctrl+shift+zero=reset_font_size
 keybind = alt+enter=toggle_fullscreen
 keybind = ctrl+shift+w=close_surface
 keybind = ctrl+shift+z=toggle_split_zoom
-keybind = performable:ctrl+shift+o=write_screen_file:paste
-keybind = performable:ctrl+alt+shift+o=write_screen_file:open
+keybind = ctrl+shift+o=write_scrollback_file:paste
+keybind = ctrl+alt+shift+o=write_scrollback_file:open
 keybind = performable:ctrl+shift+h=new_split:left
 keybind = performable:ctrl+shift+l=new_split:right
 keybind = performable:ctrl+shift+j=new_split:down

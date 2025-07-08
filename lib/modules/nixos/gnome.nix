@@ -57,6 +57,9 @@
     };
 
     environment = {
+      systemPackages = with pkgs; [
+        adwaita-fonts
+      ];
       gnome.excludePackages = with pkgs; [
         baobab
         decibels

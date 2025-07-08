@@ -26,7 +26,14 @@ in
   };
   config = lib.mkIf cfg.enable {
     services.pipewire.enable = true;
-    environment.systemPackages = [ pkgs.wl-clipboard ];
+    environment.systemPackages = with pkgs; [
+      wl-clipboard # wayland clipboard CLI tools
+
+      # for enabling glib-based tools to be able to launch the default terminal properly
+      # translation: this lets `xdg-open /my-file.txt` properly open the text file in helix in ghostty and not xterm
+      # see https://gitlab.gnome.org/GNOME/glib/-/blob/5da569a4253ab4b9a7ff9fcf8595c33f3c324a45/gio/gdesktopappinfo.c#L2720
+      xdg-terminal-exec
+    ];
 
     fonts.packages = [
       (
@@ -38,6 +45,10 @@ in
       )
       pkgs.iosevkaLyteTerm
     ];
+
+    # enable flatpak to find system fonts
+    # https://nixos.wiki/wiki/Fonts#Flatpak_applications_can.27t_find_system_fonts
+    fonts.fontDir.enable = true;
 
     xdg.portal.enable = true;
 
