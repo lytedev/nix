@@ -86,8 +86,8 @@
     # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     ghostty.url = "github:ghostty-org/ghostty?shallow=1";
-    # ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
-    # ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
+    ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # ghostty.inputs.nixpkgs.follows = "nixpkgs";
 
     deploy-rs.url = "github:serokell/deploy-rs?shallow=1";
     # deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
