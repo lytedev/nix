@@ -12,10 +12,6 @@ let
     port = 8529;
   };
   runnerCount = 16;
-  theme = pkgs.fetchzip {
-    url = "https://github.com/catppuccin/gitea/releases/download/v1.0.1/catppuccin-gitea.tar.gz";
-    sha256 = "sha256-et5luA3SI7iOcEIQ3CVIu0+eiLs8C/8mOitYlWQa/uI=";
-  };
   logos = {
     png = pkgs.fetchurl {
       url = "https://lyte.dev/icon.png";
@@ -161,8 +157,8 @@ in
         REVERSE_PROXY_TRUSTED_PROXIES = "127.0.0.0/8,::1/128";
       };
       ui = {
-        THEMES = "catppuccin-mocha-sapphire,forgejo-auto,forgejo-light,forgejo-dark";
-        DEFAULT_THEME = "catppuccin-mocha-sapphire";
+        THEMES = "forgejo-auto,forgejo-light,forgejo-dark";
+        DEFAULT_THEME = "forgejo-auto";
       };
       indexer = {
         REPO_INDEXER_ENABLED = "true";
@@ -217,7 +213,6 @@ in
           ln -sf ${logos.svg} ${config.services.forgejo.stateDir}/custom/public/assets/img/logo.svg
           ln -sf ${logos.png} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.png
           ln -sf ${logos.svg-with-background} ${config.services.forgejo.stateDir}/custom/public/assets/img/favicon.svg
-          ln -sf ${theme}/theme-catppuccin-mocha-sapphire.css ${config.services.forgejo.stateDir}/custom/public/assets/css/
           ln -sf ${forgejoCustomCss} ${config.services.forgejo.stateDir}/custom/public/assets/css/iosevkalyte.css
           ln -sf ${forgejoCustomHeaderTmpl} ${config.services.forgejo.stateDir}/custom/templates/custom/header.tmpl
           ln -sf ${forgejoCustomHomeTmpl} ${config.services.forgejo.stateDir}/custom/templates/home.tmpl
