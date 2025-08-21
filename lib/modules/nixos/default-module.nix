@@ -255,11 +255,8 @@
         };
       };
       imports = with self.outputs.homeManagerModules; [
-        {
-          _module.args.fullName = config.users.users.daniel.description;
-        }
-        default
         daniel
+        default
       ];
     };
   };
