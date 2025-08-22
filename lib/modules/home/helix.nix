@@ -207,7 +207,7 @@
       };
 
       settings = {
-        theme = "term16_dark";
+        theme = "base16_terminal";
 
         editor = {
           soft-wrap.enable = true;

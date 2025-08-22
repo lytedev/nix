@@ -65,7 +65,7 @@ in
         };
       };
 
-      config = lib.mkIf config.lyte.shell.enable {
+      config = lib.mkIf (builtins.trace config.lyte.shell.enable config.lyte.shell.enable) {
         programs.fish.enable = true;
         programs.helix.enable = true;
         programs.zellij.enable = lib.mkDefault false;
@@ -248,10 +248,12 @@ in
           desktop = {
             enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
             environment = lib.mkOption {
-              type = types.enum [
-                "gnome"
-                "plasma"
-              ];
+              type =
+                types.enum [
+                  "gnome"
+                  "plasma"
+                ]
+                ++ (if pkgs.system == "x86_64-darwin" || pkgs.system == "aarch64-darwin" then [ "macos" ] else [ ]);
               default = "gnome";
             };
             extraEnvironments = lib.mkOption {
@@ -261,12 +263,30 @@ in
         };
       };
       config = lib.mkIf config.lyte.desktop.enable {
-        home.file."~/.local/share/fonts" = {
+        home.packages = with pkgs; [
+          (
+            # allow nixpkgs 24.11 and unstable to both work
+            if builtins.hasAttr "nerd-fonts" pkgs then
+              (nerd-fonts.symbols-only)
+            else
+              (nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
+          )
+
+          iosevkaLyteTerm
+        ];
+
+        fonts.fontconfig.enable = true;
+
+        home.file."${config.xdg.configHome}/.local/share/fonts" = {
           source = config.lib.file.mkOutOfStoreSymlink "/run/current-system/sw/share/X11/fonts";
         };
 
-        programs.firefox.enable = true;
-        programs.ghostty.enable = true;
+        home.file."${config.xdg.configHome}/ghostty" = {
+          source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ghostty ./ghostty;
+        };
+
+        programs.firefox.enable = lib.mkDefault true;
+        programs.ghostty.enable = lib.mkDefault true;
         home.pointerCursor = {
           name = "Bibata-Modern-Classic";
           package = pkgs.bibata-cursors;
@@ -288,7 +308,6 @@ in
     {
       fullName,
       config,
-      lib,
       ...
     }:
     let
@@ -583,11 +602,15 @@ in
               clock-show-weekday = true;
               # font-name = "IosevkaLyteTerm 12";
               # monospace-font-name = "IosevkaLyteTerm 12";
-              color-scheme = "prefer-dark";
+              # color-scheme = "prefer-dark"; # don't set this so we respect the current toggle
               # scaling-factor = 1.75;
             };
             "org/gnome/mutter" = {
-              experimental-features = [ "variable-refresh-rate" ];
+              experimental-features = [
+                "variable-refresh-rate"
+                "scale-monitor-framebuffer"
+                "xwayland-native-scaling"
+              ];
             };
 
             "org/gnome/shell" = {
@@ -838,10 +861,6 @@ in
         home.packages = with pkgs; [
           ghostty
         ];
-
-        home.file."${config.xdg.configHome}/ghostty" = {
-          source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ghostty ./ghostty;
-        };
       };
     };
 
@@ -1408,5 +1427,7 @@ in
         primary = true;
         address = "daniel@lyte.dev";
       };
+
+      _module.args.fullName = "Daniel Flanagan";
     };
 }
