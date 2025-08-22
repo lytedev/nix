@@ -79,5 +79,6 @@
   environment.systemPackages = with pkgs; [
     vibe
     mcpm-aider
+    godot_4
   ];
 }
