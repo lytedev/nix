@@ -247,10 +247,13 @@ in
           desktop = {
             enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
             environment = lib.mkOption {
-              type = types.enum [
-                "gnome"
-                "plasma"
-              ];
+              type = types.enum (
+                [
+                  "gnome"
+                  "plasma"
+                ]
+                ++ (if pkgs.system == "x86_64-darwin" || pkgs.system == "aarch64-darwin" then [ "macos" ] else [ ])
+              );
               default = "gnome";
             };
           };
