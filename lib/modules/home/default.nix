@@ -1369,7 +1369,6 @@ in
       extraConfig = ''
         Include config.d/*
         # pass obscure/keys/ssh-key-ed25519 | tail -n 7
-        IdentityFile ~/.ssh/id_ed25519
       '';
     };
   };
