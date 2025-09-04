@@ -23,6 +23,12 @@ if [[ $PWD =~ bill ]]; then
   DEFAULT_MODEL="bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0"
 fi
 
+if [[ $PWD =~ anglepoint ]]; then
+  ANTHROPIC_API_KEY="$(comma yq .clients[1].api_key "$HOME/.config/aichat/config.yaml")"
+  export ANTHROPIC_API_KEY
+  DEFAULT_MODEL="sonnet"
+fi
+
 MODEL="${MODEL:-$DEFAULT_MODEL}"
 echo "Using MODEL=${MODEL}"
 
