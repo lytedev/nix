@@ -65,6 +65,13 @@
     lyte.desktop.enable = true;
   };
 
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
+
   family-account.enable = true;
   home-manager.users.flanfam = {
     lyte.shell.enable = true;

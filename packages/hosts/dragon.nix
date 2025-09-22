@@ -52,6 +52,13 @@
   lyte.desktop.enable = true;
   podman.enable = true;
 
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
+
   home-manager.users.daniel = {
     lyte = {
       useOutOfStoreSymlinks.enable = true;

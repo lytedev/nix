@@ -71,6 +71,13 @@
     lutris
   ];
 
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
+
   programs.steam.enable = true;
   lyte.desktop.enable = true;
 
