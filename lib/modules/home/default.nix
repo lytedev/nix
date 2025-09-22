@@ -1334,44 +1334,70 @@ in
       };
     };
 
-  sshconfig = {
-    programs.ssh = {
-      enable = true;
-      matchBlocks = {
-        "git.lyte.dev" = {
-          # hostname = "git.lyte.dev";
-          user = "forgejo";
+  sshconfig =
+    { options, ... }:
+    {
+      programs.ssh =
+        (
+          if builtins.hasAttr "enableDefaultConfig" options.programs.ssh then
+            {
+              enableDefaultConfig = false;
+              matchBlocks = {
+                "*" = {
+                  forwardAgent = false;
+                  addKeysToAgent = "no";
+                  compression = false;
+                  serverAliveInterval = 0;
+                  serverAliveCountMax = 3;
+                  hashKnownHosts = false;
+                  userKnownHostsFile = "~/.ssh/known_hosts";
+                  controlMaster = "no";
+                  controlPath = "~/.ssh/master-%r@%n:%p";
+                  controlPersist = "no";
+                };
+              };
+            }
+          else
+            {
+              extraConfig = ''
+                # pass obscure/keys/ssh-key-ed25519 | tail -n 7
+              '';
+            }
+        )
+        // {
+          enable = true;
+          includes = [ "config.d/*" ];
+          matchBlocks = {
+            "git.lyte.dev" = {
+              # hostname = "git.lyte.dev";
+              user = "forgejo";
+            };
+            "github.com" = {
+              user = "git";
+            };
+            "gitlab.com" = {
+              user = "git";
+            };
+            "codeberg.org" = {
+              user = "git";
+            };
+            "git.hq.bill.com" = {
+              user = "git";
+            };
+            "steam-deck-oled" = {
+              user = "deck";
+              hostname = "sdo";
+            };
+            "steam-deck" = {
+              user = "deck";
+              hostname = "steamdeck";
+            };
+            work = {
+              user = "daniel.flanagan";
+            };
+          };
         };
-        "github.com" = {
-          user = "git";
-        };
-        "gitlab.com" = {
-          user = "git";
-        };
-        "codeberg.org" = {
-          user = "git";
-        };
-        "git.hq.bill.com" = {
-          user = "git";
-        };
-        "steam-deck-oled" = {
-          user = "deck";
-          hostname = "sdo";
-        };
-        "steam-deck" = {
-          user = "deck";
-          hostname = "steamdeck";
-        };
-        work = {
-          user = "daniel.flanagan";
-        };
-      };
-      extraConfig = ''
-        Include config.d/*
-        # pass obscure/keys/ssh-key-ed25519 | tail -n 7
-      '';
     };
-  };
 
   daniel =
     { ... }:

@@ -1,4 +1,5 @@
 {
+  options,
   pkgs,
   lib,
   config,
@@ -48,13 +49,39 @@
   ];
 
   config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "gnome")) {
-    services = {
-      xserver = {
-        enable = true;
-        displayManager.gdm.enable = true;
-        desktopManager.gnome.enable = true;
+    xdg.portal.enable = true;
+    xdg.portal.extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
+    xdg.portal.config = {
+      common = {
+        default = [
+          "gtk"
+        ];
       };
     };
+    services =
+      (
+        if
+          (builtins.hasAttr "displayManager" options.services)
+          && (builtins.hasAttr "gdm" options.services.displayManager)
+        then
+          {
+            displayManager.gdm.enable = true;
+            desktopManager.gnome.enable = true;
+          }
+        else
+          {
+            xserver = {
+              displayManager.gdm.enable = true;
+              desktopManager.gnome.enable = true;
+            };
+          }
+      )
+      // {
+
+        xserver = {
+          enable = true;
+        };
+      };
 
     environment = {
       systemPackages = with pkgs; [

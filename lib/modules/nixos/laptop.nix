@@ -28,7 +28,6 @@
 
     services.logind =
       {
-        lidSwitch = "suspend-then-hibernate";
       }
       // (
         let

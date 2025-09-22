@@ -70,6 +70,11 @@
     };
   };
 
+  systemd.services.fprintd = {
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig.Type = "simple";
+  };
+
   programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop = {
