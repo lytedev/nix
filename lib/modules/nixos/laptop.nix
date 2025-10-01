@@ -1,5 +1,6 @@
 {
   lib,
+  options,
   config,
   pkgs,
   ...
@@ -25,31 +26,43 @@
 
     systemd.sleep.extraConfig = "HibernateDelaySec=11m";
 
-    services.logind = {
-      lidSwitch = "suspend-then-hibernate";
-      extraConfig = ''
-        KillUserProcesses=no
+    services.logind =
+      {
+        lidSwitch = "suspend-then-hibernate";
+      }
+      // (
+        let
+          logindSettings = {
+            "KillUserProcesses" = false;
 
-        HandlePowerKey=suspend-then-hibernate
-        HandlePowerKeyLongPress=poweroff
+            "HandlePowerKey" = "suspend-then-hibernate";
+            "HandlePowerKeyLongPress" = "poweroff";
 
-        HandleRebootKey=reboot
-        HandleRebootKeyLongPress=poweroff
+            "HandleRebootKey" = "reboot";
+            "HandleRebootKeyLongPress" = "poweroff";
 
-        HandleSuspendKey=suspend-then-hibernate
-        HandleSuspendKeyLongPress=hibernate
+            "HandleSuspendKey" = "suspend-then-hibernate";
+            "HandleSuspendKeyLongPress" = "hibernate";
 
-        HandleHibernateKey=hibernate
-        HandleHibernateKeyLongPress=ignore
+            "HandleHibernateKey" = "hibernate";
+            "HandleHibernateKeyLongPress" = "ignore";
 
-        HandleLidSwitch=suspend-then-hibernate
-        HandleLidSwitchExternalPower=suspend
-        HandleLidSwitchDocked=suspend
-        HandleLidSwitchDocked=suspend
+            "HandleLidSwitch" = "suspend-then-hibernate";
+            "HandleLidSwitchExternalPower" = "suspend";
+            "HandleLidSwitchDocked" = "suspend";
 
-        IdleActionSec=11m
-        IdleAction=hibernate
-      '';
-    };
+            "IdleActionSec" = "11m";
+            "IdleAction" = "hibernate";
+          };
+        in
+        if builtins.hasAttr "settings" options.services.logind then
+
+          {
+            settings.Login = logindSettings;
+          }
+        else
+          {
+          }
+      );
   };
 }
