@@ -56,12 +56,18 @@
           };
         in
         if builtins.hasAttr "settings" options.services.logind then
-
           {
             settings.Login = logindSettings;
           }
         else
           {
+            extraConfig =
+              let
+                toValueString = val: if builtins.isBool val then if val then "yes" else "no" else val;
+              in
+              lib.concatStringsSep "\n" (
+                lib.mapAttrsToList (name: value: "${name}=${toValueString value}") logindSettings
+              );
           }
       );
   };

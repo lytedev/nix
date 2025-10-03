@@ -86,7 +86,7 @@ in
       {
         system.stateVersion = "25.05";
         networking.hostName = "live-nixos-lyte";
-        networking.networkmanager.enable = false;
+        networking.networkmanager.enable = nixpkgs.lib.mkForce true;
 
         lyte.shell.enable = true;
         lyte.desktop.enable = true;
