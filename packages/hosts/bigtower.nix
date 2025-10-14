@@ -73,6 +73,17 @@
     lutris
   ];
 
+  sops = {
+    defaultSopsFile = ../../secrets/dragon/secrets.yml;
+    secrets.nix-cache-priv-key.mode = "0400";
+  };
+
+  services.nix-serve = {
+    enable = true;
+    openFirewall = true;
+    secretKeyFile = config.sops.secrets.nix-cache-priv-key.path;
+  };
+
   services.sunshine = {
     enable = true;
     autoStart = true;

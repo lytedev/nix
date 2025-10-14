@@ -41,11 +41,19 @@
   sops = {
     defaultSopsFile = ../../secrets/dragon/secrets.yml;
     secrets.ddns-pass.mode = "0400";
+    secrets.nix-cache-priv-key.mode = "0400";
   };
+
   services.deno-netlify-ddns-client = {
     enable = true;
     passwordFile = config.sops.secrets.ddns-pass.path;
     username = "dragon.h";
+  };
+
+  services.nix-serve = {
+    enable = true;
+    openFirewall = true;
+    secretKeyFile = config.sops.secrets.nix-cache-priv-key.path;
   };
 
   programs.nix-ld.enable = true;
