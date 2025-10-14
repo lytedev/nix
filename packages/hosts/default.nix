@@ -13,7 +13,7 @@ in
   dragon = host ./dragon.nix { };
   foxtrot = host ./foxtrot.nix { };
   thinker = host ./thinker.nix { };
-  htpc = stableHost ./htpc.nix { };
+  htpc = host ./htpc.nix { };
   # htpc2 = stableHost ./htpc2.nix { };
   router = stableHost ./router.nix { };
   bigtower = stableHost ./bigtower.nix { };

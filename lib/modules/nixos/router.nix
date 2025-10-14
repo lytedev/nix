@@ -451,11 +451,9 @@ in
               name:
               {
                 ip,
-                identifier ? name,
-                time ? "12h",
                 ...
               }:
-              "${name},${ip},${identifier},${time}"
+              "${name},${ip}"
             ) cfg.hosts);
 
           address =
@@ -468,8 +466,6 @@ in
                 {
                   ip,
                   additionalHosts ? [ ],
-                  # identifier ? name,
-                  # time ? "12h",
                   ...
                 }:
                 [
