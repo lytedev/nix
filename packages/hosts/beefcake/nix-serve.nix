@@ -6,7 +6,9 @@
   };
   services.caddy.virtualHosts."nix.h.lyte.dev" = {
     extraConfig = ''
-      reverse_proxy dragon.lan:5000 bigtower.lan:5000 :${toString config.services.nix-serve.port}
+      reverse_proxy dragon.lan:5000 bigtower.lan:5000 :${toString config.services.nix-serve.port} {
+        lb_policy first
+      }
     '';
   };
 
