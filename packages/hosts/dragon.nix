@@ -34,6 +34,7 @@
     common-pc-ssd
   ];
 
+  prevent-suspend.enable = true;
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
 

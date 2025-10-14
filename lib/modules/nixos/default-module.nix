@@ -82,11 +82,25 @@
         };
       }
     )
+
+    (
+      { config, ... }:
+      lib.mkIf config.prevent-suspend.enable {
+        systemd.targets.sleep.enable = false;
+        systemd.targets.suspend.enable = false;
+        systemd.targets.hibernate.enable = false;
+        systemd.targets.hybrid-sleep.enable = false;
+      }
+    )
+
   ];
 
   options = {
     family-account = {
       enable = lib.mkEnableOption "Enable a user account for family members";
+    };
+    prevent-suspend = {
+      enable = lib.mkEnableOption "Ensure the host does not suspend";
     };
   };
 
