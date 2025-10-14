@@ -20,6 +20,8 @@ in
 {
   system.stateVersion = "24.11";
 
+  users.groups.netdev = { };
+
   # hardware
   boot = {
     loader = {
@@ -177,6 +179,7 @@ in
             "nextcloud.h.lyte.dev"
             "nix.h.lyte.dev"
             "tasks.h.lyte.dev"
+            "spacetimedb.h.lyte.dev"
             "onlyoffice.h.lyte.dev"
             "paperless.h.lyte.dev"
             "prometheus.h.lyte.dev"
