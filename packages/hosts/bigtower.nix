@@ -73,6 +73,18 @@
     lutris
   ];
 
+  sops = {
+    defaultSopsFile = ../../secrets/dragon/secrets.yml;
+    secrets.nix-cache-priv-key.mode = "0400";
+  };
+
+  services.harmonia = {
+    enable = true;
+    signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
+  };
+
+  networking.firewall.allowedTCPPorts = [ 5000 ];
+
   services.sunshine = {
     enable = true;
     autoStart = true;
