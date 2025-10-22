@@ -59,6 +59,9 @@
       );
     };
   };
+
+  programs.nix-ld.enable = true;
+
   powerManagement.cpuFreqGovernor = "ondemand";
   services = {
     fwupd.extraRemotes = [ "lvfs-testing" ];
