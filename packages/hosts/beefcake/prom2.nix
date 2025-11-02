@@ -1,13 +1,18 @@
 { ... }:
+let
+  server_name = "prom2";
+  dir = "/storage/${server_name}";
+  port = 26989;
+in
 {
   config = {
     systemd.tmpfiles.rules = [
-      "d /storage/jonland/ 0777 1000 1000 -"
-      "d /storage/jonland/data/ 0777 1000 1000 -"
+      "d ${dir}/ 0777 1000 1000 -"
+      "d ${dir}/data/ 0777 1000 1000 -"
     ];
 
-    virtualisation.oci-containers.containers.minecraft-jonland = {
-      autoStart = false;
+    virtualisation.oci-containers.containers."minecraft-${server_name}" = {
+      autoStart = true;
 
       # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
 
@@ -21,28 +26,29 @@
         DISABLE_HEALTHCHECK = "true";
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
-        VERSION = "1.21.1";
+        VERSION = "1.20.1";
         MEMORY = "8G";
         MAX_MEMORY = "16G";
-        TYPE = "NEOFORGE";
-        NEOFORGE_VERSION = "21.1.172";
+        TYPE = "MODRINTH";
+        MODRINTH_MODPACK = "prominence-2-fabric";
+        MODRINTH_PROJECTS = "simple-voice-chat,distanthorizons:beta";
+        MODRINTH_EXCLUDE_FILES = "welcomescreen-fabric-1.0.0-1.20.1.jar";
         ALLOW_FLIGHT = "true";
         ENABLE_QUERY = "true";
-        SEED = "-3495572360503818113";
       };
       environmentFiles = [ ];
       ports = [
-        "26974:25565"
+        "${toString port}:25565"
         "24454:24454/udp"
       ];
-      volumes = [ "/storage/jonland/data:/data" ];
+      volumes = [ "${dir}/data:/data" ];
     };
     networking.firewall.allowedTCPPorts = [
-      26974
+      port
       24454 # voice chat mod
     ];
     networking.firewall.allowedUDPPorts = [
-      26974
+      port
       24454 # voice chat mod
     ];
 

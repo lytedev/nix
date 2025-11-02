@@ -152,7 +152,8 @@ in
               "HTTPS" = 443;
               "Minecraft Flanilla Creative" = 26968;
               "Jonland Minecraft" = 26974;
-              "Jonland Minecraft Voicechat" = 24454;
+              "Prominence 2" = 26989;
+              "Minecraft Voicechat" = 24454;
             };
             udp = {
               "QUIC" = [
@@ -161,7 +162,8 @@ in
               ];
               "Factorio" = 34197;
               "Jonland Minecraft" = 26974;
-              "Jonland Minecraft Voicechat" = 24454;
+              "Prominence 2" = 26989;
+              "Minecraft Voicechat" = 24454;
             };
           };
           additionalHosts = [
