@@ -28,7 +28,7 @@ in
         TZ = "America/Chicago";
         VERSION = "1.20.1";
         MEMORY = "8G";
-        MAX_MEMORY = "16G";
+        MAX_MEMORY = "32G";
         TYPE = "MODRINTH";
         MODRINTH_MODPACK = "prominence-2-fabric";
         MODRINTH_PROJECTS = "simple-voice-chat,distanthorizons:beta";
