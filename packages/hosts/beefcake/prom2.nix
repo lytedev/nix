@@ -27,7 +27,7 @@ in
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
         VERSION = "1.20.1";
-        MEMORY = "8G";
+        MEMORY = "16G";
         MAX_MEMORY = "32G";
         TYPE = "MODRINTH";
         MODRINTH_MODPACK = "prominence-2-fabric";
