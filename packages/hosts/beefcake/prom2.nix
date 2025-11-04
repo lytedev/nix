@@ -27,7 +27,7 @@ in
         STOP_SERVER_ANNOUNCE_DELAY = "20";
         TZ = "America/Chicago";
         VERSION = "1.20.1";
-        MEMORY = "16G";
+        MEMORY = "32G";
         MAX_MEMORY = "32G";
         TYPE = "MODRINTH";
         MODRINTH_MODPACK = "prominence-2-fabric";
@@ -35,6 +35,7 @@ in
         MODRINTH_EXCLUDE_FILES = "welcomescreen-fabric-1.0.0-1.20.1.jar";
         ALLOW_FLIGHT = "true";
         ENABLE_QUERY = "true";
+        USE_MEOWICE_FLAGS = "true";
       };
       environmentFiles = [ ];
       ports = [
