@@ -251,6 +251,7 @@ in
                 [
                   "gnome"
                   "plasma"
+                  "niri"
                 ]
                 ++ (if pkgs.system == "x86_64-darwin" || pkgs.system == "aarch64-darwin" then [ "macos" ] else [ ])
               );

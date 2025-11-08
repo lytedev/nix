@@ -67,6 +67,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     slippi = {
       url = "github:lytedev/slippi-nix";
       # url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
@@ -86,6 +91,7 @@
     # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     ghostty.url = "github:ghostty-org/ghostty";
+    # need some common system dep for ghostty at the moment
     ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     deploy-rs.url = "github:serokell/deploy-rs";

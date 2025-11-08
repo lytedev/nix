@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   hardware,
   diskoConfigurations,
   # homeConfigurations,
@@ -88,6 +89,7 @@
   family-account.enable = true;
   podman.enable = true;
   home-manager.users.daniel = {
+    lyte.useOutOfStoreSymlinks.enable = true;
     lyte.shell = {
       enable = true;
       learn-jujutsu-not-git.enable = true;
@@ -112,4 +114,13 @@
   };
   services.postgresql.enable = true;
   environment.systemPackages = with pkgs; [ vibe ];
+
+  specialisation = {
+    niri.configuration = {
+      lyte.desktop.environment = lib.mkForce "niri";
+      home-manager.users.daniel = {
+        lyte.desktop.environment = lib.mkForce "niri";
+      };
+    };
+  };
 }

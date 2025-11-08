@@ -451,10 +451,11 @@ in
               name:
               {
                 ip,
+                mac,
                 ...
               }:
-              "${name},${ip}"
-            ) cfg.hosts);
+              "${mac},${name},${ip}"
+            ) (lib.filterAttrs (_: a: builtins.hasAttr "mac" a) cfg.hosts));
 
           address =
             [

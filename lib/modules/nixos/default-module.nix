@@ -24,6 +24,7 @@
     shell-defaults-and-applications
     desktop
     gnome
+    niri
     plasma
     wifi
     printing

@@ -16,7 +16,7 @@
       # enable = true;
       profileVersion = null;
       package = pkgs.firefox.override {
-        nativeMessagingHosts = with pkgs; [ bitwarden ];
+        nativeMessagingHosts = with pkgs; [ bitwarden-desktop ];
       };
       /*
         TODO: this should be able to work on macos, no?

@@ -135,6 +135,7 @@ in
         dragon = {
           ip = "192.168.0.10";
           nat.tcp.SSH = 4822;
+          mac = "f0:2f:74:c9:9b:61";
         };
         bald = {
           ip = "192.168.0.11";
@@ -145,6 +146,7 @@ in
         };
         beefcake = {
           ip = "192.168.0.9";
+          mac = "b8:ca:3a:6d:2d:24";
           nat = {
             tcp = {
               "SSH" = 22;

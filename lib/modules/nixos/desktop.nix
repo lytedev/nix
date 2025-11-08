@@ -18,6 +18,7 @@ in
           type = types.enum [
             "gnome"
             "plasma"
+            "niri"
           ];
           default = "gnome";
         };

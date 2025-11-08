@@ -44,14 +44,14 @@
             "HandleSuspendKeyLongPress" = "hibernate";
 
             "HandleHibernateKey" = "hibernate";
-            "HandleHibernateKeyLongPress" = "ignore";
+            "HandleHibernateKeyLongPress" = "hibernate";
 
             "HandleLidSwitch" = "suspend-then-hibernate";
             "HandleLidSwitchExternalPower" = "suspend";
             "HandleLidSwitchDocked" = "suspend";
 
             "IdleActionSec" = "11m";
-            "IdleAction" = "hibernate";
+            "IdleAction" = "suspend-then-hibernate";
           };
         in
         if builtins.hasAttr "settings" options.services.logind then

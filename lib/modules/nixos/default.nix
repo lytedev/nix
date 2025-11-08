@@ -9,6 +9,7 @@ inputs: {
   shell-defaults-and-applications = import ./shell-config.nix;
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
   gnome = import ./gnome.nix;
+  niri = import ./niri.nix inputs;
   laptop = import ./laptop.nix;
   plasma = import ./plasma.nix;
   gaming = import ./gaming.nix;
