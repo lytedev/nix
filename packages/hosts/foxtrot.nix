@@ -96,7 +96,6 @@
     };
     lyte.desktop = {
       enable = true;
-      environment = "gnome";
     };
     home = {
       file.".config/easyeffects/output" = {
@@ -117,9 +116,11 @@
 
   specialisation = {
     niri.configuration = {
-      lyte.desktop.environment = lib.mkForce "niri";
+      lyte.desktop.gnome.enable = lib.mkForce false;
+      lyte.desktop.niri.enable = true;
       home-manager.users.daniel = {
-        lyte.desktop.environment = lib.mkForce "niri";
+        lyte.desktop.gnome.enable = lib.mkForce false;
+        lyte.desktop.niri.enable = true;
       };
     };
   };

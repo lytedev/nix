@@ -7,13 +7,14 @@ in
 {
   default =
     {
-      pkgs,
+      # pkgs,
       lib,
-      config,
+      # config,
       ...
     }:
     {
       imports = with homeManagerModules; [
+        inputs.ironbar.homeManagerModules.default
         slippi.homeManagerModules.default
         shell
         fish
@@ -29,6 +30,7 @@ in
         cargo
         desktop
         gnome
+        niri
 
         /*
           broot
@@ -246,17 +248,14 @@ in
         lyte = {
           desktop = {
             enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
-            environment = lib.mkOption {
-              type = types.enum (
-                [
-                  "gnome"
-                  "plasma"
-                  "niri"
-                ]
-                ++ (if pkgs.system == "x86_64-darwin" || pkgs.system == "aarch64-darwin" then [ "macos" ] else [ ])
-              );
-              default = "gnome";
+            gnome.enable = lib.mkOption {
+              default = config.lyte.desktop.enable;
+              example = true;
+              description = "Enable GNOME desktop configuration and applications";
+              type = types.bool;
             };
+            plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
+            niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
           };
         };
       };
@@ -507,7 +506,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "plasma")) {
+      config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
         dconf.enable = true;
       };
     };
@@ -520,7 +519,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "gnome")) {
+      config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.gnome.enable) {
         dconf = {
           enable = true;
           settings = {
@@ -1414,5 +1413,76 @@ in
       };
 
       _module.args.fullName = "Daniel Flanagan";
+    };
+
+  niri =
+    { ... }:
+    {
+      imports = [
+        (
+          { config, ... }:
+          {
+            # symlink the config regardless
+            home.file."${config.xdg.configHome}/niri" = {
+              source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/niri ../home/niri;
+            };
+          }
+        )
+        (
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
+          {
+            config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.niri.enable) {
+              home.packages = with pkgs; [
+                swayosd
+                fuzzel
+                brightnessctl
+              ];
+              programs.ironbar = {
+                enable = true;
+                systemd = true;
+                config = {
+                  # An example:
+                  monitors = {
+                    DP-1 = {
+                      anchor_to_edges = true;
+                      position = "top";
+                      height = 16;
+                      start = [
+                        { type = "clock"; }
+                      ];
+                      end = [
+                        {
+                          type = "tray";
+                          icon_size = 16;
+                        }
+                      ];
+                    };
+                  };
+                };
+                style = # css
+                  ''
+                    /* An example */
+                    * {
+                      font-family: Noto Sans Nerd Font, sans-serif;
+                      font-size: 16px;
+                      border: none;
+                      border-radius: 0;
+                    }
+                  '';
+                # package = inputs.ironbar;
+                # features = [
+                #   "feature"
+                #   "another_feature"
+                # ];
+              };
+            };
+          }
+        )
+      ];
     };
 }

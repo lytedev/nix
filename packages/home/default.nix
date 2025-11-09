@@ -19,13 +19,16 @@ in
         programs.firefox.enable = false;
         programs.ghostty.enable = false;
 
-        lyte.shell = {
-          enable = true;
-          learn-jujutsu-not-git.enable = true;
-        };
-        lyte.desktop = {
-          enable = true;
-          environment = "gnome";
+        lyte = {
+          useOutOfStoreSymlinks.enable = true;
+          shell = {
+            enable = true;
+            learn-jujutsu-not-git.enable = true;
+          };
+          desktop = {
+            enable = true;
+            niri.enable = true;
+          };
         };
       }
       daniel

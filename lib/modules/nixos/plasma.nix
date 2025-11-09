@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "plasma")) {
+  config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
     xdg.portal.extraPortals = with pkgs.kdePackages; [ xdg-desktop-portal-kde ];
 
     programs.kdeconnect.enable = true;

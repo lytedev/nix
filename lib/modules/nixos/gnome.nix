@@ -48,7 +48,7 @@
     }
   ];
 
-  config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "gnome")) {
+  config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.gnome.enable) {
     xdg.portal.enable = true;
     xdg.portal.extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
     xdg.portal.config = {

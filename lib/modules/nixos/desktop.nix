@@ -14,17 +14,18 @@ in
     lyte = {
       desktop = {
         enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
-        environment = lib.mkOption {
-          type = types.enum [
-            "gnome"
-            "plasma"
-            "niri"
-          ];
-          default = "gnome";
+        gnome.enable = lib.mkOption {
+          default = config.lyte.desktop.enable;
+          example = true;
+          description = "Enable GNOME desktop configuration and applications";
+          type = types.bool;
         };
+        plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
+        niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
       };
     };
   };
+
   config = lib.mkIf cfg.enable {
     services.pipewire.enable = true;
     environment.systemPackages = with pkgs; [

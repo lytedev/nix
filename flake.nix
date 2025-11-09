@@ -72,6 +72,12 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    ironbar = {
+      # https://github.com/JakeStanger/ironbar/pull/1225
+      url = "github:JakeStanger/ironbar?ref=9d160d052506a09d7319ffa0a6796dcea8f3b921";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     slippi = {
       url = "github:lytedev/slippi-nix";
       # url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
