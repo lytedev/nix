@@ -62,6 +62,7 @@
   services.postgresql.enable = true;
   # programs.steam.enable = true;
   lyte.desktop.enable = true;
+  lyte.desktop.niri.enable = true;
   podman.enable = true;
 
   services.sunshine = {
@@ -79,6 +80,7 @@
         learn-jujutsu-not-git.enable = true;
       };
       desktop.enable = true;
+      desktop.niri.enable = true;
     };
     slippi-launcher = {
       enable = true;

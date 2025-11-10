@@ -66,7 +66,7 @@ in
         };
       };
 
-      config = lib.mkIf (builtins.trace config.lyte.shell.enable config.lyte.shell.enable) {
+      config = lib.mkIf config.lyte.shell.enable {
         programs.fish.enable = true;
         programs.helix.enable = true;
         programs.zellij.enable = lib.mkDefault false;
@@ -1442,14 +1442,18 @@ in
           }:
           {
             config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.niri.enable) {
+              programs.niri.package = pkgs.niri-unstable;
               home.packages = with pkgs; [
                 swayosd
+                mako
                 swaylock
                 fuzzel
                 brightnessctl
+                xwayland-satellite
               ];
               programs.ironbar = {
                 enable = true;
+                # TODO: somehow only run for niri and not GNOME?
                 systemd = true;
               };
             };

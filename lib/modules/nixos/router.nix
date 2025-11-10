@@ -298,7 +298,7 @@ in
                   iifname ${lan} accept
                   iifname tailscale0 accept
 
-                  ${concatStringsSep "\n    " (builtins.trace (toString natPorts) natPorts)}
+                  ${concatStringsSep "\n    " natPorts}
 
                   # iifname ${wan} tcp dport {22} dnat to ${cfg.hosts.beefcake.ip}
                   # iifname ${wan} tcp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}

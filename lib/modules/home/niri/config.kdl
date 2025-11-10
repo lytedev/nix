@@ -127,6 +127,28 @@ output "PNP(JMI) FlipAction16 P05162024" {
     position x=-200 y=-1280
 }
 
+// dragon primary
+output "GIGA-BYTE TECHNOLOGY CO., LTD. AORUS FO48U 23070B000307" {
+    scale 1
+    mode "3840x2160@119.999"
+    position x=0 y=0
+    focus-at-startup
+}
+
+// dragon right
+output "Dell Inc. DELL U2720Q D3TM623" {
+    transform "270"
+    scale 1.5
+    position x=3840 y=0
+}
+
+// dragon right
+output "Dell Inc. DELL U2720Q CWTM623" {
+    transform "270"
+    scale 1.5
+    position x=-1440 y=0
+}
+
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
@@ -386,8 +408,8 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
+    Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty" "+new-window"; }
     Mod+T hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
-    Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
     Mod+Space hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Super+Shift+Control+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
@@ -622,6 +644,10 @@ binds {
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
+    Mod+Ctrl+Space repeat=false { spawn "makoctl" "dismiss"; }
+    Super+Shift+Ctrl+Alt+Space repeat=false { spawn "makoctl" "restore"; }
+    Mod+Shift+Ctrl+Space repeat=false { spawn "makoctl" "invoke" "default"; }
+
     // Applications such as remote-desktop clients and software KVM switches may
     // request that niri stops processing the keyboard shortcuts defined here
     // so they may, for example, forward the key presses as-is to a remote machine.
@@ -643,6 +669,7 @@ binds {
 
 environment {
     ELECTRON_OZONE_PLATFORM_HINT "auto"
+    NIXOS_OZONE_WL "1"
 }
 
 include "this-machine.kdl"
