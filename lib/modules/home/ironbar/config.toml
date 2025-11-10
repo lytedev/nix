@@ -1,0 +1,8 @@
+[monitors]
+
+[monitors.eDP-1]
+position = "bottom"
+height = 30
+start = []
+
+[monitors.DP-2]

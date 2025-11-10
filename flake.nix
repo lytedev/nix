@@ -73,8 +73,7 @@
     };
 
     ironbar = {
-      # https://github.com/JakeStanger/ironbar/pull/1225
-      url = "github:JakeStanger/ironbar?ref=9d160d052506a09d7319ffa0a6796dcea8f3b921";
+      url = "github:lytedev/ironbar";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 

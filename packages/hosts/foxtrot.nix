@@ -35,10 +35,19 @@
     framework-13-7040-amd
   ];
 
+  networking.wireless.iwd = {
+    enable = true;
+    settings = {
+      Network.EnableIPv6 = true;
+      Settings.AutoConnect = true;
+      General.AddressRandomization = "network";
+    };
+  };
   networking.networkmanager = {
     wifi = {
-      macAddress = "random";
+      # macAddress = "random";
       powersave = false;
+      backend = "iwd";
     };
   };
   hardware = {
@@ -84,6 +93,8 @@
   lyte.desktop = {
     enable = true;
     # environment = "plasma";
+    gnome.enable = true;
+    niri.enable = true;
   };
   lyte.laptop.enable = true;
   family-account.enable = true;
@@ -96,6 +107,8 @@
     };
     lyte.desktop = {
       enable = true;
+      gnome.enable = true;
+      niri.enable = true;
     };
     home = {
       file.".config/easyeffects/output" = {
@@ -113,15 +126,4 @@
   };
   services.postgresql.enable = true;
   environment.systemPackages = with pkgs; [ vibe ];
-
-  specialisation = {
-    niri.configuration = {
-      lyte.desktop.gnome.enable = lib.mkForce false;
-      lyte.desktop.niri.enable = true;
-      home-manager.users.daniel = {
-        lyte.desktop.gnome.enable = lib.mkForce false;
-        lyte.desktop.niri.enable = true;
-      };
-    };
-  };
 }

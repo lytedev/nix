@@ -1426,6 +1426,11 @@ in
             home.file."${config.xdg.configHome}/niri" = {
               source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/niri ../home/niri;
             };
+            home.file."${config.xdg.configHome}/ironbar" = {
+              source =
+                conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ironbar
+                  ../home/ironbar;
+            };
           }
         )
         (
@@ -1439,46 +1444,13 @@ in
             config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.niri.enable) {
               home.packages = with pkgs; [
                 swayosd
+                swaylock
                 fuzzel
                 brightnessctl
               ];
               programs.ironbar = {
                 enable = true;
                 systemd = true;
-                config = {
-                  # An example:
-                  monitors = {
-                    DP-1 = {
-                      anchor_to_edges = true;
-                      position = "top";
-                      height = 16;
-                      start = [
-                        { type = "clock"; }
-                      ];
-                      end = [
-                        {
-                          type = "tray";
-                          icon_size = 16;
-                        }
-                      ];
-                    };
-                  };
-                };
-                style = # css
-                  ''
-                    /* An example */
-                    * {
-                      font-family: Noto Sans Nerd Font, sans-serif;
-                      font-size: 16px;
-                      border: none;
-                      border-radius: 0;
-                    }
-                  '';
-                # package = inputs.ironbar;
-                # features = [
-                #   "feature"
-                #   "another_feature"
-                # ];
               };
             };
           }
