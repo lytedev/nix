@@ -118,6 +118,7 @@ output "BOE NV122WUM-N42 Unknown" {
 output "BOE NE135A1M-NY1 Unknown" {
     scale 1.75
     position x=0 y=0
+    variable-refresh-rate
 }
 
 // portable sotsu monitor
@@ -643,3 +644,5 @@ binds {
 environment {
     ELECTRON_OZONE_PLATFORM_HINT "auto"
 }
+
+include "this-machine.kdl"
