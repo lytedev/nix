@@ -72,10 +72,10 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    ironbar = {
-      url = "github:lytedev/ironbar";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
+    # ironbar = {
+    #   url = "github:lytedev/ironbar";
+    #   inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # };
 
     slippi = {
       url = "github:lytedev/slippi-nix";
@@ -104,6 +104,16 @@
 
     iosevka-lyte.url = "github:lytedev/iosevka-lyte";
     # iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    quickshell = {
+      url = "github:outfoxxed/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.quickshell.follows = "quickshell";
+    };
   };
 
   nixConfig = {

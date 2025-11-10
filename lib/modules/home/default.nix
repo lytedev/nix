@@ -14,7 +14,7 @@ in
     }:
     {
       imports = with homeManagerModules; [
-        inputs.ironbar.homeManagerModules.default
+        # inputs.ironbar.homeManagerModules.default
         slippi.homeManagerModules.default
         shell
         fish
@@ -1419,6 +1419,7 @@ in
     { ... }:
     {
       imports = [
+        inputs.noctalia.homeModules.default
         (
           { config, ... }:
           {
@@ -1442,7 +1443,10 @@ in
           }:
           {
             config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.niri.enable) {
-              programs.niri.package = pkgs.niri-unstable;
+              # programs.niri.package = pkgs.niri-unstable;
+              programs.noctalia-shell = {
+                enable = true;
+              };
               home.packages = with pkgs; [
                 swayosd
                 mako
@@ -1451,11 +1455,17 @@ in
                 brightnessctl
                 xwayland-satellite
               ];
-              programs.ironbar = {
-                enable = true;
-                # TODO: somehow only run for niri and not GNOME?
-                systemd = true;
+              dconf.settings = {
+                "org/gnome/desktop/interface" = {
+                  color-scheme = "prefer-dark";
+                };
               };
+              gtk.theme.name = "Adwaita-dark";
+              # programs.ironbar = {
+              #   enable = true;
+              #   # TODO: somehow only run for niri and not GNOME?
+              #   systemd = true;
+              # };
             };
           }
         )

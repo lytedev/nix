@@ -25,13 +25,20 @@ flakeInputs:
 
   config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.niri.enable)) {
     nixpkgs.overlays = [ flakeInputs.niri.overlays.niri ];
+    environment.systemPackages = with pkgs; [
+      flakeInputs.noctalia.packages.${system}.default
+    ];
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;
     programs.dconf.enable = true;
 
-    # TODO: mako keybinds
+    qt = {
+      enable = true;
+      platformTheme = "gnome";
+      style = "adwaita-dark";
+    };
+
     # TODO: mako styles
-    # TODO: ironbar setup
     # TODO: media player keybinds
 
     # workaround for bug
