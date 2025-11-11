@@ -35,19 +35,19 @@
     framework-13-7040-amd
   ];
 
-  networking.wireless.iwd = {
-    enable = true;
-    settings = {
-      Network.EnableIPv6 = true;
-      Settings.AutoConnect = true;
-      General.AddressRandomization = "network";
-    };
-  };
+  # networking.wireless.iwd = {
+  # enable = true;
+  # settings = {
+  #   Network.EnableIPv6 = true;
+  #   Settings.AutoConnect = true;
+  #   General.AddressRandomization = "network";
+  # };
+  # };
   networking.networkmanager = {
     wifi = {
       # macAddress = "random";
-      powersave = false;
-      backend = "iwd";
+      # powersave = false;
+      # backend = "iwd";
     };
   };
   hardware = {

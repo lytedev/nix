@@ -10,13 +10,20 @@
       sessionVariables = {
         MOZ_ENABLE_WAYLAND = "1";
       };
+      packages = with pkgs; [
+        pywal
+        pywalfox-native
+      ];
     };
 
     programs.firefox = {
       # enable = true;
       profileVersion = null;
       package = pkgs.firefox.override {
-        nativeMessagingHosts = with pkgs; [ bitwarden-desktop ];
+        nativeMessagingHosts = with pkgs; [
+          bitwarden-desktop
+          # pywalfox-native
+        ];
       };
       /*
         TODO: this should be able to work on macos, no?
