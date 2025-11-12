@@ -14,6 +14,11 @@
         {
           name = "daniel";
           ensureDBOwnership = true;
+          ensureClauses = {
+            superuser = true;
+            createrole = true;
+            createdb = true;
+          };
         }
       ];
       # enableTCPIP = true;
