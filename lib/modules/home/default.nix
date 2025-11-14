@@ -270,6 +270,7 @@ in
           )
 
           iosevkaLyteTerm
+          spicetify-cli # CLI only, for use with Flatpak Spotify
         ];
 
         fonts.fontconfig.enable = true;
@@ -1447,6 +1448,12 @@ in
               programs.noctalia-shell = {
                 enable = true;
               };
+
+              # Discord with Vencord for noctalia theming support
+              programs.vesktop = {
+                enable = true;
+              };
+
               home.packages = with pkgs; [
                 swayosd
                 mako

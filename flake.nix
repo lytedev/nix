@@ -114,6 +114,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.quickshell.follows = "quickshell";
     };
+
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   nixConfig = {

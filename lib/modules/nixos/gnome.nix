@@ -65,13 +65,19 @@
           && (builtins.hasAttr "gdm" options.services.displayManager)
         then
           {
-            displayManager.gdm.enable = true;
+            displayManager.gdm = {
+              enable = true;
+              wayland = true;
+            };
             desktopManager.gnome.enable = true;
           }
         else
           {
             xserver = {
-              displayManager.gdm.enable = true;
+              displayManager.gdm = {
+                enable = true;
+                wayland = true;
+              };
               desktopManager.gnome.enable = true;
             };
           }

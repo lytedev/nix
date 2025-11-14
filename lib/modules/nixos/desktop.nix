@@ -22,11 +22,46 @@ in
         };
         plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
         niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
+        gdm.backgroundImage = lib.mkOption {
+          default = null;
+          example = "/path/to/background.jpg";
+          description = "Path to GDM background image. Set to null to use default.";
+          type = types.nullOr types.path;
+        };
       };
     };
   };
 
   config = lib.mkIf cfg.enable {
+    # Apply GDM background image if configured
+    nixpkgs.overlays = lib.optional (config.lyte.desktop.gdm.backgroundImage != null) (
+      self: super: {
+        gnome = super.gnome.overrideScope (selfg: superg: {
+          gnome-shell = superg.gnome-shell.overrideAttrs (old: {
+            patches = (old.patches or [ ]) ++ [
+              (pkgs.writeText "gdm-bg.patch" ''
+                --- a/data/theme/gnome-shell-sass/widgets/_login-lock.scss
+                +++ b/data/theme/gnome-shell-sass/widgets/_login-lock.scss
+                @@ -15,4 +15,5 @@ $_gdm_dialog_width: 23em;
+                 /* Login Dialog */
+                 .login-dialog {
+                   background-color: $_gdm_bg;
+                +  background-image: url('file://${config.lyte.desktop.gdm.backgroundImage}');
+                +  background-size: cover;
+                 }
+              '')
+            ];
+          });
+        });
+      }
+    );
+
+    # Configure GDM to use daniel's monitor configuration
+    # This will show the login screen on the correct monitor(s)
+    systemd.tmpfiles.rules = [
+      "L+ /var/lib/gdm/.config/monitors.xml - - - - ${config.users.users.daniel.home}/.config/monitors.xml"
+    ];
+
     services.pipewire.enable = true;
     environment.systemPackages = with pkgs; [
       wl-clipboard # wayland clipboard CLI tools

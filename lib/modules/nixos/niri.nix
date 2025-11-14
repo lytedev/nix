@@ -27,10 +27,19 @@ flakeInputs:
     nixpkgs.overlays = [ flakeInputs.niri.overlays.niri ];
     environment.systemPackages = with pkgs; [
       flakeInputs.noctalia.packages.${system}.default
+      slurp
+      grim
     ];
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;
     programs.dconf.enable = true;
+
+    # Enable GDM for login
+    services.xserver.enable = true;
+    services.displayManager.gdm = {
+      enable = true;
+      wayland = true;
+    };
 
     qt = {
       enable = true;
@@ -69,15 +78,24 @@ flakeInputs:
     ];
     systemd.user.services.xdg-desktop-portal = {
       after = [ "xdg-desktop-autostart.target" ];
+      serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
     };
     systemd.user.services.xdg-desktop-portal-gtk = {
       after = [ "xdg-desktop-autostart.target" ];
+      serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
     };
     systemd.user.services.xdg-desktop-portal-gnome = {
       after = [ "xdg-desktop-autostart.target" ];
+      serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
     };
     systemd.user.services.niri-flake-polkit = {
       after = [ "xdg-desktop-autostart.target" ];
     };
+
+    # Fix xdg-desktop-portal not having access to firefox and other binaries
+    # See: https://github.com/NixOS/nixpkgs/issues/189851
+    systemd.user.extraConfig = ''
+      DefaultEnvironment="PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin"
+    '';
   };
 }
