@@ -1,6 +1,6 @@
 flakeInputs:
 {
-  # options,
+  options,
   pkgs,
   lib,
   config,
@@ -35,11 +35,29 @@ flakeInputs:
     programs.dconf.enable = true;
 
     # Enable GDM for login
-    services.xserver.enable = true;
-    services.displayManager.gdm = {
-      enable = true;
-      wayland = true;
-    };
+    services =
+      {
+        xserver.enable = true;
+      }
+      // (
+        if
+          (builtins.hasAttr "displayManager" options.services)
+          && (builtins.hasAttr "gdm" options.services.displayManager)
+        then
+          {
+            displayManager.gdm = {
+              enable = true;
+              wayland = true;
+            };
+          }
+        else
+          {
+            xserver.displayManager.gdm = {
+              enable = true;
+              wayland = true;
+            };
+          }
+      );
 
     qt = {
       enable = true;
