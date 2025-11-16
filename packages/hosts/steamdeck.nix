@@ -1,6 +1,7 @@
 {
   diskoConfigurations,
   pkgs,
+  lib,
   # hardware, # do NOT use nixos-hardware with jovian config
   ...
 }:
@@ -24,8 +25,13 @@
     (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
   ];
 
+  lyte.desktop.enable = true;
   lyte.shell.enable = true;
-  # lyte.desktop.enable = true;
+  environment.systemPackages = with pkgs; [
+    steamdeck-firmware
+  ];
+
+  services.displayManager.gdm.enable = lib.mkForce false;
   home-manager.users.daniel = {
     lyte = {
       useOutOfStoreSymlinks.enable = true;
@@ -33,11 +39,9 @@
         enable = true;
         learn-jujutsu-not-git.enable = true;
       };
-      # desktop.enable = true;
+      desktop.enable = true;
     };
   };
-
-  environment.systemPackages = with pkgs; [ steamdeck-firmware ];
 
   nixpkgs.config.allowUnfree = true;
   programs.steam.enable = true;
@@ -61,7 +65,7 @@
       steamdeck = {
         enable = true;
         autoUpdate = true;
-        # enableGyroDsuService = true;
+        enableGyroDsuService = true;
       };
     };
   };

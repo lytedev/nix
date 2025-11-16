@@ -1,6 +1,7 @@
 {
   diskoConfigurations,
   pkgs,
+  lib,
   # hardware, # do NOT use nixos-hardware with jovian config
   ...
 }:
@@ -25,6 +26,12 @@
   ];
 
   lyte.desktop.enable = true;
+  lyte.shell.enable = true;
+  environment.systemPackages = with pkgs; [
+    steamdeck-firmware
+  ];
+
+  services.displayManager.gdm.enable = lib.mkForce false;
   home-manager.users.daniel = {
     lyte = {
       useOutOfStoreSymlinks.enable = true;
@@ -36,8 +43,6 @@
     };
   };
 
-  environment.systemPackages = with pkgs; [ steamdeck-firmware ];
-
   nixpkgs.config.allowUnfree = true;
   programs.steam.enable = true;
   jovian = {
@@ -47,6 +52,8 @@
     steam = {
       enable = true;
       autoStart = true;
+      desktopSession = "gnome";
+      user = "daniel";
       updater = {
         splash = "jovian";
       };
@@ -58,7 +65,7 @@
       steamdeck = {
         enable = true;
         autoUpdate = true;
-        # enableGyroDsuService = true;
+        enableGyroDsuService = true;
       };
     };
   };
