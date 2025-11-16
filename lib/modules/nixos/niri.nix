@@ -18,7 +18,7 @@ flakeInputs:
   # };
 
   imports = [
-    # KDE Connect?
+    # TODO: KDE Connect?
     flakeInputs.niri.nixosModules.niri
     # do some things even if we don't actually have the configuration setup
   ];
@@ -29,6 +29,7 @@ flakeInputs:
       flakeInputs.noctalia.packages.${system}.default
       slurp
       grim
+      quickshell
     ];
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;
@@ -64,9 +65,6 @@ flakeInputs:
       platformTheme = "gnome";
       style = "adwaita-dark";
     };
-
-    # TODO: mako styles
-    # TODO: media player keybinds
 
     # workaround for bug
     # from https://github.com/sodiboo/niri-flake/issues/1334

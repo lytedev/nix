@@ -579,6 +579,7 @@ in
                 tiling-shell.extensionUuid
                 appindicator.extensionUuid
                 blur-my-shell.extensionUuid
+                # gsconnect.extenstionUuid
               ];
             };
 
@@ -613,6 +614,7 @@ in
                 tiling-shell
                 blur-my-shell
                 appindicator
+                gsconnect
               ]
             );
         };
