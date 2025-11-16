@@ -8,29 +8,33 @@ in
     pkgs = (import inputs.nixpkgs-unstable { system = "x86_64-linux"; }).extend self.overlays.forSelf;
 
     modules = with homeManagerModules; [
-      {
-        home = {
-          stateVersion = "25.11";
-          homeDirectory = "/home/daniel/.home";
-        };
-        programs.home-manager.enable = true;
-
-        # install using the OS's package manager instead
-        programs.firefox.enable = false;
-        programs.ghostty.enable = false;
-
-        lyte = {
-          useOutOfStoreSymlinks.enable = true;
-          shell = {
-            enable = true;
-            learn-jujutsu-not-git.enable = true;
+      (
+        { lib, ... }:
+        {
+          home = {
+            stateVersion = "25.11";
+            homeDirectory = "/home/daniel/.home";
           };
-          desktop = {
-            enable = true;
-            niri.enable = true;
+          programs.home-manager.enable = true;
+
+          # install using the OS's package manager instead
+          programs.firefox.enable = false;
+          programs.ghostty.enable = false;
+          programs.noctalia-shell.enable = lib.mkForce false;
+
+          lyte = {
+            useOutOfStoreSymlinks.enable = true;
+            shell = {
+              enable = true;
+              learn-jujutsu-not-git.enable = true;
+            };
+            desktop = {
+              enable = true;
+              niri.enable = true;
+            };
           };
-        };
-      }
+        }
+      )
       daniel
       default
     ];
