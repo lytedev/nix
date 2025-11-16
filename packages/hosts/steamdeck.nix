@@ -1,5 +1,6 @@
 {
   diskoConfigurations,
+  pkgs,
   # hardware, # do NOT use nixos-hardware with jovian config
   ...
 }:
@@ -23,7 +24,8 @@
     (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
   ];
 
-  lyte.desktop.enable = true;
+  lyte.shell.enable = true;
+  # lyte.desktop.enable = true;
   home-manager.users.daniel = {
     lyte = {
       useOutOfStoreSymlinks.enable = true;
@@ -31,9 +33,11 @@
         enable = true;
         learn-jujutsu-not-git.enable = true;
       };
-      desktop.enable = true;
+      # desktop.enable = true;
     };
   };
+
+  environment.systemPackages = with pkgs; [ steamdeck-firmware ];
 
   nixpkgs.config.allowUnfree = true;
   programs.steam.enable = true;
@@ -42,7 +46,10 @@
       enable = true;
     };
     steam = {
+      enable = true;
       autoStart = true;
+      desktopSession = "gnome";
+      user = "daniel";
       updater = {
         splash = "jovian";
       };

@@ -1,5 +1,6 @@
 {
   diskoConfigurations,
+  pkgs,
   # hardware, # do NOT use nixos-hardware with jovian config
   ...
 }:
@@ -35,6 +36,8 @@
     };
   };
 
+  environment.systemPackages = with pkgs; [ steamdeck-firmware ];
+
   nixpkgs.config.allowUnfree = true;
   programs.steam.enable = true;
   jovian = {
@@ -42,6 +45,7 @@
       enable = true;
     };
     steam = {
+      enable = true;
       autoStart = true;
       updater = {
         splash = "jovian";
