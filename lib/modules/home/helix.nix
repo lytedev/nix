@@ -218,6 +218,7 @@
             121
           ];
           cursorline = true;
+          rainbow-brackets = true;
 
           /*
             auto-save = false;
