@@ -5,6 +5,7 @@
     inherit (self.outputs.checks.${pkgs.system}.git-hooks) shellHook;
     packages = with pkgs; [
       colmena
+      sops
       nil
       nixd
       nixfmt-rfc-style

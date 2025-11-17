@@ -73,15 +73,15 @@
     lutris
   ];
 
-  # sops = {
-  #   defaultSopsFile = ../../secrets/dragon/secrets.yml;
-  #   secrets.nix-cache-priv-key.mode = "0400";
-  # };
+  sops = {
+    defaultSopsFile = ../../secrets/bigtower/secrets.yml;
+    secrets.nix-cache-priv-key.mode = "0400";
+  };
 
-  # services.harmonia = {
-  #   enable = true;
-  #   signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
-  # };
+  services.harmonia = {
+    enable = true;
+    signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
+  };
 
   networking.firewall.allowedTCPPorts = [ 5000 ];
 

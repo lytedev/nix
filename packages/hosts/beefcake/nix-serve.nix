@@ -1,13 +1,24 @@
 { config, pkgs, ... }:
 {
-  services.nix-serve = {
+  services.harmonia = {
     enable = true;
-    secretKeyFile = config.sops.secrets.nix-cache-priv-key.path;
+    signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
   };
+
   services.caddy.virtualHosts."nix.h.lyte.dev" = {
     extraConfig = ''
-      reverse_proxy dragon.lan:5000 bigtower.lan:5000 :${toString config.services.nix-serve.port} {
+      reverse_proxy bigtower.lan:5000 dragon.lan:5000 :5000 {
         lb_policy first
+        lb_try_duration 2s
+        lb_try_interval 250ms
+
+        # Passive health checking
+        fail_duration 30s
+        max_fails 3
+        unhealthy_status 500 502 503
+
+        # Request headers
+        header_up Host {upstream_hostport}
       }
     '';
   };

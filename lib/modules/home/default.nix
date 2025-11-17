@@ -1443,6 +1443,8 @@ in
                 enable = true;
               };
 
+              services.mako.enable = false;
+
               # Discord with Vencord for noctalia theming support
               programs.vesktop = {
                 enable = true;
