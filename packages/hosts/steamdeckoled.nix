@@ -9,7 +9,7 @@
   system.stateVersion = "24.11";
 
   networking = {
-    hostName = "steamdeck";
+    hostName = "steamdeckoled";
     wifi.enable = true;
   };
 
