@@ -30,6 +30,7 @@ flakeInputs:
       slurp
       grim
       quickshell
+      kdePackages.kdeconnect-kde
     ];
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;

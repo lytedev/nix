@@ -599,18 +599,19 @@ in
 
         programs.gnome-shell = {
           enable = true;
-          extensions = [
-            { package = pkgs.gnomeExtensions.gsconnect; }
-          ]
-          ++ map (p: { package = p; }) (
-            with pkgs.gnomeExtensions;
+          extensions =
             [
-              tiling-shell
-              blur-my-shell
-              appindicator
-              gsconnect
+              { package = pkgs.gnomeExtensions.gsconnect; }
             ]
-          );
+            ++ map (p: { package = p; }) (
+              with pkgs.gnomeExtensions;
+              [
+                tiling-shell
+                blur-my-shell
+                appindicator
+                gsconnect
+              ]
+            );
         };
       };
     };
@@ -1295,25 +1296,25 @@ in
             # };
 
             # default_layout = "compact";
-            theme = "match";
+            theme = "ansi";
 
-            themes = {
-              match = with style.colors.withHashPrefix; {
-                fg = fg;
-                bg = bg;
+            # themes = {
+            #   match = with style.colors.withHashPrefix; {
+            #     fg = fg;
+            #     bg = bg;
 
-                black = bg;
-                white = fg;
+            #     black = bg;
+            #     white = fg;
 
-                red = red;
-                green = green;
-                yellow = yellow;
-                blue = blue;
-                magenta = purple;
-                cyan = blue;
-                orange = orange;
-              };
-            };
+            #     red = red;
+            #     green = green;
+            #     yellow = yellow;
+            #     blue = blue;
+            #     magenta = purple;
+            #     cyan = blue;
+            #     orange = orange;
+            #   };
+            # };
             # TODO: port config
 
             ui = {
