@@ -69,7 +69,7 @@ in
       config = lib.mkIf config.lyte.shell.enable {
         programs.fish.enable = true;
         programs.helix.enable = true;
-        programs.zellij.enable = lib.mkDefault false;
+        programs.zellij.enable = lib.mkDefault true;
         programs.eza.enable = true;
         programs.bat = {
           enable = true;
@@ -442,13 +442,6 @@ in
             smtrpencryption = "tls";
             smtpserverport = 587;
           };
-
-          url = {
-            # TODO: how to have per-machine not-in-git configuration?
-            "git@git.hq.bill.com:" = {
-              insteadOf = "https://git.hq.bill.com";
-            };
-          };
         };
       };
 
@@ -606,17 +599,18 @@ in
 
         programs.gnome-shell = {
           enable = true;
-          extensions =
-            [ { package = pkgs.gnomeExtensions.gsconnect; } ]
-            ++ map (p: { package = p; }) (
-              with pkgs.gnomeExtensions;
-              [
-                tiling-shell
-                blur-my-shell
-                appindicator
-                gsconnect
-              ]
-            );
+          extensions = [
+            { package = pkgs.gnomeExtensions.gsconnect; }
+          ]
+          ++ map (p: { package = p; }) (
+            with pkgs.gnomeExtensions;
+            [
+              tiling-shell
+              blur-my-shell
+              appindicator
+              gsconnect
+            ]
+          );
         };
       };
     };
@@ -1382,9 +1376,6 @@ in
               user = "git";
             };
             "codeberg.org" = {
-              user = "git";
-            };
-            "git.hq.bill.com" = {
               user = "git";
             };
             "steam-deck-oled" = {
