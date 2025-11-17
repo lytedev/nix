@@ -10,7 +10,7 @@ in
 {
   imports = [
     {
-      services.kanidm.package = pkgs.unstable-packages.kanidm_1_7;
+      services.kanidm.package = pkgs.unstable-packages.kanidm_1_8;
     }
   ];
   config = lib.mkIf config.services.kanidm.enableClient {
