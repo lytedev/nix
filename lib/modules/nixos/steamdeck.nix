@@ -67,6 +67,7 @@
     jovian = {
       decky-loader = {
         enable = true;
+        user = "daniel";
       };
       steam = {
         enable = true;

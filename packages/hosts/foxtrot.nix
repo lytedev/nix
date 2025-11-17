@@ -24,6 +24,7 @@
       # Power management
       "nowatchdog" # disable NMI watchdog to allow deeper C-states
       "amdgpu.abmlevel=3" # adaptive backlight management
+      "amd_pmc.enable_stb=1" # Debug/improve s2idle sleep stability
     ];
     initrd.availableKernelModules = [
       "xhci_pci"

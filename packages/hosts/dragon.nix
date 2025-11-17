@@ -187,6 +187,7 @@
   # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
     opencode
+    playwright-mcp
     mcpm-aider
     godot_4
   ];
