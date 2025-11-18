@@ -37,29 +37,28 @@ flakeInputs:
     programs.dconf.enable = true;
 
     # Enable GDM for login
-    services =
-      {
-        xserver.enable = true;
-      }
-      // (
-        if
-          (builtins.hasAttr "displayManager" options.services)
-          && (builtins.hasAttr "gdm" options.services.displayManager)
-        then
-          {
-            displayManager.gdm = {
-              enable = true;
-              wayland = true;
-            };
-          }
-        else
-          {
-            xserver.displayManager.gdm = {
-              enable = true;
-              wayland = true;
-            };
-          }
-      );
+    services = {
+      xserver.enable = true;
+    }
+    // (
+      if
+        (builtins.hasAttr "displayManager" options.services)
+        && (builtins.hasAttr "gdm" options.services.displayManager)
+      then
+        {
+          displayManager.gdm = {
+            enable = true;
+            wayland = true;
+          };
+        }
+      else
+        {
+          xserver.displayManager.gdm = {
+            enable = true;
+            wayland = true;
+          };
+        }
+    );
 
     qt = {
       enable = true;
@@ -108,6 +107,10 @@ flakeInputs:
     systemd.user.services.niri-flake-polkit = {
       after = [ "xdg-desktop-autostart.target" ];
     };
+
+    # TODO: noctalia seems to be lacking lock?
+    # TODO: noctalia doesn't seem to be generating ghostty themes on flab?
+    # TODO: resume issues on flab when in noctalia?
 
     # Fix xdg-desktop-portal not having access to firefox and other binaries
     # See: https://github.com/NixOS/nixpkgs/issues/189851

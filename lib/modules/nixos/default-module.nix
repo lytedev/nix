@@ -21,7 +21,6 @@
     sops-nix.nixosModules.sops
     disko.nixosModules.disko
     slippi.nixosModules.default
-    jovian.nixosModules.default
     deno-netlify-ddns-client
     shell-defaults-and-applications
     desktop
@@ -133,7 +132,8 @@
           "@wheel"
         ];
         auto-optimise-store = lib.mkDefault true;
-      } // ((import ../../../flake.nix).nixConfig);
+      }
+      // ((import ../../../flake.nix).nixConfig);
     };
 
     sops = {
