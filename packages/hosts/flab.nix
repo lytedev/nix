@@ -5,7 +5,7 @@
   ...
 }:
 {
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
   networking = {
     hostName = "flab";
     wifi.enable = true;
@@ -42,19 +42,21 @@
   };
 
   imports = with hardware; [
-    framework-12-13th-gen-intel
     diskoConfigurations.babyflip
+    framework-12-13th-gen-intel
     common-cpu-intel
     common-pc-ssd
   ];
 
-  services.tlp.enable = false;
+  # services.tlp.enable = false;
 
-  services.tuned = {
-    enable = true;
-  };
+  # TODO: causes suspend issues (suspends again immediately after waking)
+  # services.tuned = {
+  # enable = true;
+  # };
 
   lyte.desktop.enable = true;
+  lyte.desktop.niri.enable = true;
   lyte.laptop.enable = true;
   family-account.enable = true;
   home-manager.users.daniel = {
@@ -64,7 +66,8 @@
         learn-jujutsu-not-git.enable = true;
       };
       desktop.enable = true;
+      desktop.niri.enable = true;
     };
-    home.stateVersion = "24.11";
+    home.stateVersion = "25.11";
   };
 }
