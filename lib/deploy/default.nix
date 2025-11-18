@@ -43,6 +43,7 @@ in
     foxtrot = deployer "foxtrot" { };
     thinker = deployer "thinker" { };
     steamdeck = deployer "steamdeck" { };
+    steamdeckoled = deployer "steamdeckoled" { };
     flipflop = deployer "flipflop" { };
     babyflip = deployer "babyflip" {
       hostname = "nixos";
