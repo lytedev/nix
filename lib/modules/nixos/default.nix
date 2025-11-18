@@ -23,6 +23,7 @@ inputs: {
   restic = import ./restic.nix;
   router = import ./router.nix;
   kanidm = import ./kanidm.nix;
+  steamdeck = import ./steamdeck.nix;
 
   remote-disk-key-entry-on-boot =
     {

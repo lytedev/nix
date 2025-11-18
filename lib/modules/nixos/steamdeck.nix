@@ -52,6 +52,9 @@
     nixpkgs.config.allowUnfree = true;
     programs.steam.enable = true;
 
+    # Enable nix-ld for running unpatched binaries
+    programs.nix-ld.enable = true;
+
     jovian = {
       decky-loader = {
         enable = true;
