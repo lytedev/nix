@@ -37,7 +37,6 @@
     router
     kanidm
     laptop
-    steamdeck
 
     (
       { config, ... }:

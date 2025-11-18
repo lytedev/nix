@@ -21,17 +21,16 @@ let
             hardware = inputs.hardware.outputs.nixosModules;
             diskoConfigurations = inputs.self.outputs.diskoConfigurations;
           };
-          modules =
-            [
-              {
-                nixpkgs.overlays = extraOverlays;
-              }
-            ]
-            ++ extraModules
-            ++ [
-              inputs.self.outputs.nixosModules.default
-              (import path)
-            ];
+          modules = [
+            {
+              nixpkgs.overlays = extraOverlays;
+            }
+          ]
+          ++ extraModules
+          ++ [
+            inputs.self.outputs.nixosModules.default
+            (import path)
+          ];
         })
       )
     );
@@ -48,7 +47,10 @@ in
   steamdeckHost = baseHost (
     unstable
     // {
-      extraModules = [ inputs.jovian.outputs.nixosModules.default ];
+      extraModules = [
+        inputs.jovian.outputs.nixosModules.default
+        inputs.self.nixosModules.steamdeck
+      ];
       # do NOT manually include the jovian overlay here
     }
   );
