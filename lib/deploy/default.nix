@@ -42,7 +42,7 @@ in
     rascal = deployer "rascal" { };
     foxtrot = deployer "foxtrot" { };
     thinker = deployer "thinker" { };
-    steamdeck = deployer "steamdeck" { };
+    steamdeck = deployer "steamdeck" { remoteBuild = false; };
     steamdeckoled = deployer "steamdeckoled" { };
     flipflop = deployer "flipflop" { };
     babyflip = deployer "babyflip" {
