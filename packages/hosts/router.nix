@@ -175,7 +175,7 @@ in
             "audio.lyte.dev"
             "bw.lyte.dev"
             "files.lyte.dev"
-            "finances.h.lyte.dev"
+            # "finances.h.lyte.dev"
             "git.lyte.dev"
             "grafana.h.lyte.dev"
             "idm.h.lyte.dev"

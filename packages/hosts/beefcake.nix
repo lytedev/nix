@@ -88,7 +88,7 @@
       ./beefcake/prometheus.nix
       ./beefcake/grafana.nix
       ./beefcake/paperless.nix
-      ./beefcake/actual.nix
+      # ./beefcake/actual.nix
       ./beefcake/factorio-servers.nix
       # ./beefcake/conduwuit.nix
       ./beefcake/element-web.nix
