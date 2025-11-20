@@ -184,6 +184,7 @@ in
             "nix.h.lyte.dev"
             "tasks.h.lyte.dev"
             "spacetimedb.h.lyte.dev"
+            "syncthing.h.lyte.dev"
             "onlyoffice.h.lyte.dev"
             "paperless.h.lyte.dev"
             "prometheus.h.lyte.dev"
