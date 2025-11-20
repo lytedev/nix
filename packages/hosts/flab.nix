@@ -55,6 +55,7 @@
   # enable = true;
   # };
 
+  podman.enable = true;
   lyte.desktop.enable = true;
   lyte.desktop.niri.enable = true;
   lyte.laptop.enable = true;
