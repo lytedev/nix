@@ -85,8 +85,8 @@
       ./beefcake/jonland.nix
       ./beefcake/prom2.nix
       ./beefcake/audiobookshelf.nix
-      ./beefcake/prometheus.nix
-      ./beefcake/grafana.nix
+      ./beefcake/opentelemetry-collector.nix
+      # ./beefcake/grafana.nix  # Disabled - replaced by OpenObserve
       ./beefcake/openobserve.nix
       ./beefcake/paperless.nix
       # ./beefcake/actual.nix
