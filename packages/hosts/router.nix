@@ -186,6 +186,7 @@ in
             "spacetimedb.h.lyte.dev"
             "syncthing.h.lyte.dev"
             "onlyoffice.h.lyte.dev"
+            "openobserve.h.lyte.dev"
             "paperless.h.lyte.dev"
             "prometheus.h.lyte.dev"
             "video.lyte.dev"

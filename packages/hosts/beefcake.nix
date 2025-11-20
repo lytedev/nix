@@ -87,6 +87,7 @@
       ./beefcake/audiobookshelf.nix
       ./beefcake/prometheus.nix
       ./beefcake/grafana.nix
+      ./beefcake/openobserve.nix
       ./beefcake/paperless.nix
       # ./beefcake/actual.nix
       ./beefcake/factorio-servers.nix
