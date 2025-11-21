@@ -599,19 +599,18 @@ in
 
         programs.gnome-shell = {
           enable = true;
-          extensions =
+          extensions = [
+            { package = pkgs.gnomeExtensions.gsconnect; }
+          ]
+          ++ map (p: { package = p; }) (
+            with pkgs.gnomeExtensions;
             [
-              { package = pkgs.gnomeExtensions.gsconnect; }
+              tiling-shell
+              blur-my-shell
+              appindicator
+              gsconnect
             ]
-            ++ map (p: { package = p; }) (
-              with pkgs.gnomeExtensions;
-              [
-                tiling-shell
-                blur-my-shell
-                appindicator
-                gsconnect
-              ]
-            );
+          );
         };
       };
     };
@@ -1378,17 +1377,6 @@ in
             };
             "codeberg.org" = {
               user = "git";
-            };
-            "steam-deck-oled" = {
-              user = "deck";
-              hostname = "sdo";
-            };
-            "steam-deck" = {
-              user = "deck";
-              hostname = "steamdeck";
-            };
-            work = {
-              user = "daniel.flanagan";
             };
           };
         };
