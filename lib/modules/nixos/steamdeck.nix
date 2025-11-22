@@ -47,6 +47,7 @@
         };
         desktop.enable = true;
       };
+      # TODO: syncthing for daniel user on steamdecks for rom syncing?
     };
 
     nixpkgs.config.allowUnfree = true;
