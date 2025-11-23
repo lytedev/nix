@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   hardware,
   diskoConfigurations,
   # homeConfigurations,
@@ -34,10 +35,19 @@
     framework-13-7040-amd
   ];
 
+  # networking.wireless.iwd = {
+  # enable = true;
+  # settings = {
+  #   Network.EnableIPv6 = true;
+  #   Settings.AutoConnect = true;
+  #   General.AddressRandomization = "network";
+  # };
+  # };
   networking.networkmanager = {
     wifi = {
-      macAddress = "random";
-      powersave = false;
+      # macAddress = "random";
+      # powersave = false;
+      # backend = "iwd";
     };
   };
   hardware = {
@@ -59,6 +69,9 @@
       );
     };
   };
+
+  programs.nix-ld.enable = true;
+
   powerManagement.cpuFreqGovernor = "ondemand";
   services = {
     fwupd.extraRemotes = [ "lvfs-testing" ];
@@ -70,23 +83,32 @@
     };
   };
 
+  systemd.services.fprintd = {
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig.Type = "simple";
+  };
+
   programs.steam.enable = true;
   networking.wifi.enable = true;
   lyte.desktop = {
     enable = true;
     # environment = "plasma";
+    gnome.enable = true;
+    niri.enable = true;
   };
   lyte.laptop.enable = true;
   family-account.enable = true;
   podman.enable = true;
   home-manager.users.daniel = {
+    lyte.useOutOfStoreSymlinks.enable = true;
     lyte.shell = {
       enable = true;
       learn-jujutsu-not-git.enable = true;
     };
     lyte.desktop = {
       enable = true;
-      environment = "plasma";
+      gnome.enable = true;
+      niri.enable = true;
     };
     home = {
       file.".config/easyeffects/output" = {

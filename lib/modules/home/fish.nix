@@ -55,7 +55,7 @@
       shellAbbrs = { };
       shellAliases = {
         # TODO: an alias that wraps `rm` such that if we run it without git committing first (when in a git repo)
-        ls = "eza --group-directories-first --classify";
+        ls = lib.mkIf config.programs.eza.enable "${config.programs.eza.package}/bin/eza --group-directories-first --classify";
         l = "ls";
         ll = "ls --long --group";
         la = "ll --all";

@@ -13,7 +13,7 @@ in
   dragon = host ./dragon.nix { };
   foxtrot = host ./foxtrot.nix { };
   thinker = host ./thinker.nix { };
-  htpc = stableHost ./htpc.nix { };
+  htpc = host ./htpc.nix { };
   # htpc2 = stableHost ./htpc2.nix { };
   router = stableHost ./router.nix { };
   bigtower = stableHost ./bigtower.nix { };
@@ -21,6 +21,7 @@ in
   flipflop = host ./flipflop.nix { };
   flipflop2 = host ./flipflop2.nix { };
   babyflip = host ./babyflip.nix { };
+  flab = host ./flab.nix { };
 
   steamdeck = steamdeckHost ./steamdeck.nix { };
   steamdeckoled = steamdeckHost ./steamdeckoled.nix { };
@@ -86,7 +87,7 @@ in
       {
         system.stateVersion = "25.05";
         networking.hostName = "live-nixos-lyte";
-        networking.networkmanager.enable = false;
+        networking.networkmanager.enable = nixpkgs.lib.mkForce true;
 
         lyte.shell.enable = true;
         lyte.desktop.enable = true;

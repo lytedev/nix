@@ -27,7 +27,7 @@ let
       helix = helix.outputs.packages.${prev.system}.default;
       iosevkaLyteTerm = iosevka-lyte.outputs.packages.${prev.system}.default;
 
-      bitwarden = prev.bitwarden.overrideAttrs (old: {
+      bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}
           pushd apps/desktop/desktop_native/proxy

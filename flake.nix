@@ -10,7 +10,7 @@
       packages = uGenPkgs (import ./packages);
 
       nixosConfigurations = import ./packages/hosts inputs;
-      # homeConfigurations = import ./packages/home inputs;
+      homeConfigurations = import ./packages/home inputs;
 
       templates = import ./lib/templates;
 
@@ -37,63 +37,88 @@
 
   inputs = {
     # stable inputs
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05?shallow=1";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05?shallow=1";
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # unstable inputs
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable?shallow=1";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     home-manager-unstable = {
-      url = "github:nix-community/home-manager?shallow=1";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     disko = {
-      url = "github:nix-community/disko/master?shallow=1";
+      url = "github:nix-community/disko/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     sops-nix = {
-      url = "github:Mic92/sops-nix?shallow=1";
+      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     git-hooks = {
-      url = "github:cachix/git-hooks.nix?shallow=1";
+      url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
+    # ironbar = {
+    #   url = "github:lytedev/ironbar";
+    #   inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # };
+
     slippi = {
-      url = "github:lytedev/slippi-nix?shallow=1";
+      url = "github:lytedev/slippi-nix";
       # url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
       inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.home-manager.follows = "home-manager-unstable";
     };
 
-    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development?shallow=1";
+    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
     # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # other inputs
-    hardware.url = "github:NixOS/nixos-hardware?shallow=1";
+    hardware.url = "github:NixOS/nixos-hardware";
     # nnf.url = "github:thelegy/nixos-nftables-firewall";
 
     # inputs with their own cache I want to use
-    helix.url = "github:helix-editor/helix/master?shallow=1";
+    helix.url = "github:helix-editor/helix/master";
     # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    ghostty.url = "github:ghostty-org/ghostty?shallow=1";
-    # ghostty.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
-    # ghostty.inputs.nixpkgs-stable.follows = "nixpkgs";
+    ghostty.url = "github:ghostty-org/ghostty";
+    # need some common system dep for ghostty at the moment
+    ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    deploy-rs.url = "github:serokell/deploy-rs?shallow=1";
+    deploy-rs.url = "github:serokell/deploy-rs";
     # deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     iosevka-lyte.url = "github:lytedev/iosevka-lyte";
     # iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    quickshell = {
+      url = "github:outfoxxed/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.quickshell.follows = "quickshell";
+    };
+
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   nixConfig = {

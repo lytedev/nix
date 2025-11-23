@@ -1,0 +1,53 @@
+:root {
+    --margin-lg: 1em;
+    --margin-sm: 0.5em;
+}
+
+* {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    font-family: IosevkaLyteTerm;
+}
+
+#bar, popover, popover contents, calendar {
+}
+
+box, button, label {
+}
+
+button {
+    padding-left: var(--margin-sm);
+    padding-right: var(--margin-sm);
+}
+
+button:hover, button:active {
+}
+
+#end > * + * {
+    margin-left: var(--margin-lg);
+}
+
+.sysinfo > * + * {
+    margin-left: var(--margin-sm);
+}
+
+.clock {
+    font-weight: regular;
+}
+
+.popup-clock .calendar-clock {
+    font-size: 2.0em;
+}
+
+.popup-clock .calendar .today {
+}
+
+.workspaces .item.visible {
+}
+
+.workspaces .item.focused {
+}
+
+.workspaces .item.urgent {
+}

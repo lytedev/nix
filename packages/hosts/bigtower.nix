@@ -55,6 +55,8 @@
     common-pc-ssd
   ];
 
+  prevent-suspend.enable = true;
+
   hardware.bluetooth = {
     enable = true;
     # package = pkgs.bluez;
@@ -70,6 +72,31 @@
   environment.systemPackages = with pkgs; [
     lutris
   ];
+
+  sops = {
+    defaultSopsFile = ../../secrets/bigtower/secrets.yml;
+    secrets.nix-cache-priv-key.mode = "0400";
+  };
+
+  services.harmonia = {
+    enable = true;
+    signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
+  };
+
+  networking.firewall.allowedTCPPorts = [ 5000 ];
+
+  # TODO: temporary: https://github.com/nix-community/home-manager/issues/3113#issuecomment-3368651274
+  programs.dconf.enable = true;
+
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
+
+  services.xserver.displayManager.gdm.enable = true;
+  services.xserver.desktopManager.gnome.enable = true;
 
   programs.steam.enable = true;
   lyte.desktop.enable = true;

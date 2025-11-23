@@ -34,23 +34,43 @@
     common-pc-ssd
   ];
 
+  prevent-suspend.enable = true;
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
 
   sops = {
     defaultSopsFile = ../../secrets/dragon/secrets.yml;
     secrets.ddns-pass.mode = "0400";
+    secrets.nix-cache-priv-key.mode = "0400";
   };
+
   services.deno-netlify-ddns-client = {
     enable = true;
     passwordFile = config.sops.secrets.ddns-pass.path;
     username = "dragon.h";
   };
 
+  services.harmonia = {
+    enable = true;
+    signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
+  };
+
+  networking.firewall.allowedTCPPorts = [ 5000 ];
+
+  programs.nix-ld.enable = true;
+
   services.postgresql.enable = true;
-  programs.steam.enable = true;
+  # programs.steam.enable = true;
   lyte.desktop.enable = true;
+  lyte.desktop.niri.enable = true;
   podman.enable = true;
+
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
 
   home-manager.users.daniel = {
     lyte = {
@@ -60,6 +80,7 @@
         learn-jujutsu-not-git.enable = true;
       };
       desktop.enable = true;
+      desktop.niri.enable = true;
     };
     slippi-launcher = {
       enable = true;
@@ -70,13 +91,19 @@
 
   services.openssh.listenAddresses = [
     {
+      addr = "[::]";
+      port = 4822;
+    }
+    {
       addr = "0.0.0.0";
       port = 4822;
     }
   ];
 
+  # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
     vibe
     mcpm-aider
+    godot_4
   ];
 }

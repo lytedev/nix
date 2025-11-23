@@ -207,7 +207,7 @@
       };
 
       settings = {
-        theme = "term16_dark";
+        theme = "base16_terminal";
 
         editor = {
           soft-wrap.enable = true;
@@ -218,6 +218,7 @@
             121
           ];
           cursorline = true;
+          rainbow-brackets = true;
 
           /*
             auto-save = false;

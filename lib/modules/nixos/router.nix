@@ -298,7 +298,7 @@ in
                   iifname ${lan} accept
                   iifname tailscale0 accept
 
-                  ${concatStringsSep "\n    " (builtins.trace (toString natPorts) natPorts)}
+                  ${concatStringsSep "\n    " natPorts}
 
                   # iifname ${wan} tcp dport {22} dnat to ${cfg.hosts.beefcake.ip}
                   # iifname ${wan} tcp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
@@ -451,12 +451,11 @@ in
               name:
               {
                 ip,
-                identifier ? name,
-                time ? "12h",
+                mac,
                 ...
               }:
-              "${name},${ip},${identifier},${time}"
-            ) cfg.hosts);
+              "${mac},${name},${ip}"
+            ) (lib.filterAttrs (_: a: builtins.hasAttr "mac" a) cfg.hosts));
 
           address =
             [
@@ -468,8 +467,6 @@ in
                 {
                   ip,
                   additionalHosts ? [ ],
-                  # identifier ? name,
-                  # time ? "12h",
                   ...
                 }:
                 [

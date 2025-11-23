@@ -2,6 +2,7 @@
   sops-nix,
   disko,
   slippi,
+  jovian,
   self,
   ...
 }:
@@ -24,6 +25,7 @@
     shell-defaults-and-applications
     desktop
     gnome
+    niri
     plasma
     wifi
     printing
@@ -82,11 +84,25 @@
         };
       }
     )
+
+    (
+      { config, ... }:
+      lib.mkIf config.prevent-suspend.enable {
+        systemd.targets.sleep.enable = false;
+        systemd.targets.suspend.enable = false;
+        systemd.targets.hibernate.enable = false;
+        systemd.targets.hybrid-sleep.enable = false;
+      }
+    )
+
   ];
 
   options = {
     family-account = {
       enable = lib.mkEnableOption "Enable a user account for family members";
+    };
+    prevent-suspend = {
+      enable = lib.mkEnableOption "Ensure the host does not suspend";
     };
   };
 
@@ -115,7 +131,8 @@
           "@wheel"
         ];
         auto-optimise-store = lib.mkDefault true;
-      } // ((import ../../../flake.nix).nixConfig);
+      }
+      // ((import ../../../flake.nix).nixConfig);
     };
 
     sops = {
@@ -255,11 +272,8 @@
         };
       };
       imports = with self.outputs.homeManagerModules; [
-        {
-          _module.args.fullName = config.users.users.daniel.description;
-        }
-        default
         daniel
+        default
       ];
     };
   };

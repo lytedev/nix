@@ -15,7 +15,7 @@ let
 in
 {
   options.services.spacetimedb = {
-    enable = mkEnableOption "Enable the spacetimdb server.";
+    enable = mkEnableOption "Enable the spacetimedb server.";
     port = mkOption {
       type = types.port;
       default = 5551;

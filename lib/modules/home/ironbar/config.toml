@@ -1,0 +1,39 @@
+[monitors]
+start = []
+center = []
+end = []
+
+[monitors."PNP(JMI) FlipAction16 P05162024"]
+start = []
+center = []
+end = []
+
+[monitors."BOE NE135A1M-NY1 Unknown"]
+position = "bottom"
+height = 16
+
+[[start]]
+type = "workspaces"
+
+[[center]]
+type = "focused"
+icon_size = 16
+
+[[end]]
+type = "battery"
+
+[[end]]
+type = "sys_info"
+format = [
+    "{cpu_percent}% ",
+    "{memory_percent}% ",
+]
+
+[end.interval]
+cpu = 1
+
+[[end]]
+type = "tray"
+
+[[end]]
+type = "clock"

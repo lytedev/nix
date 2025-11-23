@@ -139,7 +139,15 @@ in
     };
 
     services.caddy.virtualHosts.${domain} = {
-      extraConfig = ''reverse_proxy https://${domain}:8443'';
+      extraConfig = ''
+        reverse_proxy https://${domain}:8443 {
+          transport http {
+            tls
+            tls_server_name ${domain}
+            tls_insecure_skip_verify
+          }
+        }
+      '';
     };
 
     systemd.services.kanidm = {

@@ -13,6 +13,14 @@
           "bluez5.enable-sbc-xq" = true;
           "bluez5.enable-msbc" = true;
           "bluez5.enable-hw-volume" = true;
+          "bluez5.codecs" = [
+            "ldac"
+            "aptx_hd"
+            "aptx"
+            "aac"
+            "sbc_xq"
+            "sbc"
+          ];
           "bluez5.roles" = [
             "hsp_hs"
             "hsp_ag"
@@ -20,6 +28,8 @@
             "hfp_ag"
           ];
         };
+        # Disable automatic profile switching
+        "bluetooth.autoswitch-to-headset-profile" = false;
       };
       extraConfig.pipewire."91-null-sinks" = {
         "context.objects" = [

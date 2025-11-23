@@ -7,13 +7,14 @@ in
 {
   default =
     {
-      pkgs,
+      # pkgs,
       lib,
-      config,
+      # config,
       ...
     }:
     {
       imports = with homeManagerModules; [
+        # inputs.ironbar.homeManagerModules.default
         slippi.homeManagerModules.default
         shell
         fish
@@ -29,7 +30,7 @@ in
         cargo
         desktop
         gnome
-        password-manager
+        niri
 
         /*
           broot
@@ -68,7 +69,7 @@ in
       config = lib.mkIf config.lyte.shell.enable {
         programs.fish.enable = true;
         programs.helix.enable = true;
-        programs.zellij.enable = true;
+        programs.zellij.enable = lib.mkDefault true;
         programs.eza.enable = true;
         programs.bat = {
           enable = true;
@@ -100,10 +101,10 @@ in
         };
 
         programs.mise = {
-          enable = true;
-          enableFishIntegration = true;
-          enableBashIntegration = true;
-          enableZshIntegration = true;
+          enable = lib.mkDefault false;
+          enableFishIntegration = config.programs.mise.enable && config.programs.fish.enable;
+          enableBashIntegration = config.programs.mise.enable && config.programs.bash.enable;
+          enableZshIntegration = config.programs.mise.enable && config.programs.zsh.enable;
         };
 
         programs.jujutsu = {
@@ -247,19 +248,43 @@ in
         lyte = {
           desktop = {
             enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
-            environment = lib.mkOption {
-              type = types.enum [
-                "gnome"
-                "plasma"
-              ];
-              default = "gnome";
+            gnome.enable = lib.mkOption {
+              default = config.lyte.desktop.enable;
+              example = true;
+              description = "Enable GNOME desktop configuration and applications";
+              type = types.bool;
             };
+            plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
+            niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
           };
         };
       };
       config = lib.mkIf config.lyte.desktop.enable {
-        programs.firefox.enable = true;
-        programs.ghostty.enable = true;
+        home.packages = with pkgs; [
+          (
+            # allow nixpkgs 24.11 and unstable to both work
+            if builtins.hasAttr "nerd-fonts" pkgs then
+              (nerd-fonts.symbols-only)
+            else
+              (nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
+          )
+
+          iosevkaLyteTerm
+          spicetify-cli # CLI only, for use with Flatpak Spotify
+        ];
+
+        fonts.fontconfig.enable = true;
+
+        home.file."${config.xdg.configHome}/.local/share/fonts" = {
+          source = config.lib.file.mkOutOfStoreSymlink "/run/current-system/sw/share/X11/fonts";
+        };
+
+        home.file."${config.xdg.configHome}/ghostty" = {
+          source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ghostty ./ghostty;
+        };
+
+        programs.firefox.enable = lib.mkDefault true;
+        programs.ghostty.enable = lib.mkDefault true;
         home.pointerCursor = {
           name = "Bibata-Modern-Classic";
           package = pkgs.bibata-cursors;
@@ -281,7 +306,6 @@ in
     {
       fullName,
       config,
-      lib,
       ...
     }:
     let
@@ -418,13 +442,6 @@ in
             smtrpencryption = "tls";
             smtpserverport = 587;
           };
-
-          url = {
-            # TODO: how to have per-machine not-in-git configuration?
-            "git@git.hq.bill.com:" = {
-              insteadOf = "https://git.hq.bill.com";
-            };
-          };
         };
       };
 
@@ -483,7 +500,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "plasma")) {
+      config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
         dconf.enable = true;
       };
     };
@@ -496,7 +513,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.environment == "gnome")) {
+      config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.gnome.enable) {
         dconf = {
           enable = true;
           settings = {
@@ -538,11 +555,15 @@ in
               clock-show-weekday = true;
               # font-name = "IosevkaLyteTerm 12";
               # monospace-font-name = "IosevkaLyteTerm 12";
-              color-scheme = "prefer-dark";
+              # color-scheme = "prefer-dark"; # don't set this so we respect the current toggle
               # scaling-factor = 1.75;
             };
             "org/gnome/mutter" = {
-              experimental-features = [ "variable-refresh-rate" ];
+              experimental-features = [
+                "variable-refresh-rate"
+                "scale-monitor-framebuffer"
+                # "xwayland-native-scaling"
+              ];
             };
 
             "org/gnome/shell" = {
@@ -551,6 +572,7 @@ in
                 tiling-shell.extensionUuid
                 appindicator.extensionUuid
                 blur-my-shell.extensionUuid
+                # gsconnect.extenstionUuid
               ];
             };
 
@@ -577,16 +599,18 @@ in
 
         programs.gnome-shell = {
           enable = true;
-          extensions =
-            [ { package = pkgs.gnomeExtensions.gsconnect; } ]
-            ++ map (p: { package = p; }) (
-              with pkgs.gnomeExtensions;
-              [
-                tiling-shell
-                blur-my-shell
-                appindicator
-              ]
-            );
+          extensions = [
+            { package = pkgs.gnomeExtensions.gsconnect; }
+          ]
+          ++ map (p: { package = p; }) (
+            with pkgs.gnomeExtensions;
+            [
+              tiling-shell
+              blur-my-shell
+              appindicator
+              gsconnect
+            ]
+          );
         };
       };
     };
@@ -750,31 +774,6 @@ in
       };
     };
 
-  password-manager =
-    {
-      lib,
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      config = lib.mkIf config.lyte.shell.enable {
-        programs.password-store = {
-          enable = true;
-          package = pkgs.pass.withExtensions (exts: [ exts.pass-otp ]);
-        };
-
-        home.packages = with pkgs; [
-          passage
-          rage
-          age-plugin-yubikey
-          bitwarden-cli
-          oath-toolkit
-          # bitwarden-desktop
-        ];
-      };
-    };
-
   senpai =
     { lib, config, ... }:
     {
@@ -785,6 +784,7 @@ in
             address = "irc+insecure://beefcake.hare-cod.ts.net:6667";
             nickname = "lytedev";
             password-cmd = [
+              # TODO: update to use bitwarden-cli?
               "pass"
               "soju"
             ];
@@ -793,6 +793,7 @@ in
 
         home.file."${config.xdg.configHome}/senpai/senpai.scfg" = {
           enable = true;
+          # TODO: update to use bitwarden-cli?
           text = ''
             address irc+insecure://beefcake:6667
             nickname lytedev
@@ -816,10 +817,6 @@ in
         home.packages = with pkgs; [
           ghostty
         ];
-
-        home.file."${config.xdg.configHome}/ghostty" = {
-          source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ghostty ./ghostty;
-        };
       };
     };
 
@@ -1298,25 +1295,25 @@ in
             # };
 
             # default_layout = "compact";
-            theme = "match";
+            theme = "ansi";
 
-            themes = {
-              match = with style.colors.withHashPrefix; {
-                fg = fg;
-                bg = bg;
+            # themes = {
+            #   match = with style.colors.withHashPrefix; {
+            #     fg = fg;
+            #     bg = bg;
 
-                black = bg;
-                white = fg;
+            #     black = bg;
+            #     white = fg;
 
-                red = red;
-                green = green;
-                yellow = yellow;
-                blue = blue;
-                magenta = purple;
-                cyan = blue;
-                orange = orange;
-              };
-            };
+            #     red = red;
+            #     green = green;
+            #     yellow = yellow;
+            #     blue = blue;
+            #     magenta = purple;
+            #     cyan = blue;
+            #     orange = orange;
+            #   };
+            # };
             # TODO: port config
 
             ui = {
@@ -1334,45 +1331,56 @@ in
       };
     };
 
-  sshconfig = {
-    programs.ssh = {
-      enable = true;
-      matchBlocks = {
-        "git.lyte.dev" = {
-          # hostname = "git.lyte.dev";
-          user = "forgejo";
+  sshconfig =
+    { options, ... }:
+    {
+      programs.ssh =
+        (
+          if builtins.hasAttr "enableDefaultConfig" options.programs.ssh then
+            {
+              enableDefaultConfig = false;
+              matchBlocks = {
+                "*" = {
+                  forwardAgent = false;
+                  addKeysToAgent = "no";
+                  compression = false;
+                  serverAliveInterval = 0;
+                  serverAliveCountMax = 3;
+                  hashKnownHosts = false;
+                  userKnownHostsFile = "~/.ssh/known_hosts";
+                  controlMaster = "no";
+                  controlPath = "~/.ssh/master-%r@%n:%p";
+                  controlPersist = "no";
+                };
+              };
+            }
+          else
+            {
+              extraConfig = ''
+                # pass obscure/keys/ssh-key-ed25519 | tail -n 7
+              '';
+            }
+        )
+        // {
+          enable = true;
+          includes = [ "config.d/*" ];
+          matchBlocks = {
+            "git.lyte.dev" = {
+              # hostname = "git.lyte.dev";
+              user = "forgejo";
+            };
+            "github.com" = {
+              user = "git";
+            };
+            "gitlab.com" = {
+              user = "git";
+            };
+            "codeberg.org" = {
+              user = "git";
+            };
+          };
         };
-        "github.com" = {
-          user = "git";
-        };
-        "gitlab.com" = {
-          user = "git";
-        };
-        "codeberg.org" = {
-          user = "git";
-        };
-        "git.hq.bill.com" = {
-          user = "git";
-        };
-        "steam-deck-oled" = {
-          user = "deck";
-          hostname = "sdo";
-        };
-        "steam-deck" = {
-          user = "deck";
-          hostname = "steamdeck";
-        };
-        work = {
-          user = "daniel.flanagan";
-        };
-      };
-      extraConfig = ''
-        Include config.d/*
-        # pass obscure/keys/ssh-key-ed25519 | tail -n 7
-        IdentityFile ~/.ssh/id_ed25519
-      '';
     };
-  };
 
   daniel =
     { ... }:
@@ -1386,5 +1394,72 @@ in
         primary = true;
         address = "daniel@lyte.dev";
       };
+
+      _module.args.fullName = "Daniel Flanagan";
+    };
+
+  niri =
+    { ... }:
+    {
+      imports = [
+        inputs.noctalia.homeModules.default
+        (
+          { config, ... }:
+          {
+            # symlink the config regardless
+            home.file."${config.xdg.configHome}/niri" = {
+              source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/niri ../home/niri;
+            };
+            home.file."${config.xdg.configHome}/ironbar" = {
+              source =
+                conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ironbar
+                  ../home/ironbar;
+            };
+          }
+        )
+        (
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
+          {
+            config = lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.niri.enable) {
+              # programs.niri.package = pkgs.niri-unstable;
+              programs.noctalia-shell = {
+                enable = true;
+              };
+
+              services.mako.enable = false;
+
+              # Discord with Vencord for noctalia theming support
+              programs.vesktop = {
+                enable = true;
+              };
+
+              home.packages = with pkgs; [
+                swayosd
+                mako
+                swaylock
+                fuzzel
+                brightnessctl
+                xwayland-satellite
+              ];
+              dconf.settings = {
+                "org/gnome/desktop/interface" = {
+                  color-scheme = "prefer-dark";
+                };
+              };
+              gtk.theme.name = "Adwaita-dark";
+              # programs.ironbar = {
+              #   enable = true;
+              #   # TODO: somehow only run for niri and not GNOME?
+              #   systemd = true;
+              # };
+            };
+          }
+        )
+      ];
     };
 }

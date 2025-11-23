@@ -20,6 +20,8 @@ in
 {
   system.stateVersion = "24.11";
 
+  users.groups.netdev = { };
+
   # hardware
   boot = {
     loader = {
@@ -133,6 +135,7 @@ in
         dragon = {
           ip = "192.168.0.10";
           nat.tcp.SSH = 4822;
+          mac = "f0:2f:74:c9:9b:61";
         };
         bald = {
           ip = "192.168.0.11";
@@ -143,6 +146,7 @@ in
         };
         beefcake = {
           ip = "192.168.0.9";
+          mac = "b8:ca:3a:6d:2d:24";
           nat = {
             tcp = {
               "SSH" = 22;
@@ -150,7 +154,8 @@ in
               "HTTPS" = 443;
               "Minecraft Flanilla Creative" = 26968;
               "Jonland Minecraft" = 26974;
-              "Jonland Minecraft Voicechat" = 24454;
+              "Prominence 2" = 26989;
+              "Minecraft Voicechat" = 24454;
             };
             udp = {
               "QUIC" = [
@@ -159,7 +164,8 @@ in
               ];
               "Factorio" = 34197;
               "Jonland Minecraft" = 26974;
-              "Jonland Minecraft Voicechat" = 24454;
+              "Prominence 2" = 26989;
+              "Minecraft Voicechat" = 24454;
             };
           };
           additionalHosts = [
@@ -169,7 +175,7 @@ in
             "audio.lyte.dev"
             "bw.lyte.dev"
             "files.lyte.dev"
-            "finances.h.lyte.dev"
+            # "finances.h.lyte.dev"
             "git.lyte.dev"
             "grafana.h.lyte.dev"
             "idm.h.lyte.dev"
@@ -177,7 +183,10 @@ in
             "nextcloud.h.lyte.dev"
             "nix.h.lyte.dev"
             "tasks.h.lyte.dev"
+            "spacetimedb.h.lyte.dev"
+            "syncthing.h.lyte.dev"
             "onlyoffice.h.lyte.dev"
+            "openobserve.h.lyte.dev"
             "paperless.h.lyte.dev"
             "prometheus.h.lyte.dev"
             "video.lyte.dev"

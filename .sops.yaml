@@ -10,6 +10,7 @@ keys:
   - &sshd-at-beefcake age1etv56f7kf78a55lxqtydrdd32dpmsjnxndf4u28qezxn6p7xt9esqvqdq7 
   - &sshd-at-router age1zd7c3g5d20shdftq8ghqm0r92488dg4pdp4gulur7ex3zx2yq35ssxawpn
   - &sshd-at-dragon age14ewl97x5g52ajf269cmmwzrgf22m9dsr7mw7czfa356qugvf4gvq5dttfv
+  - &sshd-at-bigtower age1eem6av44pxjl22k0k0vt6vllerz007f7zteqqcem2j4etmvd0y2q5phs52
   - &ssh-foxtrot age1njnet9ltjuxasqv3ckn67r5natke6xgd8wlx8psf64pyc4duvurqhedw80
 
   # after updating this file, you may need to update the keys for any associated files like so:
@@ -35,6 +36,11 @@ creation_rules:
     - age:
       - *daniel
       - *sshd-at-dragon
+  - path_regex: secrets/bigtower/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *sshd-at-bigtower
   - path_regex: secrets/foxtrot/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:

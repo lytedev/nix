@@ -48,6 +48,8 @@
     common-pc-ssd
   ];
 
+  prevent-suspend.enable = true;
+
   hardware.bluetooth = {
     enable = true;
     settings = {
@@ -63,6 +65,13 @@
   home-manager.users.daniel = {
     lyte.shell.enable = true;
     lyte.desktop.enable = true;
+  };
+
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
   };
 
   family-account.enable = true;

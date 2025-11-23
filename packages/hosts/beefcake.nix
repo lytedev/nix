@@ -83,11 +83,13 @@
       ./beefcake/kanidm.nix
       ./beefcake/minecraft-server-containers.nix
       ./beefcake/jonland.nix
+      ./beefcake/prom2.nix
       ./beefcake/audiobookshelf.nix
-      ./beefcake/prometheus.nix
-      ./beefcake/grafana.nix
+      ./beefcake/opentelemetry-collector.nix
+      # ./beefcake/grafana.nix  # Disabled - replaced by OpenObserve
+      ./beefcake/openobserve.nix
       ./beefcake/paperless.nix
-      ./beefcake/actual.nix
+      # ./beefcake/actual.nix
       ./beefcake/factorio-servers.nix
       # ./beefcake/conduwuit.nix
       ./beefcake/element-web.nix
@@ -95,6 +97,8 @@
       ./beefcake/spacetimedb.nix
       ./beefcake/cdn.nix
       ./beefcake/samba.nix
+      ./beefcake/syncthing.nix
+      ./beefcake/n8n.nix
     ]);
 
   services.spacetimedb.enable = true;

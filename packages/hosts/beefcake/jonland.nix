@@ -7,7 +7,7 @@
     ];
 
     virtualisation.oci-containers.containers.minecraft-jonland = {
-      autoStart = true;
+      autoStart = false;
 
       # sending commands: https://docker-minecraft-server.readthedocs.io/en/latest/commands/
 

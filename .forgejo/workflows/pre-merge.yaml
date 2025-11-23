@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build host
       run: |
-        nix shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#${{ matrix.info.host }} --accept-flake-config
+        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#${{ matrix.info.host }} --accept-flake-config
         echo 'nix command completed successfully'
 
   build-devshell:
@@ -25,7 +25,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build default devShell
       run: |
-        nix develop . --build --accept-flake-config
+        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto develop . --build --accept-flake-config
         echo 'nix command completed successfully'
 
   flake-check:
@@ -34,5 +34,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Check nix flake
       run: |
-        nix flake check --accept-flake-config
+        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto flake check --accept-flake-config
         echo 'nix command completed successfully'
