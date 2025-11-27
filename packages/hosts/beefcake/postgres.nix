@@ -16,7 +16,7 @@
     dataDir = "/storage/postgres";
     enableTCPIP = true;
 
-    package = lib.mkForce pkgs.postgresql_15;
+    package = lib.mkForce pkgs.postgresql_17;
 
     # https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
     # TODO: give the "daniel" user access to all databases
