@@ -1451,10 +1451,10 @@ in
               # Configure swayidle for automatic locking and power management
               services.swayidle = {
                 enable = true;
-                events = [
-                  { event = "before-sleep"; command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'"; }
-                  { event = "lock"; command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'"; }
-                ];
+                events = {
+                  before-sleep = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'";
+                  lock = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'";
+                };
                 timeouts = [
                   {
                     timeout = 600; # 10 minutes

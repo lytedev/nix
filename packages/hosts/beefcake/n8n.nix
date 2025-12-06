@@ -11,15 +11,13 @@
     enable = true;
     openFirewall = false; # Don't open firewall ports by default
 
-    # Webhook URL for reverse proxy setup
-    webhookUrl = "https://n8n.h.lyte.dev/";
-
-    # Configuration settings for n8n
+    # Configuration via environment variables
     # See https://docs.n8n.io/hosting/environment-variables/ for all options
-    settings = {
-      host = "n8n.h.lyte.dev";
-      port = 5678;
-      protocol = "https";
+    environment = {
+      WEBHOOK_URL = "https://n8n.h.lyte.dev/";
+      N8N_HOST = "n8n.h.lyte.dev";
+      N8N_PORT = "5678";
+      N8N_PROTOCOL = "https";
     };
   };
 
