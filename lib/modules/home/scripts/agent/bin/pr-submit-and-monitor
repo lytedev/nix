@@ -1,0 +1,301 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# pr-submit-and-monitor: Submit a WIP PR and monitor its CI status
+# Usage: pr-submit-and-monitor [--draft] [--title "PR Title"] [--body "PR Body"]
+
+# Configuration
+FORGEJO_URL="${FORGEJO_URL:-https://git.lyte.dev}"
+FORGEJO_API="${FORGEJO_API:-$FORGEJO_URL/api/v1}"
+FORGEJO_TOKEN="${FORGEJO_TOKEN:-}"
+DEFAULT_BASE_BRANCH="main"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Parse arguments
+DRAFT=false
+TITLE=""
+BODY=""
+AUTO_TITLE=true
+AUTO_BODY=true
+MONITOR_ONLY=false
+PR_NUMBER=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --draft)
+      DRAFT=true
+      shift
+      ;;
+    --title)
+      TITLE="$2"
+      AUTO_TITLE=false
+      shift 2
+      ;;
+    --body)
+      BODY="$2"
+      AUTO_BODY=false
+      shift 2
+      ;;
+    --monitor-only|--monitor)
+      MONITOR_ONLY=true
+      shift
+      ;;
+    --pr)
+      PR_NUMBER="$2"
+      MONITOR_ONLY=true
+      shift 2
+      ;;
+    --help|-h)
+      echo "Usage: pr-submit-and-monitor [OPTIONS]"
+      echo ""
+      echo "Options:"
+      echo "  --draft               Create PR as draft"
+      echo "  --title TITLE         Set PR title (auto-generated from commit if not provided)"
+      echo "  --body BODY           Set PR body (auto-generated from commit if not provided)"
+      echo "  --monitor-only        Only monitor existing PR (don't push/create)"
+      echo "  --pr NUMBER           Monitor specific PR number"
+      echo ""
+      echo "Environment variables:"
+      echo "  FORGEJO_URL      Forgejo instance URL (default: https://git.lyte.dev)"
+      echo "  FORGEJO_TOKEN    Forgejo API token (required)"
+      echo ""
+      echo "Examples:"
+      echo "  pr-submit-and-monitor                    # Submit and monitor current bookmark"
+      echo "  pr-submit-and-monitor --monitor-only     # Just monitor existing PR for current bookmark"
+      echo "  pr-submit-and-monitor --pr 175           # Monitor PR #175"
+      exit 0
+      ;;
+    *)
+      echo -e "${RED}Unknown option: $1${NC}"
+      exit 1
+      ;;
+  esac
+done
+
+# Check for required tools
+for tool in jj curl jq; do
+  if ! command -v "$tool" &> /dev/null; then
+    echo -e "${RED}Error: $tool is required but not installed${NC}"
+    exit 1
+  fi
+done
+
+# Check for Forgejo token
+if [[ -z "$FORGEJO_TOKEN" ]]; then
+  echo -e "${RED}Error: FORGEJO_TOKEN environment variable is not set${NC}"
+  echo "Please set your Forgejo API token:"
+  echo "  export FORGEJO_TOKEN='your-token-here'"
+  echo ""
+  echo "You can generate a token at: $FORGEJO_URL/user/settings/applications"
+  exit 1
+fi
+
+# Extract owner and repo from git remote
+GIT_REMOTE=$(git remote get-url origin 2>/dev/null || echo "")
+if [[ -z "$GIT_REMOTE" ]]; then
+  echo -e "${RED}Error: No git remote 'origin' found${NC}"
+  exit 1
+fi
+
+# Parse forgejo@git.lyte.dev:owner/repo.git or https://git.lyte.dev/owner/repo.git
+if [[ "$GIT_REMOTE" =~ @.*:(.*)/(.*).git ]] || [[ "$GIT_REMOTE" =~ /.*/(.*)/(.*).git ]]; then
+  REPO_OWNER="${BASH_REMATCH[1]}"
+  REPO_NAME="${BASH_REMATCH[2]}"
+else
+  echo -e "${RED}Error: Could not parse git remote: $GIT_REMOTE${NC}"
+  exit 1
+fi
+
+echo -e "${BLUE}Repository: $REPO_OWNER/$REPO_NAME${NC}"
+
+# If monitoring specific PR number, skip bookmark checks
+if [[ -n "$PR_NUMBER" ]]; then
+  echo -e "${BLUE}Monitoring PR: #$PR_NUMBER${NC}"
+  MONITOR_ONLY=true
+else
+  # Get current branch/bookmark info
+  CURRENT_CHANGE=$(jj log -r @ --no-graph -T 'change_id.short()')
+  CURRENT_BOOKMARK=$(jj log -r @ --no-graph -T 'bookmarks' | tr -d '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed 's/\*$//')
+
+  if [[ -z "$CURRENT_BOOKMARK" ]]; then
+    echo -e "${RED}Error: No bookmark found for current change${NC}"
+    echo "Please create a bookmark first:"
+    echo "  jj bookmark create my-feature-name"
+    exit 1
+  fi
+
+  echo -e "${BLUE}Branch: $CURRENT_BOOKMARK${NC}"
+fi
+
+# Auto-generate title and body if not provided (only if not monitor-only mode)
+if [[ "$MONITOR_ONLY" == false ]]; then
+  if [[ "$AUTO_TITLE" == true ]]; then
+    TITLE=$(jj log -r @ --no-graph -T 'description.first_line()')
+    if [[ "$TITLE" =~ ^(feat|fix|chore|docs|refactor|test|perf|ci|build|style)(\(.*\))?: ]]; then
+      # Good conventional commit message
+      :
+    else
+      # Prepend WIP if not a conventional commit
+      TITLE="WIP: $TITLE"
+    fi
+  fi
+
+  if [[ "$AUTO_BODY" == true ]]; then
+    # Get full commit description
+    FULL_DESC=$(jj log -r @ --no-graph -T 'description')
+    # Remove first line (used in title)
+    BODY=$(echo "$FULL_DESC" | tail -n +2 | sed 's/^[[:space:]]*//')
+
+    # Add change ID for reference
+    BODY="$BODY
+
+---
+Change ID: \`$CURRENT_CHANGE\`
+Bookmark: \`$CURRENT_BOOKMARK\`"
+  fi
+fi
+
+if [[ "$MONITOR_ONLY" == false ]]; then
+  echo -e "${BLUE}Title: $TITLE${NC}"
+  echo ""
+
+  # Push the branch
+  echo -e "${YELLOW}Pushing branch to remote...${NC}"
+  if jj git push --branch "$CURRENT_BOOKMARK" --allow-new 2>&1; then
+    echo -e "${GREEN}✓ Branch pushed successfully${NC}"
+  else
+    echo -e "${RED}Failed to push branch${NC}"
+    exit 1
+  fi
+fi
+
+# Check if PR already exists or get PR details
+if [[ -z "$PR_NUMBER" ]]; then
+  echo -e "${YELLOW}Checking for existing PR...${NC}"
+  EXISTING_PR=$(curl -s -H "Authorization: token $FORGEJO_TOKEN" \
+    "$FORGEJO_API/repos/$REPO_OWNER/$REPO_NAME/pulls?state=open" | jq -r ".[] | select(.head.ref == \"$CURRENT_BOOKMARK\") | .number" | head -1)
+
+  if [[ -n "$EXISTING_PR" ]]; then
+    echo -e "${YELLOW}PR already exists: #$EXISTING_PR${NC}"
+    PR_NUMBER="$EXISTING_PR"
+    PR_URL="$FORGEJO_URL/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER"
+  elif [[ "$MONITOR_ONLY" == true ]]; then
+    echo -e "${RED}Error: No open PR found for branch $CURRENT_BOOKMARK${NC}"
+    exit 1
+  else
+    # Create the PR
+    echo -e "${YELLOW}Creating pull request...${NC}"
+
+    PR_DATA=$(jq -n \
+      --arg title "$TITLE" \
+      --arg body "$BODY" \
+      --arg head "$CURRENT_BOOKMARK" \
+      --arg base "$DEFAULT_BASE_BRANCH" \
+      --argjson draft "$DRAFT" \
+      '{
+        title: $title,
+        body: $body,
+        head: $head,
+        base: $base
+      }')
+
+    PR_RESPONSE=$(curl -s -X POST \
+      -H "Authorization: token $FORGEJO_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "$PR_DATA" \
+      "$FORGEJO_API/repos/$REPO_OWNER/$REPO_NAME/pulls")
+
+    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number // empty')
+
+    if [[ -z "$PR_NUMBER" ]]; then
+      echo -e "${RED}Failed to create PR${NC}"
+      echo "Response: $PR_RESPONSE" | jq .
+      exit 1
+    fi
+
+    PR_URL=$(echo "$PR_RESPONSE" | jq -r '.html_url')
+    echo -e "${GREEN}✓ PR created: $PR_URL${NC}"
+  fi
+else
+  # Using explicit PR number
+  PR_URL="$FORGEJO_URL/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER"
+fi
+
+# Monitor CI status
+echo ""
+echo -e "${BLUE}Monitoring CI status...${NC}"
+echo -e "${BLUE}Press Ctrl+C to stop monitoring${NC}"
+echo ""
+
+LAST_STATUS=""
+CHECK_INTERVAL=10
+
+while true; do
+  # Get PR details including head SHA
+  PR_DETAILS=$(curl -s -H "Authorization: token $FORGEJO_TOKEN" \
+    "$FORGEJO_API/repos/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER")
+
+  HEAD_SHA=$(echo "$PR_DETAILS" | jq -r '.head.sha')
+
+  # Get commit statuses
+  STATUSES=$(curl -s -H "Authorization: token $FORGEJO_TOKEN" \
+    "$FORGEJO_API/repos/$REPO_OWNER/$REPO_NAME/commits/$HEAD_SHA/status")
+
+  OVERALL_STATE=$(echo "$STATUSES" | jq -r '.state // "pending"')
+
+  # Get individual check runs
+  CHECKS=$(curl -s -H "Authorization: token $FORGEJO_TOKEN" \
+    "$FORGEJO_API/repos/$REPO_OWNER/$REPO_NAME/commits/$HEAD_SHA/check-runs")
+
+  # Display status
+  CURRENT_STATUS="$OVERALL_STATE"
+
+  if [[ "$CURRENT_STATUS" != "$LAST_STATUS" ]]; then
+    TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
+    case "$OVERALL_STATE" in
+      success)
+        echo -e "[$TIMESTAMP] ${GREEN}✓ All checks passed${NC}"
+
+        # Show individual checks
+        echo "$CHECKS" | jq -r '.check_runs[]? | "  ✓ \(.name): \(.conclusion // .status)"' 2>/dev/null || true
+
+        echo ""
+        echo -e "${GREEN}CI completed successfully!${NC}"
+        echo -e "${BLUE}PR: $PR_URL${NC}"
+        exit 0
+        ;;
+      failure)
+        echo -e "[$TIMESTAMP] ${RED}✗ Checks failed${NC}"
+
+        # Show failed checks
+        echo "$CHECKS" | jq -r '.check_runs[]? | select(.conclusion == "failure") | "  ✗ \(.name): \(.conclusion)"' 2>/dev/null || true
+
+        echo ""
+        echo -e "${RED}CI failed. Check the logs:${NC}"
+        echo -e "${BLUE}$PR_URL/checks${NC}"
+        exit 1
+        ;;
+      pending)
+        echo -e "[$TIMESTAMP] ${YELLOW}⟳ Checks running...${NC}"
+
+        # Show running checks
+        echo "$CHECKS" | jq -r '.check_runs[]? | "  ⟳ \(.name): \(.status)"' 2>/dev/null || true
+        ;;
+      error)
+        echo -e "[$TIMESTAMP] ${RED}✗ CI error${NC}"
+        exit 1
+        ;;
+    esac
+
+    LAST_STATUS="$CURRENT_STATUS"
+  fi
+
+  sleep "$CHECK_INTERVAL"
+done

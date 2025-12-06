@@ -108,9 +108,9 @@ flakeInputs:
       after = [ "xdg-desktop-autostart.target" ];
     };
 
-    # TODO: noctalia seems to be lacking lock?
+    # Lock screen now configured with swaylock fallback (see lib/modules/home/default.nix and lib/modules/home/niri/config.kdl)
     # TODO: noctalia doesn't seem to be generating ghostty themes on flab?
-    # TODO: resume issues on flab when in noctalia?
+    # TODO: resume issues on flab when in noctalia? - may be related to swayidle or systemd-logind config
 
     # Fix xdg-desktop-portal not having access to firefox and other binaries
     # See: https://github.com/NixOS/nixpkgs/issues/189851

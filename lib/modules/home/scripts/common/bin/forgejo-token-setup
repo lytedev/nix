@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# forgejo-token-setup: Helper to set up Forgejo API token
+# Usage: forgejo-token-setup
+
+FORGEJO_URL="${FORGEJO_URL:-https://git.lyte.dev}"
+TOKEN_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/forgejo/token"
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${BLUE}Forgejo API Token Setup${NC}"
+echo ""
+
+# Check if token already exists
+if [[ -f "$TOKEN_FILE" ]]; then
+  echo -e "${YELLOW}Token file already exists at: $TOKEN_FILE${NC}"
+  echo ""
+  read -p "Do you want to update it? (y/N): " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Keeping existing token."
+    exit 0
+  fi
+fi
+
+echo "To create a Forgejo API token:"
+echo "1. Visit: $FORGEJO_URL/user/settings/applications"
+echo "2. Generate a new token with these permissions:"
+echo "   - repo (all)"
+echo "   - write:repository"
+echo "   - read:repository"
+echo "3. Copy the token and paste it below"
+echo ""
+
+read -sp "Enter your Forgejo API token: " TOKEN
+echo ""
+
+if [[ -z "$TOKEN" ]]; then
+  echo "No token provided. Exiting."
+  exit 1
+fi
+
+# Create directory if it doesn't exist
+mkdir -p "$(dirname "$TOKEN_FILE")"
+
+# Save token to file
+echo "$TOKEN" > "$TOKEN_FILE"
+chmod 600 "$TOKEN_FILE"
+
+echo ""
+echo -e "${GREEN}✓ Token saved to: $TOKEN_FILE${NC}"
+echo ""
+echo "To use the token automatically, add this to your shell config:"
+echo ""
+echo "  export FORGEJO_TOKEN=\$(cat $TOKEN_FILE 2>/dev/null || echo '')"
+echo ""
+echo "Or for fish shell:"
+echo ""
+echo "  set -gx FORGEJO_TOKEN (cat $TOKEN_FILE 2>/dev/null || echo '')"
+echo ""
+
+# Test the token
+echo "Testing token..."
+if curl -s -f -H "Authorization: token $TOKEN" "$FORGEJO_URL/api/v1/user" > /dev/null; then
+  echo -e "${GREEN}✓ Token is valid!${NC}"
+else
+  echo -e "${YELLOW}Warning: Token test failed. Please verify your token is correct.${NC}"
+fi

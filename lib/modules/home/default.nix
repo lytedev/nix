@@ -1442,10 +1442,31 @@ in
                 swayosd
                 mako
                 swaylock
+                swayidle
                 fuzzel
                 brightnessctl
                 xwayland-satellite
               ];
+
+              # Configure swayidle for automatic locking and power management
+              services.swayidle = {
+                enable = true;
+                events = [
+                  { event = "before-sleep"; command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'"; }
+                  { event = "lock"; command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'"; }
+                ];
+                timeouts = [
+                  {
+                    timeout = 600; # 10 minutes
+                    command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'";
+                  }
+                  {
+                    timeout = 900; # 15 minutes
+                    command = "${pkgs.niri-unstable}/bin/niri msg action power-off-monitors";
+                  }
+                ];
+                systemdTarget = "niri.service";
+              };
               dconf.settings = {
                 "org/gnome/desktop/interface" = {
                   color-scheme = "prefer-dark";
