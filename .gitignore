@@ -9,3 +9,6 @@ result
 mise.local.toml
 
 .aider*
+
+# jujutsu workspaces
+/workspaces/
