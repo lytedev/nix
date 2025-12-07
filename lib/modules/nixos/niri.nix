@@ -18,12 +18,22 @@ flakeInputs:
   # };
 
   imports = [
-    # TODO: KDE Connect?
     flakeInputs.niri.nixosModules.niri
     # do some things even if we don't actually have the configuration setup
   ];
 
   config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.niri.enable)) {
+    # Enable KDE Connect with firewall rules
+    programs.kdeconnect.enable = true;
+    networking.firewall = rec {
+      allowedTCPPortRanges = [
+        {
+          from = 1714;
+          to = 1764;
+        }
+      ];
+      allowedUDPPortRanges = allowedTCPPortRanges;
+    };
     nixpkgs.overlays = [ flakeInputs.niri.overlays.niri ];
     environment.systemPackages = with pkgs; [
       flakeInputs.noctalia.packages.${system}.default
