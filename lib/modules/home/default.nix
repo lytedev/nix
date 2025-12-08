@@ -1443,7 +1443,6 @@ in
 
               home.packages = with pkgs; [
                 swayosd
-                mako
                 swaylock
                 swayidle
                 fuzzel

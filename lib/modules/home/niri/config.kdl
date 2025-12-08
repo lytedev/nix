@@ -663,9 +663,9 @@ binds {
     Alt+Print { screenshot-window; }
     Super+Shift+S hotkey-overlay-title="Screenshot to Clipboard: clipshot" { spawn "clipshot"; }
 
-    Mod+Ctrl+Space repeat=false { spawn "makoctl" "dismiss"; }
-    Super+Shift+Ctrl+Alt+Space repeat=false { spawn "makoctl" "restore"; }
-    Mod+Shift+Ctrl+Space repeat=false { spawn "makoctl" "invoke" "default"; }
+    Mod+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "dismiss"; }
+    Super+Shift+Ctrl+Alt+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "restore"; }
+    Mod+Shift+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "invoke"; }
 
     // Applications such as remote-desktop clients and software KVM switches may
     // request that niri stops processing the keyboard shortcuts defined here
