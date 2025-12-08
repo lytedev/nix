@@ -30,11 +30,21 @@
     services.flatpak.enable = true;
     systemd.services.flatpak-repo = {
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" ];
+      after = [
+        "network-online.target"
+        "tailscaled.service"
+      ];
       wants = [ "network-online.target" ];
-      path = [ pkgs.flatpak ];
+      requires = [ "tailscaled.service" ];
+      path = with pkgs; [ flatpak ];
       script = ''
-        flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        for delay in 1 2 4 8 15 30; do
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && exit 0
+          echo "Failed, retrying in ''${delay}s..."
+          sleep $delay
+        done
+        echo "Giving up after multiple attempts"
+        exit 1
       '';
       serviceConfig = {
         Type = "oneshot";
