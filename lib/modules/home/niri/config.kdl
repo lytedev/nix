@@ -417,7 +417,7 @@ binds {
     Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty" "+new-window"; }
     Mod+T hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
     Mod+Space hotkey-overlay-title="Run an Application: noctalia" { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
-    Super+Shift+Control+L hotkey-overlay-title="Lock the Screen" { spawn "sh" "-c" "noctalia-shell ipc call lockScreen lock || swaylock -f -c 000000"; }
+    Super+Shift+Control+L hotkey-overlay-title="Lock the Screen" { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
     Super+Ctrl+Escape { spawn "noctalia-shell" "ipc" "call" "settings" "toggle"; }
     Ctrl+Shift+Mod+C { spawn "noctalia-shell" "ipc" "call" "launcher" "clipboard"; }
 
@@ -700,3 +700,9 @@ layer-rule {
   match namespace="^noctalia-overview*"
   place-within-backdrop true
 }
+
+switch-events {
+  lid-close { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+}
+
+include "./noctalia.kdl"

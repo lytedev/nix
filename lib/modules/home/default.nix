@@ -1452,13 +1452,13 @@ in
               services.swayidle = {
                 enable = true;
                 events = {
-                  before-sleep = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'";
-                  lock = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'";
+                  before-sleep = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock'";
+                  lock = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock'";
                 };
                 timeouts = [
                   {
                     timeout = 600; # 10 minutes
-                    command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock || ${pkgs.swaylock}/bin/swaylock -f -c 000000'";
+                    command = "${pkgs.bash}/bin/bash -c 'noctalia-shell ipc call lockScreen lock'";
                   }
                   {
                     timeout = 900; # 15 minutes
