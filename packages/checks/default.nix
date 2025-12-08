@@ -7,7 +7,7 @@
 { pkgs, ... }:
 (
   {
-    git-hooks = git-hooks.lib.${pkgs.system}.run {
+    git-hooks = git-hooks.lib.${pkgs.stdenv.hostPlatform.system}.run {
       src = ./.;
       hooks = {
         convco.enable = true;
@@ -22,5 +22,5 @@
       };
     };
   }
-  // deploy-rs.lib.${pkgs.system}.deployChecks self.deploy
+  // deploy-rs.lib.${pkgs.stdenv.hostPlatform.system}.deployChecks self.deploy
 )

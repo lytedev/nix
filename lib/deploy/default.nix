@@ -24,7 +24,7 @@ let
       profiles.system = {
         sshUser = "root";
         path =
-          (deployPkgs self.nixosConfigurations.${host}.pkgs.system).deploy-rs.lib.x86_64-linux.activate.nixos
+          (deployPkgs self.nixosConfigurations.${host}.pkgs.stdenv.hostPlatform.system).deploy-rs.lib.x86_64-linux.activate.nixos
             self.nixosConfigurations.${host};
       };
     }

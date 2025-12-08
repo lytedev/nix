@@ -95,8 +95,8 @@
     openFirewall = true;
   };
 
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
 
   programs.steam.enable = true;
   lyte.desktop.enable = true;

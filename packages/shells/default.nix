@@ -2,7 +2,7 @@
 { pkgs, ... }:
 {
   default = pkgs.mkShell {
-    inherit (self.outputs.checks.${pkgs.system}.git-hooks) shellHook;
+    inherit (self.outputs.checks.${pkgs.stdenv.hostPlatform.system}.git-hooks) shellHook;
     packages = with pkgs; [
       colmena
       sops

@@ -359,14 +359,6 @@ in
       programs.git = {
         enable = !config.lyte.shell.learn-jujutsu-not-git.enable;
 
-        userName = lib.mkDefault fullName;
-        userEmail = email;
-
-        delta = {
-          enable = true;
-          options = { };
-        };
-
         lfs = {
           enable = true;
         };
@@ -378,40 +370,45 @@ in
           };
         */
 
-        aliases = {
-          a = "add -A";
-          ac = "commit -a";
-          acm = "commit -a -m";
-          c = "commit";
-          cm = "commit -m";
-          co = "checkout";
-
-          b = "rev-parse --symbolic-full-name HEAD";
-          cnv = "commit --no-verify";
-          cns = "commit --no-gpg-sign";
-          cnvs = "commit --no-verify --no-gpg-sign";
-          cnsv = "commit --no-verify --no-gpg-sign";
-
-          d = "diff";
-          ds = "diff --staged";
-          dt = "difftool";
-
-          f = "fetch";
-          fa = "fetch --all";
-
-          l = "log --graph --abbrev-commit --decorate --oneline --all";
-          plainlog = " log --pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
-          ls = "ls-files";
-          mm = "merge master";
-          p = "push";
-          pf = "push --force-with-lease";
-          pl = "pull";
-          rim = "rebase -i master";
-          s = "status";
-        };
-
         # TODO: https://blog.scottlowe.org/2023/12/15/conditional-git-configuration/
-        extraConfig = {
+        settings = {
+          user = {
+            name = lib.mkDefault fullName;
+            email = email;
+          };
+
+          alias = {
+            a = "add -A";
+            ac = "commit -a";
+            acm = "commit -a -m";
+            c = "commit";
+            cm = "commit -m";
+            co = "checkout";
+
+            b = "rev-parse --symbolic-full-name HEAD";
+            cnv = "commit --no-verify";
+            cns = "commit --no-gpg-sign";
+            cnvs = "commit --no-verify --no-gpg-sign";
+            cnsv = "commit --no-verify --no-gpg-sign";
+
+            d = "diff";
+            ds = "diff --staged";
+            dt = "difftool";
+
+            f = "fetch";
+            fa = "fetch --all";
+
+            l = "log --graph --abbrev-commit --decorate --oneline --all";
+            plainlog = " log --pretty=format:'%h %ad%x09%an%x09%s' --date=short --decorate";
+            ls = "ls-files";
+            mm = "merge master";
+            p = "push";
+            pf = "push --force-with-lease";
+            pl = "pull";
+            rim = "rebase -i master";
+            s = "status";
+          };
+
           commit = {
             verbose = true;
             # gpgSign = true;
@@ -443,6 +440,12 @@ in
             smtpserverport = 587;
           };
         };
+      };
+
+      programs.delta = {
+        enable = true;
+        enableGitIntegration = true;
+        options = { };
       };
 
       programs.fish.functions = {
@@ -744,7 +747,7 @@ in
       ...
     }:
     {
-      config = lib.mkIf (config.lyte.shell.enable && (lib.strings.hasSuffix "linux" pkgs.system)) {
+      config = lib.mkIf (config.lyte.shell.enable && (lib.strings.hasSuffix "linux" pkgs.stdenv.hostPlatform.system)) {
         programs.fish = {
           shellAliases = {
             disks = "df -h && lsblk";
