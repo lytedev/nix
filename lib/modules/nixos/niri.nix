@@ -41,6 +41,7 @@ flakeInputs:
       grim
       quickshell
       kdePackages.kdeconnect-kde
+      vicinae
     ];
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;
