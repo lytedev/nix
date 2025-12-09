@@ -1434,6 +1434,23 @@ in
                 enable = true;
               };
 
+              # Ensure niri config include files exist before starting niri
+              systemd.user.services.niri-file-setup = {
+                Unit = {
+                  Description = "Ensure niri config include files exist";
+                  Before = [ "niri.service" ];
+                  PartOf = [ "niri.service" ];
+                };
+                Service = {
+                  Type = "oneshot";
+                  RemainAfterExit = true;
+                  ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.xdg.configHome}/niri/noctalia.kdl ${config.xdg.configHome}/niri/host-specific.kdl'";
+                };
+                Install = {
+                  WantedBy = [ "niri.service" ];
+                };
+              };
+
               services.mako.enable = false;
 
               # Discord with Vencord for noctalia theming support
