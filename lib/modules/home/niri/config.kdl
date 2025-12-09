@@ -135,18 +135,18 @@ output "GIGA-BYTE TECHNOLOGY CO., LTD. AORUS FO48U 23070B000307" {
     focus-at-startup
 }
 
-// dragon right
-output "Dell Inc. DELL U2720Q D3TM623" {
-    transform "270"
-    scale 1.5
-    position x=3840 y=0
-}
-
-// dragon right
+// dragon left
 output "Dell Inc. DELL U2720Q CWTM623" {
     transform "270"
     scale 1.5
     position x=-1440 y=0
+}
+
+// dragon right
+output "Dell Inc. DELL U2720Q D3TM623" {
+    transform "90"
+    scale 1.5
+    position x=3840 y=0
 }
 
 // Settings that influence how windows are positioned and sized.
@@ -707,3 +707,4 @@ switch-events {
 }
 
 include "./noctalia.kdl"
+include "./host-specific.kdl"
