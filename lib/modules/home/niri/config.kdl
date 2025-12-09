@@ -142,9 +142,9 @@ output "Dell Inc. DELL U2720Q D3TM623" {
     position x=3840 y=0
 }
 
-// dragon right
+// dragon left
 output "Dell Inc. DELL U2720Q CWTM623" {
-    transform "270"
+    transform "90"
     scale 1.5
     position x=-1440 y=0
 }
@@ -707,3 +707,4 @@ switch-events {
 }
 
 include "./noctalia.kdl"
+include "./host-specific.kdl"
