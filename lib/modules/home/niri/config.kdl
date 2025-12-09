@@ -320,7 +320,7 @@ layout {
 spawn-at-startup "noctalia-shell"
 spawn-at-startup "kdeconnectd"
 spawn-at-startup "kdeconnect-indicator"
-spawn-at-startup "vicinae server"
+spawn-at-startup "vicinae" "server"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
