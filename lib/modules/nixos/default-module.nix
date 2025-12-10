@@ -25,6 +25,7 @@
     shell-defaults-and-applications
     desktop
     gnome
+    cosmic
     niri
     plasma
     wifi

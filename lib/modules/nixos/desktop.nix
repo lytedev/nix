@@ -20,6 +20,7 @@ in
           description = "Enable GNOME desktop configuration and applications";
           type = types.bool;
         };
+        cosmic.enable = lib.mkEnableOption "Enable Cosmic desktop configuration and applications";
         plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
         niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
         gdm.backgroundImage = lib.mkOption {
