@@ -36,6 +36,7 @@ in
     # Apply GDM background image if configured
     nixpkgs.overlays = lib.optional (config.lyte.desktop.gdm.backgroundImage != null) (
       self: super: {
+        squashfsTools = super.squashfsTools.override { zstdSupport = true; };
         gnome = super.gnome.overrideScope (
           selfg: superg: {
             gnome-shell = superg.gnome-shell.overrideAttrs (old: {
@@ -74,6 +75,9 @@ in
       # translation: this lets `xdg-open /my-file.txt` properly open the text file in helix in ghostty and not xterm
       # see https://gitlab.gnome.org/GNOME/glib/-/blob/5da569a4253ab4b9a7ff9fcf8595c33f3c324a45/gio/gdesktopappinfo.c#L2720
       xdg-terminal-exec
+
+      # for appimage support
+      squashfsTools
     ];
 
     fonts.packages = [
@@ -115,7 +119,10 @@ in
         };
 
     services.flatpak.enable = true;
-    programs.appimage.binfmt = true;
+    programs.appimage = {
+      enable = true;
+      binfmt = true;
+    };
     services.printing.enable = true;
     programs.virt-manager.enable = config.virtualisation.libvirtd.enable;
   };
