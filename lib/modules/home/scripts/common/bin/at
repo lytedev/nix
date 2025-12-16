@@ -11,7 +11,11 @@ usage() {
 
 [[ -z "$1" ]] && { echo "error: no DATE argument provided" >&2; usage; exit 1; }
 
-d="$(date -d "${@}" +%s)"
+d="$(date -d "${*}" +%s)"
+# If parsed time is in the past and input looks like just a time, assume tomorrow
+if [[ "$d" -lt "$(date +%s)" ]] && [[ "${*}" =~ ^[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?$ ]]; then
+	d="$(date -d "tomorrow ${*}" +%s)"
+fi
 _dt=$((d - $(date +%s)))
 days=$((_dt / 86400))
 printf 'Started at %s (with duration %sd %s)\n' "$(date)" "$days" "$(date -u --date @$((_dt)) +%H:%M:%S)"
