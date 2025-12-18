@@ -1,5 +1,13 @@
 { self, ... }:
 { pkgs, ... }:
+let
+  unfreePkgs = import pkgs.path {
+    system = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfree = true;
+  };
+  claude-code = unfreePkgs.callPackage ../claude-code.nix { };
+  happy-coder = unfreePkgs.callPackage ../happy-coder.nix { };
+in
 {
   default = pkgs.mkShell {
     inherit (self.outputs.checks.${pkgs.stdenv.hostPlatform.system}.git-hooks) shellHook;
@@ -12,6 +20,13 @@
       lua-language-server
       nodePackages.bash-language-server
       markdown-oxide
+    ];
+  };
+
+  agent = pkgs.mkShell {
+    packages = [
+      claude-code
+      happy-coder
     ];
   };
 

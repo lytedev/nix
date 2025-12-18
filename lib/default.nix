@@ -15,7 +15,12 @@ rec {
     "x86_64-linux"
   ];
   forSystems = nixpkgs: nixpkgs.lib.genAttrs systems;
-  pkgsFor = nixpkgs: system: (import nixpkgs { inherit system; }).extend forSelfOverlay;
+  pkgsFor =
+    nixpkgs: system:
+    (import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    }).extend forSelfOverlay;
   genPkgs = nixpkgs: func: (forSystems nixpkgs (system: func (pkgsFor nixpkgs system)));
 
   conditionalOutOfStoreSymlink =
