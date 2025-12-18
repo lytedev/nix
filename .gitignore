@@ -7,8 +7,3 @@ result
 *.qcow2
 
 mise.local.toml
-
-.aider*
-
-# jujutsu workspaces
-/workspaces/
