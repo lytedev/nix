@@ -121,7 +121,7 @@ flakeInputs:
 
     # Lock screen now configured with swaylock fallback (see lib/modules/home/default.nix and lib/modules/home/niri/config.kdl)
     # TODO: noctalia doesn't seem to be generating ghostty themes on flab?
-    # TODO: resume issues on flab when in noctalia? - may be related to swayidle or systemd-logind config
+    # Resume issues on flab addressed with lid-open sleep inhibitor in lib/modules/home/niri/config.kdl
 
     # Fix xdg-desktop-portal not having access to firefox and other binaries
     # See: https://github.com/NixOS/nixpkgs/issues/189851

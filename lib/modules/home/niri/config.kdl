@@ -704,6 +704,8 @@ layer-rule {
 
 switch-events {
   lid-close { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+  // Briefly inhibit sleep on lid-open to prevent immediate re-suspend
+  lid-open { spawn "systemd-inhibit" "--what=sleep" "--who=niri-lid-open" "--why=Preventing immediate re-suspend" "--mode=delay" "sleep" "5"; }
 }
 
 include "./noctalia.kdl"
