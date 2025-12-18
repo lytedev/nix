@@ -2,7 +2,7 @@
   diskoConfigurations,
   hardware,
   pkgs,
-  lib,
+  # lib,
   ...
 }:
 {
@@ -73,33 +73,4 @@
     };
     home.stateVersion = "25.11";
   };
-  services.logind =
-    let
-      logindSettings = {
-        "KillUserProcesses" = lib.mkForce false;
-
-        "HandlePowerKey" = lib.mkForce "suspend";
-        "HandlePowerKeyLongPress" = lib.mkForce "poweroff";
-
-        "HandleRebootKey" = lib.mkForce "reboot";
-        "HandleRebootKeyLongPress" = lib.mkForce "poweroff";
-
-        "HandleSuspendKey" = lib.mkForce "suspend";
-        "HandleSuspendKeyLongPress" = lib.mkForce "hibernate";
-
-        "HandleHibernateKey" = lib.mkForce "hibernate";
-        "HandleHibernateKeyLongPress" = lib.mkForce "hibernate";
-
-        "HandleLidSwitch" = lib.mkForce "suspend";
-        "HandleLidSwitchExternalPower" = lib.mkForce "suspend";
-        "HandleLidSwitchDocked" = lib.mkForce "suspend";
-
-        "IdleActionSec" = lib.mkForce "11m";
-        "IdleAction" = lib.mkForce "suspend";
-      };
-    in
-    {
-      settings.Login = logindSettings;
-    };
-
 }

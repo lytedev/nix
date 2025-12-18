@@ -7,24 +7,17 @@
 
   services.caddy.virtualHosts."nix.h.lyte.dev" = {
     extraConfig = ''
-      # Try bigtower first
-      reverse_proxy bigtower.lan:5000 {
+      # Tiered binary cache: try bigtower, then dragon, then local beefcake
+      # lb_policy first = always try upstreams in order
+      # fail_duration = remember failures before retrying that upstream
+      reverse_proxy bigtower.lan:5000 dragon.lan:5000 localhost:5000 {
+        lb_policy first
+        fail_duration 5s
         header_up Host {upstream_hostport}
 
-        # If bigtower returns 404 or connection error, try dragon
-        @bigtower_miss status 404
-        handle_response @bigtower_miss {
-          reverse_proxy dragon.lan:5000 {
-            header_up Host {upstream_hostport}
-
-            # If dragon returns 404 or connection error, try beefcake (local)
-            @dragon_miss status 404
-            handle_response @dragon_miss {
-              reverse_proxy :5000 {
-                header_up Host {upstream_hostport}
-              }
-            }
-          }
+        transport http {
+          dial_timeout 2s
+          response_header_timeout 5s
         }
       }
     '';

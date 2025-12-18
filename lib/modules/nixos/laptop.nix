@@ -26,48 +26,50 @@
 
     systemd.sleep.extraConfig = "HibernateDelaySec=11m";
 
-    services.logind =
-      {
-      }
-      // (
-        let
-          logindSettings = {
-            "KillUserProcesses" = false;
+    services.logind = {
+    }
+    // (
+      let
+        logindSettings = {
+          "KillUserProcesses" = false;
 
-            "HandlePowerKey" = "suspend-then-hibernate";
-            "HandlePowerKeyLongPress" = "poweroff";
+          "HandlePowerKey" = "suspend";
+          "HandlePowerKeyLongPress" = "poweroff";
 
-            "HandleRebootKey" = "reboot";
-            "HandleRebootKeyLongPress" = "poweroff";
+          "HandleRebootKey" = "reboot";
+          "HandleRebootKeyLongPress" = "poweroff";
 
-            "HandleSuspendKey" = "suspend-then-hibernate";
-            "HandleSuspendKeyLongPress" = "hibernate";
+          "HandleSuspendKey" = "suspend";
+          "HandleSuspendKeyLongPress" = "hibernate";
 
-            "HandleHibernateKey" = "hibernate";
-            "HandleHibernateKeyLongPress" = "hibernate";
+          "HandleHibernateKey" = "hibernate";
+          "HandleHibernateKeyLongPress" = "hibernate";
 
-            "HandleLidSwitch" = "suspend-then-hibernate";
-            "HandleLidSwitchExternalPower" = "suspend";
-            "HandleLidSwitchDocked" = "suspend";
+          "HandleLidSwitch" = "suspend";
+          "HandleLidSwitchExternalPower" = "suspend";
+          "HandleLidSwitchDocked" = "suspend";
 
-            "IdleActionSec" = "11m";
-            "IdleAction" = "suspend-then-hibernate";
-          };
-        in
-        if builtins.hasAttr "settings" options.services.logind then
-          {
-            settings.Login = logindSettings;
-          }
-        else
-          {
-            extraConfig =
-              let
-                toValueString = val: if builtins.isBool val then if val then "yes" else "no" else val;
-              in
-              lib.concatStringsSep "\n" (
-                lib.mapAttrsToList (name: value: "${name}=${toValueString value}") logindSettings
-              );
-          }
-      );
+          # Respect sleep inhibitors for lid switch events (default is yes/ignore)
+          # "LidSwitchIgnoreInhibited" = false; # this must be disastrous; if I close the laptop in any situation, I definitely want it to sleep and not melt itself
+
+          "IdleActionSec" = "11m";
+          "IdleAction" = "suspend";
+        };
+      in
+      if builtins.hasAttr "settings" options.services.logind then
+        {
+          settings.Login = logindSettings;
+        }
+      else
+        {
+          extraConfig =
+            let
+              toValueString = val: if builtins.isBool val then if val then "yes" else "no" else val;
+            in
+            lib.concatStringsSep "\n" (
+              lib.mapAttrsToList (name: value: "${name}=${toValueString value}") logindSettings
+            );
+        }
+    );
   };
 }
