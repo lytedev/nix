@@ -466,6 +466,9 @@
             "ui.bufferline.background" = {
               bg = bg2;
             };
+            "ui.bufferline.active" = {
+              modifiers = [ "underlined" ];
+            };
 
             "ui.text" = text;
             "ui.text.focus" = {

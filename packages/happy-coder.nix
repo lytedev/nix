@@ -2,6 +2,8 @@
   lib,
   buildNpmPackage,
   fetchurl,
+  makeBinaryWrapper,
+  nodejs,
 }:
 
 buildNpmPackage rec {
@@ -23,6 +25,13 @@ buildNpmPackage rec {
 
   # Skip the postinstall script that tries to unpack tools
   npmFlags = [ "--ignore-scripts" ];
+
+  nativeBuildInputs = [ makeBinaryWrapper ];
+
+  postFixup = ''
+    wrapProgram $out/bin/happy \
+      --prefix PATH : ${lib.makeBinPath [ nodejs ]}
+  '';
 
   meta = {
     description = "Mobile and Web client for Codex and Claude Code";

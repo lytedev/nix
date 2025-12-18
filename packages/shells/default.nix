@@ -28,6 +28,11 @@ in
       claude-code
       happy-coder
     ];
+    shellHook = ''
+      # happy-coder looks for claude at ~/.local/bin/claude (not in PATH)
+      mkdir -p ~/.local/bin
+      ln -sf "$(which claude)" ~/.local/bin/claude
+    '';
   };
 
   music-production = pkgs.mkShell {
