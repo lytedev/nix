@@ -93,8 +93,8 @@
   lyte.desktop = {
     enable = true;
     # environment = "plasma";
-    cosmic.enable = true;
-    gnome.enable = false;
+    # cosmic.enable = false;
+    gnome.enable = true;
     niri.enable = true;
   };
   lyte.laptop.enable = true;
@@ -108,8 +108,8 @@
     };
     lyte.desktop = {
       enable = true;
-      gnome.enable = false;
-      cosmic.enable = true;
+      gnome.enable = true;
+      # cosmic.enable = false;
       niri.enable = true;
     };
     home = {
