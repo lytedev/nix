@@ -32,6 +32,9 @@ in
       # happy-coder looks for claude at ~/.local/bin/claude (not in PATH)
       mkdir -p ~/.local/bin
       ln -sf "$(which claude)" ~/.local/bin/claude
+
+      # Use self-hosted happy server
+      export HAPPY_SERVER_URL="https://happy.h.lyte.dev"
     '';
   };
 

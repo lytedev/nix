@@ -99,6 +99,7 @@
       ./beefcake/samba.nix
       ./beefcake/syncthing.nix
       ./beefcake/n8n.nix
+      ./beefcake/happy.nix
     ]);
 
   services.spacetimedb.enable = true;
