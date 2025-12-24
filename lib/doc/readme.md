@@ -15,6 +15,14 @@ $ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
 $ , deploy .
 ```
 
+# Update a specific remote host, skipping checks
+
+```shell
+$ , deploy -s --targets ".#steamdeck"
+# or without having the flake cloned
+$ , deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#steamdeck"
+```
+
 # Provisioning New NixOS Hosts
 
 ```shell
