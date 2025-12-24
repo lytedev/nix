@@ -10,11 +10,15 @@
     lyte = {
       desktop = {
         gnome = {
-          tray-icons.enable = lib.mkEnableOption {
+          tray-icons.enable = lib.mkOption {
+            type = lib.types.bool;
             default = true;
+            description = "Enable tray icons support";
           };
-          gsconnect.enable = lib.mkEnableOption {
+          gsconnect.enable = lib.mkOption {
+            type = lib.types.bool;
             default = true;
+            description = "Enable GSConnect for phone integration";
           };
         };
       };
