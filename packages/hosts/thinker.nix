@@ -29,14 +29,21 @@
   hardware.bluetooth.enable = true;
   programs.steam.enable = true;
   networking.wifi.enable = true;
-  lyte.desktop.enable = true;
+  lyte.desktop = {
+    enable = true;
+    niri.enable = true;
+  };
   lyte.laptop.enable = true;
   home-manager.users.daniel = {
+    lyte.useOutOfStoreSymlinks.enable = true;
     lyte.shell = {
       enable = true;
       learn-jujutsu-not-git.enable = true;
     };
-    lyte.desktop.enable = true;
+    lyte.desktop = {
+      enable = true;
+      niri.enable = true;
+    };
     home = {
       stateVersion = "24.11";
       file.".config/easyeffects/output" = {

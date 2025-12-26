@@ -324,63 +324,31 @@ grapheme-width-method = unicode
 # Example: `hinting`, `no-hinting`, `force-autohint`, `no-force-autohint`
 freetype-load-flags = hinting,autohint
 
-# A theme to use. This can be a built-in theme name, a custom theme
-# name, or an absolute path to a custom theme file. Ghostty also supports
-# specifying a different theme to use for light and dark mode. Each
 # option is documented below.
 # 
-# If the theme is an absolute pathname, Ghostty will attempt to load that
-# file as a theme. If that file does not exist or is inaccessible, an error
 # will be logged and no other directories will be searched.
 # 
-# If the theme is not an absolute pathname, two different directories will be
-# searched for a file name that matches the theme. This is case sensitive on
-# systems with case-sensitive filesystems. It is an error for a theme name to
 # include path separators unless it is an absolute pathname.
 # 
-# The first directory is the `themes` subdirectory of your Ghostty
-# configuration directory. This is `$XDG_CONFIG_DIR/ghostty/themes` or
-# `~/.config/ghostty/themes`.
 # 
-# The second directory is the `themes` subdirectory of the Ghostty resources
-# directory. Ghostty ships with a multitude of themes that will be installed
 # into this directory. On macOS, this list is in the
-# `Ghostty.app/Contents/Resources/ghostty/themes` directory. On Linux, this
-# list is in the `share/ghostty/themes` directory (wherever you installed the
 # Ghostty "share" directory.
 # 
-# To see a list of available themes, run `ghostty +list-themes`.
 # 
-# A theme file is simply another Ghostty configuration file. They share
-# the same syntax and same configuration options. A theme can set any valid
-# configuration option so please do not use a theme file from an untrusted
-# source. The built-in themes are audited to only set safe configuration
 # options.
 # 
-# Some options cannot be set within theme files. The reason these are not
-# supported should be self-evident. A theme file cannot set `theme` or
 # `config-file`. At the time of writing this, Ghostty will not show any
-# warnings or errors if you set these options in a theme file but they will
 # be silently ignored.
 # 
 # Any additional colors specified via background, foreground, palette, etc.
-# will override the colors specified in the theme.
 # 
-# To specify a different theme for light and dark mode, use the following
-# syntax: `light:theme-name,dark:theme-name`. For example:
 # `light:rose-pine-dawn,dark:rose-pine`. Whitespace around all values are
 # trimmed and order of light and dark does not matter. Both light and dark
-# must be specified in this form. In this form, the theme used will be
-# based on the current desktop environment theme.
 # 
 # There are some known bugs with light/dark mode theming. These will
 # be fixed in a future update:
 # 
-#   - macOS: titlebar tabs style is not updated when switching themes.
 # 
-# theme = "dark:catppuccin-mocha-sapphire-custom,light:catppuccin-latte"
-# theme = "light:catppuccin-latte-sapphire-custom,dark:catppuccin-mocha-sapphire-custom"
-theme = "dark:noctalia,light:noctalia"
 
 # Swap the foreground and background colors of cells for selection. This
 # option overrides the `selection-foreground` and `selection-background`
@@ -1135,26 +1103,17 @@ window-decoration = "server"
 # required to be a fixed-width font.
 window-title-font-family = "IosevkaLyteTerm"
 
-# The theme to use for the windows. Valid values:
 # 
-#   * `auto` - Determine the theme based on the configured terminal
-#      background color. This has no effect if the "theme" configuration
-#      has separate light and dark themes. In that case, the behavior
 #      of "auto" is equivalent to "system".
-#   * `system` - Use the system theme.
-#   * `light` - Use the light theme regardless of system theme.
-#   * `dark` - Use the dark theme regardless of system theme.
 #   * `ghostty` - Use the background and foreground colors specified in the
 #     Ghostty configuration. This is only supported on Linux builds with
 #     Adwaita and `gtk-adwaita` enabled.
 # 
-# On macOS, if `macos-titlebar-style` is "tabs", the window theme will be
 # automatically set based on the luminosity of the terminal background color.
 # This only applies to terminal windows. This setting will still apply to
 # non-terminal windows within Ghostty.
 # 
 # This is currently only supported on macOS and Linux.
-window-theme = auto
 
 # The colorspace to use for the terminal window. The default is `srgb` but
 # this can also be set to `display-p3` to use the Display P3 colorspace.
@@ -1266,14 +1225,12 @@ window-step-resize = false
 window-new-tab-position = current
 
 # Background color for the window titlebar. This only takes effect if
-# window-theme is set to ghostty. Currently only supported in the GTK app
 # runtime.
 # 
 # Specified as either hex (`#RRGGBB` or `RRGGBB`) or a named X11 color.
 window-titlebar-background = 
 
 # Foreground color for the window titlebar. This only takes effect if
-# window-theme is set to ghostty. Currently only supported in the GTK app
 # runtime.
 # 
 # Specified as either hex (`#RRGGBB` or `RRGGBB`) or a named X11 color.
@@ -1718,12 +1675,10 @@ macos-non-native-fullscreen = false
 # "transparent", "tabs", and "hidden".
 # 
 # The "native" style uses the native macOS titlebar with zero customization.
-# The titlebar will match your window theme (see `window-theme`).
 # 
 # The "transparent" style is the same as "native" but the titlebar will
 # be transparent and allow your window background color to come through.
 # This makes a more seamless window appearance but looks a little less
-# typical for a macOS application and may not work well with all themes.
 # 
 # The "transparent" style will also update in real-time to dynamic
 # changes to the window background color, i.e. via OSC 11. To make this
@@ -2124,3 +2079,4 @@ auto-update =
 # This only works on macOS since only macOS has an auto-update feature.
 auto-update-channel = 
 
+theme = noctalia
