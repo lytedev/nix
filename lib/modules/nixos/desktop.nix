@@ -22,7 +22,12 @@ in
         };
         cosmic.enable = lib.mkEnableOption "Enable Cosmic desktop configuration and applications";
         plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
-        niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
+        niri.enable = lib.mkOption {
+          default = config.lyte.desktop.enable;
+          description = "Enable Plasma configuration and applications";
+          type = types.bool;
+          example = true;
+        };
         gdm.backgroundImage = lib.mkOption {
           default = null;
           example = "/path/to/background.jpg";
