@@ -24,6 +24,9 @@
       "usbhid"
     ];
     kernelModules = [ "kvm-amd" ];
+    kernelParams = [
+      "usbcore.autosuspend=-1"
+    ];
     supportedFilesystems = [ "ntfs" ];
   };
 
@@ -98,6 +101,11 @@
       addr = "0.0.0.0";
       port = 4822;
     }
+  ];
+
+  boot.binfmt.emulatedSystems = [
+    "aarch64-linux"
+    "riscv64-linux"
   ];
 
   # these are just scripts and so do not cause bloated nixos installations

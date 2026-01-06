@@ -28,6 +28,10 @@
       "thunderbolt"
     ];
     kernelModules = [ "kvm-amd" ];
+    binfmt.emulatedSystems = [
+      "aarch64-linux"
+      "riscv64-linux"
+    ];
   };
 
   imports = with hardware; [

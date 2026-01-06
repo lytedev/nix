@@ -12,6 +12,7 @@ jobs:
           - host: foxtrot
           - host: flipflop
           - host: steamdeck
+          - host: pinephone
     steps:
     - uses: actions/checkout@v4
     - name: Build host

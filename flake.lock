@@ -722,6 +722,22 @@
         "type": "github"
       }
     },
+    "mobile-nixos": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1763065138,
+        "narHash": "sha256-46lJeUYH8YrfTccAoKQbO9lprq4dlo9VVLk+StPBSWM=",
+        "owner": "mobile-nixos",
+        "repo": "mobile-nixos",
+        "rev": "1943b7b06fcd1a2c87f4b89df58231915cc2ca44",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mobile-nixos",
+        "repo": "mobile-nixos",
+        "type": "github"
+      }
+    },
     "niri": {
       "inputs": {
         "niri-stable": "niri-stable",
@@ -1130,6 +1146,7 @@
         "home-manager-unstable": "home-manager-unstable",
         "iosevka-lyte": "iosevka-lyte",
         "jovian": "jovian",
+        "mobile-nixos": "mobile-nixos",
         "niri": "niri",
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-unstable": "nixpkgs-unstable",

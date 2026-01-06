@@ -16,6 +16,9 @@ let
     };
   deployer =
     host: opts:
+    let
+      hostSystem = self.nixosConfigurations.${host}.pkgs.stdenv.hostPlatform.system;
+    in
     {
       hostname = "${host}.hare-cod.ts.net";
       remoteBuild = true; # should pull from cache
@@ -24,7 +27,7 @@ let
       profiles.system = {
         sshUser = "root";
         path =
-          (deployPkgs self.nixosConfigurations.${host}.pkgs.stdenv.hostPlatform.system).deploy-rs.lib.x86_64-linux.activate.nixos
+          (deployPkgs hostSystem).deploy-rs.lib.${hostSystem}.activate.nixos
             self.nixosConfigurations.${host};
       };
     }
@@ -53,6 +56,9 @@ in
         "-p"
         "2201"
       ];
+    };
+    pinephone = deployer "pinephone" {
+      remoteBuild = false; # build locally, pinephone is slow
     };
   };
 }

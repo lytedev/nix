@@ -7,7 +7,12 @@
     in
     {
       inherit flakeLib;
-      packages = uGenPkgs (import ./packages);
+      packages = uGenPkgs (import ./packages) // {
+        aarch64-linux = {
+          pinephone-disk-image =
+            inputs.self.nixosConfigurations.pinephone.config.mobile.outputs.generatedDiskImages.disk-image;
+        };
+      };
 
       nixosConfigurations = import ./packages/hosts inputs;
       homeConfigurations = import ./packages/home inputs;
@@ -117,6 +122,11 @@
 
     tuwunel = {
       url = "github:matrix-construct/tuwunel";
+    };
+
+    mobile-nixos = {
+      url = "github:mobile-nixos/mobile-nixos";
+      flake = false;
     };
   };
 

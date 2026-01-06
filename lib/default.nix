@@ -20,7 +20,8 @@ rec {
     (import nixpkgs {
       inherit system;
       config.allowUnfree = true;
-    }).extend forSelfOverlay;
+    }).extend
+      forSelfOverlay;
   genPkgs = nixpkgs: func: (forSystems nixpkgs (system: func (pkgsFor nixpkgs system)));
 
   conditionalOutOfStoreSymlink =
@@ -36,6 +37,7 @@ rec {
     unstable
     stableHost
     steamdeckHost
+    mobileHost
     baseHost
     ;
 

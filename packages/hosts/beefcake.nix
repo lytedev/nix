@@ -55,55 +55,59 @@
     TODO: declarative directory quotas? for storage/$USER and /home/$USER
   */
 
-  imports =
-    [
-      hardware.common-cpu-intel
-    ]
-    ++ (builtins.map import [
-      ./beefcake/hardware.nix
-      ./beefcake/networking.nix
+  imports = [
+    hardware.common-cpu-intel
+  ]
+  ++ (builtins.map import [
+    ./beefcake/hardware.nix
+    ./beefcake/networking.nix
 
-      ./beefcake/nix-serve.nix
-      ./beefcake/headscale.nix
-      ./beefcake/soju.nix
-      ./beefcake/nextcloud.nix
-      ./beefcake/plausible.nix
-      ./beefcake/clickhouse.nix
-      ./beefcake/family-storage.nix
-      ./beefcake/daniel.nix
-      ./beefcake/jellyfin.nix
-      ./beefcake/daniel.nix
-      ./beefcake/postgres.nix
-      ./beefcake/other-users.nix
-      ./beefcake/restic.nix
-      ./beefcake/caddy.nix
-      ./beefcake/forgejo.nix
-      ./beefcake/vaultwarden.nix
-      ./beefcake/atuin.nix
-      ./beefcake/kanidm.nix
-      ./beefcake/minecraft-server-containers.nix
-      ./beefcake/jonland.nix
-      ./beefcake/prom2.nix
-      ./beefcake/audiobookshelf.nix
-      ./beefcake/opentelemetry-collector.nix
-      # ./beefcake/grafana.nix  # Disabled - replaced by OpenObserve
-      ./beefcake/openobserve.nix
-      ./beefcake/paperless.nix
-      # ./beefcake/actual.nix
-      ./beefcake/factorio-servers.nix
-      # ./beefcake/conduwuit.nix
-      ./beefcake/tuwunel.nix
-      ./beefcake/element-web.nix
-      ./beefcake/arr.nix
-      ./beefcake/spacetimedb.nix
-      ./beefcake/cdn.nix
-      ./beefcake/samba.nix
-      ./beefcake/syncthing.nix
-      ./beefcake/n8n.nix
-      ./beefcake/happy.nix
-    ]);
+    ./beefcake/nix-serve.nix
+    ./beefcake/headscale.nix
+    ./beefcake/soju.nix
+    ./beefcake/nextcloud.nix
+    ./beefcake/plausible.nix
+    ./beefcake/clickhouse.nix
+    ./beefcake/family-storage.nix
+    ./beefcake/daniel.nix
+    ./beefcake/jellyfin.nix
+    ./beefcake/daniel.nix
+    ./beefcake/postgres.nix
+    ./beefcake/other-users.nix
+    ./beefcake/restic.nix
+    ./beefcake/caddy.nix
+    ./beefcake/forgejo.nix
+    ./beefcake/vaultwarden.nix
+    ./beefcake/atuin.nix
+    ./beefcake/kanidm.nix
+    ./beefcake/minecraft-server-containers.nix
+    ./beefcake/jonland.nix
+    ./beefcake/prom2.nix
+    ./beefcake/audiobookshelf.nix
+    ./beefcake/opentelemetry-collector.nix
+    # ./beefcake/grafana.nix  # Disabled - replaced by OpenObserve
+    ./beefcake/openobserve.nix
+    ./beefcake/paperless.nix
+    # ./beefcake/actual.nix
+    ./beefcake/factorio-servers.nix
+    # ./beefcake/conduwuit.nix
+    ./beefcake/tuwunel.nix
+    ./beefcake/element-web.nix
+    ./beefcake/arr.nix
+    ./beefcake/spacetimedb.nix
+    ./beefcake/cdn.nix
+    ./beefcake/samba.nix
+    ./beefcake/syncthing.nix
+    ./beefcake/n8n.nix
+    ./beefcake/happy.nix
+  ]);
 
   services.spacetimedb.enable = true;
+
+  boot.binfmt.emulatedSystems = [
+    "aarch64-linux"
+    "riscv64-linux"
+  ];
 
   /*
     if fans are loud:
