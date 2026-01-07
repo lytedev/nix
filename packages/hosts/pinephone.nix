@@ -36,6 +36,7 @@
   # pinephone-specific user group additions
   users.users.daniel.extraGroups = lib.mkAfter [
     "feedbackd"
+    "dialout" # for ModemManager access without polkit prompts
   ];
 
   # home-manager configuration for daniel on pinephone

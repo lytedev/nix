@@ -136,6 +136,7 @@ in
           };
 
           packages = with pkgs; [
+            bitwarden-cli
             nixfmt-rfc-style
             nixd
             nil
@@ -1583,24 +1584,6 @@ in
               user_pref("media.rdd-vpx.enabled", true);
             '';
 
-            # Mobile-friendly CSS to make UI elements larger
-            userChrome = ''
-              /* Make toolbar buttons larger for touch */
-              #nav-bar toolbarbutton {
-                min-width: 44px !important;
-                min-height: 44px !important;
-              }
-
-              /* Larger URL bar */
-              #urlbar {
-                font-size: 16px !important;
-              }
-
-              /* Hide tab bar since we use single-window mostly */
-              #TabsToolbar {
-                visibility: collapse !important;
-              }
-            '';
           };
         };
 
