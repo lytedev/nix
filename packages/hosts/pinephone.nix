@@ -41,11 +41,52 @@
   programs.dconf.enable = true; # required for squeekboard/phosh settings
 
   environment.systemPackages = with pkgs; [
+    # Communication
     chatty # SMS/text messaging
-    gnome-console # terminal
-    epiphany # browser
+    gnome-contacts # contact management
+
+    # Email
+    geary # mobile-friendly email client
+
+    # Browser
+    firefox
+
+    # Terminal
+    ghostty
+
+    # Camera
+    megapixels
+
+    # Utilities
     gnome-clocks # clock/alarm app
-    # squeekboard is included automatically by phosh module
+
+    # Fonts
+    iosevkaLyteTerm
+
+    # Vibrator control scripts
+    (writeShellScriptBin "vibrator-toggle" ''
+      current=$(${glib}/bin/gsettings get org.sigxcpu.feedbackd profile 2>/dev/null || echo "'full'")
+      if [ "$current" = "'silent'" ]; then
+        ${glib}/bin/gsettings set org.sigxcpu.feedbackd profile full
+        echo "Vibration enabled (full)"
+      else
+        ${glib}/bin/gsettings set org.sigxcpu.feedbackd profile silent
+        echo "Vibration disabled (silent)"
+      fi
+    '')
+    (writeShellScriptBin "vibrator-off" ''
+      ${glib}/bin/gsettings set org.sigxcpu.feedbackd profile silent
+      echo "Vibration disabled"
+    '')
+    (writeShellScriptBin "vibrator-on" ''
+      ${glib}/bin/gsettings set org.sigxcpu.feedbackd profile full
+      echo "Vibration enabled"
+    '')
+  ];
+
+  # Fonts
+  fonts.packages = with pkgs; [
+    iosevkaLyteTerm
   ];
 
   # enable shell tools on the NixOS side
@@ -69,10 +110,50 @@
     # enable dconf for phosh/squeekboard (normally enabled by lyte.desktop)
     dconf.enable = true;
 
+    # Firefox with mobile-friendly settings - override the default "primary" profile
+    programs.firefox = {
+      enable = true;
+      profiles.primary = lib.mkForce {
+        id = 0;
+        isDefault = true;
+        settings = {
+          # Touch-friendly settings
+          "apz.allow_double_tap_zooming" = true;
+          "apz.allow_zooming" = true;
+          "dom.w3c_touch_events.enabled" = 1;
+
+          # Performance for PinePhone (no GLES3)
+          "gfx.webrender.force-disabled" = true;
+
+          # UI
+          "browser.toolbars.bookmarks.visibility" = "never";
+          "general.smoothScroll" = true;
+        };
+        userChrome = ''
+          /* Larger touch targets */
+          #nav-bar toolbarbutton {
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+          #TabsToolbar {
+            visibility: collapse !important;
+          }
+        '';
+        extraConfig = ''
+          user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+        '';
+      };
+    };
+
+    home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
+
     # enable on-screen keyboard (squeekboard) via dconf
     dconf.settings = {
       "org/gnome/desktop/a11y/applications" = {
         screen-keyboard-enabled = true;
+      };
+      "org/gnome/desktop/interface" = {
+        color-scheme = "prefer-dark";
       };
     };
 
@@ -115,11 +196,4 @@
     enable = lib.mkForce false;
     overclocking-kernel-module.enable = lib.mkForce false;
   };
-
-  # allow password auth for initial setup/debugging on mobile
-  services.openssh.settings.PasswordAuthentication = lib.mkForce true;
-
-  # initial passwords for mobile setup (change after first boot)
-  users.users.daniel.initialPassword = lib.mkForce "1234";
-  users.users.root.initialPassword = lib.mkForce "1234";
 }

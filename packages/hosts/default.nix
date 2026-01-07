@@ -4,8 +4,8 @@ let
     host
     stableHost
     steamdeckHost
-    baseHost
     mobileHost
+    baseHost
     stable
     ;
 in

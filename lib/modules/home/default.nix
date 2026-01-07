@@ -1519,4 +1519,113 @@ in
         )
       ];
     };
+
+  # Mobile (Phosh) home-manager configuration
+  mobile =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    {
+      options = {
+        lyte.mobile = {
+          enable = lib.mkEnableOption "Enable mobile home-manager configuration";
+        };
+      };
+
+      config = lib.mkIf config.lyte.mobile.enable {
+        # Override the default Firefox profile with mobile-friendly settings
+        programs.firefox = {
+          enable = true;
+          profileVersion = null;
+          # Override the default "primary" profile with mobile settings
+          profiles.primary = lib.mkForce {
+            id = 0;
+            isDefault = true;
+            settings = {
+              # Mobile-friendly UI settings (from postmarketOS mobile-config-firefox)
+              "alerts.useSystemBackend" = true;
+              "browser.uidensity" = 0; # compact
+              "browser.display.os-zoom-behavior" = 1;
+
+              # Move address bar to bottom for easier thumb access
+              "browser.toolbars.bookmarks.visibility" = "never";
+
+              # Touch-friendly settings
+              "apz.allow_double_tap_zooming" = true;
+              "apz.allow_zooming" = true;
+              "dom.w3c_touch_events.enabled" = 1;
+
+              # Performance settings for PinePhone (no GLES3, use legacy layers)
+              "layers.acceleration.force-enabled" = true;
+              "gfx.webrender.force-disabled" = true; # PinePhone doesn't support GLES3
+
+              # Privacy and mobile-friendly defaults
+              "browser.startup.homepage" = "about:blank";
+              "browser.newtabpage.enabled" = false;
+              "browser.shell.checkDefaultBrowser" = false;
+              "browser.zoom.siteSpecific" = true;
+              "widget.gtk.rounded-bottom-corners.enabled" = true;
+
+              # Wayland
+              "widget.use-xdg-desktop-portal.file-picker" = 1;
+
+              # Smooth scrolling
+              "general.smoothScroll" = true;
+            };
+
+            extraConfig = ''
+              user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+              user_pref("media.ffmpeg.vaapi.enabled", true);
+              user_pref("media.rdd-vpx.enabled", true);
+            '';
+
+            # Mobile-friendly CSS to make UI elements larger
+            userChrome = ''
+              /* Make toolbar buttons larger for touch */
+              #nav-bar toolbarbutton {
+                min-width: 44px !important;
+                min-height: 44px !important;
+              }
+
+              /* Larger URL bar */
+              #urlbar {
+                font-size: 16px !important;
+              }
+
+              /* Hide tab bar since we use single-window mostly */
+              #TabsToolbar {
+                visibility: collapse !important;
+              }
+            '';
+          };
+        };
+
+        # Wayland environment for Firefox
+        home.sessionVariables = {
+          MOZ_ENABLE_WAYLAND = "1";
+        };
+
+        # Ghostty terminal with font
+        programs.ghostty.enable = true;
+
+        # Fonts
+        fonts.fontconfig.enable = true;
+
+        home.packages = with pkgs; [
+          iosevkaLyteTerm
+        ];
+
+        # Dark theme for GTK apps
+        gtk.theme.name = "Adwaita-dark";
+
+        dconf.settings = {
+          "org/gnome/desktop/interface" = {
+            color-scheme = "prefer-dark";
+          };
+        };
+      };
+    };
 }
