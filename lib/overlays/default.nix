@@ -7,7 +7,7 @@ let
   flakeOverlay =
     final: prev:
     let
-      inherit (inputs) helix ghostty iosevka-lyte tuwunel;
+      inherit (inputs) helix ghostty tuwunel;
       unstable-packages = import nixpkgs-unstable {
         system = final.system;
         config.allowUnfree = true;
@@ -25,7 +25,9 @@ let
 
       ghostty = ghostty.outputs.packages.${prev.system}.default;
       helix = helix.outputs.packages.${prev.system}.default;
-      iosevkaLyteTerm = iosevka-lyte.outputs.packages.${prev.system}.default;
+
+      # use pre-built font to avoid expensive builds on every system
+      iosevkaLyteTerm = prev.callPackage ../../packages/iosevka-lyte-bin.nix { };
       matrix-tuwunel = tuwunel.packages.${prev.system}.default;
 
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {

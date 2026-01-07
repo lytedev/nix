@@ -4,6 +4,10 @@
   pkgs,
   ...
 }:
+let
+  # only include bitwarden-desktop on desktop systems (it's expensive to build)
+  isDesktop = config.lyte.desktop.enable or false;
+in
 {
   config = lib.mkIf config.programs.firefox.enable {
     home = {
@@ -20,10 +24,12 @@
       # enable = true;
       profileVersion = null;
       package = pkgs.firefox.override {
-        nativeMessagingHosts = with pkgs; [
-          bitwarden-desktop
-          # pywalfox-native
-        ];
+        nativeMessagingHosts =
+          with pkgs;
+          lib.optionals isDesktop [
+            bitwarden-desktop
+            # pywalfox-native
+          ];
       };
       /*
         TODO: this should be able to work on macos, no?
