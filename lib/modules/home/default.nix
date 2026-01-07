@@ -32,6 +32,7 @@ in
         gnome
         cosmic
         niri
+        mobile
 
         /*
           broot
@@ -1621,9 +1622,34 @@ in
         # Dark theme for GTK apps
         gtk.theme.name = "Adwaita-dark";
 
-        dconf.settings = {
-          "org/gnome/desktop/interface" = {
-            color-scheme = "prefer-dark";
+        # Enable dconf for phosh/squeekboard settings
+        dconf = {
+          enable = true;
+          settings = {
+            "org/gnome/desktop/interface" = {
+              color-scheme = "prefer-dark";
+            };
+            "org/gnome/desktop/a11y/applications" = {
+              screen-keyboard-enabled = true;
+            };
+          };
+        };
+
+        # squeekboard systemd service for phosh 0.50.0+
+        # phosh OSK target wants mobi.phosh.OSK.service but squeekboard doesn't provide it
+        systemd.user.services."mobi.phosh.OSK" = {
+          Unit = {
+            Description = "Squeekboard on-screen keyboard";
+            PartOf = [ "mobi.phosh.OSK.target" ];
+          };
+          Service = {
+            Type = "dbus";
+            BusName = "sm.puri.OSK0";
+            ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
+            Restart = "on-failure";
+          };
+          Install = {
+            WantedBy = [ "mobi.phosh.OSK.target" ];
           };
         };
       };

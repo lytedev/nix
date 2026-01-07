@@ -72,6 +72,7 @@ in
         rsync
         sd
         usbutils
+        w3m
         xh
         zellij
       ];

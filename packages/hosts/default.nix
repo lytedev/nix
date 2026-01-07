@@ -26,7 +26,7 @@ in
 
   steamdeck = steamdeckHost ./steamdeck.nix { };
   steamdeckoled = steamdeckHost ./steamdeckoled.nix { };
-  pinephone = mobileHost "pine64-pinephone" ./pinephone.nix;
+  pinephone = mobileHost "pine64-pinephone" ./pinephone.nix { };
 
   pv23 = baseHost (
     stable

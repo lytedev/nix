@@ -10,19 +10,12 @@
       packages =
         let
           base = uGenPkgs (import ./packages);
+          perSystem = import ./packages/per-system.nix { inherit inputs; };
         in
         base
         // {
-          # expose the "real" iosevka build from the flake input for manual building
-          # usage: nix build .#iosevka-lyte-build
-          # then upload result to files.lyte.dev/projects/fonts/iosevka-lyte/
-          x86_64-linux = (base.x86_64-linux or { }) // {
-            iosevka-lyte-build = inputs.iosevka-lyte.outputs.packages.x86_64-linux.default;
-          };
-          aarch64-linux = (base.aarch64-linux or { }) // {
-            pinephone-disk-image =
-              inputs.self.nixosConfigurations.pinephone.config.mobile.outputs.generatedDiskImages.disk-image;
-          };
+          x86_64-linux = (base.x86_64-linux or { }) // (perSystem.x86_64-linux or { });
+          aarch64-linux = (base.aarch64-linux or { }) // (perSystem.aarch64-linux or { });
         };
 
       nixosConfigurations = import ./packages/hosts inputs;

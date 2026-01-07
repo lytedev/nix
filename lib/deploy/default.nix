@@ -32,23 +32,6 @@ let
       };
     }
     // opts;
-
-  # Deployer for aarch64 hosts (like PinePhone)
-  aarch64Deployer =
-    host: opts:
-    {
-      hostname = "${host}.hare-cod.ts.net";
-      remoteBuild = false; # build locally and push (cross-compile)
-      fastConnection = false;
-      interactiveSudo = false;
-      profiles.system = {
-        sshUser = "root";
-        path =
-          deploy-rs.lib.aarch64-linux.activate.nixos
-            self.nixosConfigurations.${host};
-      };
-    }
-    // opts;
 in
 {
   nodes = {
@@ -74,8 +57,6 @@ in
         "2201"
       ];
     };
-    pinephone = deployer "pinephone" {
-      remoteBuild = false; # build locally, pinephone is slow
-    };
+    pinephone = deployer "pinephone" { remoteBuild = false; };
   };
 }

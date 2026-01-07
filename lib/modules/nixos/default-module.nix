@@ -38,6 +38,7 @@
     router
     kanidm
     laptop
+    mobile
 
     (
       { config, ... }:

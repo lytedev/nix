@@ -42,12 +42,17 @@ let
     nixpkgs = inputs.nixpkgs-unstable;
     home-manager = inputs.home-manager-unstable;
   };
-  # mobile-nixos host helper - takes device name and config path
-  # https://uninsane.org/blog/mobile-nixos-pinephone/
+  # Mobile device host helper
+  # device: mobile-nixos device name (e.g., "pine64-pinephone")
+  # path: path to the host configuration
+  # system: optional, defaults to aarch64-linux (most mobile devices)
   mobileHost =
     device: path:
+    {
+      system ? "aarch64-linux",
+    }:
     unstable.nixpkgs.lib.nixosSystem {
-      system = "aarch64-linux";
+      inherit system;
       specialArgs = {
         home-manager = inputs.home-manager-unstable;
         hardware = inputs.hardware.outputs.nixosModules;
@@ -60,11 +65,36 @@ let
         inputs.self.outputs.nixosModules.default
         (import path)
         { nixpkgs.config.allowUnfree = true; }
+        # mobile-nixos specific settings (uses lyte.mobile options)
+        (
+          { config, lib, ... }:
+          let
+            cfg = config.lyte.mobile;
+          in
+          lib.mkIf cfg.enable {
+            mobile.beautification = {
+              silentBoot = cfg.silentBoot;
+              splash = true;
+            };
+
+            # Stage-1 SSH for early debugging
+            mobile.boot.stage-1.ssh.enable = cfg.stage1Ssh;
+
+            # Firmware for modem, wifi, etc.
+            mobile.boot.stage-1.firmware = [ config.mobile.device.firmware ];
+            hardware.firmware = [ config.mobile.device.firmware ];
+          }
+        )
       ];
     };
 in
 {
-  inherit baseHost stable unstable mobileHost;
+  inherit
+    baseHost
+    stable
+    unstable
+    mobileHost
+    ;
   stableHost = baseHost stable;
   host = baseHost unstable;
   steamdeckHost = baseHost (
