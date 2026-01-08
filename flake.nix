@@ -114,6 +114,10 @@
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
+    tuwunel = {
+      url = "github:matrix-construct/tuwunel";
+    };
   };
 
   nixConfig = {

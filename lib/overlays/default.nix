@@ -7,7 +7,7 @@ let
   flakeOverlay =
     final: prev:
     let
-      inherit (inputs) helix ghostty iosevka-lyte;
+      inherit (inputs) helix ghostty iosevka-lyte tuwunel;
       unstable-packages = import nixpkgs-unstable {
         system = final.system;
         config.allowUnfree = true;
@@ -26,6 +26,7 @@ let
       ghostty = ghostty.outputs.packages.${prev.system}.default;
       helix = helix.outputs.packages.${prev.system}.default;
       iosevkaLyteTerm = iosevka-lyte.outputs.packages.${prev.system}.default;
+      matrix-tuwunel = tuwunel.packages.${prev.system}.default;
 
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''

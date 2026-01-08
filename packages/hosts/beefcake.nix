@@ -92,6 +92,7 @@
       # ./beefcake/actual.nix
       ./beefcake/factorio-servers.nix
       # ./beefcake/conduwuit.nix
+      ./beefcake/tuwunel.nix
       ./beefcake/element-web.nix
       ./beefcake/arr.nix
       ./beefcake/spacetimedb.nix

@@ -1,0 +1,68 @@
+{ config, lib, ... }:
+let
+  port = 6167;
+  dataDir = "/storage/tuwunel";
+in
+{
+  systemd.tmpfiles.settings."10-tuwunel" = {
+    "${dataDir}" = {
+      d = {
+        user = "tuwunel";
+        group = "tuwunel";
+        mode = "0700";
+      };
+    };
+  };
+
+  services.restic.commonPaths = [ dataDir ];
+
+  sops.secrets.matrix-oauth-client-secret = {};
+
+  sops.templates."tuwunel.toml" = {
+    owner = "tuwunel";
+    content = ''
+      [global]
+      server_name = "lyte.dev"
+      database_path = "${dataDir}/"
+      port = [${toString port}]
+      allow_federation = false
+      allow_registration = false
+      admin_execute = ["users make-user-admin @daniel:lyte.dev"]
+
+      [[global.identity_provider]]
+      brand = "idm.h.lyte.dev"
+      client_id = "matrix.lyte.dev"
+      client_secret = "${config.sops.placeholder.matrix-oauth-client-secret}"
+      callback_url = "https://matrix.lyte.dev/_matrix/client/unstable/login/sso/callback/matrix.lyte.dev"
+      issuer_url = "https://idm.h.lyte.dev/oauth2/openid/matrix.lyte.dev"
+      discovery_url = "https://idm.h.lyte.dev/oauth2/openid/matrix.lyte.dev/.well-known/openid-configuration"
+      scope = ["openid", "profile", "email"]
+      userid_claims = ["preferred_username", "name"]
+    '';
+  };
+
+  services.matrix-tuwunel = {
+    enable = true;
+    settings = {
+      global = {
+        server_name = "lyte.dev";
+        port = [ port ];
+        allow_federation = false;
+        allow_registration = false;
+      };
+    };
+  };
+
+  systemd.services.tuwunel.environment.TUWUNEL_CONFIG = lib.mkForce config.sops.templates."tuwunel.toml".path;
+  systemd.services.tuwunel.serviceConfig.ReadWritePaths = [ dataDir ];
+
+  # Caddy reverse proxy
+  services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
+    reverse_proxy /_matrix/* :${toString port}
+    reverse_proxy /_synapse/client/* :${toString port}
+  '';
+
+  services.caddy.virtualHosts."http://matrix.lyte.dev:8448".extraConfig = ''
+    reverse_proxy /_matrix/* :${toString port}
+  '';
+}
