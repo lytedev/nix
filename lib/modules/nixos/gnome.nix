@@ -96,6 +96,7 @@
     environment = {
       systemPackages = with pkgs; [
         adwaita-fonts
+        file-roller
       ];
       gnome.excludePackages = with pkgs; [
         baobab

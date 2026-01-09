@@ -596,6 +596,43 @@ in
           };
         };
 
+        xdg.mimeApps = {
+          enable = true;
+          defaultApplications = {
+            # Common formats
+            "application/zip" = "org.gnome.FileRoller.desktop";
+            "application/x-tar" = "org.gnome.FileRoller.desktop";
+            "application/gzip" = "org.gnome.FileRoller.desktop";
+            "application/x-gzip" = "org.gnome.FileRoller.desktop";
+            "application/x-bzip2" = "org.gnome.FileRoller.desktop";
+            "application/x-xz" = "org.gnome.FileRoller.desktop";
+            "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
+            "application/x-rar" = "org.gnome.FileRoller.desktop";
+            # Compressed tarballs
+            "application/x-compressed-tar" = "org.gnome.FileRoller.desktop";
+            "application/x-bzip-compressed-tar" = "org.gnome.FileRoller.desktop";
+            "application/x-xz-compressed-tar" = "org.gnome.FileRoller.desktop";
+            "application/x-lzma-compressed-tar" = "org.gnome.FileRoller.desktop";
+            "application/x-zstd-compressed-tar" = "org.gnome.FileRoller.desktop";
+            "application/x-lz4-compressed-tar" = "org.gnome.FileRoller.desktop";
+            # Modern/standalone compression
+            "application/zstd" = "org.gnome.FileRoller.desktop";
+            "application/x-lz4" = "org.gnome.FileRoller.desktop";
+            "application/x-lzip" = "org.gnome.FileRoller.desktop";
+            # Package formats (useful for inspection)
+            "application/vnd.debian.binary-package" = "org.gnome.FileRoller.desktop";
+            "application/x-rpm" = "org.gnome.FileRoller.desktop";
+            "application/java-archive" = "org.gnome.FileRoller.desktop";
+            # Other archive formats
+            "application/x-cpio" = "org.gnome.FileRoller.desktop";
+            "application/x-archive" = "org.gnome.FileRoller.desktop";
+            "application/x-iso9660-image" = "org.gnome.FileRoller.desktop";
+            "application/vnd.ms-cab-compressed" = "org.gnome.FileRoller.desktop";
+            "application/x-xar" = "org.gnome.FileRoller.desktop";
+            "application/x-lha" = "org.gnome.FileRoller.desktop";
+          };
+        };
+
         home = {
           packages = with pkgs.gnomeExtensions; [
             tiling-shell
