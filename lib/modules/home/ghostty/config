@@ -2017,6 +2017,12 @@ gtk-wide-tabs = true
 # TODO: https://github.com/ghostty-org/ghostty/discussions/3555
 desktop-notifications = false
 
+# Notify when long-running commands complete
+# Only notify when terminal is not focused
+notify-on-command-finish = unfocused
+# Threshold before notification triggers (commands longer than this)
+notify-on-command-finish-after = 5s
+
 # If `true`, the bold text will use the bright color palette.
 bold-is-bright = false
 
@@ -2080,3 +2086,4 @@ auto-update =
 auto-update-channel = 
 
 theme = noctalia
+
