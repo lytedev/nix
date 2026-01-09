@@ -1,5 +1,11 @@
 { config, pkgs, ... }:
 {
+  # Secrets for OpenObserve authentication
+  sops.secrets."openobserve-otel.env" = {
+    group = "opentelemetry-collector";
+    mode = "0440";
+  };
+
   # User and group for OpenTelemetry Collector
   users.groups.opentelemetry-collector = { };
   users.users.opentelemetry-collector = {
@@ -83,10 +89,9 @@
           };
         };
 
-        # Collect systemd journal logs
+        # Collect systemd journal logs (all units)
         journald = {
           directory = "/var/log/journal";
-          units = [ "system" ];
         };
 
         # Collect file logs
@@ -193,6 +198,7 @@
 
   # Set environment variables from secrets
   systemd.services.opentelemetry-collector.serviceConfig = {
-    EnvironmentFile = config.sops.secrets."openobserve.env".path;
+    EnvironmentFile = config.sops.secrets."openobserve-otel.env".path;
+    SupplementaryGroups = [ "opentelemetry-collector" ];
   };
 }
