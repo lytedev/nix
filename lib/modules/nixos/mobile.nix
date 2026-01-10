@@ -133,6 +133,9 @@ in
           celluloid # video player (mpv frontend)
           evince # document/PDF viewer
 
+          # Voice Recording
+          gnome-sound-recorder # simple voice memo / audio recording
+
           # Utilities
           gnome-weather
           gnome-maps
