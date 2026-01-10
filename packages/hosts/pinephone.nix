@@ -13,6 +13,8 @@
     enable = true;
     user = "daniel";
     scale = 1.5; # 1.5 recommended for PinePhone
+    useStevia = true; # Use Stevia keyboard with word completion
+    cellBroadcast = true; # Enable cell broadcast for emergency alerts
   };
 
   # GPU/display
@@ -44,6 +46,7 @@
     lyte.shell.enable = true;
     lyte.desktop.enable = false;
     lyte.mobile.enable = true;
+    lyte.mobile.useStevia = true; # Use Stevia keyboard with word completion
 
     # btop rocm is x86_64 only
     programs.btop.package = lib.mkForce pkgs.btop;

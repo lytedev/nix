@@ -12,4 +12,6 @@
   claude-code = pkgs.callPackage ./claude-code.nix { };
   happy-coder = pkgs.callPackage ./happy-coder.nix { };
   fbkeyboard = pkgs.callPackage ./fbkeyboard.nix { };
+  stevia = pkgs.callPackage ./stevia.nix { };
+  cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };
 }

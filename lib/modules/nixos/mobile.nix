@@ -37,6 +37,16 @@ in
           default = true;
           description = "Enable framebuffer on-screen keyboard for TTY/console use";
         };
+        useStevia = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = "Use Stevia keyboard instead of Squeekboard (experimental - requires packaging)";
+        };
+        cellBroadcast = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Enable cell broadcast daemon for emergency alerts";
+        };
       };
     };
   };
@@ -147,8 +157,11 @@ in
           # Fonts
           iosevkaLyteTerm
 
-          # On-screen keyboard
-          squeekboard # on-screen keyboard (comes with phosh but explicit)
+          # On-screen keyboard (squeekboard is included; stevia is optional replacement)
+          squeekboard
+
+          # Phosh settings app (mobile-specific settings beyond GNOME Settings)
+          phosh-mobile-settings
 
           # Vibrator control script
           (writeShellScriptBin "vibrator-toggle" ''
@@ -205,7 +218,10 @@ in
         # XDG portal for desktop integration
         xdg.portal = {
           enable = true;
-          extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+          extraPortals = [
+            pkgs.xdg-desktop-portal-gtk
+            pkgs.xdg-desktop-portal-phosh # Phosh-specific portal (account, app chooser)
+          ];
         };
       }
 
@@ -244,6 +260,64 @@ in
           };
         };
       })
+
+      # Stevia keyboard (experimental replacement for squeekboard)
+      # Stevia provides word completion, cursor navigation, and other enhancements
+      # Phosh 0.50+ uses mobi.phosh.OSK.service systemd user unit to launch the OSK
+      (lib.mkIf cfg.useStevia {
+        environment.systemPackages = [
+          pkgs.stevia
+        ];
+
+        # Override the Phosh OSK systemd user service to use Stevia instead of Squeekboard
+        systemd.user.services."mobi.phosh.OSK" = {
+          description = "Phosh On-Screen Keyboard (Stevia)";
+          partOf = [ "phosh.service" ];
+          after = [ "phosh.service" ];
+
+          serviceConfig = {
+            Type = "simple";
+            ExecStart = "${pkgs.stevia}/bin/phosh-osk-stevia";
+            Restart = "on-failure";
+          };
+
+          wantedBy = [ "phosh.service" ];
+        };
+      })
+
+      # Cell broadcast daemon for emergency alerts
+      (lib.mkIf cfg.cellBroadcast {
+        environment.systemPackages = [
+          pkgs.cellbroadcastd
+        ];
+
+        # Link the systemd user service from the package
+        systemd.user.services.cellbroadcastd = {
+          description = "Cellbroadcast Daemon";
+          wantedBy = [ "default.target" ];
+          after = [ "ModemManager.service" ];
+
+          serviceConfig = {
+            Type = "dbus";
+            BusName = "org.freedesktop.cbd";
+            ExecStart = "${pkgs.cellbroadcastd}/libexec/cellbroadcastd";
+          };
+        };
+      })
+
+      # Audio roles configuration for wireplumber
+      # This enables independent volume control for different audio types
+      # (media, alarms, ringtones, cell broadcasts, etc.)
+      {
+        services.pipewire.wireplumber.extraConfig = {
+          "50-audio-roles" = {
+            "wireplumber.settings" = {
+              # Enable role-based audio policy
+              "default-audio.sink.role-properties" = true;
+            };
+          };
+        };
+      }
     ]
   );
 }

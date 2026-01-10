@@ -1571,6 +1571,11 @@ in
       options = {
         lyte.mobile = {
           enable = lib.mkEnableOption "Enable mobile home-manager configuration";
+          useStevia = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Use Stevia keyboard instead of Squeekboard";
+          };
         };
       };
 
@@ -1642,6 +1647,37 @@ in
         # Dark theme for GTK apps
         gtk.theme.name = "Adwaita-dark";
 
+        # Foot terminal with ayu dark theme
+        programs.foot = {
+          enable = true;
+          settings = {
+            main = {
+              font = "IosevkaLyteTerm:size=14";
+              dpi-aware = "no";
+            };
+            colors = {
+              foreground = "e6e1cf";
+              background = "0f1419";
+              regular0 = "0f1419"; # black
+              regular1 = "f07178"; # red
+              regular2 = "b8cc52"; # green
+              regular3 = "ffb454"; # yellow
+              regular4 = "59c2ff"; # blue
+              regular5 = "d2a6ff"; # magenta
+              regular6 = "95e6cb"; # cyan
+              regular7 = "e6e1cf"; # white
+              bright0 = "272d38"; # bright black
+              bright1 = "f07178"; # bright red
+              bright2 = "b8cc52"; # bright green
+              bright3 = "ffb454"; # bright yellow
+              bright4 = "59c2ff"; # bright blue
+              bright5 = "d2a6ff"; # bright magenta
+              bright6 = "95e6cb"; # bright cyan
+              bright7 = "f3f4f5"; # bright white
+            };
+          };
+        };
+
         # Enable dconf for phosh/squeekboard settings
         dconf = {
           enable = true;
@@ -1655,23 +1691,38 @@ in
           };
         };
 
-        # squeekboard systemd service for phosh 0.50.0+
-        # phosh OSK target wants mobi.phosh.OSK.service but squeekboard doesn't provide it
-        systemd.user.services."mobi.phosh.OSK" = {
-          Unit = {
-            Description = "Squeekboard on-screen keyboard";
-            PartOf = [ "mobi.phosh.OSK.target" ];
+        # On-screen keyboard systemd service for phosh 0.50.0+
+        # phosh OSK target wants mobi.phosh.OSK.service
+        systemd.user.services."mobi.phosh.OSK" =
+          if config.lyte.mobile.useStevia then {
+            Unit = {
+              Description = "Phosh On-Screen Keyboard (Stevia)";
+              PartOf = [ "phosh.service" ];
+              After = [ "phosh.service" ];
+            };
+            Service = {
+              Type = "simple";
+              ExecStart = "${pkgs.stevia}/bin/phosh-osk-stevia";
+              Restart = "on-failure";
+            };
+            Install = {
+              WantedBy = [ "phosh.service" ];
+            };
+          } else {
+            Unit = {
+              Description = "Squeekboard on-screen keyboard";
+              PartOf = [ "mobi.phosh.OSK.target" ];
+            };
+            Service = {
+              Type = "dbus";
+              BusName = "sm.puri.OSK0";
+              ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
+              Restart = "on-failure";
+            };
+            Install = {
+              WantedBy = [ "mobi.phosh.OSK.target" ];
+            };
           };
-          Service = {
-            Type = "dbus";
-            BusName = "sm.puri.OSK0";
-            ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
-            Restart = "on-failure";
-          };
-          Install = {
-            WantedBy = [ "mobi.phosh.OSK.target" ];
-          };
-        };
       };
     };
 }
