@@ -125,6 +125,11 @@ in
         };
 
     services.flatpak.enable = true;
+
+    # micro:bit WebUSB support (DAPLink interface)
+    services.udev.extraRules = ''
+      SUBSYSTEM=="usb", ATTR{idVendor}=="0d28", ATTR{idProduct}=="0204", MODE="0664", GROUP="dialout"
+    '';
     programs.appimage = {
       enable = true;
       binfmt = true;
