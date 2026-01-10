@@ -47,6 +47,27 @@ in
           default = true;
           description = "Enable cell broadcast daemon for emergency alerts";
         };
+        mms = {
+          enable = lib.mkEnableOption "Enable MMS (Multimedia Messaging Service) support via mmsd-tng";
+          carrierMMSC = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+            example = "http://mms.example.com/mms/wapenc";
+            description = "MMS Center URL from your carrier (required for MMS)";
+          };
+          mmsAPN = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+            example = "mms";
+            description = "APN for MMS from your carrier (required for MMS)";
+          };
+          carrierMMSProxy = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+            example = "proxy.example.com:8080";
+            description = "MMS proxy server (leave empty if not required by carrier)";
+          };
+        };
       };
     };
   };
@@ -303,6 +324,54 @@ in
             ExecStart = "${pkgs.cellbroadcastd}/libexec/cellbroadcastd";
           };
         };
+      })
+
+      # MMS support via mmsd-tng
+      # Chatty integrates with mmsd-tng for sending/receiving MMS messages
+      (lib.mkIf cfg.mms.enable {
+        environment.systemPackages = [
+          pkgs.mmsd-tng
+        ];
+
+        # mmsd-tng systemd user service
+        # Runs as user service since it needs access to user's config in ~/.mms/
+        systemd.user.services.mmsd-tng = {
+          description = "MMS Daemon (mmsd-tng)";
+          wantedBy = [ "default.target" ];
+          after = [ "ModemManager.service" ];
+
+          serviceConfig = {
+            Type = "dbus";
+            BusName = "org.ofono.mms";
+            ExecStart = "${pkgs.mmsd-tng}/bin/mmsdtng";
+            Restart = "on-failure";
+            RestartSec = "5s";
+          };
+        };
+
+        # Create default MMS configuration if carrier settings are provided
+        # The config is written to the user's home directory
+        system.activationScripts.mmsd-config = lib.mkIf (cfg.mms.carrierMMSC != "") ''
+          # Get the user's actual home directory from passwd (handles custom home paths)
+          USER_HOME=$(${pkgs.coreutils}/bin/getent passwd ${cfg.user} | ${pkgs.coreutils}/bin/cut -d: -f6)
+          MMS_DIR="$USER_HOME/.mms/modemmanager"
+          mkdir -p "$MMS_DIR"
+
+          # Only create config if it doesn't exist (don't overwrite user customizations)
+          if [ ! -f "$MMS_DIR/ModemManagerSettings" ]; then
+            cat > "$MMS_DIR/ModemManagerSettings" << 'MMSEOF'
+[Modem Manager]
+CarrierMMSC=${cfg.mms.carrierMMSC}
+MMS_APN=${cfg.mms.mmsAPN}
+CarrierMMSProxy=${if cfg.mms.carrierMMSProxy == "" then "NULL" else cfg.mms.carrierMMSProxy}
+AutoProcessOnConnection=true
+AutoProcessSMSWAP=true
+MMSEOF
+            chown -R ${cfg.user}:users "$MMS_DIR"
+            chmod 700 "$USER_HOME/.mms"
+            chmod 600 "$MMS_DIR/ModemManagerSettings"
+          fi
+        '';
       })
 
       # Audio roles configuration for wireplumber

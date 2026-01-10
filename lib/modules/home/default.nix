@@ -1652,7 +1652,7 @@ in
           enable = true;
           settings = {
             main = {
-              font = "IosevkaLyteTerm:size=14";
+              font = "IosevkaLyteTerm:size=12";
               dpi-aware = "no";
             };
             colors = {
@@ -1694,35 +1694,38 @@ in
         # On-screen keyboard systemd service for phosh 0.50.0+
         # phosh OSK target wants mobi.phosh.OSK.service
         systemd.user.services."mobi.phosh.OSK" =
-          if config.lyte.mobile.useStevia then {
-            Unit = {
-              Description = "Phosh On-Screen Keyboard (Stevia)";
-              PartOf = [ "phosh.service" ];
-              After = [ "phosh.service" ];
+          if config.lyte.mobile.useStevia then
+            {
+              Unit = {
+                Description = "Phosh On-Screen Keyboard (Stevia)";
+                PartOf = [ "phosh.service" ];
+                After = [ "phosh.service" ];
+              };
+              Service = {
+                Type = "simple";
+                ExecStart = "${pkgs.stevia}/bin/phosh-osk-stevia";
+                Restart = "on-failure";
+              };
+              Install = {
+                WantedBy = [ "phosh.service" ];
+              };
+            }
+          else
+            {
+              Unit = {
+                Description = "Squeekboard on-screen keyboard";
+                PartOf = [ "mobi.phosh.OSK.target" ];
+              };
+              Service = {
+                Type = "dbus";
+                BusName = "sm.puri.OSK0";
+                ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
+                Restart = "on-failure";
+              };
+              Install = {
+                WantedBy = [ "mobi.phosh.OSK.target" ];
+              };
             };
-            Service = {
-              Type = "simple";
-              ExecStart = "${pkgs.stevia}/bin/phosh-osk-stevia";
-              Restart = "on-failure";
-            };
-            Install = {
-              WantedBy = [ "phosh.service" ];
-            };
-          } else {
-            Unit = {
-              Description = "Squeekboard on-screen keyboard";
-              PartOf = [ "mobi.phosh.OSK.target" ];
-            };
-            Service = {
-              Type = "dbus";
-              BusName = "sm.puri.OSK0";
-              ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
-              Restart = "on-failure";
-            };
-            Install = {
-              WantedBy = [ "mobi.phosh.OSK.target" ];
-            };
-          };
       };
     };
 }

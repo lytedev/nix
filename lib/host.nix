@@ -65,6 +65,31 @@ let
         inputs.self.outputs.nixosModules.default
         (import path)
         { nixpkgs.config.allowUnfree = true; }
+        # Enable UHID for BLE HID keyboard support
+        # The mobile-nixos kernel config doesn't have this enabled by default
+        # Use pkgs.mobile-nixos (from the mobile-nixos overlay) to build the kernel with UHID
+        (
+          { pkgs, lib, ... }:
+          let
+            # Build the kernel using mobile-nixos kernel-builder with UHID support
+            baseKernel = pkgs.callPackage "${inputs.mobile-nixos}/devices/${device}/kernel" {
+              inherit (pkgs) mobile-nixos fetchFromGitea fetchpatch;
+            };
+            kernelWithUhid = baseKernel.overrideAttrs (oldAttrs: {
+              postConfigure = (oldAttrs.postConfigure or "") + ''
+                # Enable UHID for BLE HID (keyboard) support
+                echo "Enabling CONFIG_UHID for BLE HID support..."
+                echo "CONFIG_UHID=y" >> $buildRoot/.config
+                # Re-run oldconfig to process the new option
+                make $makeFlags "''${makeFlagsArray[@]}" oldconfig
+              '';
+            });
+          in
+          {
+            # Override the mobile-nixos kernel package with our modified version
+            mobile.boot.stage-1.kernel.package = lib.mkOverride 1 kernelWithUhid;
+          }
+        )
         # mobile-nixos specific settings (uses lyte.mobile options)
         (
           { config, lib, ... }:

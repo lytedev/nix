@@ -15,6 +15,15 @@
     scale = 1.5; # 1.5 recommended for PinePhone
     useStevia = true; # Use Stevia keyboard with word completion
     cellBroadcast = true; # Enable cell broadcast for emergency alerts
+
+    # MMS support via mmsd-tng (integrates with Chatty)
+    # Settings below are for T-Mobile US - adjust for your carrier
+    mms = {
+      enable = true;
+      carrierMMSC = "http://mms.msg.eng.t-mobile.com/mms/wapenc";
+      mmsAPN = "fast.t-mobile.com";
+      # carrierMMSProxy = ""; # T-Mobile doesn't use a proxy
+    };
   };
 
   # GPU/display
