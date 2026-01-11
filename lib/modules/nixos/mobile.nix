@@ -353,7 +353,7 @@ in
         # The config is written to the user's home directory
         system.activationScripts.mmsd-config = lib.mkIf (cfg.mms.carrierMMSC != "") ''
           # Get the user's actual home directory from passwd (handles custom home paths)
-          USER_HOME=$(${pkgs.coreutils}/bin/getent passwd ${cfg.user} | ${pkgs.coreutils}/bin/cut -d: -f6)
+          USER_HOME=$(getent passwd ${cfg.user} | cut -d: -f6)
           MMS_DIR="$USER_HOME/.mms/modemmanager"
           mkdir -p "$MMS_DIR"
 
