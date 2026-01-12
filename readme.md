@@ -12,6 +12,15 @@ Nix for <code>lytedev</code>
 
 [![pre-merge status](https://git.lyte.dev/lytedev/nix/badges/workflows/pre-merge.yaml/badge.svg?branch=main)](https://git.lyte.dev/lytedev/nix/actions?workflow=pre-merge.yaml)
 
-[NixOS Modules](./lib/modules/nixos/default.nix) - [Home Manager Modules](./lib/modules/home/default.nix) - [Desktop](./packages/hosts/dragon.nix) - [Laptop](./packages/hosts/foxtrot.nix) - [Server](./packages/hosts/beefcake.nix) - [Router](./packages/hosts/router.nix) - [Packages](./packages/default.nix) - [Templates](./lib/templates/default.nix) - [Docs](./lib/doc)
+[Docs](./lib/doc) -
+[Templates](./lib/templates/default.nix) -
+[Packages](./packages/default.nix) -
+[Home Manager Modules](./lib/modules/home/default.nix) -
+[NixOS Modules](./lib/modules/nixos/default.nix) -
+[Desktop](./packages/hosts/dragon.nix) -
+[Laptop](./packages/hosts/foxtrot.nix) -
+[Server](./packages/hosts/beefcake.nix) -
+[Router](./packages/hosts/router.nix) -
+[Phone](./packages/hosts/pinephone.nix)
 
 </div>
