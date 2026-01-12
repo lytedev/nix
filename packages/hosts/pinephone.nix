@@ -12,7 +12,7 @@
   lyte.mobile = {
     enable = true;
     user = "daniel";
-    scale = 1.5; # 1.5 recommended for PinePhone
+    scale = 2.0;
     useStevia = true; # Use Stevia keyboard with word completion
     cellBroadcast = true; # Enable cell broadcast for emergency alerts
 

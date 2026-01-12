@@ -19,8 +19,7 @@ in
         };
         scale = lib.mkOption {
           type = lib.types.float;
-          default = 1.5;
-          description = "Display scale factor (1.5 recommended for PinePhone, 2.0 is default)";
+          default = 2.0;
         };
         stage1Ssh = lib.mkOption {
           type = lib.types.bool;
@@ -263,21 +262,44 @@ in
           pkgs.fbkeyboard
         ];
 
-        # Auto-start fbkeyboard on TTY2 (Phosh typically uses TTY1/7)
-        systemd.services.fbkeyboard = {
-          description = "Framebuffer on-screen keyboard";
-          wantedBy = [ "multi-user.target" ];
-          after = [ "systemd-vconsole-setup.service" ];
+        systemd.services = {
+          # Fallback keyboard on TTY1 - stops when graphical session starts
+          # This ensures you can still type if Phosh fails to start
+          fbkeyboard-tty1 = {
+            description = "Framebuffer on-screen keyboard on TTY1 (fallback)";
+            wantedBy = [ "multi-user.target" ];
+            after = [ "systemd-vconsole-setup.service" ];
+            # Stop this service when display-manager starts (Phosh takes over TTY1)
+            conflicts = [ "display-manager.service" ];
 
-          serviceConfig = {
-            ExecStart = "${pkgs.fbkeyboard}/bin/fbkeyboard";
-            Restart = "on-failure";
-            RestartSec = "2s";
-            StandardInput = "tty";
-            StandardOutput = "tty";
-            TTYPath = "/dev/tty2";
-            TTYReset = "yes";
-            TTYVHangup = "yes";
+            serviceConfig = {
+              ExecStart = "${pkgs.fbkeyboard}/bin/fbkeyboard";
+              Restart = "on-failure";
+              RestartSec = "2s";
+              StandardInput = "tty";
+              StandardOutput = "tty";
+              TTYPath = "/dev/tty1";
+              TTYReset = "yes";
+              TTYVHangup = "yes";
+            };
+          };
+
+          # Always-available keyboard on TTY2
+          fbkeyboard-tty2 = {
+            description = "Framebuffer on-screen keyboard on TTY2";
+            wantedBy = [ "multi-user.target" ];
+            after = [ "systemd-vconsole-setup.service" ];
+
+            serviceConfig = {
+              ExecStart = "${pkgs.fbkeyboard}/bin/fbkeyboard";
+              Restart = "on-failure";
+              RestartSec = "2s";
+              StandardInput = "tty";
+              StandardOutput = "tty";
+              TTYPath = "/dev/tty2";
+              TTYReset = "yes";
+              TTYVHangup = "yes";
+            };
           };
         };
       })
@@ -352,25 +374,25 @@ in
         # Create default MMS configuration if carrier settings are provided
         # The config is written to the user's home directory
         system.activationScripts.mmsd-config = lib.mkIf (cfg.mms.carrierMMSC != "") ''
-          # Get the user's actual home directory from passwd (handles custom home paths)
-          USER_HOME=$(getent passwd ${cfg.user} | cut -d: -f6)
-          MMS_DIR="$USER_HOME/.mms/modemmanager"
-          mkdir -p "$MMS_DIR"
+                    # Get the user's actual home directory from passwd (handles custom home paths)
+                    USER_HOME=$(getent passwd ${cfg.user} | cut -d: -f6)
+                    MMS_DIR="$USER_HOME/.mms/modemmanager"
+                    mkdir -p "$MMS_DIR"
 
-          # Only create config if it doesn't exist (don't overwrite user customizations)
-          if [ ! -f "$MMS_DIR/ModemManagerSettings" ]; then
-            cat > "$MMS_DIR/ModemManagerSettings" << 'MMSEOF'
-[Modem Manager]
-CarrierMMSC=${cfg.mms.carrierMMSC}
-MMS_APN=${cfg.mms.mmsAPN}
-CarrierMMSProxy=${if cfg.mms.carrierMMSProxy == "" then "NULL" else cfg.mms.carrierMMSProxy}
-AutoProcessOnConnection=true
-AutoProcessSMSWAP=true
-MMSEOF
-            chown -R ${cfg.user}:users "$MMS_DIR"
-            chmod 700 "$USER_HOME/.mms"
-            chmod 600 "$MMS_DIR/ModemManagerSettings"
-          fi
+                    # Only create config if it doesn't exist (don't overwrite user customizations)
+                    if [ ! -f "$MMS_DIR/ModemManagerSettings" ]; then
+                      cat > "$MMS_DIR/ModemManagerSettings" << 'MMSEOF'
+          [Modem Manager]
+          CarrierMMSC=${cfg.mms.carrierMMSC}
+          MMS_APN=${cfg.mms.mmsAPN}
+          CarrierMMSProxy=${if cfg.mms.carrierMMSProxy == "" then "NULL" else cfg.mms.carrierMMSProxy}
+          AutoProcessOnConnection=true
+          AutoProcessSMSWAP=true
+          MMSEOF
+                      chown -R ${cfg.user}:users "$MMS_DIR"
+                      chmod 700 "$USER_HOME/.mms"
+                      chmod 600 "$MMS_DIR/ModemManagerSettings"
+                    fi
         '';
       })
 
