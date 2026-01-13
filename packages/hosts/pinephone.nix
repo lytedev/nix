@@ -15,6 +15,7 @@
     scale = 2.0;
     useStevia = true; # Use Stevia keyboard with word completion
     cellBroadcast = true; # Enable cell broadcast for emergency alerts
+    fbkeyboard = false; # Disable - was eating CPU and not needed with Phosh
 
     # MMS support via mmsd-tng (integrates with Chatty)
     # Settings below are for T-Mobile US - adjust for your carrier
