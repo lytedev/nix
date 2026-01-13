@@ -29,6 +29,7 @@
     wifi
     printing
     podman
+    k3s
     virtual-machines
     postgres
     gaming

@@ -104,6 +104,7 @@
     ./beefcake/syncthing.nix
     ./beefcake/n8n.nix
     ./beefcake/happy.nix
+    ./beefcake/k3s.nix
 
     # Matrix bridges
     ./beefcake/heisenbridge.nix

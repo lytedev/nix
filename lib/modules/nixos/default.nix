@@ -16,6 +16,7 @@ inputs: {
   gaming = import ./gaming.nix;
   pipewire = import ./pipewire.nix;
   podman = import ./podman.nix;
+  k3s = import ./k3s.nix;
   virtual-machines = import ./virtual-machines.nix;
   postgres = import ./postgres.nix;
   desktop = import ./desktop.nix;
