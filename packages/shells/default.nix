@@ -27,6 +27,7 @@ in
     packages = [
       claude-code
       happy-coder
+      pkgs.opencode
     ];
     shellHook = ''
       # happy-coder looks for claude at ~/.local/bin/claude (not in PATH)
