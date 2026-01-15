@@ -7,6 +7,7 @@ let
   };
   claude-code = unfreePkgs.callPackage ../claude-code.nix { };
   happy-coder = unfreePkgs.callPackage ../happy-coder.nix { };
+  codex = pkgs.callPackage ../codex.nix { };
 in
 {
   default = pkgs.mkShell {
@@ -27,6 +28,7 @@ in
     packages = [
       claude-code
       happy-coder
+      codex
       pkgs.opencode
     ];
     shellHook = ''
