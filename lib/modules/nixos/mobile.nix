@@ -157,6 +157,8 @@ in
           gnome-calculator
           gnome-calendar
           gnome-notes # simple note-taking
+          errands # task/reminder manager (libadwaita)
+          endeavour # GNOME Todo - task manager with GNOME Online Accounts integration
 
           # Media
           loupe # image viewer
