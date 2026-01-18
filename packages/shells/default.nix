@@ -41,8 +41,83 @@ in
     '';
   };
 
+  # Music Production Development Shell
+  #
+  # Enter with: nix develop .#music-production
+  #
+  # This provides all music production tools without system-wide installation.
+  # For permanent installation, use the NixOS module (d.music-production.enable)
+  # or home-manager module (lyte.music-production.enable).
+  #
   music-production = pkgs.mkShell {
-    # TODO: reaper? VSTs like Helm? Neural Amp modeler for guitar?
-    # I would love to be able to do basic recording and editing as well as live "performances" with effects chains etc.
+    packages = with unfreePkgs; [
+      # === DAWs ===
+      reaper # Professional DAW - lightweight, extremely capable, highly customizable
+      ardour # Open source alternative - great for recording and mixing
+      lmms # Good for electronic music and beats
+
+      # === Synthesizers ===
+      helm # Polyphonic synth - great starting point
+      surge-XT # Powerful hybrid synth - lots of presets
+      vital # Modern wavetable synth
+      zynaddsubfx # Classic software synth
+
+      # === Effects & Plugins (LV2) ===
+      lsp-plugins # Comprehensive suite (EQ, compressors, etc.)
+      calf # Another great suite
+      x42-plugins # Professional meters and EQ
+      dragonfly-reverb # Quality algorithmic reverbs
+      chow-tape-model # Tape saturation emulation
+      zam-plugins # Dynamics and EQ
+
+      # === Guitar ===
+      guitarix # Amp simulation - quick tones and effects
+      gxplugins-lv2 # More guitarix plugins as LV2
+      neural-amp-modeler-lv2 # NAM - neural network amp models (realistic tones)
+
+      # === Plugin Hosts & Routing ===
+      carla # Versatile plugin host - load VST/LV2 and chain effects
+      helvum # PipeWire patchbay (GTK) - connect audio sources/sinks
+      qpwgraph # PipeWire patchbay (Qt) - alternative to helvum
+
+      # === Utilities ===
+      audacity # Quick audio editing and recording
+      sonic-visualiser # Audio analysis and visualization
+      qsynth # FluidSynth GUI for SoundFonts
+      fluidsynth # SoundFont synthesizer
+      vmpk # Virtual MIDI piano keyboard
+
+      # === Windows VST Support ===
+      yabridge # Bridge to run Windows VSTs
+      yabridgectl # yabridge configuration tool
+    ];
+
+    shellHook = ''
+      echo "╔═══════════════════════════════════════════════════════════════════╗"
+      echo "║              Music Production Environment                         ║"
+      echo "╚═══════════════════════════════════════════════════════════════════╝"
+      echo ""
+      echo "QUICK START:"
+      echo "  reaper          - Main DAW (recommended)"
+      echo "  carla           - Plugin host (load VST/LV2, chain effects)"
+      echo "  helvum          - Audio routing (connect apps together)"
+      echo ""
+      echo "INSTRUMENTS:"
+      echo "  helm            - Polyphonic synth"
+      echo "  surge-xt        - Hybrid synth with tons of presets"
+      echo "  vital           - Wavetable synth"
+      echo ""
+      echo "GUITAR:"
+      echo "  guitarix        - Amp simulation (quick tones)"
+      echo "  NAM models      - Download from https://tonehunt.org"
+      echo ""
+      echo "WINDOWS VSTs:"
+      echo "  1. Install VSTs in Wine (~/.wine/drive_c/Program Files/VSTPlugins/)"
+      echo "  2. yabridgectl add <path-to-vst-folder>"
+      echo "  3. yabridgectl sync"
+      echo ""
+      echo "TIP: Use Carla to host plugins, route with helvum/qpwgraph"
+      echo ""
+    '';
   };
 }

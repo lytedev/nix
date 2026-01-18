@@ -26,6 +26,7 @@ inputs: {
   kanidm = import ./kanidm.nix;
   steamdeck = import ./steamdeck.nix;
   mobile = import ./mobile.nix;
+  music-production = import ./music-production.nix;
 
   remote-disk-key-entry-on-boot =
     {

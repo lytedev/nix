@@ -39,6 +39,7 @@
     kanidm
     laptop
     mobile
+    music-production
 
     (
       { config, ... }:

@@ -29,7 +29,11 @@
           ];
         };
         # Disable automatic profile switching
-        "bluetooth.autoswitch-to-headset-profile" = false;
+        "50-disable-autoswitch" = {
+          "wireplumber.settings" = {
+            "bluetooth.autoswitch-to-headset-profile" = false;
+          };
+        };
       };
       extraConfig.pipewire."91-null-sinks" = {
         "context.objects" = [

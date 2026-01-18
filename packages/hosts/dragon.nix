@@ -66,6 +66,10 @@
   # programs.steam.enable = true;
   lyte.desktop.enable = true;
   lyte.desktop.niri.enable = true;
+  lyte.desktop.music-production = {
+    enable = true;
+    users = [ "daniel" ];
+  };
   podman.enable = true;
 
   services.sunshine = {
@@ -84,6 +88,7 @@
       };
       desktop.enable = true;
       desktop.niri.enable = true;
+      desktop.music-production.enable = true;
     };
     slippi-launcher = {
       enable = true;

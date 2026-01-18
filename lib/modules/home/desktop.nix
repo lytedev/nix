@@ -26,6 +26,7 @@ in
         plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
         niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
         cosmic.enable = lib.mkEnableOption "Enable Cosmic configuration and applications";
+        music-production.enable = lib.mkEnableOption "Enable music production configuration";
       };
     };
   };
