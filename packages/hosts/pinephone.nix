@@ -83,4 +83,7 @@
     enable = lib.mkForce false;
     overclocking-kernel-module.enable = lib.mkForce false;
   };
+
+  # no man cache on pinephone
+  documentation.man.generateCaches = false;
 }
