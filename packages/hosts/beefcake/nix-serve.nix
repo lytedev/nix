@@ -26,13 +26,12 @@
     '';
   };
 
-  # regularly build this flake so we have stuff in the cache
-  # TODO: schedule this for nightly builds instead of intervals based on boot time
+  # regularly build this flake with updated inputs to keep the cache warm
   systemd.timers."build-lytedev-flake" = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnBootSec = "30m"; # 30 minutes after booting
-      OnUnitActiveSec = "1d"; # every day afterwards
+      OnCalendar = "*-*-* 03:00:00"; # 3am daily
+      Persistent = true; # run if missed (e.g., machine was off)
       Unit = "build-lytedev-flake.service";
     };
   };
@@ -50,19 +49,32 @@
   };
 
   systemd.services."build-lytedev-flake" = {
-    # TODO: might want to add root for the most recent results?
     script = ''
-      flake="git+https://git.lyte.dev/lytedev/nix.git"
-      # build self (main server) configuration
-      nixos-rebuild build --flake "$flake#beefcake" --accept-flake-config
-      # build desktop configuration
-      nixos-rebuild build --flake "$flake#dragon" --accept-flake-config
-      # build main laptop configuration
-      nixos-rebuild build --flake "$flake#foxtrot" --accept-flake-config
-      # build pinephone configuration (aarch64, uses binfmt)
-      # nixos-rebuild build --flake "$flake#pinephone" --accept-flake-config # temporarily disabled
+      set -euo pipefail
+      repo_url="https://git.lyte.dev/lytedev/nix.git"
+      repo_dir="/home/daniel/.home/.cache/nightly-flake-builds/nix"
+
+      # clone or update the local checkout
+      if [ -d "$repo_dir/.git" ]; then
+        git -C "$repo_dir" fetch --all
+        git -C "$repo_dir" reset --hard origin/main
+      else
+        git clone "$repo_url" "$repo_dir"
+      fi
+
+      cd "$repo_dir"
+
+      # update flake inputs to latest
+      nix flake update --accept-flake-config
+
+      # build configurations (populates cache)
+      nixos-rebuild build --flake ".#beefcake" --accept-flake-config
+      nixos-rebuild build --flake ".#dragon" --accept-flake-config
+      nixos-rebuild build --flake ".#foxtrot" --accept-flake-config
+      # nixos-rebuild build --flake ".#pinephone" --accept-flake-config # temporarily disabled
+
       # ensure dev shell packages are built (and cached)
-      nix develop "$flake" --build
+      nix develop . --build
     '';
     path = with pkgs; [
       openssh
@@ -71,7 +83,6 @@
       nix
     ];
     serviceConfig = {
-      # TODO: mkdir -p...?
       WorkingDirectory = "/home/daniel/.home/.cache/nightly-flake-builds";
       Type = "oneshot";
       User = "daniel";
