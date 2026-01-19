@@ -47,7 +47,7 @@ let
     network = {
       displayname_template = "{{.RealName}}{{if .IsBot}} (bot){{end}}";
       channel_name_template = "{{if and .IsChannel (not .IsPrivate)}}#{{end}}{{.Name}}{{if .IsNoteToSelf}} (you){{end}}";
-      team_name_template = "{{.Team.Name}}";
+      team_name_template = "{{.Name}}";
       custom_emoji_reactions = true;
       workspace_avatar_in_rooms = false;
       mute_channels_by_default = false;
