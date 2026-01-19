@@ -7,6 +7,11 @@
 {
   system.stateVersion = "24.05";
 
+  # Required for mautrix bridges with E2EE support (libolm is deprecated but still needed)
+  nixpkgs.config.permittedInsecurePackages = [
+    "olm-3.2.16"
+  ];
+
   sops = {
     defaultSopsFile = ../../secrets/beefcake/secrets.yml;
     secrets = {
@@ -100,6 +105,13 @@
     ./beefcake/syncthing.nix
     ./beefcake/n8n.nix
     ./beefcake/happy.nix
+
+    # Matrix bridges
+    ./beefcake/mautrix-discord.nix
+    ./beefcake/mautrix-whatsapp.nix
+    ./beefcake/mautrix-meta-facebook.nix
+    ./beefcake/mautrix-meta-instagram.nix
+    # ./beefcake/matrix-hookshot.nix  # TODO: needs registration file with tokens
   ]);
 
   services.spacetimedb.enable = true;

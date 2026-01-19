@@ -74,6 +74,10 @@
           }
         '';
       };
+      # TODO: Matrix hookshot webhook receiver - enable after registration file is set up
+      # "hookshot.matrix.lyte.dev".extraConfig = ''
+      #   reverse_proxy /webhook/* :9500
+      # '';
     };
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
   };
