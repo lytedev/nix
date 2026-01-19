@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   # Garage initialization script - makes setup reproducible
   garageInit = pkgs.writeShellScript "garage-init" ''
@@ -99,7 +104,7 @@ in
     "10-happy" = {
       "/storage/happy" = {
         "d" = {
-          mode = "0771";  # +x for others so garage can traverse
+          mode = "0771"; # +x for others so garage can traverse
           user = "happy";
           group = "happy";
         };
@@ -146,7 +151,7 @@ in
       rpc_bind_addr = "127.0.0.1:3901";
       rpc_public_addr = "127.0.0.1:3901";
       s3_api = {
-        s3_region = "us-east-1";  # Match minio SDK default
+        s3_region = "us-east-1"; # Match minio SDK default
         api_bind_addr = "127.0.0.1:9010";
         root_domain = ".s3.garage.localhost";
       };
@@ -212,7 +217,10 @@ in
   # Garage initialization service - idempotent setup of layout, key, and bucket
   systemd.services.garage-init = {
     description = "Initialize Garage for Happy";
-    after = [ "garage.service" "sops-nix.service" ];
+    after = [
+      "garage.service"
+      "sops-nix.service"
+    ];
     requires = [ "garage.service" ];
     wants = [ "sops-nix.service" ];
     wantedBy = [ "multi-user.target" ];
@@ -239,8 +247,21 @@ in
 
   # Ensure happy container starts after all dependencies including init services
   systemd.services.podman-happy = {
-    after = [ "postgresql.service" "redis-happy.service" "garage.service" "garage-init.service" "happy-db-migrate.service" "sops-nix.service" ];
-    requires = [ "postgresql.service" "redis-happy.service" "garage.service" "garage-init.service" "happy-db-migrate.service" ];
+    after = [
+      "postgresql.service"
+      "redis-happy.service"
+      "garage.service"
+      "garage-init.service"
+      "happy-db-migrate.service"
+      "sops-nix.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-happy.service"
+      "garage.service"
+      "garage-init.service"
+      "happy-db-migrate.service"
+    ];
   };
 
   # Reverse proxy through Caddy

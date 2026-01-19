@@ -16,7 +16,7 @@ in
 
   services.restic.commonPaths = [ dataDir ];
 
-  sops.secrets.matrix-oauth-client-secret = {};
+  sops.secrets.matrix-oauth-client-secret = { };
 
   sops.templates."tuwunel.toml" = {
     owner = "tuwunel";
@@ -53,7 +53,9 @@ in
     };
   };
 
-  systemd.services.tuwunel.environment.TUWUNEL_CONFIG = lib.mkForce config.sops.templates."tuwunel.toml".path;
+  systemd.services.tuwunel.environment.TUWUNEL_CONFIG =
+    lib.mkForce
+      config.sops.templates."tuwunel.toml".path;
   systemd.services.tuwunel.serviceConfig.ReadWritePaths = [ dataDir ];
 
   # Caddy reverse proxy

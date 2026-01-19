@@ -49,7 +49,8 @@
             # whites
             "7" = fg2;
             "15" = fg3;
-          } // scheme;
+          }
+          // scheme;
         in
         base
         // {

@@ -37,17 +37,17 @@
         hostmetrics = {
           collection_interval = "30s";
           scrapers = {
-            cpu = {};
-            disk = {};
-            filesystem = {};
-            load = {};
-            memory = {};
-            network = {};
-            paging = {};
+            cpu = { };
+            disk = { };
+            filesystem = { };
+            load = { };
+            memory = { };
+            network = { };
+            paging = { };
             process = {
               mute_process_name_error = true;
             };
-            processes = {};
+            processes = { };
           };
         };
 
@@ -132,7 +132,10 @@
 
         # Detect resource information
         resourcedetection = {
-          detectors = [ "system" "env" ];
+          detectors = [
+            "system"
+            "env"
+          ];
           system = {
             hostname_sources = [ "os" ];
           };
@@ -177,15 +180,33 @@
         pipelines = {
           # Metrics pipeline
           metrics = {
-            receivers = [ "hostmetrics" "prometheus/zfs" "prometheus/postgres" ];
-            processors = [ "resourcedetection" "resource" "batch" ];
-            exporters = [ "otlphttp/metrics" "prometheus" ];
+            receivers = [
+              "hostmetrics"
+              "prometheus/zfs"
+              "prometheus/postgres"
+            ];
+            processors = [
+              "resourcedetection"
+              "resource"
+              "batch"
+            ];
+            exporters = [
+              "otlphttp/metrics"
+              "prometheus"
+            ];
           };
 
           # Logs pipeline
           logs = {
-            receivers = [ "journald" "filelog" ];
-            processors = [ "resourcedetection" "resource" "batch" ];
+            receivers = [
+              "journald"
+              "filelog"
+            ];
+            processors = [
+              "resourcedetection"
+              "resource"
+              "batch"
+            ];
             exporters = [ "otlphttp/logs" ];
           };
         };

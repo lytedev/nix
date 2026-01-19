@@ -444,37 +444,35 @@ in
           ];
           except-interface = wan;
           interface = lan;
-          dhcp-host =
-            [
-            ]
-            ++ (mapAttrsToList (
+          dhcp-host = [
+          ]
+          ++ (mapAttrsToList (
+            name:
+            {
+              ip,
+              mac,
+              ...
+            }:
+            "${mac},${name},${ip}"
+          ) (lib.filterAttrs (_: a: builtins.hasAttr "mac" a) cfg.hosts));
+
+          address = [
+            "/${cfg.hostname}.${cfg.domain}/${cfg.ipv4.address}"
+          ]
+          ++ (flatten (
+            mapAttrsToList (
               name:
               {
                 ip,
-                mac,
+                additionalHosts ? [ ],
                 ...
               }:
-              "${mac},${name},${ip}"
-            ) (lib.filterAttrs (_: a: builtins.hasAttr "mac" a) cfg.hosts));
-
-          address =
-            [
-              "/${cfg.hostname}.${cfg.domain}/${cfg.ipv4.address}"
-            ]
-            ++ (flatten (
-              mapAttrsToList (
-                name:
-                {
-                  ip,
-                  additionalHosts ? [ ],
-                  ...
-                }:
-                [
-                  "/${name}.${cfg.domain}/${ip}"
-                  (lib.lists.forEach additionalHosts (h: "/${h}/${ip}"))
-                ]
-              ) cfg.hosts
-            ));
+              [
+                "/${name}.${cfg.domain}/${ip}"
+                (lib.lists.forEach additionalHosts (h: "/${h}/${ip}"))
+              ]
+            ) cfg.hosts
+          ));
 
           # local domains
           local = "/lan/";

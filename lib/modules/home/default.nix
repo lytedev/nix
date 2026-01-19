@@ -6,10 +6,13 @@ let
 
   # Auto-import all .nix files in this directory except default.nix
   dir = builtins.readDir ./.;
-  nixFiles = builtins.filter (name: name != "default.nix" && builtins.match ".*\\.nix" name != null) (builtins.attrNames dir);
+  nixFiles = builtins.filter (name: name != "default.nix" && builtins.match ".*\\.nix" name != null) (
+    builtins.attrNames dir
+  );
 
   # Import a module file, passing extra args if needed
-  importModule = name:
+  importModule =
+    name:
     let
       path = ./. + "/${name}";
       moduleName = builtins.replaceStrings [ ".nix" ] [ "" ] name;
@@ -26,13 +29,16 @@ let
       module;
 
   # Build attribute set of all modules
-  autoModules = builtins.listToAttrs (map (name: {
-    name = builtins.replaceStrings [ ".nix" ] [ "" ] name;
-    value = importModule name;
-  }) nixFiles);
+  autoModules = builtins.listToAttrs (
+    map (name: {
+      name = builtins.replaceStrings [ ".nix" ] [ "" ] name;
+      value = importModule name;
+    }) nixFiles
+  );
 
 in
-autoModules // {
+autoModules
+// {
   default =
     {
       lib,
