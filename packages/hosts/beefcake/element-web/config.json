@@ -13,8 +13,9 @@
   "disable_login_language_selector": true,
   "disable_3pid_login": true,
   "sso_redirect_options": {
-    "immediate": false
+    "immediate": true
   },
+  "logout_redirect_url": "https://idm.h.lyte.dev/ui/logout",
   "force_verification": false,
   "brand": "chat.lyte.dev",
   "integrations_ui_url": "https://scalar.vector.im/",

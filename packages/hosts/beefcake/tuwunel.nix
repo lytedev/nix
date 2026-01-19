@@ -27,7 +27,8 @@ in
       port = [${toString port}]
       allow_federation = false
       allow_registration = false
-      admin_execute = ["users make-user-admin @daniel:lyte.dev"]
+      # admin_execute = ["users make-user-admin @daniel:lyte.dev"]
+      sso_default_provider_id = "matrix.lyte.dev"
 
       [[global.identity_provider]]
       brand = "idm.h.lyte.dev"

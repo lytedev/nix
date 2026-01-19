@@ -1335,16 +1335,17 @@
         "rocksdb": "rocksdb"
       },
       "locked": {
-        "lastModified": 1767417775,
-        "narHash": "sha256-K/vsWkAPA+/ckFjj7lqiX/MZnKYwaYeHrzrhOf1vvrk=",
+        "lastModified": 1768613989,
+        "narHash": "sha256-94r3GMJ+cQ7OPgdipYPogsPPugNKUvUtf786IztOHlc=",
         "owner": "matrix-construct",
         "repo": "tuwunel",
-        "rev": "bd0a0acf4a996146ff1e73614c847accdf8e179d",
+        "rev": "dfb65d771f4fee849a5c40c27f237cae4ec00e23",
         "type": "github"
       },
       "original": {
         "owner": "matrix-construct",
         "repo": "tuwunel",
+        "rev": "dfb65d771f4fee849a5c40c27f237cae4ec00e23",
         "type": "github"
       }
     },

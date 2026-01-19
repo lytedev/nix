@@ -125,7 +125,8 @@
     };
 
     tuwunel = {
-      url = "github:matrix-construct/tuwunel";
+      # pinned to include sso_default_provider_id fix
+      url = "github:matrix-construct/tuwunel/dfb65d771f4fee849a5c40c27f237cae4ec00e23";
     };
 
     mobile-nixos = {
