@@ -30,6 +30,7 @@
         encryption = {
           allow = true;
           default = true;
+          pickle_key = "mautrix.bridge.e2ee";
         };
       };
     };

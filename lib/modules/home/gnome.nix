@@ -115,6 +115,11 @@
         "application/vnd.ms-cab-compressed" = "org.gnome.FileRoller.desktop";
         "application/x-xar" = "org.gnome.FileRoller.desktop";
         "application/x-lha" = "org.gnome.FileRoller.desktop";
+        # Web browser
+        "x-scheme-handler/http" = "firefox.desktop";
+        "x-scheme-handler/https" = "firefox.desktop";
+        "text/html" = "firefox.desktop";
+        "application/xhtml+xml" = "firefox.desktop";
       };
     };
 
