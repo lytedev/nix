@@ -79,6 +79,22 @@
 
     home.packages = with pkgs; [
       iosevkaLyteTerm
+
+      # Toggle terminal keyboard mode (always visible + terminal layout)
+      (writeShellScriptBin "keyboard-terminal-toggle" ''
+        ENV_FILE="$HOME/.config/stevia/env"
+        mkdir -p "$(dirname "$ENV_FILE")"
+
+        if [ -f "$ENV_FILE" ] && grep -q "POS_DEBUG=force-show" "$ENV_FILE"; then
+          rm -f "$ENV_FILE"
+          echo "Keyboard: normal mode (auto-hide, adaptive layout)"
+        else
+          printf '%s\n' "POS_DEBUG=force-show" "POS_TEST_LAYOUT=terminal" > "$ENV_FILE"
+          echo "Keyboard: terminal mode (always visible, terminal layout)"
+        fi
+
+        systemctl --user restart mobi.phosh.OSK.service
+      '')
     ];
 
     # Dark theme for GTK apps
@@ -180,6 +196,7 @@
             Type = "simple";
             ExecStart = "${pkgs.stevia}/bin/phosh-osk-stevia";
             Restart = "on-failure";
+            EnvironmentFile = "-%h/.config/stevia/env";
           };
           Install = {
             WantedBy = [ "phosh.service" ];
