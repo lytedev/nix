@@ -86,7 +86,16 @@ in
       squashfsTools
 
       fractal # Matrix client (GTK native)
-      element-desktop # Matrix client (Electron, full-featured)
+      # Wrap element-desktop with libsecret for Electron safeStorage (keyring) support
+      (symlinkJoin {
+        name = "element-desktop-wrapped";
+        paths = [ element-desktop ];
+        buildInputs = [ makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/element-desktop \
+            --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libsecret ]}"
+        '';
+      })
     ];
 
     fonts.packages = [
