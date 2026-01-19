@@ -400,9 +400,14 @@ in
 
       # SMS TUI scripts (DE-agnostic, for SSH access)
       # Provides terminal-based SMS interface using skim (fuzzy finder) and mmcli
+      # Also reads from Chatty's SQLite database for historical messages
+      # Integrates with GNOME contacts via evolution-data-server
       {
         environment.systemPackages = with pkgs; [
           skim # Rust fuzzy finder (sk command)
+          sqlite # For querying Chatty's message database
+          folks # For contact name lookups (folks-inspect)
+          gawk # For parsing folks-inspect output
 
           # sms-send: Send an SMS message
           # Usage: sms-send +15551234567 "message" OR echo "message" | sms-send +15551234567
@@ -481,7 +486,7 @@ in
               echo "Deleting all messages for $PHONE..."
               COUNT=0
               for idx in $(${pkgs.modemmanager}/bin/mmcli -m "$MODEM" --messaging-list-sms | ${pkgs.gnugrep}/bin/grep -oP '/SMS/\K\d+'); do
-                SMS_NUM=$(${pkgs.modemmanager}/bin/mmcli -s "$idx" | ${pkgs.gnugrep}/bin/grep -oP "number:\s*'\K[^']+" || true)
+                SMS_NUM=$(${pkgs.modemmanager}/bin/mmcli -s "$idx" | ${pkgs.gnugrep}/bin/grep -oP 'number:\s*\K\S+' || true)
                 if [ "$SMS_NUM" = "$PHONE" ]; then
                   ${pkgs.modemmanager}/bin/mmcli -m "$MODEM" --messaging-delete-sms="$idx"
                   COUNT=$((COUNT + 1))
@@ -497,12 +502,70 @@ in
 
           # sms-compose: Compose SMS in editor
           # Usage: sms-compose [phone-number]
+          # If no phone provided, shows contact picker
           (writeShellScriptBin "sms-compose" ''
             set -euo pipefail
 
             PHONE="''${1:-}"
+
+            # If no phone provided, offer contact picker
+            if [ -z "$PHONE" ]; then
+              # Build contacts list for picker
+              CONTACTS_TMP=$(mktemp)
+              trap 'rm -f "$CONTACTS_TMP"' EXIT
+
+              # Get contacts from folks (set up environment for SSH sessions)
+              if command -v folks-inspect >/dev/null 2>&1; then
+                export DBUS_SESSION_BUS_ADDRESS="''${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+                export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}${pkgs.folks}/share/gsettings-schemas/folks-${pkgs.folks.version}:/run/current-system/sw/share"
+                echo "individuals" | timeout 5 ${pkgs.folks}/bin/folks-inspect 2>/dev/null | ${pkgs.gawk}/bin/awk '
+                  /^[^ ]/ { name = $0; gsub(/^[ \t]+|[ \t]+$/, "", name) }
+                  /phone-numbers:/ {
+                    getline
+                    while (/^[ \t]+/) {
+                      phone = $0
+                      gsub(/^[ \t]+|[ \t]+$/, "", phone)
+                      # Keep formatted phone for display
+                      if (phone != "" && name != "") {
+                        print name " <" phone ">"
+                      }
+                      if (!getline) break
+                    }
+                  }
+                ' >> "$CONTACTS_TMP" 2>/dev/null || true
+              fi
+
+              # Also try EDS sqlite
+              EDS_DB=$(find ~/.local/share/evolution/addressbook -name "contacts.db" 2>/dev/null | head -1)
+              if [ -n "$EDS_DB" ] && [ -f "$EDS_DB" ]; then
+                ${pkgs.sqlite}/bin/sqlite3 "$EDS_DB" "
+                  SELECT f.full_name || ' <' || p.value || '>'
+                  FROM folder_id f
+                  JOIN folder_id_phone_list p ON f.uid = p.uid
+                  WHERE p.value IS NOT NULL AND LENGTH(p.value) > 0 AND f.full_name IS NOT NULL
+                " 2>/dev/null >> "$CONTACTS_TMP" || true
+              fi
+
+              # Add option to enter manually
+              echo "[Enter number manually]" >> "$CONTACTS_TMP"
+
+              if [ -s "$CONTACTS_TMP" ]; then
+                SELECTED=$(${pkgs.skim}/bin/sk \
+                  --height=100% \
+                  --header='Select contact or enter phone number' \
+                  --cycle \
+                  < "$CONTACTS_TMP" || true)
+
+                if [ -n "$SELECTED" ] && [ "$SELECTED" != "[Enter number manually]" ]; then
+                  # Extract phone from "Name <phone>" format
+                  PHONE=$(echo "$SELECTED" | ${pkgs.gnused}/bin/sed 's/.*<\(.*\)>/\1/' | ${pkgs.gnused}/bin/sed 's/[^0-9+]//g')
+                fi
+              fi
+            fi
+
             TMPFILE=$(mktemp /tmp/sms-compose.XXXXXX)
-            trap 'rm -f "$TMPFILE"' EXIT
+            # Update trap to clean both files
+            trap 'rm -f "$TMPFILE" "$CONTACTS_TMP" 2>/dev/null' EXIT
 
             # Create template
             cat > "$TMPFILE" << 'EOF'
@@ -545,77 +608,244 @@ EOF
           '')
 
           # sms-list: List SMS conversations with skim preview
+          # Reads from both Chatty's SQLite database and ModemManager
+          # Integrates with GNOME contacts for name display
           (writeShellScriptBin "sms-list" ''
             set -euo pipefail
-
-            MODEM=$(${pkgs.modemmanager}/bin/mmcli -L | ${pkgs.gnugrep}/bin/grep -oP '/org/freedesktop/ModemManager1/Modem/\d+' | head -1)
-            [ -z "$MODEM" ] && { echo "Error: No modem found"; exit 1; }
 
             # Build conversation list
             TMPDIR=$(mktemp -d)
             trap 'rm -rf "$TMPDIR"' EXIT
 
-            # Collect all messages into per-phone files
-            for idx in $(${pkgs.modemmanager}/bin/mmcli -m "$MODEM" --messaging-list-sms 2>/dev/null | ${pkgs.gnugrep}/bin/grep -oP '/SMS/\K\d+' || true); do
-              INFO=$(${pkgs.modemmanager}/bin/mmcli -s "$idx" 2>/dev/null) || continue
-              PHONE=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP "number:\s*'\K[^']+" || true)
-              [ -z "$PHONE" ] && continue
-              STATE=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP "state:\s*'\K[^']+" || echo "unknown")
-              TEXT=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP "text:\s*'\K[^']+" || echo "")
-              TIME=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP "timestamp:\s*'\K[^']+" || echo "")
+            # Chatty database location (in purple directory, not .local/share)
+            CHATTY_DB="$HOME/.purple/chatty/db/chatty-history.db"
 
-              # Direction: received or sent
-              if [ "$STATE" = "received" ]; then
-                DIR="<"
-              else
-                DIR=">"
+            # Build contacts lookup cache (phone -> name)
+            CONTACTS_CACHE="$TMPDIR/contacts"
+            touch "$CONTACTS_CACHE"
+
+            # Function to normalize phone numbers for comparison (remove non-digits except +)
+            normalize_phone() {
+              echo "$1" | ${pkgs.gnused}/bin/sed 's/[^0-9+]//g'
+            }
+
+            # Build contacts cache from folks (evolution-data-server)
+            # folks-inspect needs GSettings schemas and D-Bus session for SSH use
+            if command -v folks-inspect >/dev/null 2>&1; then
+              # Set up environment for SSH sessions (graphical sessions have this already)
+              export DBUS_SESSION_BUS_ADDRESS="''${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+              # Add GSettings schema path for folks
+              export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}${pkgs.folks}/share/gsettings-schemas/folks-${pkgs.folks.version}:/run/current-system/sw/share"
+              # Use timeout to avoid hanging if D-Bus isn't accessible
+              echo "individuals" | timeout 5 ${pkgs.folks}/bin/folks-inspect 2>/dev/null | ${pkgs.gawk}/bin/awk '
+                /^[^ ]/ { name = $0; gsub(/^[ \t]+|[ \t]+$/, "", name) }
+                /phone-numbers:/ {
+                  getline
+                  while (/^[ \t]+/) {
+                    phone = $0
+                    gsub(/^[ \t]+|[ \t]+$/, "", phone)
+                    gsub(/[^0-9+]/, "", phone)
+                    if (phone != "" && name != "") {
+                      print phone "|" name
+                    }
+                    if (!getline) break
+                  }
+                }
+              ' >> "$CONTACTS_CACHE" 2>/dev/null || true
+            fi
+
+            # Also try evolution-data-server's addressbook sqlite directly as fallback
+            EDS_DB=$(find ~/.local/share/evolution/addressbook -name "contacts.db" 2>/dev/null | head -1)
+            if [ -n "$EDS_DB" ] && [ -f "$EDS_DB" ]; then
+              ${pkgs.sqlite}/bin/sqlite3 -separator '|' "$EDS_DB" "
+                SELECT p.value, f.full_name
+                FROM folder_id f
+                JOIN folder_id_phone_list p ON f.uid = p.uid
+                WHERE p.value IS NOT NULL AND LENGTH(p.value) > 0
+              " 2>/dev/null >> "$CONTACTS_CACHE" || true
+            fi
+
+            # Function to lookup contact name by phone
+            lookup_contact() {
+              local PHONE="$1"
+              local NORM_PHONE=$(normalize_phone "$PHONE")
+              # Try exact match first, then suffix match (last 10 digits)
+              local NAME=$(${pkgs.gnugrep}/bin/grep -F "$NORM_PHONE" "$CONTACTS_CACHE" 2>/dev/null | head -1 | cut -d'|' -f2)
+              if [ -z "$NAME" ] && [ ''${#NORM_PHONE} -ge 10 ]; then
+                local SUFFIX="''${NORM_PHONE: -10}"
+                NAME=$(${pkgs.gnugrep}/bin/grep "$SUFFIX" "$CONTACTS_CACHE" 2>/dev/null | head -1 | cut -d'|' -f2)
               fi
+              echo "$NAME"
+            }
 
-              # Store message in conversation file (use safe filename)
+            # Function to add message to conversation file
+            add_message() {
+              local PHONE="$1"
+              local TIME="$2"
+              local DIR="$3"
+              local TEXT="$4"
+              local SOURCE="$5"
+
               SAFE_PHONE=$(echo "$PHONE" | ${pkgs.gnused}/bin/sed 's/[^a-zA-Z0-9+]/_/g')
               CONV_FILE="$TMPDIR/conv_$SAFE_PHONE"
-              # Store phone number in first line if file is new
               [ ! -f "$CONV_FILE" ] && echo "PHONE:$PHONE" > "$CONV_FILE"
-              echo "$TIME|$DIR|$idx|$TEXT" >> "$CONV_FILE"
-            done
+              # Escape pipes in text to avoid parsing issues
+              TEXT_ESCAPED=$(echo "$TEXT" | ${pkgs.gnused}/bin/sed 's/|/¦/g')
+              echo "$TIME|$DIR|$SOURCE|$TEXT_ESCAPED" >> "$CONV_FILE"
+            }
+
+            # 1. Query Chatty's SQLite database for historical messages
+            if [ -f "$CHATTY_DB" ]; then
+              # Query messages with thread info
+              # Chatty schema: messages(id, thread_id, uid, body, time, direction, ...)
+              #                threads(id, name, alias, account_id, ...)
+              # direction: 1=incoming (received), -1=outgoing (sent)
+              ${pkgs.sqlite}/bin/sqlite3 -separator '|' "$CHATTY_DB" "
+                SELECT
+                  COALESCE(t.name, 'Unknown') as phone,
+                  datetime(m.time, 'unixepoch', 'localtime') as msg_time,
+                  m.direction,
+                  REPLACE(REPLACE(m.body, CHAR(10), ' '), CHAR(13), ' ') as body
+                FROM messages m
+                LEFT JOIN threads t ON m.thread_id = t.id
+                WHERE m.body IS NOT NULL AND LENGTH(m.body) > 0
+                ORDER BY m.time ASC
+              " 2>/dev/null | while IFS='|' read -r PHONE TIME DIRECTION TEXT; do
+                [ -z "$PHONE" ] && continue
+                # direction: 1=incoming (received), -1=outgoing (sent)
+                if [ "$DIRECTION" = "1" ]; then
+                  DIR="<"
+                else
+                  DIR=">"
+                fi
+                add_message "$PHONE" "$TIME" "$DIR" "$TEXT" "chatty"
+              done || true
+            fi
+
+            # 2. Also check ModemManager for any pending/new messages not yet in Chatty
+            MODEM=$(${pkgs.modemmanager}/bin/mmcli -L 2>/dev/null | ${pkgs.gnugrep}/bin/grep -oP '/org/freedesktop/ModemManager1/Modem/\d+' | head -1 || true)
+            if [ -n "$MODEM" ]; then
+              for idx in $(${pkgs.modemmanager}/bin/mmcli -m "$MODEM" --messaging-list-sms 2>/dev/null | ${pkgs.gnugrep}/bin/grep -oP '/SMS/\K\d+' || true); do
+                INFO=$(${pkgs.modemmanager}/bin/mmcli -s "$idx" 2>/dev/null) || continue
+                # mmcli outputs values without quotes, e.g. "number: +1234567890"
+                PHONE=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP 'number:\s*\K\S+' || true)
+                [ -z "$PHONE" ] && continue
+                STATE=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP 'state:\s*\K\S+' || echo "unknown")
+                TEXT=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP 'text:\s*\K.*' || echo "")
+                TIME=$(echo "$INFO" | ${pkgs.gnugrep}/bin/grep -oP 'timestamp:\s*\K\S+' || echo "$(date '+%Y-%m-%d %H:%M:%S')")
+
+                if [ "$STATE" = "received" ]; then
+                  DIR="<"
+                else
+                  DIR=">"
+                fi
+                add_message "$PHONE" "$TIME" "$DIR" "$TEXT" "modem:$idx"
+              done
+            fi
 
             # Check if we have any conversations
             CONV_COUNT=$(find "$TMPDIR" -name 'conv_*' 2>/dev/null | wc -l)
             if [ "$CONV_COUNT" -eq 0 ]; then
               echo "No messages found"
+              if [ ! -f "$CHATTY_DB" ]; then
+                echo "(Chatty database not found at ~/.purple/chatty/db/chatty-history.db)"
+              fi
+              if [ -z "$MODEM" ]; then
+                echo "(No modem found)"
+              fi
               exit 0
             fi
 
-            # Create list for skim
+            # Create list for skim (sorted by most recent message)
             LIST_FILE="$TMPDIR/list"
             for CONV_FILE in "$TMPDIR"/conv_*; do
               [ -f "$CONV_FILE" ] || continue
               PHONE=$(head -1 "$CONV_FILE" | ${pkgs.gnused}/bin/sed 's/^PHONE://')
               MSG_COUNT=$(($(wc -l < "$CONV_FILE") - 1))
-              LAST_MSG=$(tail -1 "$CONV_FILE" | cut -d'|' -f4 | cut -c1-40)
-              echo "$PHONE ($MSG_COUNT) $LAST_MSG" >> "$LIST_FILE"
+              # Get last message time and preview
+              LAST_LINE=$(tail -1 "$CONV_FILE")
+              LAST_TIME=$(echo "$LAST_LINE" | cut -d'|' -f1)
+              LAST_MSG=$(echo "$LAST_LINE" | cut -d'|' -f4 | ${pkgs.gnused}/bin/sed 's/¦/|/g' | cut -c1-30)
+              # Look up contact name
+              CONTACT_NAME=$(lookup_contact "$PHONE")
+              if [ -n "$CONTACT_NAME" ]; then
+                DISPLAY_NAME="$CONTACT_NAME"
+              else
+                DISPLAY_NAME="$PHONE"
+              fi
+              # Sort key is the timestamp (for sorting conversations by recency)
+              # Store phone in a way we can extract it later (after the display name)
+              echo "$LAST_TIME|$PHONE|$DISPLAY_NAME ($MSG_COUNT) $LAST_MSG" >> "$LIST_FILE"
             done
 
-            [ ! -s "$LIST_FILE" ] && { echo "No messages found"; exit 0; }
+            # Sort by time (newest first) and remove the sort key, keep phone|display format
+            SORTED_LIST="$TMPDIR/list_sorted"
+            sort -t'|' -k1 -r "$LIST_FILE" | cut -d'|' -f2- > "$SORTED_LIST"
 
-            # Preview script
+            # Create display list (without phone prefix) for skim
+            DISPLAY_LIST="$TMPDIR/list_display"
+            cut -d'|' -f2- "$SORTED_LIST" > "$DISPLAY_LIST"
+
+            [ ! -s "$DISPLAY_LIST" ] && { echo "No messages found"; exit 0; }
+
+            # Map file: line number -> phone (for selection)
+            PHONE_MAP="$TMPDIR/phone_map"
+            cut -d'|' -f1 "$SORTED_LIST" > "$PHONE_MAP"
+
+            # Preview script - shows conversation history
+            # First arg is the selected line, second is tmpdir
             PREVIEW_SCRIPT="$TMPDIR/preview.sh"
             cat > "$PREVIEW_SCRIPT" << 'PREVIEW'
 #!/usr/bin/env bash
-PHONE=$(echo "$1" | cut -d' ' -f1)
+SELECTION="$1"
 TMPDIR="$2"
-# Find the conversation file for this phone
+# Extract phone from display (first word before space or paren)
+# Since display might be "Name (N)" or "+1234 (N)", we need to find the matching conv file
+# Search all conv files for a matching display or phone
 for f in "$TMPDIR"/conv_*; do
   [ -f "$f" ] || continue
   FILE_PHONE=$(head -1 "$f" | sed 's/^PHONE://')
-  if [ "$FILE_PHONE" = "$PHONE" ]; then
-    echo "=== $PHONE ==="
+  # Check if selection starts with phone or if we can match
+  if echo "$SELECTION" | grep -qF "$FILE_PHONE"; then
+    PHONE="$FILE_PHONE"
+    # Try to get contact name from the selection
+    DISPLAY=$(echo "$SELECTION" | sed 's/ ([0-9]*).*//')
+    if [ "$DISPLAY" != "$PHONE" ]; then
+      echo "=== $DISPLAY ==="
+      echo "    $PHONE"
+    else
+      echo "=== $PHONE ==="
+    fi
     echo ""
-    tail -n +2 "$f" | sort | while IFS='|' read -r TIME DIR IDX TEXT; do
+    # Sort by timestamp and display
+    tail -n +2 "$f" | sort -t'|' -k1 | while IFS='|' read -r TIME DIR SOURCE TEXT; do
+      # Unescape pipes
+      TEXT=$(echo "$TEXT" | sed 's/¦/|/g')
+      TIMESTR=$(echo "$TIME" | sed 's/^[0-9]*-[0-9]*-[0-9]* //')
       if [ "$DIR" = "<" ]; then
-        echo "< $TEXT"
+        printf "[%s] < %s\n" "$TIMESTR" "$TEXT"
       else
-        echo "> $TEXT"
+        printf "[%s] > %s\n" "$TIMESTR" "$TEXT"
+      fi
+    done
+    exit 0
+  fi
+done
+# Fallback: search by first token
+FIRST_TOKEN=$(echo "$SELECTION" | cut -d' ' -f1)
+for f in "$TMPDIR"/conv_*; do
+  [ -f "$f" ] || continue
+  FILE_PHONE=$(head -1 "$f" | sed 's/^PHONE://')
+  if [ "$FILE_PHONE" = "$FIRST_TOKEN" ]; then
+    echo "=== $FILE_PHONE ==="
+    echo ""
+    tail -n +2 "$f" | sort -t'|' -k1 | while IFS='|' read -r TIME DIR SOURCE TEXT; do
+      TEXT=$(echo "$TEXT" | sed 's/¦/|/g')
+      TIMESTR=$(echo "$TIME" | sed 's/^[0-9]*-[0-9]*-[0-9]* //')
+      if [ "$DIR" = "<" ]; then
+        printf "[%s] < %s\n" "$TIMESTR" "$TEXT"
+      else
+        printf "[%s] > %s\n" "$TIMESTR" "$TEXT"
       fi
     done
     exit 0
@@ -624,20 +854,20 @@ done
 PREVIEW
             chmod +x "$PREVIEW_SCRIPT"
 
-            # Run skim
+            # Run skim with phone|display format, extract phone on selection
             SELECTED=$(${pkgs.skim}/bin/sk \
               --height=100% \
               --preview="$PREVIEW_SCRIPT {} $TMPDIR" \
-              --preview-window='down:50%:wrap' \
+              --preview-window='down:60%:wrap' \
               --cycle \
-              --header='Enter=reply  Ctrl-N=new  Ctrl-D=delete conv  Ctrl-R=refresh' \
+              --header='Enter=reply  Ctrl-N=new  Ctrl-R=refresh' \
               --bind='ctrl-n:abort+execute(sms-compose)' \
-              --bind='ctrl-d:abort+execute(sms-delete --conversation $(echo {} | cut -d" " -f1))' \
               --bind='ctrl-r:abort+execute(sms-list)' \
-              < "$LIST_FILE" || true)
+              < "$SORTED_LIST" || true)
 
             if [ -n "$SELECTED" ]; then
-              PHONE=$(echo "$SELECTED" | cut -d' ' -f1)
+              # Extract phone number (first field before |)
+              PHONE=$(echo "$SELECTED" | cut -d'|' -f1)
               sms-compose "$PHONE"
             fi
           '')
