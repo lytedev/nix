@@ -182,13 +182,26 @@ in
       enable = false;
     };
     database = {
-      # TODO: move to postgres?
+      # SQLite on SSD (zroot/root filesystem) for better performance under load
+      # HDD storage (/storage) caused severe latency during nix builds
       type = "sqlite3";
+      path = "/var/lib/forgejo-db/forgejo.db";
     };
   };
   services.restic.commonPaths = [
     config.services.forgejo.stateDir
+    "/var/lib/forgejo-db"
   ];
+
+  systemd.tmpfiles.settings."10-forgejo-db" = {
+    "/var/lib/forgejo-db" = {
+      d = {
+        mode = "0700";
+        user = "forgejo";
+        group = "forgejo";
+      };
+    };
+  };
   sops.secrets = {
     "forgejo-runner.env" = {
       mode = "0400";
@@ -294,21 +307,15 @@ in
   #   User = user;
   #   Group = user;
   # };
-  systemd.tmpfiles.settings =
-    let
-      inherit (anubis) user group dir;
-    in
-    {
-      "10-${user}" = {
-        "${dir}" = {
-          "d" = {
-            mode = "0770";
-            user = user;
-            group = group;
-          };
-        };
+  systemd.tmpfiles.settings."10-${anubis.user}" = {
+    "${anubis.dir}" = {
+      "d" = {
+        mode = "0770";
+        user = anubis.user;
+        group = anubis.group;
       };
     };
+  };
   virtualisation.oci-containers.containers.forgejo-anubis =
     let
       inherit (anubis) port;
