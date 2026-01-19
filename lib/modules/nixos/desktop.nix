@@ -84,6 +84,9 @@ in
 
       # for appimage support
       squashfsTools
+
+      fractal # Matrix client (GTK native)
+      element-desktop # Matrix client (Electron, full-featured)
     ];
 
     fonts.packages = [
