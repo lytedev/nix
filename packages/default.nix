@@ -9,9 +9,28 @@
   );
   vibe = pkgs.writeScriptBin "vibe" (builtins.readFile ./vibe.bash);
   mcpm-aider = pkgs.writeScriptBin "mcpm-aider" (builtins.readFile ./mcp-manager.bash);
-  claude-code = pkgs.callPackage ./claude-code.nix { };
-  happy-coder = pkgs.callPackage ./happy-coder.nix { };
-  codex = pkgs.callPackage ./codex.nix { };
+  # Thin wrappers around npx for agent tools
+  claude-code = pkgs.writeShellApplication {
+    name = "claude";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y @anthropic-ai/claude-code "$@"
+    '';
+  };
+  happy-coder = pkgs.writeShellApplication {
+    name = "happy";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y happy-coder "$@"
+    '';
+  };
+  codex = pkgs.writeShellApplication {
+    name = "codex";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y @openai/codex "$@"
+    '';
+  };
   fbkeyboard = pkgs.callPackage ./fbkeyboard.nix { };
   stevia = pkgs.callPackage ./stevia.nix { };
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };

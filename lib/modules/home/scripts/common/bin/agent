@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Run a command under the agent devshell
+exec nix develop /etc/nixos#agent -c "$@"

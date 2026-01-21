@@ -5,9 +5,32 @@ let
     system = pkgs.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
-  claude-code = unfreePkgs.callPackage ../claude-code.nix { };
-  happy-coder = unfreePkgs.callPackage ../happy-coder.nix { };
-  codex = pkgs.callPackage ../codex.nix { };
+
+  # Thin wrappers around npx for agent tools
+  # These always run the latest version via npx instead of packaging
+  claude-code = pkgs.writeShellApplication {
+    name = "claude";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y @anthropic-ai/claude-code "$@"
+    '';
+  };
+
+  happy-coder = pkgs.writeShellApplication {
+    name = "happy";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y happy-coder "$@"
+    '';
+  };
+
+  codex = pkgs.writeShellApplication {
+    name = "codex";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y @openai/codex "$@"
+    '';
+  };
 in
 {
   default = pkgs.mkShell {

@@ -48,9 +48,7 @@ in
     steamdeck = deployer "steamdeck" { remoteBuild = false; };
     steamdeckoled = deployer "steamdeckoled" { };
     flipflop = deployer "flipflop" { };
-    babyflip = deployer "babyflip" {
-      hostname = "nixos";
-    };
+    babyflip = deployer "babyflip" { };
     router = (deployer "router") {
       sshOpts = [
         "-p"

@@ -2015,7 +2015,7 @@ gtk-wide-tabs = true
 # If `true` (default), applications running in the terminal can show desktop
 # notifications using certain escape sequences such as OSC 9 or OSC 777.
 # TODO: https://github.com/ghostty-org/ghostty/discussions/3555
-desktop-notifications = false
+desktop-notifications = true
 
 # Notify when long-running commands complete
 # Only notify when terminal is not focused

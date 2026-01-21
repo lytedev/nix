@@ -97,8 +97,11 @@
       '')
     ];
 
+    gtk.enable = true;
+
     # Dark theme for GTK apps
     gtk.theme.name = "Adwaita-dark";
+    gtk.iconTheme.name = "Adwaita";
 
     # Foot terminal with ayu dark theme
     programs.foot = {
@@ -137,6 +140,8 @@
       settings = {
         "org/gnome/desktop/interface" = {
           color-scheme = "prefer-dark";
+          gtk-theme = "Adwaita-dark";
+          icon-theme = "Adwaita";
         };
         "org/gnome/desktop/a11y/applications" = {
           screen-keyboard-enabled = true;

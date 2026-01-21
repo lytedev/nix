@@ -45,6 +45,9 @@ in
             "@-"
           ];
         };
+        git = {
+          auto-track-bookmarks = true;
+        };
       };
     };
   };

@@ -86,4 +86,34 @@
 
   # no man cache on pinephone
   documentation.man.generateCaches = false;
+
+  # Memory pressure tuning for low-RAM device
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 60;
+  };
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 1024;
+      priority = 5;
+    }
+  ];
+
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 100;
+  };
+
+  systemd.oomd = {
+    enable = true;
+    settings = {
+      OOM = {
+        DefaultMemoryPressureDurationSec = "30s";
+        DefaultMemoryPressureLimit = "60%";
+        DefaultSwapUsedLimit = "90%";
+      };
+    };
+  };
 }
