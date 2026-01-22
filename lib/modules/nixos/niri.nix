@@ -46,6 +46,7 @@ flakeInputs:
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;
     programs.dconf.enable = true;
+    environment.etc."niri/laptop.kdl".text = lib.mkDefault "";
 
     # Enable GDM for login
     services = {

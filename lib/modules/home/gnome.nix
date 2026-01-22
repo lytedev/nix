@@ -19,9 +19,6 @@
         "org/gnome/desktop/default-applications/terminal" = {
           exec = "ghostty";
         };
-        "org/gnome/desktop/peripherals/touchpad" = {
-          disable-while-typing = false;
-        };
         "org/gnome/desktop/peripherals/keyboard" = {
           # gnome key repeat
           repeat = true;

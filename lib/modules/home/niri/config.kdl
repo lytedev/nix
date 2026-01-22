@@ -39,8 +39,6 @@ input {
         // drag false
         // drag-lock
         natural-scroll
-        // accel-speed 0.2
-        // accel-profile "flat"
         // scroll-method "two-finger"
         // disabled-on-external-mouse
     }
@@ -717,4 +715,5 @@ switch-events {
 }
 
 include "./noctalia.kdl"
+include "/etc/niri/laptop.kdl"
 include "./host-specific.kdl"
