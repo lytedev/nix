@@ -10,8 +10,10 @@ jobs:
         echo 'formatting check passed'
 
   build-host:
+    needs: flake-check
     runs-on: nixos-host
     strategy:
+      max-parallel: 1
       matrix:
         info:
           - host: beefcake
