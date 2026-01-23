@@ -5,3 +5,15 @@ if asked, setup jj workspaces for separate features somewhere in the following f
   - $CODE is the related code directory, usually ~/../code (since $HOME is /home/daniel/.home for clutter reasons and the code directory is usually /home/daniel/code)
   - $REPO_NAME would be nix in this case, so going from code/nix to code/workspaces/nix should be obvious
   - $WORKSPACE_NAME should probably just be the branch or bookmark name
+
+## Forgejo (tea CLI)
+
+Remote is hosted on Forgejo. Use `tea` for issues/PRs:
+
+```bash
+tea issue list
+tea issue create -t "title" -d "description"
+tea pr list
+tea pr create              # interactive
+tea pr merge <id>
+```

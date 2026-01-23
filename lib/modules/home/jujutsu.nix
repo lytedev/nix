@@ -47,6 +47,7 @@ in
         };
         git = {
           auto-track-bookmarks = true;
+          push-new-bookmarks = true;
         };
       };
     };

@@ -36,7 +36,7 @@ in
   default = pkgs.mkShell {
     inherit (self.outputs.checks.${pkgs.stdenv.hostPlatform.system}.git-hooks) shellHook;
     packages = with pkgs; [
-      colmena
+      deploy-rs
       sops
       nil
       nixd
@@ -44,6 +44,7 @@ in
       lua-language-server
       nodePackages.bash-language-server
       markdown-oxide
+      tea
     ];
   };
 
@@ -72,6 +73,28 @@ in
   # For permanent installation, use the NixOS module (d.music-production.enable)
   # or home-manager module (lyte.music-production.enable).
   #
+  # Deno Deploy Development Shell
+  #
+  # Enter with: nix develop .#deno-deploy
+  #
+  # For working on Deno Deploy services (e.g., netlify-ddns)
+  deno-deploy = pkgs.mkShell {
+    shellHook = ''
+      command -v deployctl || deno install -gArf jsr:@deno/deployctl
+      export PATH="$HOME/.deno/bin:$PATH"
+    '';
+
+    DENO_FUTURE = "1";
+
+    packages = with pkgs; [
+      deno
+      cue
+      sops
+      curl
+      xh
+    ];
+  };
+
   music-production = pkgs.mkShell {
     packages = with unfreePkgs; [
       # === DAWs ===
