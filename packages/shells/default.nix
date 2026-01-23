@@ -1,10 +1,12 @@
-{ self, ... }:
+{ self, zed, ... }:
 { pkgs, ... }:
 let
   unfreePkgs = import pkgs.path {
     system = pkgs.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
+
+  zed-editor = zed.outputs.packages.${pkgs.system}.default;
 
   # Thin wrappers around npx for agent tools
   # These always run the latest version via npx instead of packaging
@@ -54,6 +56,7 @@ in
       happy-coder
       codex
       pkgs.opencode
+      zed-editor
     ];
     shellHook = ''
       # happy-coder looks for claude at ~/.local/bin/claude (not in PATH)

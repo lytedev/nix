@@ -114,6 +114,11 @@
     iosevka-lyte.url = "github:lytedev/iosevka-lyte";
     # iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    zed = {
+      url = "github:zed-industries/zed";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     noctalia = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
