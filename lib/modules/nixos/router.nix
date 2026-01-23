@@ -195,6 +195,11 @@ in
               protocol: ports: address: comment:
               ''iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # ${comment}'';
 
+            # Hairpin NAT: DNAT for LAN traffic to router's own IPs
+            mkHairpinNatRule =
+              protocol: ports: address: comment:
+              ''iifname ${lan} fib daddr type local ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # hairpin ${comment}'';
+
             natPorts = flatten (
               mapAttrsToList (
                 hostname:
@@ -203,9 +208,22 @@ in
                   nat ? { },
                   ...
                 }:
-                # TODO: embed comment?
                 mapAttrsToList (
                   protocol: rules: mkNatRule protocol (mapAttrsToList (_: ports: ports) rules) ip "comment"
+                ) nat
+              ) cfg.hosts
+            );
+
+            hairpinNatPorts = flatten (
+              mapAttrsToList (
+                hostname:
+                {
+                  ip,
+                  nat ? { },
+                  ...
+                }:
+                mapAttrsToList (
+                  protocol: rules: mkHairpinNatRule protocol (mapAttrsToList (_: ports: ports) rules) ip "comment"
                 ) nat
               ) cfg.hosts
             );
@@ -251,20 +269,12 @@ in
                   ct state invalid drop comment "Drop invalid connections"
                   ct state established,related accept comment "Accept traffic originated from us"
 
-                  meta l4proto ipv6-icmp accept comment "Accept ICMPv6"
-                  meta l4proto icmp accept comment "Accept ICMP"
                   ip protocol igmp accept comment "Accept IGMP"
 
-                  ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit accept
-                  ip6 nexthdr icmpv6 icmpv6 type nd-router-advert  accept comment "Accept IPv6 router advertisements"
-                  udp dport dhcpv6-client accept comment "IPv6 DHCP"
+                  ip6 nexthdr icmpv6 icmpv6 type { echo-request, echo-reply, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } accept comment "Accept ICMPv6"
+                  ip protocol icmp icmp type { echo-request, echo-reply, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } accept comment "Accept ICMP"
 
-                  ip6 nexthdr icmpv6 icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit, nd-router-advert, mld-listener-query, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } accept comment "Accept IPv6 ICMP and meta stuff"
-                  ip protocol icmp icmp type { echo-request, destination-unreachable, router-advertisement, time-exceeded, parameter-problem } accept comment "Accept IPv4 ICMP and meta stuff"
-                  ip protocol icmpv6 accept
-                  ip protocol icmp accept
-                  meta l4proto ipv6-icmp counter accept
-                  udp dport dhcpv6-client counter accept
+                  udp dport dhcpv6-client accept comment "DHCPv6 client"
 
                   udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
                   udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
@@ -286,8 +296,22 @@ in
                 }
 
                 chain forward {
-                  type filter hook forward priority 0;
-                  accept
+                  type filter hook forward priority 0; policy drop;
+
+                  ct state established,related accept comment "Allow established connections"
+                  ct state invalid drop comment "Drop invalid packets"
+
+                  iifname "${lan}" oifname "${wan}" accept comment "Allow LAN to WAN"
+
+                  iifname "${wan}" oifname "${lan}" ct status dnat accept comment "Allow NAT port forwards"
+                  iifname "${lan}" oifname "${lan}" ct status dnat accept comment "Allow hairpin NAT"
+
+                  iifname "tailscale0" accept comment "Allow from Tailscale"
+                  oifname "tailscale0" accept comment "Allow to Tailscale"
+
+                  ip6 nexthdr icmpv6 icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem } accept comment "Allow essential ICMPv6"
+
+                  counter drop comment "Drop unsolicited WAN to LAN"
                 }
               }
 
@@ -295,10 +319,9 @@ in
                 chain prerouting {
                   type nat hook prerouting priority dstnat;
 
-                  iifname ${lan} accept
-                  iifname tailscale0 accept
-
                   ${concatStringsSep "\n    " natPorts}
+
+                  ${concatStringsSep "\n    " hairpinNatPorts}
 
                   # iifname ${wan} tcp dport {22} dnat to ${cfg.hosts.beefcake.ip}
                   # iifname ${wan} tcp dport {80, 443} dnat to ${cfg.hosts.beefcake.ip}
@@ -312,6 +335,7 @@ in
                 chain postrouting {
                   type nat hook postrouting priority 100; policy accept;
                   oifname "${wan}" masquerade
+                  iifname "${lan}" oifname "${lan}" ct status dnat masquerade comment "Hairpin NAT"
                 }
               }
             '';
@@ -346,8 +370,7 @@ in
 
         # configure networks for the interfaces
         networks = {
-          # LAN configuration is very simple and mostly forwarded between
-          # TODO: IPv6
+          # LAN configuration - serves as gateway for local network
           "50-${lan}" = {
             matchConfig.Name = "${lan}";
             linkConfig = {
@@ -361,6 +384,12 @@ in
               IPv6SendRA = true;
               DHCPPrefixDelegation = true;
             };
+            # Delegate a /64 from our prefix to the LAN
+            dhcpPrefixDelegationConfig = {
+              UplinkInterface = "${wan}";
+              SubnetId = 1;
+              Announce = true;
+            };
           };
 
           /*
@@ -369,25 +398,20 @@ in
             control as we reasonably can, such as not letting the ISP determine our
             hostname or DNS configuration
           */
-          # TODO: IPv6 (prefix delegation)
           "40-${wan}" = {
             matchConfig.Name = "${wan}";
             networkConfig = {
               DHCP = true;
-              /*
-                IPv6AcceptRA = true;
-                IPv6PrivacyExtensions = true;
-                IPForward = true;
-              */
+              IPv6AcceptRA = true;
             };
             dhcpV6Config = {
-              /*
-                ForceDHCPv6PDOtherInformation = true;
-                UseHostname = false;
-                UseDNS = false;
-                UseNTP = false;
-              */
-              # PrefixDelegationHint = "::/56";
+              # Request a prefix delegation from the ISP
+              # Try ::/60 first; if your ISP gives smaller (e.g., /64), adjust accordingly
+              PrefixDelegationHint = "::/60";
+              WithoutRA = "solicit";
+              UseHostname = false;
+              UseDNS = false;
+              UseNTP = false;
             };
             dhcpV4Config = {
               Hostname = cfg.hostname;
@@ -402,7 +426,6 @@ in
             };
             linkConfig = {
               RequiredForOnline = "routable";
-              # Name = interfaces.wan.name;
             };
             ipv6AcceptRAConfig = {
               DHCPv6Client = "always";

@@ -27,8 +27,7 @@ in
           services.deno-netlify-ddns-client = {
             enable = true;
             username = "beefcake.h";
-            # TODO: router doesn't even do ipv6 yet...
-            ipv6 = false;
+            ipv6 = true;
           };
         }
 
@@ -230,8 +229,7 @@ in
         services.deno-netlify-ddns-client = {
           enable = true;
           username = "router.h";
-          # TODO: ipv6
-          ipv6 = false;
+          ipv6 = true;
         };
       }
 
