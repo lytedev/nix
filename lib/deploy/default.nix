@@ -35,7 +35,7 @@ let
 in
 {
   nodes = {
-    beefcake = deployer "beefcake" { };
+    beefcake = deployer "beefcake" { hostname = "192.168.0.9"; };
     dragon = deployer "dragon" { };
     htpc = deployer "htpc" {
       remoteBuild = false;

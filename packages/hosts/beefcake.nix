@@ -21,6 +21,7 @@
   };
 
   podman.enable = true;
+  lyte.headscale.usePreAuthKey = true;
 
   services.deno-netlify-ddns-client = {
     enable = true;

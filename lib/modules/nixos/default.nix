@@ -24,6 +24,7 @@ inputs: {
   restic = import ./restic.nix;
   router = import ./router.nix;
   kanidm = import ./kanidm.nix;
+  headscale-server = import ./headscale-server.nix;
   steamdeck = import ./steamdeck.nix;
   mobile = import ./mobile.nix;
   music-production = import ./music-production.nix;

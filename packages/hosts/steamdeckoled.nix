@@ -16,4 +16,5 @@
   ];
 
   lyte.steamdeck.enable = true;
+  lyte.headscale.usePreAuthKey = true;
 }

@@ -37,6 +37,7 @@
     restic
     router
     kanidm
+    headscale-server
     laptop
     mobile
     music-production

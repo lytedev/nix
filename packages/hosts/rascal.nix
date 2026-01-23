@@ -71,6 +71,7 @@
 
   services.tailscale.useRoutingFeatures = "server";
 
+  lyte.headscale.usePreAuthKey = true;
   lyte.shell.enable = false;
   home-manager.users.daniel = {
     lyte.shell.enable = false;

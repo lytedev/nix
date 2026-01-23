@@ -112,6 +112,7 @@ in
 
   lyte = {
     shell.enable = true;
+    headscale.usePreAuthKey = true;
     router = {
       enable = true;
       hostname = "router";
@@ -162,6 +163,7 @@ in
                 80
                 443
               ];
+              "Headscale STUN" = 3478;
               "Factorio" = 34197;
               "Jonland Minecraft" = 26974;
               "Prominence 2" = 26989;

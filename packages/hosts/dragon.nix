@@ -39,6 +39,7 @@
 
   prevent-suspend.enable = true;
   hardware.bluetooth.enable = true;
+  lyte.headscale.usePreAuthKey = true;
   powerManagement.cpuFreqGovernor = "performance";
 
   sops = {
@@ -58,7 +59,10 @@
     signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
   };
 
-  networking.firewall.allowedTCPPorts = [ 5000 ];
+  networking.firewall.allowedTCPPorts = [
+    4822
+    5000
+  ];
 
   programs.nix-ld.enable = true;
 
