@@ -1,4 +1,5 @@
 /.direnv
+/.workspaces
 result
 
 .pre-commit-config.yaml

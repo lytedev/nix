@@ -49,6 +49,7 @@ in
           auto-track-bookmarks = true;
           push-new-bookmarks = true;
         };
+        remotes.origin.auto-track-bookmarks = "glob:*";
       };
     };
   };
