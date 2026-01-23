@@ -20,7 +20,7 @@ let
       hostSystem = self.nixosConfigurations.${host}.pkgs.stdenv.hostPlatform.system;
     in
     {
-      hostname = "${host}.hare-cod.ts.net";
+      hostname = "${host}.internal.vpn.h.lyte.dev";
       remoteBuild = true; # should pull from cache
       fastConnection = false;
       interactiveSudo = false;
