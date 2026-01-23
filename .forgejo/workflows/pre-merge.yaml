@@ -40,6 +40,15 @@ jobs:
         nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto develop . --build --accept-flake-config
         echo 'nix command completed successfully'
 
+  build-agent-devshell:
+    runs-on: nixos-host
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build default devShell
+      run: |
+        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto develop .#agent --build --accept-flake-config
+        echo 'nix command completed successfully'
+
   flake-check:
     runs-on: nixos-host
     steps:
