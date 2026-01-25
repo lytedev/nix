@@ -13,34 +13,24 @@
 
   boot.loader.systemd-boot.enable = true;
 
-  /*
-    systemd.services.activate-touch-hack = {
-      enable = true;
-      description = "Touch wake Thinkpad X1 Yoga 3rd gen hack";
-
-      unitConfig = {
-        After = [
-          "suspend.target"
-          "hibernate.target"
-          "hybrid-sleep.target"
-          "suspend-then-hibernate.target"
-        ];
-      };
-
-      serviceConfig = {
-        ExecStart = ''
-          /bin/sh -c "echo '\\_SB.PCI0.LPCB.EC._Q2A' > /proc/acpi/call"
-        '';
-      };
-
-      wantedBy = [
-        "suspend.target"
-        "hibernate.target"
-        "hybrid-sleep.target"
-        "suspend-then-hibernate.target"
-      ];
+  # Fix ELAN touchscreen not working after resume from suspend
+  systemd.services.fix-touchscreen-resume = {
+    description = "Rebind ELAN touchscreen after resume";
+    after = [
+      "suspend.target"
+      "hibernate.target"
+      "hybrid-sleep.target"
+    ];
+    wantedBy = [
+      "suspend.target"
+      "hibernate.target"
+      "hybrid-sleep.target"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'echo i2c-ELAN901C:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/unbind; sleep 0.5; echo i2c-ELAN901C:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/bind'";
     };
-  */
+  };
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"
