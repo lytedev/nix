@@ -110,6 +110,14 @@
       addr = "0.0.0.0";
       port = 4822;
     }
+    {
+      addr = "[::]";
+      port = 22;
+    }
+    {
+      addr = "0.0.0.0";
+      port = 22;
+    }
   ];
 
   boot.binfmt.emulatedSystems = [
