@@ -1,0 +1,336 @@
+/* Mobile-friendly Firefox userChrome.css
+ * Adapted from postmarketOS mobile-config-firefox
+ * https://gitlab.com/postmarketOS/mobile-config-firefox/
+ * SPDX-License-Identifier: MPL-2.0 */
+
+/* === root.css === */
+
+/* Reduce minimum window width */
+:root {
+    min-width: 300px !important;
+}
+
+/* === appMenu.css === */
+
+@media (max-width: 700px) {
+    /* Spawn the menu above the navigation bar (now that we've moved it to the
+     * bottom). Without this, it still spawns above, but only with a small
+     * height. This is due to the position="bottomcenter topright" attribute in
+     * the HTML, which we can't override via CSS. */
+    #appMenu-popup {
+        margin-top: -410px !important;
+        height: 330px;
+        max-height: 330px;
+    }
+    #appMenu-protonMainView vbox.panel-subview-body, #appMenu-mainView vbox.panel-subview-body {
+        height: 330px !important;
+        max-height: 330px !important;
+    }
+    #appMenu-multiView box.panel-viewstack:first-child {
+        height: calc(100vh - 100px) !important;
+        max-height: calc(100vh - 100px) !important;
+    }
+
+    #appMenu-fxa-status2,
+    #appMenu-fxa-separator,
+    #appMenu-new-window-button2,
+    #appMenu-protonMainView toolbarseparator,
+    #appMenu-mainView toolbarseparator,
+    #appMenu-save-file-button2,
+    #appMenu-fullscreen-button2,
+    #appMenu-passwords-button,
+    #appMenu-extensions-themes-button,
+    #appMenu-bookmarks-button,
+    #appMenu-history-button,
+    #appMenu-more-button2,
+    #appMenu-help-button2,
+    .subviewbutton[shortcut]::after {
+        display: none !important;
+    }
+}
+
+/* === browser.css === */
+
+@media (max-width: 700px) {
+    /* Move navigation bar to bottom */
+    #browser {
+        order: -1 !important;
+    }
+
+    /* Hide navigation bar in kiosk mode */
+    #nav-bar[inFullscreen],
+    #TabsToolbar[inFullscreen] {
+        display: none;
+    }
+
+    /* Hide minimize/maximize/close buttons */
+    .titlebar-buttonbox-container {
+        display: none;
+    }
+}
+
+/* === editBookmarkPanel.css === */
+
+@media (max-width: 700px) {
+    #editBookmarkPanel {
+        margin-top: -390px !important;
+        height: 200px;
+        max-height: 200px;
+        max-width: calc(100vw - 100px);
+    }
+
+    #editBookmarkPanel box.panel-header,
+    #editBookmarkHeaderSeparator {
+        display: none !important;
+    }
+
+    #editBookmarkPanelContent {
+        max-width: 250px !important;
+        width: 250px !important;
+        padding-right: 20px;
+    }
+
+    #editBookmarkPanelInfoArea,
+    #editBookmarkSeparator {
+        display: none;
+    }
+
+    #editBMPanel_folderRow,
+    .editBMPanel_folderRow,
+    #editBMPanel_tagsRow,
+    .editBMPanel_tagsRow {
+        display: none;
+    }
+
+    #editBookmarkPanel * .panel-footer {
+        justify-content: flex-start !important;
+    }
+
+    #editBookmarkPanelBottomButtons {
+        width: 250px !important;
+        min-width: 250px !important;
+        padding: 0px !important;
+        justify-content: flex-start !important;
+        margin: 0px 0px 20px 0px !important;
+    }
+}
+
+/* === findbar.css === */
+
+@media (max-width: 700px) {
+    .findbar-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        height: 150px !important;
+    }
+
+    .findbar-textbox {
+        width: 100% !important;
+    }
+
+    .findbar-container checkbox {
+        padding: 10px 0px;
+    }
+}
+
+/* === popups.css === */
+
+@media (max-width: 700px) {
+    .popup-notification-panel  {
+        margin-top: -280px !important;
+        max-width: 98vw;
+    }
+    #notification-popup {
+        margin-top: -330px !important;
+        padding-left: 30px;
+    }
+
+    #downloadsPanel-mainView {
+        max-width: calc(100vw - 10px);
+    }
+
+    .panel-viewstack {
+        height: 100vh !important;
+        max-height: calc(100vh - 100px) !important;
+        max-width: calc(100vw - 10px);
+    }
+
+    .webextension-popup-browser {
+        height: 100% !important;
+        min-height: 100% !important;
+        width: 100vw !important;
+        min-width: 100vw !important;
+    }
+
+    #backForwardMenu {
+        margin-top: -250px;
+        height: 200px;
+        min-height: 200px;
+        max-width: 100vw !important;
+    }
+
+    #context-inspect,
+    #context-inspect-a11y,
+    #context-savelinktopocket,
+    #context-searchselect,
+    #context-sendlinktodevice,
+    #context-viewpartialsource-selection,
+    #inspect-separator,
+    #overflowMenu-customize-button {
+        display: none !important
+    }
+
+    #protections-popup,
+    #permission-popup,
+    #widget-overflow,
+    #identity-popup,
+    #date-picker {
+        max-width: 100vw !important;
+    }
+
+    #protections-popup-mainView {
+        min-width: 100vw !important;
+        max-width: 100vw !important;
+    }
+
+    #widget-overflow,
+    #widget-overflow-mainView {
+        height: calc(100vh - 80px) !important;
+    }
+
+    .dialogFrame {
+        max-width: 100%;
+    }
+}
+
+/* === tabmenu.css === */
+
+@media (max-width: 700px) {
+    #titlebar {
+        padding-right: 30px;
+    }
+
+    #private-browsing-indicator-with-label {
+        margin-inline: 0px !important;
+        width: 0px;
+        font-size: 0;
+    }
+
+    #firefox-view-button {
+        display: none;
+    }
+
+    #tabbrowser-tabs {
+        --tab-min-width: calc(100vw - 116px) !important;
+        border-inline-start: 0 !important;
+    }
+
+    #alltabs-button {
+        transform: rotate(180deg) !important;
+    }
+
+    #scrollbutton-up, #scrollbutton-down {
+        display: none !important;
+    }
+
+    #allTabsMenu-searchTabs,
+    #allTabsMenu-tabsSeparator {
+        display: none;
+    }
+
+    #customizationui-widget-panel {
+        margin-top: -360px !important;
+        height: 320px;
+        max-height: 320px;
+    }
+
+    #allTabsMenu-allTabsView vbox.panel-subview-body {
+        height: 300px !important;
+        max-height: 300px !important;
+    }
+
+    #allTabsMenu-allTabsView vbox.panel-subview-body:first-child {
+        overflow-y: hidden !important;
+    }
+
+    #customizationui-widget-multiview box.panel-viewstack {
+        height: 300px !important;
+        max-height: 300px !important;
+    }
+
+    #allTabsMenu-allTabsView-tabs {
+        max-width: calc(100vw - 20px);
+    }
+}
+
+/* === urlbar.css === */
+
+#urlbar-container {
+    min-width: 150px !important;
+    flex-shrink: 1 !important;
+}
+
+@media (max-width: 700px) {
+    #forward-button,
+    #home-button,
+    #customizableui-special-spring1,
+    #customizableui-special-spring2,
+    #library-button,
+    #sidebar-button,
+    #fxa-toolbar-menu-button {
+        display: none !important;
+    }
+
+    #urlbar {
+        padding: 0px 5px;
+    }
+
+    #urlbar-input {
+        font-size: 9pt !important;
+    }
+
+    #urlbar #translations-button, #urlbar #picture-in-picture-button, #urlbar #identity-box #identity-permission-box {
+        display: none !important;
+    }
+
+    #urlbar[focused] #remote-control-box,
+    #urlbar[focused] #identity-box,
+    #urlbar[focused] #tracking-protection-icon-container,
+    #urlbar[focused] #reader-mode-button,
+    #urlbar[focused] #page-action-buttons {
+        display: none;
+    }
+
+    #identity-icon-label {
+        display: none;
+    }
+
+    .urlbarView {
+        position: fixed !important;
+        inset: 0px 0px 84px 0px;
+        width: 100% !important;
+
+        background: var(--arrowpanel-background);
+
+        margin: 0px !important;
+        margin-inline: 0px !important;
+        border-inline: 0px !important;
+
+        overflow-y:  auto !important;
+        overflow-x: none !important;
+        scrollbar-width: none;
+    }
+
+    #PersonalToolbar {
+        display: none;
+    }
+
+    :root {
+        --bookmarks-toolbar-overlapping-browser-height: 0 !important;
+    }
+}
+
+button[id^='urlbar-engine-one-off-item-Amazon'] {
+    display: none !important;
+}

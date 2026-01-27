@@ -37,6 +37,8 @@
   # Additional packages specific to this host
   environment.systemPackages = with pkgs; [
     gnome-clocks # clock/alarm app
+    pure-maps # offline/online maps and navigation
+    snapshot # GNOME camera app
   ];
 
   # Shell tools on the NixOS side
@@ -101,6 +103,18 @@
       priority = 5;
     }
   ];
+
+  # Disable kexec boot (stage-0) - kexec breaks CMA allocation which prevents
+  # camera (megapixels) and hardware video playback (cedrus/livi/clapper) from working.
+  # See: https://github.com/mobile-nixos/mobile-nixos/issues/660
+  mobile.quirks.supportsStage-0 = lib.mkForce false;
+
+  # Enable geoclue demo agent for GPS (needed for pure-maps and gnome-maps)
+  # Without this, no geoclue agent is running and location services don't work.
+  services.geoclue2.enableDemoAgent = lib.mkForce true;
+
+  # geoclue needs networkmanager group to query wifi/cell for location
+  users.users.geoclue.extraGroups = [ "networkmanager" ];
 
   boot.kernel.sysctl = {
     "vm.swappiness" = 100;

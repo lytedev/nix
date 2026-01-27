@@ -108,6 +108,12 @@ in
         hardware.sensor.iio.enable = true;
         services.geoclue2.enable = true;
 
+        # Set proximity near level for stk3310 so iio-sensor-proxy reports "near" state
+        # (used by phosh to blank screen during calls)
+        services.udev.extraRules = ''
+          ACTION=="add", SUBSYSTEM=="iio", TEST=="in_proximity_raw", ENV{PROXIMITY_NEAR_LEVEL}="250"
+        '';
+
         # Camera access - add user to video group for /dev/video* access
         users.users.${cfg.user}.extraGroups = [ "video" ];
 
@@ -129,7 +135,7 @@ in
 
         # Mobile apps
         environment.systemPackages = with pkgs; [
-          # Browser
+          # Browser (policies configured via environment.etc below)
           firefox
 
           # Communication
@@ -145,7 +151,18 @@ in
           gnome-podcasts # Lightweight podcast app
 
           # Camera and its dependencies
-          megapixels
+          # Mali-400 (lima) only supports GLES 2.0, but GTK 4.18+ requires GLES 3.0.
+          # Force software rendering so megapixels can create a GL context.
+          (pkgs.symlinkJoin {
+            name = "megapixels-wrapped";
+            paths = [ megapixels ];
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            postBuild = ''
+              wrapProgram $out/bin/megapixels \
+                --set LIBGL_ALWAYS_SOFTWARE 1 \
+                --set GSK_RENDERER cairo
+            '';
+          })
           v4l-utils # for v4l2-ctl debugging
           gst_all_1.gstreamer
           gst_all_1.gst-plugins-base
@@ -236,6 +253,78 @@ in
         # Qt apps should use wayland
         environment.sessionVariables = {
           QT_QPA_PLATFORM = "wayland";
+        };
+
+        # Firefox mobile-friendly policies (from postmarketOS mobile-config-firefox)
+        # Disables telemetry/bloat, sets DuckDuckGo default, installs uBlock Origin
+        environment.etc."firefox/policies/policies.json".text = builtins.toJSON {
+          policies = {
+            DisableFirefoxScreenshots = true;
+            DisableFirefoxStudies = true;
+            DisableTelemetry = true;
+            DisablePocket = true;
+            NoDefaultBookmarks = true;
+            OverrideFirstRunPage = "";
+            OverridePostUpdatePage = "";
+
+            Homepage = {
+              URL = "about:home";
+              Locked = false;
+              StartPage = "homepage";
+            };
+
+            FirefoxHome = {
+              Search = true;
+              TopSites = false;
+              Highlights = false;
+              Pocket = false;
+              Snippets = false;
+              Locked = false;
+            };
+
+            SearchEngines = {
+              Default = "DuckDuckGo";
+              Remove = [
+                "Amazon.com"
+                "Amazon.co.uk"
+                "Amazon.de"
+                "Amazon.fr"
+                "Amazon.ca"
+                "Amazon.co.jp"
+                "Amazon.com.au"
+                "Amazon.es"
+                "Amazon.in"
+                "Amazon.it"
+                "Amazon.nl"
+                "Amazon.se"
+                "Bing"
+                "eBay"
+                "Google"
+              ];
+            };
+
+            Preferences = {
+              "dom.private-attribution.submission.enabled" = {
+                Value = false;
+                Status = "locked";
+              };
+            };
+
+            UserMessaging = {
+              WhatsNew = false;
+              ExtensionRecommendations = false;
+              FeatureRecommendations = false;
+              UrlbarInterventions = false;
+              SkipOnboarding = false;
+            };
+
+            ExtensionSettings = {
+              "uBlock0@raymondhill.net" = {
+                installation_mode = "normal_installed";
+                install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+              };
+            };
+          };
         };
 
         # XDG portal for desktop integration

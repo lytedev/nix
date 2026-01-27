@@ -1,0 +1,285 @@
+/* Mobile-friendly Firefox userContent.css
+ * Adapted from postmarketOS mobile-config-firefox
+ * https://gitlab.com/postmarketOS/mobile-config-firefox/
+ * SPDX-License-Identifier: MPL-2.0 */
+
+/* === addons.css === */
+
+@-moz-document url("about:addons"), url-prefix("about:addons") {
+    :root {
+        --section-width: min(664px, 100%) !important;
+    }
+}
+
+/* === config.css === */
+
+@-moz-document url("about:config") {
+    #search-container,
+    #toolbar, #prefs {
+        min-width: 300px !important;
+    }
+
+    @media (max-width: 644px) {
+        #toolbar {
+            flex-direction: column;
+        }
+
+        #about-config-search {
+            max-width: 100%;
+        }
+
+        #prefs {
+            word-wrap: anywhere;
+        }
+
+        .checkbox-container {
+            margin-top: 5px;
+        }
+    }
+
+    @media (max-width: 500px) {
+        tr {
+            font-size: 12px;
+        }
+
+        th {
+            padding-left: 8px !important;
+        }
+    }
+}
+
+/* === home.css === */
+
+@namespace url("http://www.w3.org/1999/xhtml");
+
+@-moz-document url("about:home"), url("about:blank"), url("about:newtab") {
+    @media (max-width: 700px) {
+
+        .outer-wrapper.only-search {
+            padding-top: 50px !important;
+        }
+
+        .customize-menu {
+            width: 100% !important;
+        }
+
+    }
+}
+
+/* === license.css === */
+
+@-moz-document url("about:license") {
+    @media (max-width: 500px) {
+        .license-header {
+            background-image: none !important;
+            padding-inline-end: unset !important;
+        }
+    }
+}
+
+/* === logins.css === */
+
+@-moz-document url("about:logins") {
+    .container {
+        min-width: 300px !important;
+    }
+
+    @media (max-width: 700px) {
+        body {
+            --sidebar-width: 200px !important;
+            grid-template-columns: var(--sidebar-width) 1fr !important;
+        }
+
+        .edit-button, .delete-button {
+            font-size: 0 !important;
+            background-position: center;
+        }
+
+        #branding-logo {
+            display: none;
+        }
+    }
+}
+
+/* === policies.css === */
+
+@-moz-document url("about:policies"), url-prefix("about:policies") {
+    @media (max-width: 830px) {
+        tbody.collapsible td,
+        .active-policies td {
+            word-wrap: anywhere;
+        }
+    }
+}
+
+/* === preferences.css === */
+
+@-moz-document regexp("about:preferences.*") {
+    .sticky-container {
+        display: flex;
+    }
+
+    #policies-container {
+        display: none;
+    }
+
+    .fxaMobilePromo {
+        display: none;
+    }
+
+    @media (max-width: 700px) {
+        .fxaSyncIllustration {
+            display: none;
+        }
+    }
+}
+
+/* === protections.css === */
+
+@-moz-document url("about:protections") {
+    #report-content {
+        width: calc(100% - 16px) !important;
+        max-width: 800px !important;
+    }
+
+    .lockwise-card .card-body,
+    #mobile-hanger {
+        display: none !important;
+    }
+
+    @media (max-width: 800px) {
+        #report-content {
+            margin: 16px 8px !important;
+        }
+
+        .icon {
+            width: 32px !important;
+            height: 32px !important;
+        }
+
+        .body-wrapper {
+            grid-column-start: 1 !important;
+            grid-column-end: -1 !important;
+        }
+
+        #manage-protections,
+        #sign-up-for-monitor-link,
+        #save-passwords-button,
+        #get-proxy-extension-link {
+            grid-area: 2 / 1 / 2 / 6 !important;
+        }
+
+        .card-header .wrapper {
+            grid-row-gap: 8px !important;
+        }
+
+        .card:not(.has-logins) .wrapper div:nth-child(1) {
+            grid-column-end: -1 !important;
+        }
+    }
+}
+
+/* === reader.css === */
+
+@-moz-document url-prefix("about:reader") {
+    @media (max-width: 800px) {
+        .toolbar-container {
+            margin-inline-start: 0px !important;
+            position: fixed !important;
+            top: 0px !important;
+            height: 74px !important;
+            width: 100% !important;
+            left: 0px !important;
+            background-color: rgba(255,255,255,1);
+        }
+
+        .dark .toolbar-container {
+            background-color: rgba(3,3,3,1);
+        }
+
+        .sepia .toolbar-container {
+            background-color: rgba(244,236,216,1);
+        }
+
+        .toolbar {
+            margin-inline-start: unset !important;
+            width: unset !important;
+        }
+
+        .dropdown li {
+            display: inline !important;
+        }
+
+        .dropdown {
+            display: inline;
+        }
+
+        body {
+            padding: 74px 0px !important;
+            margin: 15px 15px 0px !important;
+            --content-width: unset !important;
+        }
+
+        .header > h1 {
+            margin: 10px 0 !important;
+        }
+
+        .header > .meta-data {
+            margin: 0 0 5px !important;
+        }
+
+        .header > .credits {
+            margin: 0 0 5px !important;
+        }
+    }
+}
+
+/* === rights.css === */
+
+@-moz-document url("about:rights") {
+    @media (max-width: 500px) {
+        .rights-header {
+            background-image: none !important;
+            padding-inline-end: unset !important;
+        }
+    }
+}
+
+/* === sidebar.css === */
+
+@-moz-document regexp("about:(preferences|addons|policies).*") {
+    .category-icon {
+        user-select: none !important;
+    }
+
+    @media (max-width: 700px) {
+        :root {
+            --in-content-sidebar-width: 50px !important;
+            --sidebar-width: 50px !important;
+        }
+
+        #categories > .category {
+            margin-inline-start: auto !important;
+            padding-inline: auto !important;
+        }
+
+        .category-name {
+            display: none !important;
+        }
+
+        .sidebar-footer-list {
+            margin-inline: auto !important;
+            padding-inline: auto !important;
+        }
+
+        .sidebar-footer-label {
+            display: none !important;
+        }
+    }
+
+    @media (max-height: 400px) {
+        #categories {
+            margin-top: 8px !important;
+        }
+    }
+}

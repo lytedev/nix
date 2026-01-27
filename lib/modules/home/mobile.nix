@@ -55,6 +55,32 @@
 
           # Smooth scrolling
           "general.smoothScroll" = true;
+
+          # Legacy touch event APIs (some sites check for mobile compat)
+          "dom.w3c_touch_events.legacy_apis.enabled" = true;
+
+          # Save vertical space by hiding the titlebar
+          "browser.tabs.inTitlebar" = 1;
+
+          # Disable search suggestions
+          "browser.search.suggest.enabled" = false;
+
+          # Disable cosmetic/download animations, save CPU
+          "toolkit.cosmeticAnimations.enabled" = false;
+          "browser.download.animateNotifications" = false;
+
+          # Select the entire URL with one click
+          "browser.urlbar.clickSelectsAll" = true;
+
+          # Do not suggest top sites or search engines in urlbar
+          "browser.urlbar.suggest.topsites" = false;
+          "browser.urlbar.suggest.engines" = false;
+
+          # Disable Firefox View pinned tab
+          "browser.tabs.firefox-view" = false;
+
+          # Enable Pipewire camera support
+          "media.webrtc.camera.allow-pipewire" = true;
         };
 
         extraConfig = ''
@@ -62,6 +88,10 @@
           user_pref("media.ffmpeg.vaapi.enabled", true);
           user_pref("media.rdd-vpx.enabled", true);
         '';
+
+        # Mobile-friendly Firefox UI (from postmarketOS mobile-config-firefox)
+        userChrome = builtins.readFile ./firefox-mobile-userchrome.css;
+        userContent = builtins.readFile ./firefox-mobile-usercontent.css;
 
       };
     };
