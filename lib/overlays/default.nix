@@ -23,7 +23,32 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) kanidm jujutsu;
 
-      ghostty = ghostty.outputs.packages.${prev.system}.default;
+      # nixpkgs-unstable split zig's setup-hook into zig.hook, but that hook
+      # unconditionally prepends default flags that conflict with ghostty's own.
+      # provide the build/install phases directly instead.
+      ghostty = (ghostty.outputs.packages.${prev.system}.default).overrideAttrs (old: {
+        buildPhase = ''
+          runHook preBuild
+          ZIG_GLOBAL_CACHE_DIR=$(mktemp -d)
+          export ZIG_GLOBAL_CACHE_DIR
+          local flagsArray=("-j$NIX_BUILD_CORES")
+          concatTo flagsArray zigBuildFlags zigBuildFlagsArray
+          echoCmd 'zig build flags' "''${flagsArray[@]}"
+          TERM=dumb zig build "''${flagsArray[@]}" --verbose
+          runHook postBuild
+        '';
+        installPhase = ''
+          runHook preInstall
+          ZIG_GLOBAL_CACHE_DIR=$(mktemp -d)
+          export ZIG_GLOBAL_CACHE_DIR
+          local flagsArray=("-j$NIX_BUILD_CORES")
+          concatTo flagsArray zigBuildFlags zigBuildFlagsArray zigInstallFlags zigInstallFlagsArray
+          flagsArray+=("--prefix" "$out")
+          echoCmd 'zig install flags' "''${flagsArray[@]}"
+          TERM=dumb zig build install "''${flagsArray[@]}" --verbose
+          runHook postInstall
+        '';
+      });
       helix = helix.outputs.packages.${prev.system}.default;
 
       # use pre-built font to avoid expensive builds on every system

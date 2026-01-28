@@ -105,7 +105,6 @@
     # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     ghostty.url = "github:ghostty-org/ghostty";
-    # need some common system dep for ghostty at the moment
     ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     deploy-rs.url = "github:serokell/deploy-rs";
