@@ -668,7 +668,7 @@ binds {
     Print { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
-    Super+Shift+S hotkey-overlay-title="Screenshot: Gradia" { spawn "gradia" "--screenshot"; }
+    Super+Shift+S hotkey-overlay-title="Screenshot: clipshot + Gradia" { spawn "bash" "-c" "f=$(clipshot) && gradia \"$f\""; }
 
     Mod+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "dismiss"; }
     Super+Shift+Ctrl+Alt+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "restore"; }
