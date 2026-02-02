@@ -26,10 +26,12 @@
       bridge = {
         permissions = {
           "@daniel:lyte.dev" = "admin";
+          "*" = "relay";
         };
         encryption = {
           allow = true;
-          default = true;
+          default = false;
+          allow_key_sharing = true;
           pickle_key = "mautrix.bridge.e2ee";
         };
       };
