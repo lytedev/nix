@@ -15,6 +15,14 @@
         "org/gnome/settings-daemon/plugins/media-keys" = {
           screensaver = [ "<Shift><Control><Super>l" ]; # lock screen
           mic-mute = [ "<Shift><Super>v" ];
+          custom-keybindings = [
+            "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+          ];
+        };
+        "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+          name = "Gradia Screenshot";
+          binding = "<Shift><Super>s";
+          command = "gradia --screenshot";
         };
         "org/gnome/desktop/default-applications/terminal" = {
           exec = "ghostty";

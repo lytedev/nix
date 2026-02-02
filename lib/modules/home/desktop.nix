@@ -41,6 +41,7 @@ in
       )
 
       iosevkaLyteTerm
+      gradia
       spicetify-cli # CLI only, for use with Flatpak Spotify
     ];
 
