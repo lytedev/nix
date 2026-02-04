@@ -75,6 +75,9 @@ in
 
     services.pipewire.enable = true;
     environment.systemPackages = with pkgs; [
+      pavucontrol # gui pulseaudio manager
+      pulsemixer # tui pulseaudio manager
+
       wl-clipboard # wayland clipboard CLI tools
 
       # for enabling glib-based tools to be able to launch the default terminal properly

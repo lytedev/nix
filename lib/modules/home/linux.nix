@@ -14,7 +14,8 @@
             disks = "df -h && lsblk";
             sctl = "sudo systemctl";
             bt = "bluetoothctl";
-            pa = "nix run nixpkgs#pulsemixer";
+            pa = "pulsemixer";
+            pv = "pavucontrol";
             sctlu = "systemctl --user";
           };
 

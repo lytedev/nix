@@ -26,8 +26,6 @@
           tap
           dwt
           natural-scroll
-          accel-speed 0.5
-          accel-profile "adaptive"
         }
       }
     '';
