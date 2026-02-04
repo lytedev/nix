@@ -15,8 +15,8 @@
       "org/gnome/desktop/peripherals/touchpad" = {
         disable-while-typing = false;
         natural-scroll = true;
-        accel-profile = "adaptive";
-        speed = 0.5;
+        # accel-profile = "adaptive";
+        # speed = 0.5;
       };
     };
 
