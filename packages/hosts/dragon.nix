@@ -93,6 +93,7 @@
       desktop.enable = true;
       desktop.niri.enable = true;
       desktop.music-production.enable = true;
+      push-to-talk.enable = true;
     };
     slippi-launcher = {
       enable = true;

@@ -116,6 +116,7 @@
       # cosmic.enable = false;
       niri.enable = true;
     };
+    lyte.push-to-talk.enable = true;
     home = {
       file.".config/easyeffects/output" = {
         enable = true;

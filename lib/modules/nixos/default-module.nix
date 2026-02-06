@@ -207,6 +207,11 @@
       smartd.enable = lib.mkDefault true;
     };
 
+    # Allow input group to access /dev/uinput (needed for ydotool)
+    services.udev.extraRules = ''
+      KERNEL=="uinput", GROUP="input", MODE="0660"
+    '';
+
     console = {
       useXkbConfig = lib.mkDefault true;
       earlySetup = lib.mkDefault true;
@@ -261,6 +266,7 @@
         "uucp"
         "power"
         "kvm"
+        "input"
       ];
       packages = [ ];
     };

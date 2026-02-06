@@ -70,6 +70,7 @@
       };
       desktop.enable = true;
       desktop.niri.enable = true;
+      push-to-talk.enable = true;
     };
     home.stateVersion = "25.11";
   };

@@ -63,6 +63,7 @@ autoModules
         gnome
         cosmic
         niri
+        push-to-talk
         mobile
       ];
 
