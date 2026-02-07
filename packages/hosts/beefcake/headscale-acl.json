@@ -7,7 +7,8 @@
     "dragon": "100.64.0.5",
     "rascal": "100.64.0.6",
     "pinephone": "100.64.0.7",
-    "steamdeckoled": "100.64.0.8"
+    "steamdeckoled": "100.64.0.8",
+    "flab": "100.64.0.9"
   },
 
   "groups": {
@@ -39,12 +40,12 @@
     {
       "action": "accept",
       "src": ["group:servers"],
-      "dst": ["beefcake:*", "router:*", "steamdeck:*", "steamdeckoled:*", "rascal:*", "dragon:*"]
+      "dst": ["beefcake:*", "router:*", "steamdeck:*", "steamdeckoled:*", "rascal:*", "dragon:*", "flab:*"]
     },
     {
       "action": "accept",
-      "src": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon"],
-      "dst": ["beefcake:*", "router:*", "steamdeck:*", "steamdeckoled:*", "rascal:*", "dragon:*"]
+      "src": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab"],
+      "dst": ["beefcake:*", "router:*", "steamdeck:*", "steamdeckoled:*", "rascal:*", "dragon:*", "flab:*"]
     },
     {
       "action": "accept",
@@ -88,7 +89,7 @@
     {
       "action": "accept",
       "src": ["group:admin", "tag:admindevice"],
-      "dst": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon"],
+      "dst": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab"],
       "users": ["root", "autogroup:nonroot"]
     },
     {
