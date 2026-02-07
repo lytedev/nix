@@ -14,6 +14,7 @@ keys:
 
   # - &sshd-at-rascal ...
   - &sshd-at-steamdeck age144px7qvy9axyx6czn9wrl2e55qzw7w35pgsxvdquedu25avewv8sz273t3
+  - &sshd-at-steamdeckoled age19cczy8vufc3wv5sgttdlcj363dy9ulyafdy74fdcxvggly9zwcxsssrk0y
 
   - &ssh-foxtrot age1njnet9ltjuxasqv3ckn67r5natke6xgd8wlx8psf64pyc4duvurqhedw80
 
@@ -39,6 +40,7 @@ creation_rules:
       - *sshd-at-dragon
       - *sshd-at-bigtower
       - *sshd-at-steamdeck
+      - *sshd-at-steamdeckoled
   - path_regex: secrets/router/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:
