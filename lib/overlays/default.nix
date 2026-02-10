@@ -51,8 +51,7 @@ let
       });
       helix = helix.outputs.packages.${prev.system}.default;
 
-      # use pre-built font to avoid expensive builds on every system
-      iosevkaLyteTerm = prev.callPackage ../../packages/iosevka-lyte-bin.nix { };
+      iosevkaLyteTerm = inputs.iosevka-lyte.outputs.packages.${prev.system}.default;
       matrix-tuwunel = tuwunel.packages.${prev.system}.default;
 
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {

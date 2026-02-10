@@ -724,11 +724,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1757428974,
-        "narHash": "sha256-UF5Xfbo9QdP//L/X5f5pfIAmcW42goqbjh/DKvf+P2Y=",
+        "lastModified": 1771089059,
+        "narHash": "sha256-gV9c5d+lwOuubVRzfLSWTwiksCASs6HweeXVjfARQvM=",
         "owner": "lytedev",
         "repo": "iosevka-lyte",
-        "rev": "5bb8ad7bc249497b3280225dfdfd50777291bdf3",
+        "rev": "d6606e33d484fb46a1fd0c6d9ff72cad58e81cae",
         "type": "github"
       },
       "original": {

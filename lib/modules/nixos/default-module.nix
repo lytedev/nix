@@ -134,6 +134,7 @@
         trusted-users = [
           "@wheel"
         ];
+        accept-flake-config = true;
         auto-optimise-store = lib.mkDefault true;
       }
       // ((import ../../../flake.nix).nixConfig);
