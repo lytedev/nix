@@ -51,7 +51,7 @@ in
       serverSettings = {
         inherit domain;
         origin = "https://${domain}";
-        bindaddress = "127.0.0.1:8443";
+        bindaddress = "127.0.0.1:8943";
         tls_chain = "${storage-root}/certs/idm.h.lyte.dev.crt";
         tls_key = "${storage-root}/certs/idm.h.lyte.dev.key";
         log_level = "info";
@@ -140,7 +140,7 @@ in
 
     services.caddy.virtualHosts.${domain} = {
       extraConfig = ''
-        reverse_proxy https://${domain}:8443 {
+        reverse_proxy https://${domain}:8943 {
           transport http {
             tls
             tls_server_name ${domain}

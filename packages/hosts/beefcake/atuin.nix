@@ -28,9 +28,13 @@
     openRegistration = false;
     # TODO: would be neat to have a way to "force" a registration on the server
   };
-  systemd.services.atuin.serviceConfig = {
-    Group = "atuin";
-    User = "atuin";
+  systemd.services.atuin = {
+    after = [ "postgresql.service" ];
+    requires = [ "postgresql.service" ];
+    serviceConfig = {
+      Group = "atuin";
+      User = "atuin";
+    };
   };
   services.caddy.virtualHosts."atuin.h.lyte.dev" = {
     extraConfig = ''reverse_proxy :${toString config.services.atuin.port}'';

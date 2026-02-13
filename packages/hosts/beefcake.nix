@@ -113,7 +113,7 @@
     ./beefcake/mautrix-meta-facebook.nix
     ./beefcake/mautrix-meta-instagram.nix
     ./beefcake/mautrix-slack.nix
-    # ./beefcake/matrix-hookshot.nix  # TODO: needs registration file with tokens
+    ./beefcake/matrix-hookshot.nix
     ./beefcake/unifi.nix
   ]);
 

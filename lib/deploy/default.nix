@@ -24,6 +24,8 @@ let
       remoteBuild = true; # should pull from cache
       fastConnection = false;
       interactiveSudo = false;
+      confirmTimeout = 300;
+      activationTimeout = 600;
       profiles.system = {
         sshUser = "root";
         path =
