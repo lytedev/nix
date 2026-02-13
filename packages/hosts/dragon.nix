@@ -94,6 +94,8 @@
       desktop.niri.enable = true;
       desktop.music-production.enable = true;
       push-to-talk.enable = true;
+      claude.enable = true;
+      claude.sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
     };
     slippi-launcher = {
       enable = true;

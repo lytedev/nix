@@ -64,6 +64,7 @@ autoModules
         cosmic
         niri
         push-to-talk
+        claude
         mobile
       ];
 
