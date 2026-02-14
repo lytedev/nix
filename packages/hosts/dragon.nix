@@ -46,6 +46,10 @@
     defaultSopsFile = ../../secrets/dragon/secrets.yml;
     secrets.ddns-pass.mode = "0400";
     secrets.nix-cache-priv-key.mode = "0400";
+    secrets.claude-matrix-webhook = {
+      mode = "0400";
+      owner = "daniel";
+    };
   };
 
   services.deno-netlify-ddns-client = {
@@ -96,6 +100,7 @@
       push-to-talk.enable = true;
       claude.enable = true;
       claude.sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
+      claude.matrixWebhookFile = config.sops.secrets.claude-matrix-webhook.path;
     };
     slippi-launcher = {
       enable = true;

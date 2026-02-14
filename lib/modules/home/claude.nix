@@ -150,10 +150,10 @@ in
       default = "1.0";
       description = "Sound effect volume (0.0 - 1.0)";
     };
-    matrixWebhookUrl = lib.mkOption {
+    matrixWebhookFile = lib.mkOption {
       type = lib.types.str;
       default = "";
-      description = "Optional Matrix webhook URL for notifications";
+      description = "Path to a file containing the Matrix webhook URL (e.g. a sops secret)";
     };
   };
 
@@ -164,8 +164,8 @@ in
       claude-setup
     ];
 
-    home.sessionVariables = lib.mkIf (cfg.matrixWebhookUrl != "") {
-      CLAUDE_MATRIX_WEBHOOK = cfg.matrixWebhookUrl;
+    home.sessionVariables = lib.mkIf (cfg.matrixWebhookFile != "") {
+      CLAUDE_MATRIX_WEBHOOK_FILE = cfg.matrixWebhookFile;
     };
   };
 }
