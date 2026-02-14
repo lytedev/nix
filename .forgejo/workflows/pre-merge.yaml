@@ -23,7 +23,7 @@ jobs:
           - host: foxtrot
           - host: flipflop
           - host: steamdeck
-          - host: pinephone
+          # - host: pinephone # not needed for every push, only nightly builds
     steps:
     - uses: actions/checkout@v4
     - name: Build host
