@@ -70,7 +70,7 @@
 
     ./beefcake/nix-serve.nix
     ./beefcake/headscale.nix
-    ./beefcake/soju.nix
+    # ./beefcake/soju.nix  # replaced by heisenbridge for IRC-via-Matrix
     ./beefcake/nextcloud.nix
     ./beefcake/plausible.nix
     ./beefcake/clickhouse.nix
@@ -108,6 +108,7 @@
     ./beefcake/happy.nix
 
     # Matrix bridges
+    ./beefcake/heisenbridge.nix
     ./beefcake/mautrix-discord.nix
     ./beefcake/mautrix-whatsapp.nix
     ./beefcake/mautrix-meta-facebook.nix
