@@ -11,7 +11,7 @@ let
     dir = "/storage/anubis";
     port = 8529;
   };
-  runnerCount = 16;
+  runnerCount = 1;
   logos = {
     png = pkgs.fetchurl {
       url = "https://lyte.dev/icon.png";
