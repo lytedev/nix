@@ -69,7 +69,13 @@
     };
   };
 
-  services.tailscale.useRoutingFeatures = "server";
+  services.tailscale = {
+    useRoutingFeatures = "server";
+    extraUpFlags = [
+      "--advertise-exit-node"
+      "--accept-routes"
+    ];
+  };
 
   lyte.headscale.usePreAuthKey = true;
   lyte.shell.enable = false;

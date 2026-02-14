@@ -18,6 +18,7 @@ in
       authKeyFile = config.sops.secrets.headscale-server-authkey.path;
       extraUpFlags = [
         "--login-server=https://vpn.h.lyte.dev"
+        "--reset"
       ];
     };
   };
