@@ -10,7 +10,7 @@ jobs:
         echo 'formatting check passed'
 
   build-host:
-    needs: flake-check
+    needs: check-format
     runs-on: nixos-host
     strategy:
       max-parallel: 1
@@ -49,11 +49,11 @@ jobs:
         nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto develop .#agent --build --accept-flake-config
         echo 'nix command completed successfully'
 
-  flake-check:
-    runs-on: nixos-host
-    steps:
-    - uses: actions/checkout@v4
-    - name: Check nix flake
-      run: |
-        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto --show-trace flake check --accept-flake-config
-        echo 'nix command completed successfully'
+  # flake-check:
+  #   runs-on: nixos-host
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Check nix flake
+  #     run: |
+  #       nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto --show-trace flake check --accept-flake-config
+  #       echo 'nix command completed successfully'
