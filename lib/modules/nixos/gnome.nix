@@ -12,12 +12,12 @@
         gnome = {
           tray-icons.enable = lib.mkOption {
             type = lib.types.bool;
-            default = true;
+            default = config.lyte.desktop.gnome.enable;
             description = "Enable tray icons support";
           };
           gsconnect.enable = lib.mkOption {
             type = lib.types.bool;
-            default = true;
+            default = config.lyte.desktop.gnome.enable;
             description = "Enable GSConnect for phone integration";
           };
         };
