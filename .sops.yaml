@@ -12,7 +12,7 @@ keys:
   - &sshd-at-dragon age14ewl97x5g52ajf269cmmwzrgf22m9dsr7mw7czfa356qugvf4gvq5dttfv
   - &sshd-at-bigtower age1eem6av44pxjl22k0k0vt6vllerz007f7zteqqcem2j4etmvd0y2q5phs52
 
-  # - &sshd-at-rascal ...
+  - &sshd-at-rascal age15zyk7x9sqzyfy80pyly29t5jp8de9hk2a92h948zpvslzylspgtsjc5a9s
   - &sshd-at-steamdeck age144px7qvy9axyx6czn9wrl2e55qzw7w35pgsxvdquedu25avewv8sz273t3
   - &sshd-at-steamdeckoled age19cczy8vufc3wv5sgttdlcj363dy9ulyafdy74fdcxvggly9zwcxsssrk0y
 
@@ -39,6 +39,7 @@ creation_rules:
       - *sshd-at-router
       - *sshd-at-dragon
       - *sshd-at-bigtower
+      - *sshd-at-rascal
       - *sshd-at-steamdeck
       - *sshd-at-steamdeckoled
   - path_regex: secrets/router/[^/]+\.(ya?ml|json|env|ini)$
