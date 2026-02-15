@@ -114,11 +114,13 @@ let
       pipewire
       curl
       jq
+      socat
     ];
     preamble = ''
       SFX_DIR="${cfg.sfxPath}"
       SFX_VOLUME="${cfg.sfxVolume}"
       WEBHOOKS_DIR="${cfg.matrixWebhooksDir}"
+      NOTIFY_PORT="${toString cfg.notifyPort}"
     '';
   };
 
@@ -129,6 +131,15 @@ let
       jq
     ];
     preamble = "WEBHOOKS_DIR=\"${cfg.matrixWebhooksDir}\"";
+  };
+
+  claude-notify-listen = mkScript {
+    name = "claude-notify-listen";
+    runtimeInputs = with pkgs; [
+      socat
+      jq
+    ];
+    preamble = ''NOTIFY_PORT="${toString cfg.notifyPort}"'';
   };
 
   claude-setup = mkScript {
@@ -170,12 +181,18 @@ in
       default = "$HOME/.local/state/claude/webhooks";
       description = "Directory for named webhook symlinks";
     };
+    notifyPort = lib.mkOption {
+      type = lib.types.int;
+      default = 19199;
+      description = "Port for reverse-tunnel notification forwarding (SSH RemoteForward)";
+    };
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = [
       claude-hook
       claude-notify
+      claude-notify-listen
       claude-matrix-send
       claude-setup
     ];
@@ -196,5 +213,6 @@ in
         )}
       ''
     );
+
   };
 }

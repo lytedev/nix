@@ -78,6 +78,7 @@ in
       pavucontrol # gui pulseaudio manager
       pulsemixer # tui pulseaudio manager
 
+      libnotify # desktop notification CLI (notify-send)
       wl-clipboard # wayland clipboard CLI tools
 
       # for enabling glib-based tools to be able to launch the default terminal properly

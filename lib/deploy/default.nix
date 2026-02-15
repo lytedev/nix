@@ -51,6 +51,7 @@ in
     steamdeckoled = deployer "steamdeckoled" { };
     flipflop = deployer "flipflop" { };
     babyflip = deployer "babyflip" { };
+    flab = deployer "flab" { };
     router = (deployer "router") {
       sshOpts = [
         "-p"

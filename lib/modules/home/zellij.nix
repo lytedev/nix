@@ -1,7 +1,7 @@
 { config, lib, ... }:
 {
   config = lib.mkIf config.programs.zellij.enable {
-    # zellij does not support modern terminal keyboard input:
+    # zellij supports the kitty keyboard protocol (since ~0.40)
     # https://github.com/zellij-org/zellij/issues/735
     programs.zellij = {
 
@@ -105,6 +105,22 @@
               [
                 [ "Ctrl Shift w" ]
                 { CloseFocus = [ ]; }
+              ]
+
+              # Tab switching
+              [
+                [
+                  "Alt ,"
+                  "Ctrl ,"
+                ]
+                { GoToPreviousTab = [ ]; }
+              ]
+              [
+                [
+                  "Alt ."
+                  "Ctrl ."
+                ]
+                { GoToNextTab = [ ]; }
               ]
 
               # Scrollback
