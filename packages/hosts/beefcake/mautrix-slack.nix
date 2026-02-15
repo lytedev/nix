@@ -39,9 +39,10 @@ let
       command_prefix = "!slack";
       permissions = {
         "@daniel:lyte.dev" = "admin";
+        "@hookshot:lyte.dev" = "relay";
       };
       relay = {
-        enabled = false;
+        enabled = true;
       };
     };
     network = {
@@ -57,7 +58,7 @@ let
     };
     encryption = {
       allow = true;
-      default = true;
+      default = false;
       require = false;
       appservice = false;
       allow_key_sharing = false;
