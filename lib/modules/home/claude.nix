@@ -118,7 +118,17 @@ let
     preamble = ''
       SFX_DIR="${cfg.sfxPath}"
       SFX_VOLUME="${cfg.sfxVolume}"
+      WEBHOOKS_DIR="${cfg.matrixWebhooksDir}"
     '';
+  };
+
+  claude-matrix-send = mkScript {
+    name = "claude-matrix-send";
+    runtimeInputs = with pkgs; [
+      curl
+      jq
+    ];
+    preamble = "WEBHOOKS_DIR=\"${cfg.matrixWebhooksDir}\"";
   };
 
   claude-setup = mkScript {
@@ -150,10 +160,15 @@ in
       default = "1.0";
       description = "Sound effect volume (0.0 - 1.0)";
     };
-    matrixWebhookFile = lib.mkOption {
+    matrixWebhooks = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = "Named Matrix webhook secret file paths (name -> sops secret path) for Claude to send messages to specific rooms";
+    };
+    matrixWebhooksDir = lib.mkOption {
       type = lib.types.str;
-      default = "";
-      description = "Path to a file containing the Matrix webhook URL (e.g. a sops secret)";
+      default = "$HOME/.local/state/claude/webhooks";
+      description = "Directory for named webhook symlinks";
     };
   };
 
@@ -161,11 +176,23 @@ in
     home.packages = [
       claude-hook
       claude-notify
+      claude-matrix-send
       claude-setup
     ];
 
-    home.sessionVariables = lib.mkIf (cfg.matrixWebhookFile != "") {
-      CLAUDE_MATRIX_WEBHOOK_FILE = cfg.matrixWebhookFile;
-    };
+    # Create symlinks from webhook secret files to a named directory
+    # so claude-matrix-send can look up webhooks by name
+    home.activation.claudeWebhookLinks = lib.mkIf (cfg.matrixWebhooks != { }) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        mkdir -p "${cfg.matrixWebhooksDir}"
+        # Clean old links
+        find "${cfg.matrixWebhooksDir}" -maxdepth 1 -type l -delete
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: path: ''
+            ln -sf "${path}" "${cfg.matrixWebhooksDir}/${name}"
+          '') cfg.matrixWebhooks
+        )}
+      ''
+    );
   };
 }

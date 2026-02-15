@@ -40,6 +40,7 @@ let
       permissions = {
         "@daniel:lyte.dev" = "admin";
         "@hookshot:lyte.dev" = "relay";
+        "*" = "relay";
       };
       relay = {
         enabled = true;

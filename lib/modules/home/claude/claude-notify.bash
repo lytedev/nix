@@ -76,14 +76,14 @@ case "$EVENT_TYPE" in
   *) play_random_sound "PeonWhat" ;;
 esac
 
-# Matrix notification via webhook (read URL from secret file)
-WEBHOOK_URL=""
-if [ -n "${CLAUDE_MATRIX_WEBHOOK_FILE:-}" ] && [ -r "${CLAUDE_MATRIX_WEBHOOK_FILE}" ]; then
-  WEBHOOK_URL="$(cat "${CLAUDE_MATRIX_WEBHOOK_FILE}")"
-fi
-if [ -n "$WEBHOOK_URL" ]; then
-  curl -s -X POST \
-    -H "Content-Type: application/json" \
-    -d "$(jq -n --arg text "$TITLE: $BODY" '{text: $text}')" \
-    "$WEBHOOK_URL" &>/dev/null || true
+# Matrix notification via webhook (read URL from webhooks directory)
+NOTIFY_FILE="${WEBHOOKS_DIR:-}/notify"
+if [ -r "$NOTIFY_FILE" ]; then
+  WEBHOOK_URL="$(cat "$NOTIFY_FILE")"
+  if [ -n "$WEBHOOK_URL" ]; then
+    curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -d "$(jq -n --arg text "$TITLE: $BODY" '{text: $text}')" \
+      "$WEBHOOK_URL" &>/dev/null || true
+  fi
 fi

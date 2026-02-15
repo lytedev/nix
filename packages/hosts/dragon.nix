@@ -50,6 +50,18 @@
       mode = "0400";
       owner = "daniel";
     };
+    secrets.claude-matrix-webhook-hive = {
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.claude-matrix-webhook-code-review = {
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.slack-user-token = {
+      mode = "0400";
+      owner = "daniel";
+    };
   };
 
   services.deno-netlify-ddns-client = {
@@ -100,7 +112,11 @@
       push-to-talk.enable = true;
       claude.enable = true;
       claude.sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
-      claude.matrixWebhookFile = config.sops.secrets.claude-matrix-webhook.path;
+      claude.matrixWebhooks = {
+        notify = config.sops.secrets.claude-matrix-webhook.path;
+        hive = config.sops.secrets.claude-matrix-webhook-hive.path;
+        code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
+      };
     };
     slippi-launcher = {
       enable = true;
