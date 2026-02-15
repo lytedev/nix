@@ -9,45 +9,23 @@ jobs:
         nix fmt -- --check .
         echo 'formatting check passed'
 
-  build-host:
-    needs: check-format
-    runs-on: nixos-host
-    strategy:
-      max-parallel: 1
-      matrix:
-        info:
-          - host: beefcake
-          - host: router
-          - host: rascal
-          - host: dragon
-          - host: foxtrot
-          - host: flipflop
-          - host: steamdeck
-          # - host: pinephone # not needed for every push, only nightly builds
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build host
-      run: |
-        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto --show-trace shell nixpkgs#nixos-rebuild -c nixos-rebuild build --flake .#${{ matrix.info.host }} --accept-flake-config
-        echo 'nix command completed successfully'
-
-  build-devshell:
+  build:
     runs-on: nixos-host
     steps:
     - uses: actions/checkout@v4
-    - name: Build default devShell
+    - name: Build all hosts and devshells
       run: |
-        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto develop . --build --accept-flake-config
-        echo 'nix command completed successfully'
-
-  build-agent-devshell:
-    runs-on: nixos-host
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build default devShell
-      run: |
-        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto develop .#agent --build --accept-flake-config
-        echo 'nix command completed successfully'
+        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto --show-trace build --accept-flake-config \
+          .#nixosConfigurations.beefcake.config.system.build.toplevel \
+          .#nixosConfigurations.router.config.system.build.toplevel \
+          .#nixosConfigurations.rascal.config.system.build.toplevel \
+          .#nixosConfigurations.dragon.config.system.build.toplevel \
+          .#nixosConfigurations.foxtrot.config.system.build.toplevel \
+          .#nixosConfigurations.flipflop.config.system.build.toplevel \
+          .#nixosConfigurations.steamdeck.config.system.build.toplevel \
+          .#devShells.x86_64-linux.default \
+          .#devShells.x86_64-linux.agent
+        echo 'all builds completed successfully'
 
   # flake-check:
   #   runs-on: nixos-host

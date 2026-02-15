@@ -16,7 +16,7 @@ mkdir -p "$SESSIONS_DIR"
 if [ -t 0 ]; then
   HOOK_DATA="{}"
 else
-  HOOK_DATA="$(timeout 5 cat || true)"
+  HOOK_DATA="$(cat)"
 fi
 : "${HOOK_DATA:="{}"}"
 
