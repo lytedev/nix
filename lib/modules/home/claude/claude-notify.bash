@@ -2,31 +2,16 @@
 TITLE="claude"
 BODY=""
 URGENCY="normal"
-SESSION_NAME=""
 EVENT_TYPE=""
+FROM=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --title)
-      TITLE="$2"
-      shift 2
-      ;;
-    --body)
-      BODY="$2"
-      shift 2
-      ;;
-    --urgency)
-      URGENCY="$2"
-      shift 2
-      ;;
-    --session-name)
-      SESSION_NAME="$2"
-      shift 2
-      ;;
-    --type)
-      EVENT_TYPE="$2"
-      shift 2
-      ;;
+    --title)   TITLE="$2"; shift 2 ;;
+    --body)    BODY="$2"; shift 2 ;;
+    --urgency) URGENCY="$2"; shift 2 ;;
+    --type)    EVENT_TYPE="$2"; shift 2 ;;
+    --from)    FROM="$2"; shift 2 ;;
     *)
       echo "Warning: unknown arg: $1" >&2
       shift
@@ -34,17 +19,47 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -n "$SESSION_NAME" ]; then
-  TITLE="[$SESSION_NAME] $TITLE"
+# Desktop notification with action to focus the claude session
+# Parse niri_window and zellij info from the from-URI query string
+NIRI_WINDOW=""
+ZELLIJ_TAB=""
+if [ -n "$FROM" ]; then
+  QUERY="${FROM#*\?}"
+  if [ "$QUERY" != "$FROM" ]; then
+    NIRI_WINDOW="$(echo "$QUERY" | tr '&' '\n' | sed -n 's/^niri_window=//p')"
+    # extract zellij session.tab.pane -> tab is the middle part
+    ZJ_VAL="$(echo "$QUERY" | tr '&' '\n' | sed -n 's/^zellij=//p')"
+    if [ -n "$ZJ_VAL" ]; then
+      ZELLIJ_TAB="$(echo "$ZJ_VAL" | cut -d. -f2)"
+    fi
+  fi
 fi
 
-# Desktop notification with stack tags for dedup
-notify-send \
-  -a "claude" \
-  -u "$URGENCY" \
-  -h "string:x-dunst-stack-tag:claude-$SESSION_NAME" \
-  -h "string:x-niri-stack-tag:claude-$SESSION_NAME" \
-  "$TITLE" "$BODY" || true
+if [ -n "$NIRI_WINDOW" ]; then
+  # Actionable notification: focus window on click (runs in background)
+  (
+    ACTION=$(notify-send \
+      -a "claude" \
+      -u "$URGENCY" \
+      -h "string:x-dunst-stack-tag:claude" \
+      -h "string:x-niri-stack-tag:claude" \
+      -A "focus=Focus" \
+      "$TITLE" "$BODY" 2>/dev/null) || true
+    if [ "$ACTION" = "focus" ]; then
+      niri msg action focus-window --id "$NIRI_WINDOW" 2>/dev/null || true
+      if [ -n "$ZELLIJ_TAB" ]; then
+        zellij action go-to-tab-name "$ZELLIJ_TAB" 2>/dev/null || true
+      fi
+    fi
+  ) &
+else
+  notify-send \
+    -a "claude" \
+    -u "$URGENCY" \
+    -h "string:x-dunst-stack-tag:claude" \
+    -h "string:x-niri-stack-tag:claude" \
+    "$TITLE" "$BODY" || true
+fi
 
 # Audio notification: pick a random sound based on event type
 # SFX_DIR and SFX_VOLUME are injected by nix preamble
@@ -81,9 +96,13 @@ NOTIFY_FILE="${WEBHOOKS_DIR:-}/notify"
 if [ -r "$NOTIFY_FILE" ]; then
   WEBHOOK_URL="$(cat "$NOTIFY_FILE")"
   if [ -n "$WEBHOOK_URL" ]; then
+    MATRIX_MSG="$TITLE: $BODY"
+    [ -n "$FROM" ] && MATRIX_MSG="$MATRIX_MSG
+from $FROM"
+
     curl -s -X POST \
       -H "Content-Type: application/json" \
-      -d "$(jq -n --arg text "$TITLE: $BODY" '{text: $text}')" \
+      -d "$(jq -n --arg text "$MATRIX_MSG" '{text: $text}')" \
       "$WEBHOOK_URL" &>/dev/null || true
   fi
 fi

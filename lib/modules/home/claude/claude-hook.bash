@@ -26,6 +26,35 @@ SESSION_ID="$(echo "$HOOK_DATA" | jq -r '.session_id // empty')"
 # Use CLAUDE_SESSION_NAME if set (multi-session), otherwise derive from session_id
 SESSION_NAME="${CLAUDE_SESSION_NAME:-${SESSION_ID}}"
 
+# Build from-URI: user@host:/cwd?pid=N&zellij=session.tab.pane
+HOOK_CWD="$(echo "$HOOK_DATA" | jq -r '.cwd // empty')"
+: "${HOOK_CWD:=$(pwd)}"
+
+FROM_URI="$(whoami 2>/dev/null || echo unknown)@$(hostname -s 2>/dev/null || echo unknown):${HOOK_CWD}"
+
+urlencode() { jq -rn --arg v "$1" '$v|@uri'; }
+
+QUERY_PARTS=()
+QUERY_PARTS+=("session=$(urlencode "$SESSION_ID")")
+QUERY_PARTS+=("pid=$$")
+if [ -n "${ZELLIJ:-}" ]; then
+  ZJ_SESSION="${ZELLIJ_SESSION_NAME:-}"
+  ZJ_TAB="$(zellij action query-tab-names 2>/dev/null | head -1 || true)"
+  ZJ_PANE="${ZELLIJ_PANE_ID:-}"
+  ZJ="${ZJ_SESSION}${ZJ_TAB:+.$ZJ_TAB}${ZJ_PANE:+.$ZJ_PANE}"
+  [ -n "$ZJ" ] && QUERY_PARTS+=("zellij=$(urlencode "$ZJ")")
+fi
+
+CLAUDE_TITLE="$(echo "$HOOK_DATA" | jq -r '.session_title // empty')"
+[ -n "$CLAUDE_TITLE" ] && QUERY_PARTS+=("title=$(urlencode "$CLAUDE_TITLE")")
+
+# Niri window ID for focus-on-click
+NIRI_WINDOW="$(niri msg focused-window --json 2>/dev/null | jq -r '.id // empty' || true)"
+[ -n "$NIRI_WINDOW" ] && QUERY_PARTS+=("niri_window=$NIRI_WINDOW")
+
+QUERY=$(printf "&%s" "${QUERY_PARTS[@]}")
+FROM_URI="${FROM_URI}?${QUERY:1}"
+
 SESSION_FILE="$SESSIONS_DIR/${SESSION_NAME}.json"
 NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
@@ -81,10 +110,10 @@ case "$SUBCOMMAND" in
 
     if [ "$NOTIFICATION_TYPE" = "permission_prompt" ]; then
       write_status "permission" "$MESSAGE"
-      claude-notify --type permission --title "Permission needed" --body "$MESSAGE" --urgency critical --session-name "$SESSION_NAME" || true
+      claude-notify --type permission --title "Permission needed" --body "$MESSAGE" --urgency critical --from "$FROM_URI" || true
     else
       write_status "idle" "$MESSAGE"
-      claude-notify --type idle --title "Session idle" --body "$MESSAGE" --urgency normal --session-name "$SESSION_NAME" || true
+      claude-notify --type idle --title "Session idle" --body "$MESSAGE" --urgency normal --from "$FROM_URI" || true
     fi
     ;;
   stop)
