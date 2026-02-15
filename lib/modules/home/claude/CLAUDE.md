@@ -1,3 +1,7 @@
+# This file is managed by Nix (Home Manager). Do not edit it directly.
+# Source: lib/modules/home/claude/CLAUDE.md in the nix config repo.
+# To modify, edit the source and rebuild (e.g., `nh os switch`).
+
 # Matrix Messaging
 
 Send messages to Matrix rooms (bridged to Slack/Discord) via hookshot webhooks:
