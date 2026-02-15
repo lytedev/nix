@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   hardware,
   diskoConfigurations,
   # homeConfigurations,
@@ -104,6 +105,24 @@
   lyte.laptop.enable = true;
   family-account.enable = true;
   podman.enable = true;
+  sops = {
+    secrets.claude-matrix-webhook = {
+      sopsFile = ../../secrets/workstations/secrets.yml;
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.claude-matrix-webhook-hive = {
+      sopsFile = ../../secrets/workstations/secrets.yml;
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.claude-matrix-webhook-code-review = {
+      sopsFile = ../../secrets/workstations/secrets.yml;
+      mode = "0400";
+      owner = "daniel";
+    };
+  };
+
   home-manager.users.daniel = {
     lyte.useOutOfStoreSymlinks.enable = true;
     lyte.shell = {
@@ -117,6 +136,13 @@
       niri.enable = true;
     };
     lyte.push-to-talk.enable = true;
+    lyte.claude.enable = true;
+    lyte.claude.sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
+    lyte.claude.matrixWebhooks = {
+      notify = config.sops.secrets.claude-matrix-webhook.path;
+      hive = config.sops.secrets.claude-matrix-webhook-hive.path;
+      code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
+    };
     home = {
       file.".config/easyeffects/output" = {
         enable = true;

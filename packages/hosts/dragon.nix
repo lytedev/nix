@@ -47,18 +47,17 @@
     secrets.ddns-pass.mode = "0400";
     secrets.nix-cache-priv-key.mode = "0400";
     secrets.claude-matrix-webhook = {
+      sopsFile = ../../secrets/workstations/secrets.yml;
       mode = "0400";
       owner = "daniel";
     };
     secrets.claude-matrix-webhook-hive = {
+      sopsFile = ../../secrets/workstations/secrets.yml;
       mode = "0400";
       owner = "daniel";
     };
     secrets.claude-matrix-webhook-code-review = {
-      mode = "0400";
-      owner = "daniel";
-    };
-    secrets.slack-user-token = {
+      sopsFile = ../../secrets/workstations/secrets.yml;
       mode = "0400";
       owner = "daniel";
     };

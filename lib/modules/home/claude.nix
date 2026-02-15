@@ -180,6 +180,8 @@ in
       claude-setup
     ];
 
+    home.file.".claude/CLAUDE.md".source = ./claude/CLAUDE.md;
+
     # Create symlinks from webhook secret files to a named directory
     # so claude-matrix-send can look up webhooks by name
     home.activation.claudeWebhookLinks = lib.mkIf (cfg.matrixWebhooks != { }) (
