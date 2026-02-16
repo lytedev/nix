@@ -56,7 +56,7 @@ in
       };
       enable = true;
       after = [ "network.target" ];
-      script = ''${pkgs.unstable-packages.spacetimedb}/bin/spacetime --root-dir /storage/spacetimedb start --listen-addr="${cfg.bindHost}:${toString cfg.port}"'';
+      script = ''${pkgs.spacetimedb}/bin/spacetime --root-dir /storage/spacetimedb start --listen-addr="${cfg.bindHost}:${toString cfg.port}"'';
     };
 
     services.caddy = {

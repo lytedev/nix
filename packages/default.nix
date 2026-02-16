@@ -34,4 +34,5 @@
   fbkeyboard = pkgs.callPackage ./fbkeyboard.nix { };
   stevia = pkgs.callPackage ./stevia.nix { };
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };
+  spacetimedb = pkgs.callPackage ./spacetimedb/package.nix { };
 }
