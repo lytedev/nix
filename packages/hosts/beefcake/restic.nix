@@ -62,9 +62,9 @@
       };
       rascal = defaults // {
         extraOptions = [
-          ''sftp.command="ssh beefcake@rascal.hare-cod.ts.net -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
+          ''sftp.command="ssh beefcake@rascal.internal.vpn.h.lyte.dev -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
         ];
-        repository = "sftp://beefcake@rascal.hare-cod.ts.net://storage/backups/beefcake";
+        repository = "sftp://beefcake@rascal.internal.vpn.h.lyte.dev://";
       };
       # TODO: add ruby?
       benland = defaults // {
@@ -140,8 +140,8 @@
       mkdir -p ./rascal ./benland ./local
       # check rascal
       restic \
-        --option sftp.command="ssh beefcake@rascal.hare-cod.ts.net -i '${config.sops.secrets.restic-rascal-ssh-private-key.path}' -s sftp" \
-        --repo='sftp://beefcake@rascal.hare-cod.ts.net://storage/backups/beefcake' \
+        --option sftp.command="ssh beefcake@rascal.internal.vpn.h.lyte.dev -i '${config.sops.secrets.restic-rascal-ssh-private-key.path}' -s sftp" \
+        --repo='sftp://beefcake@rascal.internal.vpn.h.lyte.dev://' \
         --password-file='${config.sops.secrets.restic-rascal-passphrase.path}' \
         restore latest --include /storage/backups/canary --target ./rascal/
       echo "Restored from rascal"
@@ -149,8 +149,8 @@
       # check benland
       # TODO: benland should have its own passwordfile, should be able to update the repository?
       restic \
-        --option sftp.command="ssh beefcake@rascal.hare-cod.ts.net -i '${config.sops.secrets.restic-rascal-ssh-private-key.path}' -s sftp" \
-        --repo='sftp://beefcake@rascal.hare-cod.ts.net://storage/backups/beefcake' \
+        --option sftp.command="ssh daniel@n.benhaney.com -p 10022 -i '${config.sops.secrets.restic-ssh-priv-key-benland.path}' -s sftp" \
+        --repo='sftp://daniel@n.benhaney.com://storage/backups/beefcake' \
         --password-file='${config.sops.secrets.restic-rascal-passphrase.path}' \
         restore latest --include /storage/backups/canary --target ./benland/
       echo "Restored from benland"

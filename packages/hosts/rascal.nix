@@ -38,6 +38,7 @@
   ];
 
   users.groups.beefcake = { };
+  users.groups.sftponly = { };
   users.users = {
     beefcake = {
       isSystemUser = true;
