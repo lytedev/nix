@@ -13,9 +13,13 @@
     group = "opentelemetry-collector";
   };
 
-  # Keep ZFS and PostgreSQL exporters for specialized metrics
-  # OTel Collector will scrape them via prometheus receiver
+  # Keep specialized Prometheus exporters — OTel Collector scrapes them
   services.prometheus.exporters = {
+    node = {
+      enable = true;
+      listenAddress = "127.0.0.1";
+      enabledCollectors = [ "systemd" ];
+    };
     postgres = {
       enable = true;
       listenAddress = "127.0.0.1";
@@ -48,6 +52,25 @@
               mute_process_name_error = true;
             };
             processes = { };
+          };
+        };
+
+        # Scrape node_exporter (systemd unit metrics)
+        "prometheus/node" = {
+          config = {
+            scrape_configs = [
+              {
+                job_name = "node";
+                scrape_interval = "30s";
+                static_configs = [
+                  {
+                    targets = [
+                      "${config.services.prometheus.exporters.node.listenAddress}:${toString config.services.prometheus.exporters.node.port}"
+                    ];
+                  }
+                ];
+              }
+            ];
           };
         };
 
@@ -182,6 +205,7 @@
           metrics = {
             receivers = [
               "hostmetrics"
+              "prometheus/node"
               "prometheus/zfs"
               "prometheus/postgres"
             ];
