@@ -61,6 +61,10 @@
       mode = "0400";
       owner = "daniel";
     };
+    secrets.slack-user-token = {
+      mode = "0400";
+      owner = "daniel";
+    };
   };
 
   services.deno-netlify-ddns-client = {
