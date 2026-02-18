@@ -52,7 +52,7 @@ in
         comma
         curl
         dnsutils
-        dogdns
+        doggo
         dua
         eza
         fd

@@ -88,7 +88,7 @@ in
       surge-XT # Powerful open source hybrid synth
       vital # Wavetable synth
       zynaddsubfx # Classic software synth
-      bristol # Vintage keyboard emulator
+      # bristol - removed: broken with current nixpkgs (bristolmalloc API change)
       yoshimi # Fork of ZynAddSubFX
 
       # === Effects & Plugins (LV2) ===

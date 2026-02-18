@@ -32,7 +32,7 @@
 
       overlays = import ./lib/overlays inputs;
 
-      formatter = uGenPkgs (p: p.nixfmt-rfc-style);
+      formatter = uGenPkgs (p: p.nixfmt);
 
       deploy = import ./lib/deploy inputs;
 
@@ -94,24 +94,23 @@
     };
 
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
-    # jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # other inputs
     hardware.url = "github:NixOS/nixos-hardware";
     # nnf.url = "github:thelegy/nixos-nftables-firewall";
 
-    # inputs with their own cache I want to use
     helix.url = "github:helix-editor/helix/master";
-    # helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     ghostty.url = "github:ghostty-org/ghostty";
     ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     deploy-rs.url = "github:serokell/deploy-rs";
-    # deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     iosevka-lyte.url = "github:lytedev/iosevka-lyte";
-    # iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    iosevka-lyte.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     zed = {
       url = "github:zed-industries/zed";
@@ -137,6 +136,28 @@
       url = "github:mobile-nixos/mobile-nixos";
       flake = false;
     };
+
+    # Transitive dependencies shared by multiple inputs — pulled to root
+    # level so they're deduplicated via follows instead of each input
+    # vendoring its own copy in the lock file.
+    #
+    # NOTE: crane and rust-overlay are NOT safe to deduplicate — they are
+    # tightly coupled build toolchains and version mismatches cause hash
+    # resolution failures (e.g. hash '' has wrong length for 'sha1').
+    flake-compat = {
+      # used by: deploy-rs, ghostty, git-hooks
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    flake-utils = {
+      # used by: ghostty
+      url = "github:numtide/flake-utils";
+    };
+
+    deploy-rs.inputs.flake-compat.follows = "flake-compat";
+    ghostty.inputs.flake-compat.follows = "flake-compat";
+    git-hooks.inputs.flake-compat.follows = "flake-compat";
+    ghostty.inputs.flake-utils.follows = "flake-utils";
   };
 
   nixConfig = {

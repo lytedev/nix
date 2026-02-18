@@ -42,7 +42,7 @@ in
       sops
       nil
       nixd
-      nixfmt-rfc-style
+      nixfmt
       lua-language-server
       nodePackages.bash-language-server
       markdown-oxide

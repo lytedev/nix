@@ -11,7 +11,7 @@
       src = ./.;
       hooks = {
         convco.enable = true;
-        nixfmt-rfc-style.enable = true;
+        nixfmt.enable = true;
         # nix-flake-check = {
         #   enable = true;
         #   name = "nix flake check";
