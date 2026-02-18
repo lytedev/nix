@@ -123,34 +123,23 @@
     };
   };
 
-  home-manager.users.daniel = {
-    lyte.shell.enable = true;
-    lyte.desktop = {
-      enable = true;
-      gnome.enable = true;
-      # cosmic.enable = false;
-      niri.enable = true;
-    };
-    lyte.push-to-talk.enable = true;
-    lyte.claude.enable = true;
-    lyte.claude.sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
-    lyte.claude.matrixWebhooks = {
+  lyte.shell.enable = true;
+  lyte.push-to-talk.enable = true;
+  lyte.claude = {
+    enable = true;
+    sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
+    matrixWebhooks = {
       notify = config.sops.secrets.claude-matrix-webhook.path;
       hive = config.sops.secrets.claude-matrix-webhook-hive.path;
       code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
     };
-    home = {
-      file.".config/easyeffects/output" = {
-        enable = true;
-        source = fetchGit {
-          url = "https://github.com/ceiphr/ee-framework-presets";
-          rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
-        };
-      };
-    };
-    services.easyeffects = {
-      enable = true;
-      preset = "philonmetal";
+  };
+  lyte.desktop.easyeffects = {
+    enable = true;
+    preset = "philonmetal";
+    presetsSource = fetchGit {
+      url = "https://github.com/ceiphr/ee-framework-presets";
+      rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
     };
   };
   services.postgresql.enable = true;

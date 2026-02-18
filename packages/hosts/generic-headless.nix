@@ -26,7 +26,5 @@
   services.tailscale.useRoutingFeatures = "server";
 
   lyte.shell.enable = true;
-  home-manager.users.daniel = {
-    lyte.shell.enable = true;
-  };
+  lyte.shell.enable = true;
 }

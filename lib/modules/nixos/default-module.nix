@@ -7,7 +7,6 @@
   ...
 }:
 {
-  home-manager,
   modulesPath,
   lib,
   config,
@@ -17,7 +16,6 @@
 {
   imports = with self.outputs.nixosModules; [
     (modulesPath + "/installer/scan/not-detected.nix")
-    home-manager.nixosModules.home-manager
     sops-nix.nixosModules.sops
     disko.nixosModules.disko
     slippi.nixosModules.default
@@ -42,6 +40,9 @@
     mobile
     music-production
     earlyoom
+    user-env
+    claude
+    push-to-talk
 
     (
       { config, ... }:
@@ -61,31 +62,33 @@
             "video"
           ];
         };
-        home-manager.users.flanfam = {
-          lyte.shell.enable = lib.mkDefault true;
-          lyte.desktop.enable = lib.mkDefault true;
-          accounts.email.accounts.primary = {
-            primary = true;
-            address = "home@lyte.dev";
-          };
-          home = {
-            username = "flanfam";
-            homeDirectory = "/home/flanfam";
-            stateVersion = lib.mkDefault config.system.stateVersion;
-            file.".face" = {
-              enable = true;
-              source = builtins.fetchurl {
-                url = "https://lyte.dev/icon.png";
-                sha256 = "sha256:0nf22gwasc64yc5317d0k0api0fwyrf4g3wxljdi2p3ki079ky53";
-              };
-            };
-          };
-          imports = with self.outputs.homeManagerModules; [
-            {
-              _module.args.fullName = config.users.users.flanfam.description;
-            }
-            default
-          ];
+
+        # Flanfam gets basic dotfile symlinks via activation script
+        system.userActivationScripts.flanfamEnv = {
+          text = ''
+            if [ "$(id -un)" = "flanfam" ]; then
+              FLAKE="${config.lyte.flakePath}"
+              HOME_DIR="/home/flanfam"
+
+              # Basic shell config symlinks
+              mkdir -p "$HOME_DIR/.config/fish/functions"
+              mkdir -p "$HOME_DIR/.config/fish/conf.d"
+              mkdir -p "$HOME_DIR/.config/helix"
+              mkdir -p "$HOME_DIR/.config/atuin"
+              mkdir -p "$HOME_DIR/.config/bat"
+
+              ln -sfT "$FLAKE/dotfiles/fish/functions/d.fish" "$HOME_DIR/.config/fish/functions/d.fish"
+              ln -sfT "$FLAKE/dotfiles/fish/functions/c.fish" "$HOME_DIR/.config/fish/functions/c.fish"
+              ln -sfT "$FLAKE/dotfiles/fish/functions/ltl.fish" "$HOME_DIR/.config/fish/functions/ltl.fish"
+              ln -sfT "$FLAKE/dotfiles/fish/conf.d/aliases.fish" "$HOME_DIR/.config/fish/conf.d/aliases.fish"
+              ln -sfT "$FLAKE/dotfiles/helix" "$HOME_DIR/.config/helix"
+              ln -sfT "$FLAKE/dotfiles/atuin/config.toml" "$HOME_DIR/.config/atuin/config.toml"
+              ln -sfT "$FLAKE/dotfiles/bat/config" "$HOME_DIR/.config/bat/config"
+
+              # Face icon
+              ${pkgs.curl}/bin/curl -sfo "$HOME_DIR/.face" "https://lyte.dev/icon.png" 2>/dev/null || true
+            fi
+          '';
         };
       }
     )
@@ -129,7 +132,6 @@
     };
     nix = {
       nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
-      # registry = lib.mapAttrs (_: value: { flake = value; }) self.inputs;
 
       settings = {
         trusted-users = [
@@ -149,14 +151,7 @@
       };
     };
 
-    # TODO: for each non-system user on the machine?
-    home-manager = {
-      useGlobalPkgs = lib.mkDefault true;
-      useUserPackages = lib.mkDefault true;
-      backupFileExtension = lib.mkDefault "hm-backup";
-    };
-
-    systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp"; # TODO: why did I do this again?
+    systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp";
     boot.tmp.cleanOnBoot = lib.mkDefault true;
     programs.gnupg.agent.enable = lib.mkDefault true;
     time.timeZone = lib.mkDefault "America/Chicago";
@@ -182,12 +177,6 @@
         };
 
         openFirewall = true;
-
-        /*
-          listenAddresses = [
-            { addr = "0.0.0.0"; port = 22; }
-          ];
-        */
       };
       avahi = {
         enable = lib.mkDefault true;
@@ -202,8 +191,6 @@
       journald.extraConfig = lib.mkDefault "SystemMaxUse=1G";
       xserver.xkb = {
         layout = lib.mkDefault "us";
-
-        # have the caps-lock key instead be a ctrl key
         options = lib.mkDefault "ctrl:nocaps";
       };
       smartd.enable = lib.mkDefault true;
@@ -254,7 +241,6 @@
     users.users.daniel = {
       isNormalUser = true;
       home = "/home/daniel/.home";
-      # TODO: chown /home/daniel
       description = "Daniel Flanagan";
       createHome = true;
       openssh.authorizedKeys.keys = [ self.outputs.pubkey ];
@@ -272,21 +258,13 @@
       ];
       packages = [ ];
     };
-    home-manager.users.daniel = {
-      home = {
-        stateVersion = lib.mkDefault config.system.stateVersion;
-        file.".face" = {
-          enable = config.home-manager.users.daniel.lyte.desktop.enable;
-          source = builtins.fetchurl {
-            url = "https://lyte.dev/img/avatar3-square-512.png";
-            sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
-          };
-        };
-      };
-      imports = with self.outputs.homeManagerModules; [
-        daniel
-        default
-      ];
-    };
+
+    # Daniel's face icon (for display managers)
+    lyte.userSymlinks.".face" = toString (
+      builtins.fetchurl {
+        url = "https://lyte.dev/img/avatar3-square-512.png";
+        sha256 = "sha256:15zwbwisrc01m7ad684rsyq19wl4s33ry9xmgzmi88k1myxhs93x";
+      }
+    );
   };
 }

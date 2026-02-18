@@ -12,7 +12,7 @@
     wifi
   ];
 
-  networking.hostName = config.home-manager.users.daniel.home.username;
+  networking.hostName = config.users.users.daniel.name;
 
   # TODO: may not work for non-UEFI?
   boot.loader.systemd-boot.enable = true;

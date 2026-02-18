@@ -8,18 +8,8 @@ flakeInputs:
 }:
 
 {
-  # options = {
-  #   lyte = {
-  #     desktop = {
-  #       niri = {
-  #       };
-  #     };
-  #   };
-  # };
-
   imports = [
     flakeInputs.niri.nixosModules.niri
-    # do some things even if we don't actually have the configuration setup
   ];
 
   config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.niri.enable)) {
@@ -42,6 +32,15 @@ flakeInputs:
       quickshell
       kdePackages.kdeconnect-kde
       vicinae
+
+      # Niri user packages (absorbed from HM)
+      swayosd
+      swaylock
+      swayidle
+      fuzzel
+      brightnessctl
+      xwayland-satellite
+      vesktop
     ];
     programs.niri.enable = true;
     programs.niri.package = pkgs.niri-unstable;
@@ -120,14 +119,80 @@ flakeInputs:
       after = [ "xdg-desktop-autostart.target" ];
     };
 
-    # Lock screen now configured with swaylock fallback (see lib/modules/home/default.nix and dotfiles/niri/config.kdl)
-    # TODO: noctalia doesn't seem to be generating ghostty themes on flab?
-    # Resume issues on flab addressed with lid-open sleep inhibitor in dotfiles/niri/config.kdl
-
-    # Fix xdg-desktop-portal not having access to firefox and other binaries
-    # See: https://github.com/NixOS/nixpkgs/issues/189851
     systemd.user.extraConfig = ''
       DefaultEnvironment="PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin"
     '';
+
+    # Niri user services (absorbed from HM)
+
+    # Ensure niri config include files exist before starting niri
+    systemd.user.services.niri-file-setup = {
+      description = "Ensure niri config include files exist";
+      wantedBy = [ "niri.service" ];
+      before = [ "niri.service" ];
+      partOf = [ "niri.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.users.users.daniel.home}/.config/niri/noctalia.kdl ${config.users.users.daniel.home}/.config/niri/host-specific.kdl'";
+      };
+    };
+
+    # Noctalia shell service
+    systemd.user.services.noctalia-shell = {
+      description = "Noctalia Shell for niri";
+      wantedBy = [ "niri.service" ];
+      after = [ "niri.service" ];
+      partOf = [ "niri.service" ];
+      serviceConfig = {
+        ExecStart = "${flakeInputs.noctalia.packages.${pkgs.system}.default}/bin/noctalia-shell";
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
+    };
+
+    # Swayidle for automatic locking and power management
+    systemd.user.services.swayidle = {
+      description = "Idle management daemon";
+      wantedBy = [ "niri.service" ];
+      after = [ "niri.service" ];
+      partOf = [ "niri.service" ];
+      serviceConfig = {
+        ExecStart = lib.concatStringsSep " " [
+          "${pkgs.swayidle}/bin/swayidle -w"
+          "before-sleep '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+          "lock '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+          "timeout 600 '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+          "timeout 900 '${pkgs.niri-unstable}/bin/niri msg action power-off-monitors'"
+        ];
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
+    };
+
+    # Niri dconf and GTK settings
+    lyte.dconfSettings."org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+    lyte.userFiles = {
+      ".config/gtk-3.0/settings.ini" = lib.mkForce ''
+        [Settings]
+        gtk-cursor-theme-name=Bibata-Modern-Classic
+        gtk-cursor-theme-size=40
+        gtk-theme-name=Adwaita-dark
+      '';
+      ".config/gtk-4.0/settings.ini" = lib.mkForce ''
+        [Settings]
+        gtk-cursor-theme-name=Bibata-Modern-Classic
+        gtk-cursor-theme-size=40
+        gtk-theme-name=Adwaita-dark
+      '';
+    };
+
+    # Symlinks for niri and ironbar config
+    lyte.userSymlinks = {
+      ".config/niri" = "${config.lyte.flakePath}/dotfiles/niri";
+      ".config/ironbar" = "${config.lyte.flakePath}/dotfiles/ironbar";
+    };
   };
 }

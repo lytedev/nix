@@ -46,7 +46,6 @@ in
     in
     baseHost {
       inherit nixpkgs;
-      home-manager = inputs.home-manager-unstable;
       extraModules = [
         (inputs.self.diskoConfigurations.zfsEncryptedUser {
           fullDiskDevicePath = "/dev/vda";
@@ -73,17 +72,13 @@ in
 
           lyte.shell.enable = false;
           lyte.desktop.enable = false;
-          home-manager.users.daniel = {
-            lyte.shell.enable = false;
-            lyte.desktop.enable = false;
-          };
+          # shell and desktop already disabled above
         }
       ];
     } ./empty.nix { };
 
   liveImage = baseHost rec {
     nixpkgs = inputs.nixpkgs-unstable;
-    home-manager = inputs.home-manager-unstable;
     extraModules = [
       (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix")
       {
@@ -93,10 +88,7 @@ in
 
         lyte.shell.enable = true;
         lyte.desktop.enable = true;
-        home-manager.users.daniel = {
-          lyte.shell.enable = true;
-          lyte.desktop.enable = true;
-        };
+        # shell and desktop already enabled above
       }
     ];
   } ./live.nix { };

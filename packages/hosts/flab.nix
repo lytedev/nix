@@ -80,20 +80,15 @@
     };
   };
 
-  home-manager.users.daniel = {
-    lyte = {
-      shell.enable = true;
-      desktop.enable = true;
-      desktop.niri.enable = true;
-      push-to-talk.enable = true;
-      claude.enable = true;
-      claude.sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
-      claude.matrixWebhooks = {
-        notify = config.sops.secrets.claude-matrix-webhook.path;
-        hive = config.sops.secrets.claude-matrix-webhook-hive.path;
-        code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
-      };
+  lyte.shell.enable = true;
+  lyte.push-to-talk.enable = true;
+  lyte.claude = {
+    enable = true;
+    sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
+    matrixWebhooks = {
+      notify = config.sops.secrets.claude-matrix-webhook.path;
+      hive = config.sops.secrets.claude-matrix-webhook-hive.path;
+      code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
     };
-    home.stateVersion = "25.11";
   };
 }

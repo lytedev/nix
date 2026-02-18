@@ -19,7 +19,6 @@
         };
 
       nixosConfigurations = import ./packages/hosts inputs;
-      homeConfigurations = import ./packages/home inputs;
 
       templates = import ./lib/templates;
 
@@ -28,7 +27,6 @@
       devShells = uGenPkgs (import ./packages/shells inputs);
 
       nixosModules = import ./lib/modules/nixos inputs;
-      homeManagerModules = import ./lib/modules/home inputs;
 
       overlays = import ./lib/overlays inputs;
 
@@ -88,9 +86,7 @@
 
     slippi = {
       url = "github:lytedev/slippi-nix";
-      # url = "git+file:///home/daniel/code/open-source/slippi-nix"; # used during flake development
       inputs.nixpkgs.follows = "nixpkgs-unstable";
-      inputs.home-manager.follows = "home-manager-unstable";
     };
 
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";

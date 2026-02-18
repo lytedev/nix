@@ -55,10 +55,7 @@
 
   networking.wifi.enable = true;
   lyte.desktop.enable = true;
-  home-manager.users.daniel = {
-    lyte.shell.enable = true;
-    lyte.desktop.enable = true;
-  };
+  lyte.shell.enable = true;
 
   services.sunshine = {
     enable = true;
@@ -68,8 +65,4 @@
   };
 
   family-account.enable = true;
-  home-manager.users.flanfam = {
-    lyte.shell.enable = true;
-    lyte.desktop.enable = true;
-  };
 }

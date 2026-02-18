@@ -1012,6 +1012,151 @@ in
           };
         };
       }
+
+      # User-level mobile configuration (absorbed from HM mobile module)
+      {
+        # Mobile Firefox profile
+        lyte.desktop.firefox.mobile = true;
+
+        # Ghostty + fonts
+        environment.systemPackages = with pkgs; [
+          ghostty
+          iosevkaLyteTerm
+          foot
+          geary
+          gnome-clocks
+          (writeShellScriptBin "keyboard-terminal-toggle" ''
+            ENV_FILE="$HOME/.config/stevia/env"
+            mkdir -p "$(dirname "$ENV_FILE")"
+
+            if [ -f "$ENV_FILE" ] && grep -q "POS_DEBUG=force-show" "$ENV_FILE"; then
+              rm -f "$ENV_FILE"
+              echo "Keyboard: normal mode (auto-hide, adaptive layout)"
+            else
+              printf '%s\n' "POS_DEBUG=force-show" "POS_TEST_LAYOUT=terminal" > "$ENV_FILE"
+              echo "Keyboard: terminal mode (always visible, terminal layout)"
+            fi
+
+            systemctl --user restart mobi.phosh.OSK.service
+          '')
+        ];
+
+        environment.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
+
+        programs.dconf.enable = true;
+
+        # Foot terminal config
+        lyte.userFiles.".config/foot/foot.ini" = ''
+          [main]
+          font=IosevkaLyteTerm:size=12
+          dpi-aware=no
+
+          [colors]
+          foreground=e6e1cf
+          background=0f1419
+          regular0=0f1419
+          regular1=f07178
+          regular2=b8cc52
+          regular3=ffb454
+          regular4=59c2ff
+          regular5=d2a6ff
+          regular6=95e6cb
+          regular7=e6e1cf
+          bright0=272d38
+          bright1=f07178
+          bright2=b8cc52
+          bright3=ffb454
+          bright4=59c2ff
+          bright5=d2a6ff
+          bright6=95e6cb
+          bright7=f3f4f5
+        '';
+
+        # GTK dark theme
+        lyte.userFiles.".config/gtk-3.0/settings.ini" = lib.mkForce ''
+          [Settings]
+          gtk-theme-name=Adwaita-dark
+          gtk-icon-theme-name=Adwaita
+        '';
+        lyte.userFiles.".config/gtk-4.0/settings.ini" = lib.mkForce ''
+          [Settings]
+          gtk-theme-name=Adwaita-dark
+          gtk-icon-theme-name=Adwaita
+        '';
+
+        # Mobile dconf settings
+        lyte.dconfSettings = {
+          "org/gnome/desktop/interface" = {
+            color-scheme = "prefer-dark";
+            gtk-theme = "Adwaita-dark";
+            icon-theme = "Adwaita";
+          };
+          "org/gnome/desktop/a11y/applications" = {
+            screen-keyboard-enabled = true;
+          };
+        };
+
+        # XDG autostart entries
+        lyte.userFiles.".config/autostart/geary.desktop" = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Geary
+          Exec=${pkgs.geary}/bin/geary --gapplication-service
+          Icon=org.gnome.Geary
+          Terminal=false
+          X-GNOME-Autostart-enabled=true
+        '';
+        lyte.userFiles.".config/autostart/gnome-clocks.desktop" = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Clocks
+          Exec=${pkgs.gnome-clocks}/bin/gnome-clocks --gapplication-service
+          Icon=org.gnome.clocks
+          Terminal=false
+          X-GNOME-Autostart-enabled=true
+        '';
+
+        # User services
+        systemd.user.services.gnome-clocks = {
+          description = "GNOME Clocks alarm service";
+          wantedBy = [ "phosh.service" ];
+          after = [ "phosh.service" ];
+          partOf = [ "phosh.service" ];
+          serviceConfig = {
+            Type = "simple";
+            ExecStart = "${pkgs.gnome-clocks}/bin/gnome-clocks --gapplication-service";
+            Restart = "on-failure";
+            RestartSec = "5s";
+          };
+        };
+
+        systemd.user.services."mobi.phosh.OSK" =
+          if cfg.useStevia then
+            {
+              description = "Phosh On-Screen Keyboard (Stevia)";
+              wantedBy = [ "phosh.service" ];
+              after = [ "phosh.service" ];
+              partOf = [ "phosh.service" ];
+              serviceConfig = {
+                Type = "simple";
+                ExecStart = "${pkgs.stevia}/bin/phosh-osk-stevia";
+                Restart = "on-failure";
+                EnvironmentFile = "-%h/.config/stevia/env";
+              };
+            }
+          else
+            {
+              description = "Squeekboard on-screen keyboard";
+              partOf = [ "mobi.phosh.OSK.target" ];
+              serviceConfig = {
+                Type = "dbus";
+                BusName = "sm.puri.OSK0";
+                ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
+                Restart = "on-failure";
+              };
+              wantedBy = [ "mobi.phosh.OSK.target" ];
+            };
+      }
     ]
   );
 }

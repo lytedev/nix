@@ -29,6 +29,9 @@ inputs: {
   mobile = import ./mobile.nix;
   music-production = import ./music-production.nix;
   earlyoom = import ./earlyoom.nix;
+  user-env = import ./user-env.nix;
+  claude = import ./claude.nix;
+  push-to-talk = import ./push-to-talk.nix;
 
   remote-disk-key-entry-on-boot =
     {

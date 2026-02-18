@@ -42,9 +42,7 @@
     ghostty-terminfo
   ];
 
-  home-manager.users.daniel = {
-    lyte.shell.enable = true;
-  };
+  lyte.shell.enable = true;
 
   /*
     non-root processes and services that access secrets need to be part of

@@ -53,17 +53,6 @@
     "dialout" # for ModemManager access without polkit prompts
   ];
 
-  # home-manager configuration for daniel on pinephone
-  home-manager.users.daniel = {
-    lyte.shell.enable = true;
-    lyte.desktop.enable = false;
-    lyte.mobile.enable = true;
-    lyte.mobile.useStevia = true; # Use Stevia keyboard with word completion
-
-    # btop rocm is x86_64 only
-    programs.btop.package = lib.mkForce pkgs.btop;
-  };
-
   networking.hostName = "pinephone";
   networking.networkmanager.enable = true;
 

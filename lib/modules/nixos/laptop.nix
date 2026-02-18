@@ -11,13 +11,9 @@
   };
 
   config = lib.mkIf config.lyte.laptop.enable {
-    home-manager.users.daniel.dconf.settings = {
-      "org/gnome/desktop/peripherals/touchpad" = {
-        disable-while-typing = false;
-        natural-scroll = true;
-        # accel-profile = "adaptive";
-        # speed = 0.5;
-      };
+    lyte.dconfSettings."org/gnome/desktop/peripherals/touchpad" = {
+      disable-while-typing = false;
+      natural-scroll = true;
     };
 
     environment.etc."niri/laptop.kdl".text = ''

@@ -1,4 +1,4 @@
-{ self, slippi, ... }@inputs:
+{ self, ... }@inputs:
 let
   inherit (self) outputs;
   inherit (outputs) homeManagerModules;
@@ -43,7 +43,6 @@ autoModules
     }:
     {
       imports = with homeManagerModules; [
-        slippi.homeManagerModules.default
         shell
         fish
         helix
@@ -65,8 +64,6 @@ autoModules
         mobile
       ];
 
-      config = {
-        slippi-launcher.enable = lib.mkDefault false;
-      };
+      config = { };
     };
 }

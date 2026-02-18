@@ -72,11 +72,5 @@
   lyte.desktop.enable = true;
   lyte.laptop.enable = true;
   family-account.enable = true;
-  home-manager.users.daniel = {
-    lyte = {
-      shell.enable = true;
-      desktop.enable = true;
-    };
-    home.stateVersion = "24.11";
-  };
+  lyte.shell.enable = true;
 }

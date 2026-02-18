@@ -99,24 +99,13 @@
   lyte.desktop.enable = true;
   lyte.laptop.enable = true;
   family-account.enable = true;
-  home-manager.users.daniel = {
-    lyte = {
-      shell.enable = true;
-      desktop.enable = true;
-    };
-    home = {
-      stateVersion = "24.11";
-      file.".config/easyeffects/output" = {
-        enable = true;
-        source = fetchGit {
-          url = "https://github.com/ceiphr/ee-framework-presets";
-          rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
-        };
-      };
-    };
-    services.easyeffects = {
-      enable = true;
-      preset = "philonmetal";
+  lyte.shell.enable = true;
+  lyte.desktop.easyeffects = {
+    enable = true;
+    preset = "philonmetal";
+    presetsSource = fetchGit {
+      url = "https://github.com/ceiphr/ee-framework-presets";
+      rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
     };
   };
 }

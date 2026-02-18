@@ -56,13 +56,7 @@
 
     services.displayManager.gdm.enable = lib.mkForce false;
 
-    home-manager.users.daniel = {
-      lyte = {
-        shell.enable = true;
-        desktop.enable = true;
-      };
-      # TODO: syncthing for daniel user on steamdecks for rom syncing?
-    };
+    # TODO: syncthing for daniel user on steamdecks for rom syncing?
 
     nixpkgs.config.allowUnfree = true;
     programs.steam.enable = true;

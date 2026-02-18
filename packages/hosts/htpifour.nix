@@ -31,12 +31,7 @@
   };
   console.enable = false;
 
-  home-manager.users.daniel = {
-    imports = with outputs.homeManagerModules; [
-      linux-desktop
-      wallpaper-manager
-    ];
-  };
+  # TODO: linux-desktop and wallpaper-manager were old HM modules
 
   environment.systemPackages =
     with pkgs;

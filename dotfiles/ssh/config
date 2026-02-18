@@ -1,0 +1,25 @@
+Include config.d/*
+
+Host *
+    ForwardAgent no
+    AddKeysToAgent no
+    Compression no
+    ServerAliveInterval 0
+    ServerAliveCountMax 3
+    HashKnownHosts no
+    UserKnownHostsFile ~/.ssh/known_hosts
+    ControlMaster no
+    ControlPath ~/.ssh/master-%r@%n:%p
+    ControlPersist no
+
+Host git.lyte.dev
+    User forgejo
+
+Host github.com
+    User git
+
+Host gitlab.com
+    User git
+
+Host codeberg.org
+    User git
