@@ -6,6 +6,13 @@ if asked, setup jj workspaces for separate features somewhere in the following f
   - $REPO_NAME would be nix in this case, so going from code/nix to code/workspaces/nix should be obvious
   - $WORKSPACE_NAME should probably just be the branch or bookmark name
 
+## Dotfiles Convention
+
+Prefer editing native dotfiles in `dotfiles/` directly rather than using home-manager
+`programs.*` options for configuration content. Home-manager is used to _enable_ programs
+and wire up integrations, but actual config content lives in `dotfiles/` and is symlinked
+in via `mkOutOfStoreSymlink` so it can be edited live without rebuilding.
+
 ## Forgejo (tea CLI)
 
 Remote is hosted on Forgejo. Use `tea` for issues/PRs:

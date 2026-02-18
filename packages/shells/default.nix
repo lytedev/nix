@@ -47,6 +47,7 @@ in
       nodePackages.bash-language-server
       markdown-oxide
       tea
+      nh
     ];
   };
 
