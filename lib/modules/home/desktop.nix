@@ -51,9 +51,12 @@ in
       source = config.lib.file.mkOutOfStoreSymlink "/run/current-system/sw/share/X11/fonts";
     };
 
-    home.file."${config.xdg.configHome}/ghostty" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ghostty";
-    };
+    home.file."${config.xdg.configHome}/ghostty/config".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ghostty/config";
+    home.file."${config.xdg.configHome}/ghostty/themes/catppuccin-latte-sapphire-custom".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ghostty/themes/catppuccin-latte-sapphire-custom";
+    home.file."${config.xdg.configHome}/ghostty/themes/catppuccin-mocha-sapphire-custom".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ghostty/themes/catppuccin-mocha-sapphire-custom";
 
     programs.firefox.enable = lib.mkDefault true;
     programs.ghostty.enable = lib.mkDefault true;

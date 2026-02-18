@@ -13,6 +13,9 @@ Prefer editing native dotfiles in `dotfiles/` directly rather than using home-ma
 and wire up integrations, but actual config content lives in `dotfiles/` and is symlinked
 in via `mkOutOfStoreSymlink` so it can be edited live without rebuilding.
 
+**Important:** Always symlink individual files, never whole directories. Directory-level
+`mkOutOfStoreSymlink` causes home-manager to copy contents into a read-only nix store
+path, preventing mutable files from coexisting in the same config directory.
 ## Forgejo (tea CLI)
 
 Remote is hosted on Forgejo. Use `tea` for issues/PRs:

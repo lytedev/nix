@@ -5,13 +5,14 @@
     (
       { config, ... }:
       {
-        # symlink the config regardless
-        home.file."${config.xdg.configHome}/niri" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/niri";
-        };
-        home.file."${config.xdg.configHome}/ironbar" = {
-          source = config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ironbar";
-        };
+        # symlink individual files so the directory stays mutable
+        # (host-specific.kdl and other unmanaged files can coexist)
+        home.file."${config.xdg.configHome}/niri/config.kdl".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/niri/config.kdl";
+        home.file."${config.xdg.configHome}/ironbar/config.toml".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ironbar/config.toml";
+        home.file."${config.xdg.configHome}/ironbar/style.css".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ironbar/style.css";
       }
     )
     (
@@ -38,7 +39,7 @@
             Service = {
               Type = "oneshot";
               RemainAfterExit = true;
-              ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.xdg.configHome}/niri/noctalia.kdl ${config.xdg.configHome}/niri/host-specific.kdl'";
+              ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.xdg.configHome}/niri/host-specific.kdl'";
             };
             Install = {
               WantedBy = [ "niri.service" ];
