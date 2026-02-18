@@ -24,6 +24,6 @@
   };
 
   services.caddy.virtualHosts."finances.h.lyte.dev" = {
-    extraConfig = ''reverse_proxy :5006'';
+    extraConfig = "reverse_proxy :5006";
   };
 }

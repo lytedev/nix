@@ -1,0 +1,38 @@
+[aliases]
+tug = [
+    "bookmark",
+    "move",
+    "--from",
+    "heads(::@- & bookmarks())",
+    "--to",
+    "@-",
+]
+
+[git]
+auto-track-bookmarks = true
+
+[remotes.origin]
+auto-track-bookmarks = "glob:*"
+
+[template-aliases]
+"format_timestamp(timestamp)" = "timestamp.ago()"
+
+[templates]
+draft_commit_description = """
+concat(
+  coalesce(description, "\n"),
+  surround(
+    "\nJJ: This commit contains the following changes:\n", "",
+    indent("JJ:     ", diff.stat(72)),
+  ),
+  "\nJJ: ignore-rest\n",
+  diff.git(),
+)
+"""
+
+[ui]
+paginate = "never"
+
+[user]
+email = "daniel@lyte.dev"
+name = "Daniel Flanagan"

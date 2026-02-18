@@ -1,0 +1,54 @@
+[[language]]
+name = "rust"
+
+[language.debugger]
+command = "lldb-vscode"
+name = "lldb-vscode"
+transport = "stdio"
+
+[[language.debugger.templates]]
+name = "binary"
+request = "launch"
+[[language.debugger.templates.completion]]
+completion = "filename"
+name = "binary"
+
+[language.debugger.templates.args]
+initCommands = ["command script import ~/.config/lldb_vscode_rustc_primer.py"]
+program = "{0}"
+
+[[language]]
+auto-format = false
+file-types = ["html"]
+name = "html"
+scope = "source.html"
+
+[[language]]
+auto-format = true
+file-types = ["nix"]
+name = "nix"
+scope = "source.nix"
+
+[language.formatter]
+args = ["-"]
+command = "nixfmt"
+
+[[language]]
+auto-format = true
+file-types = ["fish"]
+name = "fish"
+scope = "source.fish"
+
+[language.indent]
+tab-width = 2
+unit = "\t"
+
+[[language]]
+auto-format = true
+file-types = ["toml"]
+name = "toml"
+scope = "source.toml"
+
+[language-server.lexical]
+args = ["start"]
+command = "lexical"

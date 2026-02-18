@@ -111,7 +111,7 @@ rec {
                       userDatasetKeyLocation
                   }"''
                 else
-                  ''echo noop''
+                  "echo noop"
               )
               (
                 if rootDatasetKeyText != "" then
@@ -120,7 +120,7 @@ rec {
                       rootDatasetKeyLocation
                   }"''
                 else
-                  ''echo noop''
+                  "echo noop"
               )
             ];
             # preCreateHook = "printf yoyoyoyo > /tmp/secret.key";

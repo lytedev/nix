@@ -23,6 +23,6 @@
 
   # Expose web UI via Caddy
   services.caddy.virtualHosts."n8n.h.lyte.dev" = {
-    extraConfig = ''reverse_proxy :5678'';
+    extraConfig = "reverse_proxy :5678";
   };
 }

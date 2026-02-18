@@ -4,16 +4,25 @@
   config,
   ...
 }:
+let
+  flakePath = config.lyte.flakePath;
+in
 {
   options = {
     lyte = {
-      useOutOfStoreSymlinks = {
-        enable = lib.mkEnableOption "Enable the use of mkOutOfStoreSymlink for certain configuration files for faster editing, but means /etc/nixos and /etc/nix/flake must point to this flake in order to work";
+      flakePath = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.home.homeDirectory}/.config/home-manager";
+        description = "Absolute path to the nix flake source directory, used for out-of-store symlinks to enable live-editing of config files";
       };
       shell = {
         enable = lib.mkEnableOption "Enable home-manager shell configuration for the user";
         learn-jujutsu-not-git = {
-          enable = lib.mkEnableOption "Soft-disable the 'git' command in an effort to force me to learn jujutsu (jj)";
+          enable = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = "Soft-disable the 'git' command in an effort to force me to learn jujutsu (jj)";
+          };
         };
       };
     };
@@ -24,28 +33,7 @@
     programs.helix.enable = true;
     programs.zellij.enable = lib.mkDefault true;
     programs.eza.enable = true;
-    programs.bat = {
-      enable = true;
-      config = {
-        theme = "ansi";
-      };
-      /*
-        themes = {
-          "Catppuccin-mocha" = builtins.readFile (pkgs.fetchFromGitHub
-            {
-              owner = "catppuccin";
-              repo = "bat";
-              rev = "477622171ec0529505b0ca3cada68fc9433648c6";
-              sha256 = "6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
-            }
-            + "/Catppuccin-mocha.tmTheme");
-        };
-      */
-    };
-
-    home.shellAliases = {
-      cat = "bat";
-    };
+    programs.bat.enable = true;
 
     programs.home-manager.enable = true;
 
@@ -88,7 +76,7 @@
 
       packages = with pkgs; [
         bitwarden-cli
-        nixfmt-rfc-style
+        nixfmt
         nixd
         nil
         (pkgs.buildEnv {
@@ -124,34 +112,19 @@
       flags = [
         "--disable-up-arrow"
       ];
-
-      settings = {
-        auto_sync = true;
-        sync_frequency = "1m";
-        sync_address = "https://atuin.h.lyte.dev";
-        keymap_mode = "vim-insert";
-        inline_height = 20;
-        show_preview = true;
-
-        sync = {
-          records = true;
-        };
-
-        dotfiles = {
-          enabled = true;
-        };
-      };
     };
+
+    home.file."${config.xdg.configHome}/atuin/config.toml".source = lib.mkForce (
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/atuin/config.toml"
+    );
+
+    home.file."${config.xdg.configHome}/bat/config".source = lib.mkForce (
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/bat/config"
+    );
 
     programs.fzf = {
       # using good ol' fzf until skim sucks less out of the box I guess
       enable = true;
-      /*
-        enableFishIntegration = true;
-        defaultCommand = "fd --type f";
-        defaultOptions = ["--height 40%"];
-        fileWidgetOptions = ["--preview 'head {}'"];
-      */
     };
 
     # TODO: regular cron or something?

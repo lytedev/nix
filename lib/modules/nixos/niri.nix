@@ -120,9 +120,9 @@ flakeInputs:
       after = [ "xdg-desktop-autostart.target" ];
     };
 
-    # Lock screen now configured with swaylock fallback (see lib/modules/home/default.nix and lib/modules/home/niri/config.kdl)
+    # Lock screen now configured with swaylock fallback (see lib/modules/home/default.nix and dotfiles/niri/config.kdl)
     # TODO: noctalia doesn't seem to be generating ghostty themes on flab?
-    # Resume issues on flab addressed with lid-open sleep inhibitor in lib/modules/home/niri/config.kdl
+    # Resume issues on flab addressed with lid-open sleep inhibitor in dotfiles/niri/config.kdl
 
     # Fix xdg-desktop-portal not having access to firefox and other binaries
     # See: https://github.com/NixOS/nixpkgs/issues/189851

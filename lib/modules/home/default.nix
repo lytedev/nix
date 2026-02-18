@@ -2,7 +2,6 @@
 let
   inherit (self) outputs;
   inherit (outputs) homeManagerModules;
-  inherit (self.flakeLib) conditionalOutOfStoreSymlink;
 
   # Auto-import all .nix files in this directory except default.nix
   dir = builtins.readDir ./.;
@@ -20,11 +19,9 @@ let
     in
     # Some modules need extra arguments
     if moduleName == "niri" then
-      module { inherit inputs conditionalOutOfStoreSymlink; }
+      module { inherit inputs; }
     else if moduleName == "desktop" then
-      module { inherit homeManagerModules conditionalOutOfStoreSymlink; }
-    else if moduleName == "helix" then
-      module inputs
+      module { inherit homeManagerModules; }
     else
       module;
 

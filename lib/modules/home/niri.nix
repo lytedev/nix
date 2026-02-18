@@ -1,4 +1,4 @@
-{ inputs, conditionalOutOfStoreSymlink }:
+{ inputs }:
 {
   imports = [
     inputs.noctalia.homeModules.default
@@ -7,12 +7,10 @@
       {
         # symlink the config regardless
         home.file."${config.xdg.configHome}/niri" = {
-          source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/niri ../home/niri;
+          source = config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/niri";
         };
         home.file."${config.xdg.configHome}/ironbar" = {
-          source =
-            conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ironbar
-              ../home/ironbar;
+          source = config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ironbar";
         };
       }
     )
@@ -88,11 +86,6 @@
             };
           };
           gtk.theme.name = "Adwaita-dark";
-          # programs.ironbar = {
-          #   enable = true;
-          #   # TODO: somehow only run for niri and not GNOME?
-          #   systemd = true;
-          # };
         };
       }
     )

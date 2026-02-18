@@ -37,6 +37,6 @@
     };
   };
   services.caddy.virtualHosts."atuin.h.lyte.dev" = {
-    extraConfig = ''reverse_proxy :${toString config.services.atuin.port}'';
+    extraConfig = "reverse_proxy :${toString config.services.atuin.port}";
   };
 }

@@ -35,11 +35,7 @@
   };
   lyte.laptop.enable = true;
   home-manager.users.daniel = {
-    lyte.useOutOfStoreSymlinks.enable = true;
-    lyte.shell = {
-      enable = true;
-      learn-jujutsu-not-git.enable = true;
-    };
+    lyte.shell.enable = true;
     lyte.desktop = {
       enable = true;
       niri.enable = true;

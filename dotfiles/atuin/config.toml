@@ -1,0 +1,12 @@
+auto_sync = true
+inline_height = 20
+keymap_mode = "vim-insert"
+show_preview = true
+sync_address = "https://atuin.h.lyte.dev"
+sync_frequency = "1m"
+
+[dotfiles]
+enabled = true
+
+[sync]
+records = true

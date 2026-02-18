@@ -31,7 +31,7 @@
       # https://github.com/transmission/transmission/blob/main/docs/settings-spec.md
       "rpc-authentication-required" = true;
       "rpc-username" = "admin";
-      "rpc-password" = ''$__file{${config.sops.secrets."transmission-rpc-password".path}}'';
+      "rpc-password" = "$__file{${config.sops.secrets."transmission-rpc-password".path}}";
       "rpc-port" = 9091;
       "rpc-whitelist-enabled" = false; # Allow access from any IP, relying on the reverse proxy
       "download-dir" = "/storage/downloads";
@@ -47,8 +47,8 @@
   # Caddy will listen on 80/443 and forward traffic to the local RPC port.
 
   services.caddy.virtualHosts."transmission.your-domain.com" = {
-    extraConfig = ''reverse_proxy localhost:${
+    extraConfig = "reverse_proxy localhost:${
       toString config.services.transmission.settings."rpc-port"
-    }'';
+    }";
   };
 }

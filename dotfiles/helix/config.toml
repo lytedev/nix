@@ -1,0 +1,62 @@
+theme = "base16_terminal"
+
+[editor]
+auto-pairs = false
+bufferline = "multiple"
+cursorline = true
+rainbow-brackets = true
+rulers = [81, 121]
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+
+[editor.indent-guides]
+character = "▏"
+render = true
+
+[editor.inline-diagnostics]
+cursor-line = "hint"
+other-lines = "error"
+
+[editor.lsp]
+display-messages = true
+
+[editor.soft-wrap]
+enable = true
+
+[editor.statusline]
+left = ["file-name", "mode", "spinner", "diagnostics", "workspace-diagnostics"]
+separator = " "
+
+[editor.statusline.mode]
+insert = "I"
+normal = "N"
+select = "S"
+
+[keys.insert.j]
+J = "normal_mode"
+K = "normal_mode"
+j = "normal_mode"
+k = "normal_mode"
+
+[keys.normal]
+C-h = "jump_view_left"
+C-j = "jump_view_down"
+C-k = "jump_view_up"
+C-l = "jump_view_right"
+C-q = ":quit-all!"
+
+[keys.normal.space]
+C = ":bc!"
+Q = ":reflow 120"
+h = ":toggle lsp.display-inlay-hints"
+q = ":reflow 80"
+
+[keys.select.space]
+Q = ":reflow 120"
+q = ":reflow 80"

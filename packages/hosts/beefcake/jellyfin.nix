@@ -37,7 +37,7 @@
     # uses port 8096 by default, configurable from admin UI
   };
   services.caddy.virtualHosts."video.lyte.dev" = {
-    extraConfig = ''reverse_proxy :8096'';
+    extraConfig = "reverse_proxy :8096";
   };
   /*
     NOTE: this server's xeon chips DO NOT seem to support quicksync or graphics in general

@@ -73,10 +73,7 @@
   family-account.enable = true;
   home-manager.users.daniel = {
     lyte = {
-      shell = {
-        enable = true;
-        learn-jujutsu-not-git.enable = true;
-      };
+      shell.enable = true;
       desktop.enable = true;
     };
     home = {

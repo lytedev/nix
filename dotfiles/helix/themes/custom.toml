@@ -1,0 +1,228 @@
+attribute = "blue"
+constant = "yellow"
+"constant.builtin" = "yellow"
+"constant.character" = "cyan"
+"constant.character.escape" = "yellow"
+constructor = "blue"
+"diff.delta" = "blue"
+"diff.minus" = "red"
+"diff.plus" = "green"
+error = "red"
+function = "blue"
+"function.macro" = "magenta"
+hint = "cyan"
+info = "blue"
+keyword = "magenta"
+"keyword.storage.modifier.ref" = "cyan"
+label = "blue"
+"markup.heading.1" = "blue"
+"markup.heading.2" = "cyan"
+"markup.heading.3" = "green"
+"markup.heading.4" = "yellow"
+"markup.heading.5" = "red"
+"markup.heading.6" = "gray"
+"markup.link.text" = "blue"
+"markup.list" = "magenta"
+"markup.raw" = "red"
+operator = "blue"
+punctuation = "gray"
+"punctuation.special" = "blue"
+special = "blue"
+string = "green"
+"string.regexp" = "yellow"
+"string.special" = "blue"
+tag = "magenta"
+type = "yellow"
+"ui.text" = "white"
+"ui.virtual" = "gray"
+"ui.virtual.indent-guide" = "gray"
+variable = "white"
+"variable.builtin" = "red"
+"variable.other.member" = "white"
+warning = "yellow"
+
+[comment]
+fg = "gray"
+modifiers = ["italic"]
+
+["diagnostic.error".underline]
+color = "red"
+style = "curl"
+
+["diagnostic.hint".underline]
+color = "blue"
+style = "curl"
+
+["diagnostic.info".underline]
+color = "blue"
+style = "curl"
+
+["diagnostic.warning".underline]
+color = "yellow"
+style = "curl"
+
+["keyword.control.conditional"]
+fg = "magenta"
+modifiers = ["italic"]
+
+["markup.bold"]
+modifiers = ["bold"]
+
+["markup.heading.marker"]
+fg = "yellow"
+modifiers = ["bold"]
+
+["markup.italic"]
+modifiers = ["italic"]
+
+["markup.link.url"]
+fg = "red"
+modifiers = ["underlined"]
+
+["markup.strikethrough"]
+modifiers = ["crossed_out"]
+
+[namespace]
+fg = "blue"
+modifiers = ["italic"]
+
+["ui.background"]
+bg = "default"
+fg = "default"
+
+["ui.bufferline"]
+bg = "gray"
+fg = "gray"
+
+["ui.bufferline.active"]
+bg = "gray"
+fg = "blue"
+modifiers = ["underlined"]
+
+["ui.bufferline.active".underline]
+color = "blue"
+style = ""
+
+["ui.bufferline.background"]
+bg = "gray"
+
+["ui.cursor"]
+bg = "white"
+fg = "black"
+
+["ui.cursor.insert"]
+bg = "white"
+fg = "black"
+
+["ui.cursor.match"]
+fg = "yellow"
+modifiers = ["bold"]
+
+["ui.cursor.normal"]
+bg = "white"
+fg = "black"
+
+["ui.cursor.primary"]
+bg = "red"
+fg = "black"
+
+["ui.cursor.primary.insert"]
+bg = "white"
+fg = "black"
+
+["ui.cursor.primary.normal"]
+bg = "white"
+fg = "black"
+
+["ui.cursor.primary.select"]
+bg = "white"
+fg = "black"
+
+["ui.cursor.select"]
+bg = "white"
+fg = "black"
+
+["ui.cursorcolumn.primary"]
+bg = "gray"
+
+["ui.cursorcolumn.secondary"]
+bg = "gray"
+
+["ui.cursorline.primary"]
+bg = "gray"
+
+["ui.help"]
+bg = "gray"
+fg = "gray"
+
+["ui.highlight"]
+bg = "gray"
+fg = "black"
+modifiers = ["bold"]
+
+["ui.linenr"]
+fg = "gray"
+
+["ui.linenr.selected"]
+fg = "gray"
+
+["ui.menu"]
+bg = "gray"
+fg = "gray"
+
+["ui.menu.selected"]
+bg = "gray"
+fg = "white"
+modifiers = ["bold"]
+
+["ui.popup"]
+bg = "gray"
+fg = "white"
+
+["ui.selection"]
+bg = "gray"
+
+["ui.statusline"]
+bg = "black"
+fg = "gray"
+
+["ui.statusline.inactive"]
+bg = "gray"
+fg = "gray"
+
+["ui.statusline.insert"]
+bg = "green"
+fg = "black"
+modifiers = ["bold"]
+
+["ui.statusline.normal"]
+bg = "magenta"
+fg = "black"
+modifiers = ["bold"]
+
+["ui.statusline.select"]
+bg = "red"
+fg = "black"
+modifiers = ["bold"]
+
+["ui.text.focus"]
+bg = "gray"
+fg = "white"
+modifiers = ["bold"]
+
+["ui.text.inactive"]
+fg = "gray"
+
+["ui.virtual.inlay-hint"]
+bg = "black"
+fg = "gray"
+
+["ui.virtual.ruler"]
+bg = "gray"
+
+["ui.window"]
+fg = "gray"
+
+["variable.parameter"]
+fg = "red"
+modifiers = ["italic"]

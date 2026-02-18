@@ -90,8 +90,8 @@
         '';
 
         # Mobile-friendly Firefox UI (from postmarketOS mobile-config-firefox)
-        userChrome = builtins.readFile ./firefox-mobile-userchrome.css;
-        userContent = builtins.readFile ./firefox-mobile-usercontent.css;
+        userChrome = builtins.readFile ../../../dotfiles/firefox-mobile/userchrome.css;
+        userContent = builtins.readFile ../../../dotfiles/firefox-mobile/usercontent.css;
 
       };
     };

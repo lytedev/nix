@@ -42,6 +42,6 @@
     User = "audiobookshelf";
   };
   services.caddy.virtualHosts."audio.lyte.dev" = {
-    extraConfig = ''reverse_proxy :${toString config.services.audiobookshelf.port}'';
+    extraConfig = "reverse_proxy :${toString config.services.audiobookshelf.port}";
   };
 }

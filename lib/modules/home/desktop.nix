@@ -1,4 +1,4 @@
-{ homeManagerModules, conditionalOutOfStoreSymlink }:
+{ homeManagerModules }:
 {
   pkgs,
   config,
@@ -52,7 +52,7 @@ in
     };
 
     home.file."${config.xdg.configHome}/ghostty" = {
-      source = conditionalOutOfStoreSymlink config /etc/nix/flake/lib/modules/home/ghostty ./ghostty;
+      source = config.lib.file.mkOutOfStoreSymlink "${config.lyte.flakePath}/dotfiles/ghostty";
     };
 
     programs.firefox.enable = lib.mkDefault true;

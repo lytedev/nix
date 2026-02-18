@@ -64,7 +64,7 @@ in
         "spacetimedb.h.lyte.dev" = {
           # this needs additional security considerations
           # https://spacetimedb.com/docs/deploying/spacetimedb-standalone#configure-nginx-reverse-proxy
-          extraConfig = ''reverse_proxy :${toString cfg.port}'';
+          extraConfig = "reverse_proxy :${toString cfg.port}";
         };
       };
     };

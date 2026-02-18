@@ -56,12 +56,12 @@
         from_address = "grafana@lyte.dev";
         user = "grafana@lyte.dev";
         host = "smtp.mailgun.org:587";
-        password = ''$__file{${config.sops.secrets.grafana-smtp-password.path}}'';
+        password = "$__file{${config.sops.secrets.grafana-smtp-password.path}}";
       };
       security = {
         admin_email = "daniel@lyte.dev";
         admin_user = "lytedev";
-        admin_file = ''$__file{${config.sops.secrets.grafana-admin-password.path}}'';
+        admin_file = "$__file{${config.sops.secrets.grafana-admin-password.path}}";
       };
       # database = {
       # };
@@ -71,6 +71,6 @@
     9000
   ];
   services.caddy.virtualHosts."grafana.h.lyte.dev" = {
-    extraConfig = ''reverse_proxy :${toString config.services.grafana.settings.server.http_port}'';
+    extraConfig = "reverse_proxy :${toString config.services.grafana.settings.server.http_port}";
   };
 }

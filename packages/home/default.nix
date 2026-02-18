@@ -23,11 +23,7 @@ in
           programs.noctalia-shell.enable = lib.mkForce false;
 
           lyte = {
-            useOutOfStoreSymlinks.enable = true;
-            shell = {
-              enable = true;
-              learn-jujutsu-not-git.enable = true;
-            };
+            shell.enable = true;
             desktop = {
               enable = true;
               niri.enable = true;

@@ -71,7 +71,7 @@ in
         default = null;
         example = "10.0.0.0/8";
         # type = types.str;
-        defaultText = ''''${config.lyte.router.ipv4}/16'';
+        defaultText = "\${config.lyte.router.ipv4}/16";
       };
       netmask = mkOption {
         # TODO: derive from CIDR?
@@ -193,12 +193,12 @@ in
 
             mkNatRule =
               protocol: ports: address: comment:
-              ''iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # ${comment}'';
+              "iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # ${comment}";
 
             # Hairpin NAT: DNAT for LAN traffic to router's own IPs
             mkHairpinNatRule =
               protocol: ports: address: comment:
-              ''iifname ${lan} fib daddr type local ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # hairpin ${comment}'';
+              "iifname ${lan} fib daddr type local ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # hairpin ${comment}";
 
             natPorts = flatten (
               mapAttrsToList (

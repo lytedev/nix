@@ -82,11 +82,7 @@
 
   home-manager.users.daniel = {
     lyte = {
-      useOutOfStoreSymlinks.enable = true;
-      shell = {
-        enable = true;
-        learn-jujutsu-not-git.enable = true;
-      };
+      shell.enable = true;
       desktop.enable = true;
       desktop.niri.enable = true;
       push-to-talk.enable = true;

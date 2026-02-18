@@ -19,6 +19,6 @@
     };
   };
   services.caddy.virtualHosts."bw.lyte.dev" = {
-    extraConfig = ''reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}'';
+    extraConfig = "reverse_proxy :${toString config.services.vaultwarden.config.ROCKET_PORT}";
   };
 }

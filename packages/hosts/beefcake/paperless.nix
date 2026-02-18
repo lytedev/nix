@@ -29,6 +29,6 @@
   };
 
   services.caddy.virtualHosts."paperless.h.lyte.dev" = {
-    extraConfig = ''reverse_proxy :${toString config.services.paperless.port}'';
+    extraConfig = "reverse_proxy :${toString config.services.paperless.port}";
   };
 }
