@@ -41,6 +41,7 @@
     laptop
     mobile
     music-production
+    earlyoom
 
     (
       { config, ... }:

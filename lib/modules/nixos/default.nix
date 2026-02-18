@@ -28,6 +28,7 @@ inputs: {
   steamdeck = import ./steamdeck.nix;
   mobile = import ./mobile.nix;
   music-production = import ./music-production.nix;
+  earlyoom = import ./earlyoom.nix;
 
   remote-disk-key-entry-on-boot =
     {
