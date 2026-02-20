@@ -1,8 +1,0 @@
-layout {
-    gaps 0
-}
-
-window-rule {
-    geometry-corner-radius 0
-    clip-to-geometry false
-}
