@@ -7,23 +7,21 @@
 
   services.caddy.virtualHosts."nix.h.lyte.dev" = {
     extraConfig = ''
-      # Tiered binary cache with dynamic DNS resolution
-      # dynamic a resolves DNS per-request, handles missing hosts gracefully
-      reverse_proxy {
-        dynamic a bigtower.lan 5000
-        dynamic a dragon.lan 5000
-
-        # Always include localhost as final fallback
-        to localhost:5000
-
-        lb_policy first
-        lb_try_duration 2s
-        lb_try_interval 250ms
-
-        health_uri /nix-cache-info
-        health_interval 10s
-        health_timeout 2s
-        fail_duration 30s
+      # Binary cache cascade: dragon (fast SSDs) → localhost (CI builds) → bigtower
+      # Each level falls through on cache miss (404) or backend down (502)
+      reverse_proxy dragon.lan:5000 {
+        transport http {
+          dial_timeout 2s
+        }
+        @miss status 404 502
+        handle_response @miss {
+          reverse_proxy localhost:5000 {
+            @miss status 404 502
+            handle_response @miss {
+              reverse_proxy bigtower.lan:5000
+            }
+          }
+        }
       }
     '';
   };

@@ -15,7 +15,18 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build all hosts and devshells
       run: |
+        ref="${GITHUB_REF_NAME:-unknown}"
+        build_dir="$XDG_CACHE_HOME/ci-builds"
+        mkdir -p "$build_dir"
+
+        if [ "$ref" = "main" ]; then
+          out_link="$build_dir/main"
+        else
+          out_link="$build_dir/pr-$ref"
+        fi
+
         nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto --show-trace build --accept-flake-config \
+          --out-link "$out_link" \
           .#nixosConfigurations.beefcake.config.system.build.toplevel \
           .#nixosConfigurations.router.config.system.build.toplevel \
           .#nixosConfigurations.rascal.config.system.build.toplevel \
@@ -26,6 +37,15 @@ jobs:
           .#devShells.x86_64-linux.default \
           .#devShells.x86_64-linux.agent
         echo 'all builds completed successfully'
+
+    - name: Clean up old PR build roots
+      if: ${{ github.ref_name == 'main' }}
+      run: |
+        build_dir="$XDG_CACHE_HOME/ci-builds"
+        # keep main and the 5 most recent pr-* symlinks, remove the rest
+        ls -dt "$build_dir"/pr-* 2>/dev/null | tail -n +6 | while read -r old; do
+          rm -f "$old" "$old"-*
+        done
 
   # flake-check:
   #   runs-on: nixos-host
