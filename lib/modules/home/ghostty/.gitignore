@@ -1,0 +1,3 @@
+# Ignore everything — runtime files leak in from noctalia-shell
+*
+!.gitignore
