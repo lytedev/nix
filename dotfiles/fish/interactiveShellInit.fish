@@ -116,18 +116,18 @@ function _maybe_jujutsu_summary
 end
 
 function _maybe_git_summary
-    set cur_sha (git rev-parse --short HEAD 2>/dev/null)
+    set cur_sha (command git rev-parse --short HEAD 2>/dev/null)
     if test $status -ne 0
         return 1
     end
     set_color -b normal yellow
-    set num_changes (git status --porcelain | wc -l | string trim)
+    set num_changes (command git status --porcelain | wc -l | string trim)
     if test $num_changes = 0
         set num_changes "✔"
     else
         set num_changes "+$num_changes"
     end
-    printf " %s %s %s" (git branch --show-current) $cur_sha $num_changes
+    printf " %s %s %s" (command git branch --show-current) $cur_sha $num_changes
 end
 
 function _prompt_marker
