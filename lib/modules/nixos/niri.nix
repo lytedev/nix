@@ -191,8 +191,8 @@ flakeInputs:
 
     # Symlinks for niri and ironbar config
     lyte.userSymlinks = {
-      ".config/niri" = "${config.lyte.flakePath}/dotfiles/niri";
-      ".config/ironbar" = "${config.lyte.flakePath}/dotfiles/ironbar";
+      ".config/niri" = "${config.lyte.dotfilesPath}/niri";
+      ".config/ironbar" = "${config.lyte.dotfilesPath}/ironbar";
     };
   };
 }

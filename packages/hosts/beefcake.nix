@@ -43,6 +43,7 @@
   ];
 
   lyte.shell.enable = true;
+  lyte.dotfilesInStore = true;
 
   /*
     non-root processes and services that access secrets need to be part of

@@ -8,7 +8,7 @@
 let
   cfg = config.lyte.desktop;
   types = lib.types;
-  flakePath = config.lyte.flakePath;
+  dotfilesPath = config.lyte.dotfilesPath;
   danielHome = config.users.users.daniel.home;
 in
 {
@@ -186,7 +186,7 @@ in
 
       # Symlinks for desktop configs
       lyte.userSymlinks = {
-        ".config/ghostty" = "${flakePath}/dotfiles/ghostty";
+        ".config/ghostty" = "${dotfilesPath}/ghostty";
         ".local/share/fonts" = "/run/current-system/sw/share/X11/fonts";
       };
 
@@ -231,19 +231,18 @@ in
       '';
 
       lyte.userSymlinks = lib.mkIf (!cfg.firefox.mobile) {
-        ".mozilla/firefox/primary/user.js" = "${flakePath}/dotfiles/firefox/user.js";
-        ".mozilla/firefox/primary/chrome/userChrome.css" = "${flakePath}/dotfiles/firefox/userChrome.css";
+        ".mozilla/firefox/primary/user.js" = "${dotfilesPath}/firefox/user.js";
+        ".mozilla/firefox/primary/chrome/userChrome.css" = "${dotfilesPath}/firefox/userChrome.css";
       };
     })
 
     # Mobile Firefox profile override
     (lib.mkIf (cfg.enable && cfg.firefox.enable && cfg.firefox.mobile) {
       lyte.userSymlinks = {
-        ".mozilla/firefox/primary/user.js" = "${flakePath}/dotfiles/firefox-mobile/user.js";
-        ".mozilla/firefox/primary/chrome/userChrome.css" =
-          "${flakePath}/dotfiles/firefox-mobile/userchrome.css";
+        ".mozilla/firefox/primary/user.js" = "${dotfilesPath}/firefox-mobile/user.js";
+        ".mozilla/firefox/primary/chrome/userChrome.css" = "${dotfilesPath}/firefox-mobile/userchrome.css";
         ".mozilla/firefox/primary/chrome/userContent.css" =
-          "${flakePath}/dotfiles/firefox-mobile/usercontent.css";
+          "${dotfilesPath}/firefox-mobile/usercontent.css";
       };
     })
 

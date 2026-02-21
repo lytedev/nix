@@ -67,7 +67,7 @@
         system.userActivationScripts.flanfamEnv = {
           text = ''
             if [ "$(id -un)" = "flanfam" ]; then
-              FLAKE="${config.lyte.flakePath}"
+              FLAKE="${config.lyte.resolvedFlakePath}"
               HOME_DIR="/home/flanfam"
 
               # Basic shell config symlinks
@@ -119,6 +119,7 @@
       self.shortRev or self.dirtyShortRev or self.lastModified or "unknown"
     );
 
+    lyte.flakeStorePath = "${self}";
     lyte.shell.enable = lib.mkDefault true;
     nixpkgs = {
       config.allowUnfree = lib.mkDefault true;

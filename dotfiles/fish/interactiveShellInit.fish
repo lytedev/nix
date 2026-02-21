@@ -14,18 +14,11 @@ function fish_greeting
     _prompt_prefix
     printf "%s\n" (date)
 
-    # warn about broken out-of-store symlinks (flakePath / home-manager symlink)
-    if not test -d "$HOME/.config/home-manager"
-        set_color yellow
-        echo "warning: ~/.config/home-manager does not exist"
-        echo "         out-of-store symlinks (atuin, helix, etc.) will be broken"
-        echo "         symlink it to your nix config repo, e.g.:"
-        echo "           ln -s ~/Documents/code/nix ~/.config/home-manager"
-        set_color normal
-    else if test -L "$XDG_CONFIG_HOME/atuin/config.toml" && not test -e "$XDG_CONFIG_HOME/atuin/config.toml"
+    # warn about broken dotfile symlinks
+    if test -L "$XDG_CONFIG_HOME/atuin/config.toml" && not test -e "$XDG_CONFIG_HOME/atuin/config.toml"
         set_color yellow
         echo "warning: broken config symlink: atuin/config.toml"
-        echo "         ~/.config/home-manager may point to the wrong location"
+        echo "         dotfile symlinks are broken — check lyte.flakePath or lyte.dotfilesInStore"
         set_color normal
     end
 end

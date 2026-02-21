@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.lyte;
-  flakePath = cfg.flakePath;
+  dotfilesPath = cfg.dotfilesPath;
   danielHome = config.users.users.daniel.home;
 in
 {
@@ -40,9 +40,9 @@ in
         enable = true;
 
         # Fish shell init (sourced live from dotfiles via flakePath)
-        shellInit = "source ${flakePath}/dotfiles/fish/shellInit.fish";
+        shellInit = "source ${dotfilesPath}/fish/shellInit.fish";
         interactiveShellInit = ''
-          source ${flakePath}/dotfiles/fish/interactiveShellInit.fish
+          source ${dotfilesPath}/fish/interactiveShellInit.fish
 
           # Shell integrations
           ${pkgs.atuin}/bin/atuin init fish --disable-up-arrow | source
@@ -69,9 +69,6 @@ in
         enable = true;
         package = pkgs.gitFull;
         lfs.enable = true;
-        config = {
-          include.path = "${danielHome}/.config/git/config.local";
-        };
       };
     };
 
@@ -148,35 +145,35 @@ in
     # Symlinks for tool configs
     lyte.userSymlinks = {
       # Fish functions (autoloaded from ~/.config/fish/functions/)
-      ".config/fish/functions/d.fish" = "${flakePath}/dotfiles/fish/functions/d.fish";
-      ".config/fish/functions/c.fish" = "${flakePath}/dotfiles/fish/functions/c.fish";
-      ".config/fish/functions/ltl.fish" = "${flakePath}/dotfiles/fish/functions/ltl.fish";
-      ".config/fish/functions/g.fish" = "${flakePath}/dotfiles/fish/functions/g.fish";
-      ".config/fish/functions/lag.fish" = "${flakePath}/dotfiles/fish/functions/lag.fish";
+      ".config/fish/functions/d.fish" = "${dotfilesPath}/fish/functions/d.fish";
+      ".config/fish/functions/c.fish" = "${dotfilesPath}/fish/functions/c.fish";
+      ".config/fish/functions/ltl.fish" = "${dotfilesPath}/fish/functions/ltl.fish";
+      ".config/fish/functions/g.fish" = "${dotfilesPath}/fish/functions/g.fish";
+      ".config/fish/functions/lag.fish" = "${dotfilesPath}/fish/functions/lag.fish";
       ".config/fish/functions/jujutsu-git-colocate.fish" =
-        "${flakePath}/dotfiles/fish/functions/jujutsu-git-colocate.fish";
-      ".config/fish/functions/pp.fish" = "${flakePath}/dotfiles/fish/functions/pp.fish";
+        "${dotfilesPath}/fish/functions/jujutsu-git-colocate.fish";
+      ".config/fish/functions/pp.fish" = "${dotfilesPath}/fish/functions/pp.fish";
       # Fish conf.d
-      ".config/fish/conf.d/aliases.fish" = "${flakePath}/dotfiles/fish/conf.d/aliases.fish";
+      ".config/fish/conf.d/aliases.fish" = "${dotfilesPath}/fish/conf.d/aliases.fish";
 
       # direnv (sources nix-direnv from /run/current-system)
-      ".config/direnv/direnvrc" = "${flakePath}/dotfiles/direnv/direnvrc";
+      ".config/direnv/direnvrc" = "${dotfilesPath}/direnv/direnvrc";
 
       # Tool configs
-      ".config/helix/config.toml" = "${flakePath}/dotfiles/helix/config.toml";
-      ".config/helix/languages.toml" = "${flakePath}/dotfiles/helix/languages.toml";
-      ".config/helix/themes/custom.toml" = "${flakePath}/dotfiles/helix/themes/custom.toml";
-      ".config/lldb_vscode_rustc_primer.py" = "${flakePath}/dotfiles/helix/lldb_vscode_rustc_primer.py";
-      ".config/atuin/config.toml" = "${flakePath}/dotfiles/atuin/config.toml";
-      ".config/bat/config" = "${flakePath}/dotfiles/bat/config";
-      ".config/git/config.local" = "${flakePath}/dotfiles/git/config.local";
-      ".config/jj/config.toml" = "${flakePath}/dotfiles/jujutsu/config.toml";
-      ".config/zellij/config.kdl" = "${flakePath}/dotfiles/zellij/config.kdl";
-      ".config/htop/htoprc" = "${flakePath}/dotfiles/htop/htoprc";
-      ".config/senpai/senpai.scfg" = "${flakePath}/dotfiles/senpai/senpai.scfg";
-      ".cargo/config.toml" = "${flakePath}/dotfiles/cargo/config.toml";
-      ".iex.exs" = "${flakePath}/dotfiles/iex/.iex.exs";
-      ".ssh/config" = "${flakePath}/dotfiles/ssh/config";
+      ".config/helix/config.toml" = "${dotfilesPath}/helix/config.toml";
+      ".config/helix/languages.toml" = "${dotfilesPath}/helix/languages.toml";
+      ".config/helix/themes/custom.toml" = "${dotfilesPath}/helix/themes/custom.toml";
+      ".config/lldb_vscode_rustc_primer.py" = "${dotfilesPath}/helix/lldb_vscode_rustc_primer.py";
+      ".config/atuin/config.toml" = "${dotfilesPath}/atuin/config.toml";
+      ".config/bat/config" = "${dotfilesPath}/bat/config";
+      ".config/git/config" = "${dotfilesPath}/git/config.local";
+      ".config/jj/config.toml" = "${dotfilesPath}/jujutsu/config.toml";
+      ".config/zellij/config.kdl" = "${dotfilesPath}/zellij/config.kdl";
+      ".config/htop/htoprc" = "${dotfilesPath}/htop/htoprc";
+      ".config/senpai/senpai.scfg" = "${dotfilesPath}/senpai/senpai.scfg";
+      ".cargo/config.toml" = "${dotfilesPath}/cargo/config.toml";
+      ".iex.exs" = "${dotfilesPath}/iex/.iex.exs";
+      ".ssh/config" = "${dotfilesPath}/ssh/config";
     };
 
     # has_command function (used by other fish config)

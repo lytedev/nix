@@ -100,6 +100,32 @@ in
       description = "Absolute path to the nix flake source directory, used for dotfile symlinks";
     };
 
+    dotfilesInStore = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Use nix store paths for dotfiles instead of live flakePath (for hosts without a repo checkout)";
+    };
+
+    flakeStorePath = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Nix store path of the flake source (set automatically by default-module.nix)";
+    };
+
+    resolvedFlakePath = lib.mkOption {
+      type = lib.types.str;
+      default = if cfg.dotfilesInStore then cfg.flakeStorePath else cfg.flakePath;
+      description = "Resolved flake path: store path when dotfilesInStore is true, live flakePath otherwise";
+      readOnly = true;
+    };
+
+    dotfilesPath = lib.mkOption {
+      type = lib.types.str;
+      default = "${cfg.resolvedFlakePath}/dotfiles";
+      description = "Resolved path to the dotfiles directory";
+      readOnly = true;
+    };
+
     userSymlinks = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = { };
