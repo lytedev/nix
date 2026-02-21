@@ -92,6 +92,10 @@
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
     jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    # Determinate Nix — lazy trees, parallel eval
+    # NOTE: intentionally no nixpkgs follows to preserve FlakeHub cache hits
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
+
     # other inputs
     hardware.url = "github:NixOS/nixos-hardware";
     # nnf.url = "github:thelegy/nixos-nftables-firewall";
@@ -170,6 +174,7 @@
 
       "https://helix.cachix.org"
       "https://ghostty.cachix.org"
+      "https://install.determinate.systems"
     ];
 
     extra-trusted-public-keys = [
@@ -180,6 +185,7 @@
 
       "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
       "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+      "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
     ];
   };
 }

@@ -126,7 +126,9 @@
       overlays = [ self.flakeLib.forSelfOverlay ];
     };
     nix = {
-      nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
+      nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") (
+        lib.filterAttrs (_: value: value ? to && value.to ? path) config.nix.registry
+      );
 
       settings = {
         trusted-users = [

@@ -26,6 +26,7 @@ let
               imports = extraImports;
               nixpkgs.overlays = extraOverlays;
             }
+            inputs.determinate.nixosModules.default
           ]
           ++ extraModules
           ++ [
