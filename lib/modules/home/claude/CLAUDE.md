@@ -1,38 +1,15 @@
-# This file is managed by Nix (Home Manager). Do not edit it directly.
-# Source: lib/modules/home/claude/CLAUDE.md in the nix config repo.
-# To modify, edit the source and rebuild (e.g., `nh os switch`).
-
-# Matrix Messaging
-
-Send messages to Matrix rooms (bridged to Slack/Discord) via hookshot webhooks:
-
-```bash
-claude-matrix-send <room> "message"
-```
-
-Available rooms:
-- `notify` — Claude notifications (idle, permission prompts)
-- `hive` — ccode hive general room
-- `code-review` — #code-review Slack channel (via relay)
-
-Notifications are sent automatically by hooks on idle/permission prompts. Use `claude-matrix-send` to proactively communicate — e.g., requesting code review, reporting task completion, or asking questions.
-
-# Screenshots
-
-The latest screenshot/clipboard image can be found in `~/img/scrots/` (e.g. `clipshot_2026-02-13_13-29-03.png`). Use `ltl ~/img/scrots/` to find the most recent file. You can read these images directly with the Read tool.
+> This file is managed by Nix. Prefer editing in ~/.config/home-manager in lib/modules/home/claude/CLAUDE.md in the nix config repo.
 
 # Package Management
 When running commands or tools that may not be installed on the system, prefer using `nix shell` or `comma` to run them without permanent installation:
-
+This system uses Nix for package management. Always consider if a tool can be run via nix shell or comma before suggesting installation.
 - Use `comma` (`,`) for quick execution: `, program-name args`
 - Use `nix shell nixpkgs#program-name` for more complex setups
-- Only install packages globally if absolutely necessary and the user explicitly requests it
-
-# Development Environment
-This system uses Nix for package management. Always consider if a tool can be run via nix shell or comma before suggesting installation.
+- Otherwise, permanent updates to the system should go in ~/.config/home-manager and be coordinated with the user if leaving the current project
 
 # Code Style
 Follow standard coding practices and use appropriate tools for the language/framework being used.
+Format code using the configured formatter _before_ pushing.
 
 # Jujutsu (jj) - Use instead of git
 
@@ -96,17 +73,27 @@ This host uses jj (jujutsu) for version control. Prefer jj commands over git.
 
 ## Common Workflows
 
+Unless otherwise specified, prefer _not_ squashing changes into the same commit.
+Having the full commit history of all changes made during development is more
+valuable.
+
+Instead, prefer `jj desc` to describe the current changeset, `jj tug` to update
+the bookmark associated with the work, `jj push` to ensure it is sync'd up, then
+`jj new` to have a fresh commit for the next set of changes. Don't squash unless
+specifically asked. Double check the commit's contents do not include files that
+should be gitignored.
+
 ```bash
 # Make changes and describe them
-jj describe -m "Add feature X"
+jj describe -m "feat: add feature X"  # Prefer conventional commit formatting
+jj tug  # Move the bookmark for the current chunk of work OR
+jj bookmark create $BOOKMARK  # Create a bookmark if one does not yet exist
+jj push  # Push the work up (may need `-b $BOOKMARK` if a new one was created)
 jj new  # Start fresh change for next work
 
 # Interactive rebase/edit history
 jj rebase -d main  # Rebase current onto main
 
-# Push to remote
-jj git push -b <bookmark>
-
 # Undo last operation
 jj undo
-
+```
