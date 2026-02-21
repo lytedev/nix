@@ -154,8 +154,14 @@
       };
       "org/gnome/desktop/peripherals/keyboard" = {
         repeat = true;
-        repeat-interval = 10;
-        delay = 200;
+        repeat-interval = {
+          _type = "uint32";
+          value = 10;
+        };
+        delay = {
+          _type = "uint32";
+          value = 200;
+        };
       };
       "org/gnome/desktop/wm/preferences" = {
         resize-with-right-button = true;
@@ -187,9 +193,18 @@
         ];
       };
       "org/gnome/shell/extensions/tilingshell" = {
-        inner-gaps = 8;
-        outer-gaps = 8;
-        window-border-width = 2;
+        inner-gaps = {
+          _type = "uint32";
+          value = 8;
+        };
+        outer-gaps = {
+          _type = "uint32";
+          value = 8;
+        };
+        window-border-width = {
+          _type = "uint32";
+          value = 2;
+        };
         window-border-color = "rgba(116,199,236,0.47)";
         focus-window-right = [ "<Super>l" ];
         focus-window-left = [ "<Super>h" ];

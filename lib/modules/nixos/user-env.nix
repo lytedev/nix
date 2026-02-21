@@ -23,7 +23,9 @@ let
         let
           toGVariant =
             v:
-            if builtins.isBool v then
+            if builtins.isAttrs v && v ? _type then
+              "${v._type} ${toString v.value}"
+            else if builtins.isBool v then
               (if v then "true" else "false")
             else if builtins.isInt v then
               toString v
@@ -54,7 +56,9 @@ let
           in
           ''
             mkdir -p "$(dirname "${fullTarget}")"
-            ln -sfT "${source}" "${fullTarget}"
+            if [ "$(readlink -f "${fullTarget}")" != "$(readlink -f "${source}")" ]; then
+              ln -sfT "${source}" "${fullTarget}"
+            fi
           ''
         ) symlinkEntries
       );
