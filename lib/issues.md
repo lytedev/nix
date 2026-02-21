@@ -18,9 +18,9 @@ Kanidm is fully setup, but not integrated with anything.
 
 Perhaps the SpacetimeDB instance would be a good starting point? Just need JWTs?
 
-Declarative provisioning with the builtin nixos did not work for me, but I may
-still be able to leverage https://github.com/oddlama/kanidm-provision on its
-own.
+Kanidm 1.9 introduces native HJSON-based entry migrations (`migration_path`),
+replacing the broken NixOS provision module and the need for oddlama/kanidm-provision.
+A custom `kanidm-migrations` NixOS module generates the migration files from Nix config.
 
 ## Kanidm Alternatives
 

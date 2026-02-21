@@ -19,7 +19,7 @@ in
 {
   imports = [
     {
-      services.kanidm.package = pkgs.unstable-packages.kanidm_1_8;
+      services.kanidm.package = pkgs.kanidm;
     }
   ];
   config = lib.mkIf isClientEnabled {

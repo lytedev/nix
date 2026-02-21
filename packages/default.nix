@@ -34,4 +34,5 @@
   stevia = pkgs.callPackage ./stevia.nix { };
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };
   spacetimedb = pkgs.callPackage ./spacetimedb/package.nix { };
+  kanidm = pkgs.callPackage ./kanidm/package.nix { };
 }

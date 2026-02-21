@@ -1,0 +1,79 @@
+{
+  "id": "f7a1b2c3-0001-4000-8000-000000000001",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "761c05cb-1807-42c3-8ec9-6e3932b28276",
+      "class": [
+        "group"
+      ],
+      "name": "administrators",
+      "member": [
+        "daniel"
+      ]
+    },
+    {
+      "state": "present",
+      "id": "d6000114-0b69-484f-b568-a4beb3cb6a88",
+      "class": [
+        "group"
+      ],
+      "name": "family",
+      "member": [
+        "valerie",
+        "daniel"
+      ]
+    },
+    {
+      "state": "present",
+      "id": "98f2cd67-36fb-4da2-8119-4afbcdc3cc7a",
+      "class": [
+        "group"
+      ],
+      "name": "broad-family"
+    },
+    {
+      "state": "present",
+      "id": "a7979a7f-4a9c-4a36-b2f4-10d164e27f56",
+      "class": [
+        "group"
+      ],
+      "name": "trusted-friends"
+    },
+    {
+      "state": "present",
+      "id": "c9e5076d-02d6-4130-93c3-08ffaee5429e",
+      "class": [
+        "group"
+      ],
+      "name": "non-technical-friends"
+    },
+    {
+      "state": "present",
+      "id": "fe911776-9688-466d-9c11-b376a3327f85",
+      "class": [
+        "group"
+      ],
+      "name": "git.lyte.dev_users",
+      "member": [
+        "lytebot-svc",
+        "administrators",
+        "lytebot"
+      ]
+    },
+    {
+      "state": "present",
+      "id": "9ae4aa89-6dcf-42b8-9d42-3e1718797879",
+      "class": [
+        "group"
+      ],
+      "name": "matrix.lyte.dev_users",
+      "member": [
+        "voice-bridge",
+        "lytebot-svc",
+        "daniel",
+        "lytebot"
+      ]
+    }
+  ]
+}

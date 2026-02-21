@@ -35,6 +35,7 @@
     restic
     router
     kanidm
+    kanidm-migrations
     headscale-server
     laptop
     mobile

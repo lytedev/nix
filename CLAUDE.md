@@ -1,5 +1,3 @@
-format code with something like `fish -c 'nix fmt -- (jj file list)'`
-
 if asked, setup jj workspaces for separate features somewhere in the following format:
 - $CODE/workspaces/$REPO_NAME/$WORKSPACE_NAME
   - $CODE is the related code directory, usually ~/../code (since $HOME is /home/daniel/.home for clutter reasons and the code directory is usually /home/daniel/code)
@@ -8,16 +6,25 @@ if asked, setup jj workspaces for separate features somewhere in the following f
 
 ## Dotfiles Convention
 
-Prefer editing native dotfiles in `dotfiles/` directly rather than using home-manager
-`programs.*` options for configuration content. Home-manager is used to _enable_ programs
-and wire up integrations, but actual config content lives in `dotfiles/` and is symlinked
-in via `mkOutOfStoreSymlink` so it can be edited live without rebuilding.
+Home-manager has been **removed** from this flake. User environment (symlinks, dconf
+settings, files) is managed by a custom NixOS-native system in
+`lib/modules/nixos/user-env.nix` using `system.userActivationScripts`.
+
+- **Symlinks**: Configured via `lyte.userSymlinks` (e.g. in `lib/modules/nixos/shell-config.nix`)
+- **Files**: Configured via `lyte.userFiles`
+- **dconf**: Configured via `lyte.dconfSettings`
+
+Actual config content lives in `dotfiles/` and is symlinked into `~/.config/` via
+`lyte.userSymlinks` so it can be edited live without rebuilding.
 
 **Important:** Always symlink individual files, never whole directories. Directory-level
-`mkOutOfStoreSymlink` causes home-manager to copy contents into a read-only nix store
-path, preventing mutable files from coexisting in the same config directory.
-## Forgejo (tea CLI)
+symlinks prevent mutable files (like Helix's `runtime/grammars/`) from coexisting in
+the same config directory.
 
+**Note:** `lib/modules/home/` still exists but contains **dead code** from the old
+home-manager setup. The active configuration is in `lib/modules/nixos/`.
+
+## Forgejo (tea CLI)
 Remote is hosted on Forgejo. Use `tea` for issues/PRs:
 
 ```bash
@@ -27,3 +34,9 @@ tea pr list
 tea pr create              # interactive
 tea pr merge <id>
 ```
+
+### Don't waste time waiting for CI for fast things
+- Format code `nix fmt -- (jj file list)`
+
+### Don't waste limited local resources for slow things
+- Let CI handle big builds and simply monitor the PR's CI jobs for results

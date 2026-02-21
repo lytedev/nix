@@ -49,6 +49,7 @@ in
     services.kanidm = {
       enableServer = true;
       serverSettings = {
+        version = "2";
         inherit domain;
         origin = "https://${domain}";
         bindaddress = "127.0.0.1:8943";
@@ -70,72 +71,31 @@ in
       enableClient = true;
       clientSettings.uri = "https://${domain}";
 
-      provision = {
-        enable = false;
-        instanceUrl = "https://${domain}";
-        # adminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
-        # idmAdminPasswordFile = config.sops.secrets.kanidm-admin-password-file.path
-        autoRemove = true;
-        groups = {
-          administrators = {
-            members = [ "daniel" ];
-          };
-          family = {
-            members = [
-              "valerie"
-              "daniel"
-            ];
-          };
-          broad-family = {
-            members = [
-              # ...
-            ];
-          };
-          trusted-friends = {
-            members = [
-              # ...
-            ];
-          };
-          non-technical-friends = {
-            members = [
-              # ...
-            ];
-          };
-        };
-        persons = {
-          daniel = {
-            displayName = "Daniel Flanagan";
-            legalName = "Daniel Flanagan";
-            mailAddresses = [ "daniel@lyte.dev" ];
-            groups = [
-              "administrators"
-              "family"
-            ];
-          };
-          valerie = {
-            displayName = "Valerie";
-            mailAddresses = [ ];
-            groups = [
-              "family"
-            ];
-          };
-        };
-        systems = {
-          oauth2 = {
-            test1 = {
-              displayName = "Test One";
-              originUrl = "http://localhost:5173/";
-              originLanding = "http://localhost:5173/idm/origin-landing";
-              enableLegacyCrypto = false;
-              enableLocalhostRedirects = true; # only for public
-              # public = true;
-              allowInsecureClientDisablePkce = false;
-              # basicSecretFile =
-              # claimMap = { };
-            };
-          };
-        };
+      migrations.files = {
+        "00-groups.hjson" = ./kanidm-migrations/00-groups.hjson;
+        "20-oauth2.hjson" = ./kanidm-migrations/20-oauth2.hjson;
       };
+
+      migrations.secretFiles = {
+        "10-persons.hjson" = config.sops.secrets.kanidm-persons-migration.path;
+        "15-service-accounts.hjson" = config.sops.secrets.kanidm-service-accounts-migration.path;
+      };
+    };
+
+    sops.secrets.kanidm-persons-migration = {
+      sopsFile = ../../../secrets/beefcake/kanidm-migrations.yml;
+      key = "persons";
+      owner = user;
+      group = group;
+      mode = "0400";
+    };
+
+    sops.secrets.kanidm-service-accounts-migration = {
+      sopsFile = ../../../secrets/beefcake/kanidm-migrations.yml;
+      key = "service-accounts";
+      owner = user;
+      group = group;
+      mode = "0400";
     };
 
     services.caddy.virtualHosts.${domain} = {

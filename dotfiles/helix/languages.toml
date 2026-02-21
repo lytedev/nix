@@ -49,6 +49,18 @@ file-types = ["toml"]
 name = "toml"
 scope = "source.toml"
 
+[[language]]
+name = "hjson"
+scope = "source.hjson"
+file-types = ["hjson"]
+comment-tokens = ["//", "#"]
+block-comment-tokens = { start = "/*", end = "*/" }
+indent = { tab-width = 2, unit = "  " }
+
+[[grammar]]
+name = "hjson"
+source = { git = "https://github.com/lytedev/tree-sitter-hjson", rev = "main" }
+
 [language-server.lexical]
 args = ["start"]
 command = "lexical"

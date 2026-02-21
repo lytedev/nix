@@ -1,0 +1,64 @@
+{
+  "id": "55fe808a-440e-4257-89ff-92eef1dfe9ae",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "ae0131a9-00ec-4699-990d-3d62ea52dc04",
+      "name": "vpn.h.lyte.dev",
+      "displayname": "Headscale VPN",
+      "oauth2_rs_origin_landing": "https://vpn.h.lyte.dev/",
+      "oauth2_rs_origin": "https://vpn.h.lyte.dev/oidc/callback",
+      "oauth2_allow_insecure_client_disable_pkce": true,
+      "oauth2_strict_redirect_uri": true,
+      "oauth2_rs_scope_map": [
+        {
+          "group": "administrators",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ]
+        }
+      ]
+    },
+    {
+      "state": "present",
+      "id": "cf1c367d-8d35-4500-be6d-45c00f804bb1",
+      "name": "matrix.lyte.dev",
+      "displayname": "chat.lyte.dev",
+      "oauth2_rs_origin_landing": "https://chat.lyte.dev/#/login",
+      "oauth2_rs_origin": "https://matrix.lyte.dev/_matrix/client/unstable/login/sso/callback/matrix.lyte.dev",
+      "oauth2_prefer_short_username": true,
+      "oauth2_strict_redirect_uri": true,
+      "oauth2_rs_scope_map": [
+        {
+          "group": "matrix.lyte.dev_users",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ]
+        }
+      ]
+    },
+    {
+      "state": "present",
+      "id": "c402a50d-1d8a-45b2-a5b5-e10fb5b125f2",
+      "name": "git.lyte.dev",
+      "displayname": "git.lyte.dev",
+      "oauth2_rs_origin_landing": "https://git.lyte.dev/",
+      "oauth2_rs_origin": "https://git.lyte.dev/user/oauth2/idm.h.lyte.dev/callback",
+      "oauth2_strict_redirect_uri": true,
+      "oauth2_rs_scope_map": [
+        {
+          "group": "git.lyte.dev_users",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ]
+        }
+      ]
+    }
+  ]
+}

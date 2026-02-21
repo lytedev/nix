@@ -156,6 +156,8 @@ in
       ".config/helix/config.toml" = "${dotfilesPath}/helix/config.toml";
       ".config/helix/languages.toml" = "${dotfilesPath}/helix/languages.toml";
       ".config/helix/themes/custom.toml" = "${dotfilesPath}/helix/themes/custom.toml";
+      ".config/helix/runtime/queries/hjson/highlights.scm" =
+        "${dotfilesPath}/helix/queries/hjson/highlights.scm";
       ".config/lldb_vscode_rustc_primer.py" = "${dotfilesPath}/helix/lldb_vscode_rustc_primer.py";
       ".config/atuin/config.toml" = "${dotfilesPath}/atuin/config.toml";
       ".config/bat/config" = "${dotfilesPath}/bat/config";

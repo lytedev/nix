@@ -21,7 +21,7 @@ let
       inherit unstable-packages stable-packages;
 
       # force certain packages to always be unstable
-      inherit (unstable-packages) kanidm jujutsu;
+      inherit (unstable-packages) jujutsu;
 
       # nixpkgs-unstable split zig's setup-hook into zig.hook, but that hook
       # unconditionally prepends default flags that conflict with ghostty's own.
