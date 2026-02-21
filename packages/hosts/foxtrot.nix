@@ -22,6 +22,10 @@
       "amdgpu.sg_display=0"
       "boot.shell_on_fail=1"
       "acpi_osi=\"!Windows 2020\""
+
+      # Power management
+      "nowatchdog" # disable NMI watchdog to allow deeper C-states
+      "amdgpu.abmlevel=3" # adaptive backlight management
     ];
     initrd.availableKernelModules = [
       "xhci_pci"
@@ -77,7 +81,8 @@
 
   programs.nix-ld.enable = true;
 
-  powerManagement.cpuFreqGovernor = "ondemand";
+  # Let power-profiles-daemon manage the CPU governor via amd_pstate EPP
+  powerManagement.powertop.enable = true;
   services = {
     fwupd.extraRemotes = [ "lvfs-testing" ];
     power-profiles-daemon = {

@@ -36,7 +36,11 @@
 
     services.upower.enable = true;
 
-    # TODO: s3/deep mem_sleep option for /sys/power/mem_sleep if available?
+    # Disable NMI watchdog at runtime (belt-and-suspenders with nowatchdog kernel param)
+    boot.kernel.sysctl."kernel.nmi_watchdog" = 0;
+
+    # Enable WiFi powersave
+    networking.networkmanager.wifi.powersave = true;
 
     systemd.sleep.extraConfig = "HibernateDelaySec=11m";
 
