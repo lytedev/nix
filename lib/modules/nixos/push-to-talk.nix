@@ -108,7 +108,8 @@ let
                 self.notify("Push-to-Talk", "Model not downloaded. Run push-to-talk-download-model", urgency="critical", replace_id="ptt")
                 return
 
-            self.tmp_wav = tempfile.mktemp(suffix=".wav", prefix="ptt-")
+            fd, self.tmp_wav = tempfile.mkstemp(suffix=".wav", prefix="ptt-")
+            os.close(fd)
             try:
                 self.record_proc = subprocess.Popen(
                     [PWRECORD_CMD, "--rate=16000", "--channels=1", "--format=s16", self.tmp_wav],
