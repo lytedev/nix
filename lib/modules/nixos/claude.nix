@@ -196,7 +196,8 @@ in
       claude-setup
     ];
 
-    lyte.userSymlinks.".claude/CLAUDE.md" = toString ../home/claude/CLAUDE.md;
+    lyte.userSymlinks.".claude/CLAUDE.md" =
+      "${config.lyte.flakePath}/lib/modules/home/claude/CLAUDE.md";
 
     # Webhook symlink creation via activation script
     system.userActivationScripts.claudeWebhookLinks = lib.mkIf (cfg.matrixWebhooks != { }) {

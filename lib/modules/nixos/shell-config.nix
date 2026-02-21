@@ -39,9 +39,10 @@ in
       fish = {
         enable = true;
 
-        # Fish shell init (read from dotfiles at build time)
-        shellInit = builtins.readFile ../../../dotfiles/fish/shellInit.fish;
-        interactiveShellInit = builtins.readFile ../../../dotfiles/fish/interactiveShellInit.fish + ''
+        # Fish shell init (sourced live from dotfiles via flakePath)
+        shellInit = "source ${flakePath}/dotfiles/fish/shellInit.fish";
+        interactiveShellInit = ''
+          source ${flakePath}/dotfiles/fish/interactiveShellInit.fish
 
           # Shell integrations
           ${pkgs.atuin}/bin/atuin init fish --disable-up-arrow | source
@@ -157,6 +158,9 @@ in
       ".config/fish/functions/pp.fish" = "${flakePath}/dotfiles/fish/functions/pp.fish";
       # Fish conf.d
       ".config/fish/conf.d/aliases.fish" = "${flakePath}/dotfiles/fish/conf.d/aliases.fish";
+
+      # direnv (sources nix-direnv from /run/current-system)
+      ".config/direnv/direnvrc" = "${flakePath}/dotfiles/direnv/direnvrc";
 
       # Tool configs
       ".config/helix/config.toml" = "${flakePath}/dotfiles/helix/config.toml";
