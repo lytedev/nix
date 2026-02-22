@@ -16,7 +16,6 @@
   users.users.restic = {
     # used for other machines to backup to
     isSystemUser = true;
-    createHome = true;
     home = "/storage/backups/restic";
     group = "restic";
     extraGroups = [ "sftponly" ];
@@ -35,6 +34,23 @@
           mode = "0750";
           user = "root";
           group = "wheel";
+        };
+      };
+    };
+    # ChrootDirectory requires root-owned dir; writable repo/ subdir for actual data
+    "10-backups-restic" = {
+      "/storage/backups/restic" = {
+        "d" = {
+          mode = "0755";
+          user = "root";
+          group = "root";
+        };
+      };
+      "/storage/backups/restic/repo" = {
+        "d" = {
+          mode = "0750";
+          user = "restic";
+          group = "restic";
         };
       };
     };
@@ -64,7 +80,7 @@
         extraOptions = [
           ''sftp.command="ssh beefcake@rascal.internal.vpn.h.lyte.dev -i ${config.sops.secrets.restic-rascal-ssh-private-key.path} -s sftp"''
         ];
-        repository = "sftp://beefcake@rascal.internal.vpn.h.lyte.dev://";
+        repository = "sftp://beefcake@rascal.internal.vpn.h.lyte.dev://repo";
       };
       # TODO: add ruby?
       benland = defaults // {
@@ -95,7 +111,7 @@
   systemd.services."backup-canary-write" = {
     script = ''
       set -xeu
-      set -p pipefail
+      set -o pipefail
       echo "Previous (last run's current): $(cat current)"
       rm -f previous
       echo "Moving current to previous..."
@@ -141,7 +157,7 @@
       # check rascal
       restic \
         --option sftp.command="ssh beefcake@rascal.internal.vpn.h.lyte.dev -i '${config.sops.secrets.restic-rascal-ssh-private-key.path}' -s sftp" \
-        --repo='sftp://beefcake@rascal.internal.vpn.h.lyte.dev://' \
+        --repo='sftp://beefcake@rascal.internal.vpn.h.lyte.dev://repo' \
         --password-file='${config.sops.secrets.restic-rascal-passphrase.path}' \
         restore latest --include /storage/backups/canary --target ./rascal/
       echo "Restored from rascal"

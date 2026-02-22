@@ -42,7 +42,6 @@
   users.users = {
     beefcake = {
       isSystemUser = true;
-      createHome = true;
       home = "/storage/backups/beefcake";
       group = "beefcake";
       extraGroups = [ "sftponly" ];
@@ -50,6 +49,25 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOEI82VdbyR1RYqSnFtlffHBtHFdXO0v9RmQH7GkfXo restic@beefcake"
       ];
+    };
+  };
+
+  # ChrootDirectory requires the chroot dir to be root-owned and not writable by
+  # others. The writable repo/ subdirectory is where restic actually stores data.
+  systemd.tmpfiles.settings."10-backups-beefcake" = {
+    "/storage/backups/beefcake" = {
+      "d" = {
+        mode = "0755";
+        user = "root";
+        group = "root";
+      };
+    };
+    "/storage/backups/beefcake/repo" = {
+      "d" = {
+        mode = "0750";
+        user = "beefcake";
+        group = "beefcake";
+      };
     };
   };
 
