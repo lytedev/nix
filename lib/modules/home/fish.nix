@@ -17,9 +17,9 @@ in
     };
 
     programs.fish = {
-      # I load long scripts from files for a better editing experience
-      shellInit = builtins.readFile ../../../dotfiles/fish/shellInit.fish;
-      interactiveShellInit = builtins.readFile ../../../dotfiles/fish/interactiveShellInit.fish;
+      # Source live from dotfiles so edits take effect without rebuilding
+      shellInit = "source ${config.lyte.flakePath}/dotfiles/fish/shellInit.fish";
+      interactiveShellInit = "source ${config.lyte.flakePath}/dotfiles/fish/interactiveShellInit.fish";
       loginShellInit = "";
       shellAbbrs = { };
     };
