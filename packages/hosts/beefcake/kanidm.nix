@@ -55,7 +55,7 @@ in
         tls_chain = "${storage-root}/certs/idm.h.lyte.dev.crt";
         tls_key = "${storage-root}/certs/idm.h.lyte.dev.key";
         log_level = "info";
-        ldapbindaddress = "0.0.0.0:3636";
+        ldapbindaddress = "127.0.0.1:3636";
         online_backup = {
           path = "${storage-root}/backups/";
           schedule = "00 22 * * *";
@@ -167,6 +167,6 @@ in
       '';
     };
 
-    networking.firewall.allowedTCPPorts = [ 3636 ];
+    # LDAP bound to localhost only; no firewall rule needed
   };
 }
