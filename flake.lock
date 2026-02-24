@@ -162,13 +162,13 @@
       "locked": {
         "lastModified": 1770019181,
         "narHash": "sha256-hwsYgDnby50JNVpTRYlF3UR/Rrpt01OrxVuryF40CFY=",
-        "owner": "lytedev",
+        "owner": "serokell",
         "repo": "deploy-rs",
         "rev": "77c906c0ba56aabdbc72041bf9111b565cdd6171",
         "type": "github"
       },
       "original": {
-        "owner": "lytedev",
+        "owner": "serokell",
         "repo": "deploy-rs",
         "type": "github"
       }
