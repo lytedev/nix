@@ -1,4 +1,9 @@
-{ self, zed, ... }:
+{
+  self,
+  zed,
+  deploy-rs,
+  ...
+}:
 { pkgs, ... }:
 let
   unfreePkgs = import pkgs.path {
@@ -38,7 +43,7 @@ in
   default = pkgs.mkShell {
     inherit (self.outputs.checks.${pkgs.stdenv.hostPlatform.system}.git-hooks) shellHook;
     packages = with pkgs; [
-      deploy-rs
+      deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
       sops
       nil
       nixd

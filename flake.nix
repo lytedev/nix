@@ -106,7 +106,7 @@
     ghostty.url = "github:ghostty-org/ghostty";
     ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    deploy-rs.url = "github:serokell/deploy-rs";
+    deploy-rs.url = "github:lytedev/deploy-rs";
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     iosevka-lyte.url = "github:lytedev/iosevka-lyte";
