@@ -104,8 +104,9 @@ in
       zam-plugins # Dynamics and EQ plugins
 
       # === Guitar-specific ===
-      guitarix # Amp simulation and effects
-      gxplugins-lv2 # More guitarix plugins as LV2
+      # TODO: guitarix broken in nixpkgs-unstable (boost-system not found), re-enable when fixed
+      # guitarix # Amp simulation and effects
+      # gxplugins-lv2 # More guitarix plugins as LV2
       neural-amp-modeler-lv2 # NAM - neural network amp models
 
       # === Plugin Hosts & Routing ===
@@ -115,7 +116,8 @@ in
 
       # === Audio Utilities ===
       audacity # Quick audio editing
-      sonic-visualiser # Audio analysis and visualization
+      # TODO: sonic-visualiser broken in nixpkgs-unstable (Qt5 build error), re-enable when fixed
+      # sonic-visualiser # Audio analysis and visualization
       ardour # Also useful for editing/mixing
 
       # === MIDI Tools ===

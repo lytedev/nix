@@ -126,8 +126,9 @@ in
       zam-plugins # Dynamics and EQ
 
       # === Guitar ===
-      guitarix # Amp simulation - quick tones and effects
-      gxplugins-lv2 # More guitarix plugins as LV2
+      # TODO: guitarix broken in nixpkgs-unstable (boost-system not found), re-enable when fixed
+      # guitarix # Amp simulation - quick tones and effects
+      # gxplugins-lv2 # More guitarix plugins as LV2
       neural-amp-modeler-lv2 # NAM - neural network amp models (realistic tones)
 
       # === Plugin Hosts & Routing ===

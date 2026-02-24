@@ -2,10 +2,14 @@
   config,
   pkgs,
   lib,
+  options,
   ...
 }:
 let
   domain = "idm.h.lyte.dev";
+  # nixpkgs-unstable (Feb 2026+) restructured kanidm options:
+  # unixSettings → unix.settings, pam_allowed_login_groups → kanidm.pam_allowed_login_groups
+  hasNewKanidmModule = options.services.kanidm ? unix;
 in
 {
   imports = [
@@ -18,11 +22,15 @@ in
       # enableClient = true;
       enablePam = true;
       clientSettings.uri = "https://${domain}";
-      unixSettings = {
-        # hsm_pin_path = "/somewhere/else";
-        pam_allowed_login_groups = [ "administrators" ];
-      };
-
+      unixSettings =
+        if hasNewKanidmModule then
+          {
+            kanidm.pam_allowed_login_groups = [ "administrators" ];
+          }
+        else
+          {
+            pam_allowed_login_groups = [ "administrators" ];
+          };
     };
 
     services.openssh.settings = {
@@ -38,12 +46,6 @@ in
 
     # module has the incorrect file permissions out of the box
     environment.etc = {
-      # "kanidm" = {
-      #   enable = true;
-      #   user = "nobody";
-      #   group = "users";
-      #   mode = "0755";
-      # };
       "kanidm/unixd" = {
         user = "kanidm-unixd";
         group = "kanidm-unixd";

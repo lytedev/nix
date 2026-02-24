@@ -1,9 +1,10 @@
-# Vendored from nixpkgs, updated to v1.12.0
+# Vendored from nixpkgs, updated to v2.0.1
+# Uses unstable-packages.rustPlatform for Rust 1.93+ required by SpacetimeDB 2.0
 {
   lib,
   callPackage,
   fetchFromGitHub,
-  rustPlatform,
+  unstable-packages,
   pkg-config,
   perl,
   openssl,
@@ -12,18 +13,18 @@
     inherit (callPackage ./fetchers.nix { }) fetchLibrustyV8;
   },
 }:
-rustPlatform.buildRustPackage (finalAttrs: {
+unstable-packages.rustPlatform.buildRustPackage (finalAttrs: {
   pname = "spacetimedb";
-  version = "1.12.0";
+  version = "2.0.1";
 
   src = fetchFromGitHub {
     owner = "clockworklabs";
     repo = "spacetimedb";
-    rev = "92fdc93b9507ac89061cafb4f4909b3a1162e59d";
-    hash = "sha256-JuZ9odvMTIOIG4G0M4IBS9I9mWV+dk6qltIgn2a/W9I=";
+    rev = "a4d29daec8ed35ce4913a335b7210b9ae3933d00";
+    hash = "sha256-CVNL8AQRlOyj4sKwPwA4IjVb7zGCxywbPQP1z0QRA2Q=";
   };
 
-  cargoHash = "sha256-yAXcTNBITuBm7NPCTiS/RDaxMYgH6mq+ud3VsOELEqE=";
+  cargoHash = "sha256-v0QaccrTfIZy7csDYS0Hi+d4jbu0QSK36F1n5c6XadA=";
 
   nativeBuildInputs = [
     pkg-config
