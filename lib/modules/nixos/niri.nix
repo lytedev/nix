@@ -179,13 +179,13 @@ flakeInputs:
         [Settings]
         gtk-cursor-theme-name=Bibata-Modern-Classic
         gtk-cursor-theme-size=40
-        gtk-theme-name=Adwaita-dark
+        gtk-theme-name=Adwaita
       '';
       ".config/gtk-4.0/settings.ini" = lib.mkForce ''
         [Settings]
         gtk-cursor-theme-name=Bibata-Modern-Classic
         gtk-cursor-theme-size=40
-        gtk-theme-name=Adwaita-dark
+        gtk-theme-name=Adwaita
       '';
     };
 
