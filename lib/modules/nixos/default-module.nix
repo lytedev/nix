@@ -43,6 +43,7 @@
     user-env
     claude
     push-to-talk
+    opencode
 
     (
       { config, ... }:

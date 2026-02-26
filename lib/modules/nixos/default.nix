@@ -32,6 +32,7 @@ inputs: {
   user-env = import ./user-env.nix;
   claude = import ./claude.nix;
   push-to-talk = import ./push-to-talk.nix;
+  opencode = import ./opencode.nix;
 
   remote-disk-key-entry-on-boot =
     {

@@ -65,6 +65,14 @@
       mode = "0400";
       owner = "daniel";
     };
+    secrets.notion-token = {
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.opencode-server-password = {
+      mode = "0400";
+      owner = "daniel";
+    };
   };
 
   services.deno-netlify-ddns-client = {
@@ -102,6 +110,17 @@
     openFirewall = true;
   };
 
+  sops.templates."opencode-env" = {
+    owner = "daniel";
+    content = ''
+      NOTION_TOKEN=${config.sops.placeholder.notion-token}
+      OPENCODE_SERVER_PASSWORD=${config.sops.placeholder.opencode-server-password}
+    '';
+  };
+  lyte.opencode = {
+    enable = true;
+    environmentFiles = [ config.sops.templates."opencode-env".path ];
+  };
   lyte.shell.enable = true;
   lyte.push-to-talk.enable = true;
   lyte.claude = {
