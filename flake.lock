@@ -1539,17 +1539,17 @@
         "rocksdb": "rocksdb"
       },
       "locked": {
-        "lastModified": 1768613989,
-        "narHash": "sha256-94r3GMJ+cQ7OPgdipYPogsPPugNKUvUtf786IztOHlc=",
-        "owner": "matrix-construct",
+        "lastModified": 1772124452,
+        "narHash": "sha256-svsYSgbOIZzVe9aQTE/DjZQ3vtU/lcEop3ix4hfGx9I=",
+        "owner": "lytedev",
         "repo": "tuwunel",
-        "rev": "dfb65d771f4fee849a5c40c27f237cae4ec00e23",
+        "rev": "4ddf5db311c97abb2d16ab89138d383e6d8c454d",
         "type": "github"
       },
       "original": {
-        "owner": "matrix-construct",
+        "owner": "lytedev",
+        "ref": "oidc-server",
         "repo": "tuwunel",
-        "rev": "dfb65d771f4fee849a5c40c27f237cae4ec00e23",
         "type": "github"
       }
     },

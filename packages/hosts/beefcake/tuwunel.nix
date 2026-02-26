@@ -30,6 +30,9 @@ in
       # admin_execute = ["users make-user-admin @daniel:lyte.dev"]
       sso_default_provider_id = "matrix.lyte.dev"
 
+      [global.well_known]
+      client = "https://matrix.lyte.dev/"
+
       [[global.identity_provider]]
       brand = "idm.h.lyte.dev"
       client_id = "matrix.lyte.dev"
@@ -63,6 +66,8 @@ in
   services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
     reverse_proxy /_matrix/* :${toString port}
     reverse_proxy /_synapse/client/* :${toString port}
+    reverse_proxy /_tuwunel/oidc/* :${toString port}
+    reverse_proxy /.well-known/openid-configuration :${toString port}
   '';
 
   services.caddy.virtualHosts."http://matrix.lyte.dev:8448".extraConfig = ''

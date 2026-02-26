@@ -128,8 +128,8 @@
     };
 
     tuwunel = {
-      # pinned to include sso_default_provider_id fix
-      url = "github:matrix-construct/tuwunel/dfb65d771f4fee849a5c40c27f237cae4ec00e23";
+      # personal fork with OIDC server for next-gen auth (MSC2965)
+      url = "github:lytedev/tuwunel/oidc-server";
     };
 
     mobile-nixos = {
