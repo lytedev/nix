@@ -37,7 +37,7 @@
   # Additional packages specific to this host
   environment.systemPackages = with pkgs; [
     gnome-clocks # clock/alarm app
-    pure-maps # offline/online maps and navigation
+    # pure-maps # offline/online maps and navigation (disabled: maplibre-native-qt broken on aarch64)
     snapshot # GNOME camera app
   ];
 
