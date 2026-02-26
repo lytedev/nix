@@ -61,6 +61,7 @@ autoModules
         niri
         push-to-talk
         claude
+        opencode
         mobile
       ];
 
