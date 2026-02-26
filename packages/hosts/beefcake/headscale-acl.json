@@ -37,18 +37,13 @@
     },
     {
       "action": "accept",
-      "src": ["tag:server"],
-      "dst": ["tag:server:*"]
+      "src": ["tag:server", "group:servers", "beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary"],
+      "dst": ["beefcake:80,443", "router:53"]
     },
     {
       "action": "accept",
-      "src": ["group:servers"],
-      "dst": ["beefcake:*", "router:*", "steamdeck:*", "steamdeckoled:*", "rascal:*", "dragon:*", "flab:*", "babyflip:*", "sanctuary:*"]
-    },
-    {
-      "action": "accept",
-      "src": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary"],
-      "dst": ["beefcake:*", "router:*", "steamdeck:*", "steamdeckoled:*", "rascal:*", "dragon:*", "flab:*", "babyflip:*", "sanctuary:*"]
+      "src": ["beefcake"],
+      "dst": ["dragon:5000", "rascal:22"]
     },
     {
       "action": "accept",
@@ -73,12 +68,12 @@
     {
       "action": "accept",
       "src": ["group:family"],
-      "dst": ["beefcake:80,443,8096"]
+      "dst": ["beefcake:80,443"]
     },
     {
       "action": "accept",
       "src": ["group:friends"],
-      "dst": ["beefcake:25565,7777"]
+      "dst": ["beefcake:26968,26974,26989,24454"]
     }
   ],
 
