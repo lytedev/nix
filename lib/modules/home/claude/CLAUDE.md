@@ -97,3 +97,14 @@ jj rebase -d main  # Rebase current onto main
 # Undo last operation
 jj undo
 ```
+
+# Monitoring & Waiting
+
+When waiting on CI, remote builds, or long-running processes, prefer watch/poll
+commands over `sleep N && check`:
+
+- **GitHub Actions**: `gh pr checks --watch` or `gh run watch`
+- **systemd services**: `journalctl -u <service> -f` (follow mode)
+- **General processes**: prefer tools with built-in watch/follow modes
+
+Avoid `sleep 120 && ssh ... journalctl` patterns; use streaming/follow output instead.
