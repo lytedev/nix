@@ -902,11 +902,11 @@
     "mobile-nixos": {
       "flake": false,
       "locked": {
-        "lastModified": 1763065138,
-        "narHash": "sha256-46lJeUYH8YrfTccAoKQbO9lprq4dlo9VVLk+StPBSWM=",
+        "lastModified": 1771532275,
+        "narHash": "sha256-69GJBkl+hAEKH7qJlTqFMzy5qwUIax13jELmnvMn4n8=",
         "owner": "mobile-nixos",
         "repo": "mobile-nixos",
-        "rev": "1943b7b06fcd1a2c87f4b89df58231915cc2ca44",
+        "rev": "609515e4d267b7ce29014d6f6203b5f5e9e1bde4",
         "type": "github"
       },
       "original": {
