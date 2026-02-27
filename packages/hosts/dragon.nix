@@ -119,17 +119,54 @@
   };
   lyte.opencode = {
     enable = true;
-    package = pkgs.opencode.overrideAttrs (old: rec {
-      version = "1.2.15";
-      src = old.src.override {
-        tag = "v${version}";
-        hash = "sha256-26MV9TbyAF0KFqZtIHPYu6wqJwf0pNPdW/D3gDQEUlQ=";
-      };
-      node_modules = old.node_modules.overrideAttrs (nmOld: {
+    package =
+      let
+        src = pkgs.fetchFromGitHub {
+          owner = "lytedev";
+          repo = "opencode";
+          rev = "a7c12666d7d0079eb86dd2aed228bd4f79b6bbf2";
+          hash = "sha256-cNtwjiuG2kJVPfRitC2aVkIgwssDhLsaxjctq9M/RLY=";
+        };
+        node_modules = pkgs.opencode.node_modules.overrideAttrs (_: {
+          inherit src;
+          outputHash = "sha256-Jdo3ktUIWBKosVmkeBr/E5Je0VHVxfUaSAbWshFZT9s=";
+        });
+        # Build the Vite app in a sandbox-safe derivation using the node_modules FOD
+        # (which already includes packages/app/node_modules with vite)
+        app_dist = pkgs.stdenvNoCC.mkDerivation {
+          name = "opencode-app-dist-dev";
+          inherit src;
+          nativeBuildInputs = [ pkgs.bun ];
+          buildPhase = ''
+            # Symlinks in packages/*/node_modules point up to ../../node_modules/.bun/
+            # Copy the entire FOD over the source tree so all relative symlinks resolve
+            cp -r ${node_modules}/. .
+            chmod -R u+w node_modules packages
+            cd packages/app
+            bun run node_modules/vite/bin/vite.js build
+          '';
+          installPhase = ''
+            cp -r dist $out
+          '';
+        };
+      in
+      pkgs.opencode.overrideAttrs (old: {
+        version = "0.0.0-dev";
         inherit src;
-        outputHash = "sha256-Diu/C8b5eKUn7MRTFBcN5qgJZTp0szg0ECkgEaQZ87Y=";
+        node_modules = node_modules;
+        # Inject pre-built app dist so --skip-app-build works in the sandbox
+        preBuild = ''
+          cp -r ${app_dist} packages/app/dist
+          chmod -R u+w packages/app/dist
+        '';
+        buildPhase = ''
+          runHook preBuild
+          cd ./packages/opencode
+          bun --bun ./script/build.ts --single --skip-install --skip-app-build
+          bun --bun ./script/schema.ts schema.json
+          runHook postBuild
+        '';
       });
-    });
     environmentFiles = [ config.sops.templates."opencode-env".path ];
   };
   lyte.shell.enable = true;
