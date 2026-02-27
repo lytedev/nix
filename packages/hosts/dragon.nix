@@ -206,6 +206,7 @@
 
   # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
+    opencode
     vibe
     mcpm-aider
     godot_4
