@@ -54,6 +54,27 @@ let
       iosevkaLyteTerm = inputs.iosevka-lyte.outputs.packages.${prev.system}.default;
       matrix-tuwunel = tuwunel.packages.${prev.system}.default;
 
+      mautrix-slack = (
+        prev.mautrix-slack.override {
+          buildGoModule =
+            args:
+            prev.buildGoModule (
+              args
+              // {
+                src = prev.fetchFromGitHub {
+                  owner = "lytedev";
+                  repo = "mautrix-slack";
+                  rev = "organize-channels-by-type";
+                  hash = "sha256-pI98vqrCMbgiyOMHzoGjGYsvnLMFS7L9Mq9zbjwFa4E=";
+                };
+                vendorHash = "sha256-f4tZB4UR+ZHvdcawLWcywCCeGi3WErjCgkcf7tM9XtE=";
+                version = "25.11-organize-channels-by-type";
+                doInstallCheck = false;
+              }
+            );
+        }
+      );
+
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}

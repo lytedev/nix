@@ -37,6 +37,7 @@ let
     };
     bridge = {
       command_prefix = "!slack";
+      personal_filtering_spaces = true;
       permissions = {
         "@daniel:lyte.dev" = "admin";
         "@hookshot:lyte.dev" = "relay";
@@ -53,6 +54,7 @@ let
       custom_emoji_reactions = true;
       workspace_avatar_in_rooms = false;
       mute_channels_by_default = false;
+      organize_channels_by_type = true;
       participant_sync_count = 5;
       participant_sync_only_on_create = true;
       conversation_count = -1;
@@ -73,6 +75,7 @@ let
     double_puppet = {
       servers = { };
       allow_discovery = false;
+      secrets = { };
     };
     logging = {
       min_level = "info";
@@ -132,10 +135,16 @@ in
       fi
       chmod 640 ${registrationFile}
 
+      # Add non-exclusive namespace entry for double puppeting real users
+      ${pkgs.yq}/bin/yq -sY '.[0].namespaces.users += [{"regex": "^@.*:lyte\\.dev$", "exclusive": false}] | .[0]' \
+        '${registrationFile}' > '${registrationFile}.tmp'
+      mv '${registrationFile}.tmp' '${registrationFile}'
+
       umask 0177
-      # Overwrite registration tokens in config
+      # Overwrite registration tokens in config and set double puppet secret
       ${pkgs.yq}/bin/yq -sY '.[0].appservice.as_token = .[1].as_token
         | .[0].appservice.hs_token = .[1].hs_token
+        | .[0].double_puppet.secrets."lyte.dev" = "as_token:" + .[1].as_token
         | .[0]' \
         '${settingsFile}' '${registrationFile}' > '${settingsFile}.tmp'
       mv '${settingsFile}.tmp' '${settingsFile}'
