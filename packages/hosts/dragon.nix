@@ -119,6 +119,17 @@
   };
   lyte.opencode = {
     enable = true;
+    package = pkgs.opencode.overrideAttrs (old: rec {
+      version = "1.2.15";
+      src = old.src.override {
+        tag = "v${version}";
+        hash = "sha256-26MV9TbyAF0KFqZtIHPYu6wqJwf0pNPdW/D3gDQEUlQ=";
+      };
+      node_modules = old.node_modules.overrideAttrs (nmOld: {
+        inherit src;
+        outputHash = "sha256-Diu/C8b5eKUn7MRTFBcN5qgJZTp0szg0ECkgEaQZ87Y=";
+      });
+    });
     environmentFiles = [ config.sops.templates."opencode-env".path ];
   };
   lyte.shell.enable = true;

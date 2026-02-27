@@ -11,16 +11,17 @@ let
     # Include user profile and system paths for full tool access
     export PATH="/etc/profiles/per-user/daniel/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
     export HOME="/home/daniel/.home"
-    exec ${pkgs.bun}/bin/bunx "opencode-ai@${cfg.version}" "$@"
+    exec ${cfg.package}/bin/opencode "$@"
   '';
 in
 {
   options.lyte.opencode = {
     enable = lib.mkEnableOption "opencode web UI daemon";
-    version = lib.mkOption {
-      type = lib.types.str;
-      default = "1.2.5";
-      description = "opencode npm package version to run via bun";
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.opencode;
+      defaultText = lib.literalExpression "pkgs.opencode";
+      description = "The opencode package to use";
     };
     port = lib.mkOption {
       type = lib.types.port;
