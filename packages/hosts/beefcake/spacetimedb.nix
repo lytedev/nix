@@ -62,13 +62,28 @@ in
     services.caddy = {
       virtualHosts = {
         "spacetimedb.h.lyte.dev" = {
-          # this needs additional security considerations
-          # https://spacetimedb.com/docs/deploying/spacetimedb-standalone#configure-nginx-reverse-proxy
-          extraConfig = "reverse_proxy :${toString cfg.port}";
+          # Only expose routes needed by clients; admin/publish routes require
+          # SSH tunnel to localhost:${toString cfg.port} directly.
+          # See: https://spacetimedb.com/docs/deploying/spacetimedb-standalone#configure-nginx-reverse-proxy
+          extraConfig = ''
+            # Websocket subscribe — required for all client SDKs
+            @subscribe path_regexp ^/v1/database/[^/]+/subscribe$
+            reverse_proxy @subscribe :${toString cfg.port}
+
+            # Identity endpoint — required for TypeScript SDK
+            @identity path /v1/identity*
+            reverse_proxy @identity :${toString cfg.port}
+
+            # Block everything else (publish, SQL, admin, etc.)
+            respond 403
+          '';
         };
       };
     };
 
-    # bound to localhost; Caddy reverse proxy handles external access
+    # Bound to localhost; Caddy reverse proxy handles external access.
+    # Admin operations (publish, SQL, etc.) can be accessed by:
+    #   - Headscale admin group devices (implicit *:* ACL access to port 5551)
+    #   - SSH tunnel from non-admin devices: ssh -L 5551:127.0.0.1:5551 beefcake
   };
 }

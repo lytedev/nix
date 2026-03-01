@@ -58,7 +58,7 @@
     {
       "action": "accept",
       "src": ["*"],
-      "dst": ["beefcake:80,443,445,5551"]
+      "dst": ["beefcake:80,443,445"]
     },
     {
       "action": "accept",
