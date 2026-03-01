@@ -2,12 +2,14 @@
   lib,
   pkgs,
   config,
+  options,
   ...
 }:
 let
   cfg = config.lyte;
   dotfilesPath = cfg.dotfilesPath;
   danielHome = config.users.users.daniel.home;
+  hasNewKanidmModule = options.services.kanidm ? client;
 in
 {
   options = {
@@ -26,7 +28,8 @@ in
   };
 
   config = lib.mkIf cfg.shell.enable {
-    services.kanidm.enableClient = true;
+    services.kanidm =
+      if hasNewKanidmModule then { client.enable = true; } else { enableClient = true; };
     programs.nix-index.enable = true;
     programs.command-not-found.enable = false;
     services = {

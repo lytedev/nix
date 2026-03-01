@@ -10,6 +10,11 @@ let
   # nixpkgs-unstable (Feb 2026+) restructured kanidm options:
   # unixSettings → unix.settings, pam_allowed_login_groups → kanidm.pam_allowed_login_groups
   hasNewKanidmModule = options.services.kanidm ? unix;
+  isClientEnabled =
+    if hasNewKanidmModule then
+      config.services.kanidm.client.enable
+    else
+      config.services.kanidm.enableClient;
 in
 {
   imports = [
@@ -17,9 +22,8 @@ in
       services.kanidm.package = pkgs.unstable-packages.kanidm_1_8;
     }
   ];
-  config = lib.mkIf config.services.kanidm.enableClient {
+  config = lib.mkIf isClientEnabled {
     services.kanidm = {
-      # enableClient = true;
       enablePam = true;
       clientSettings.uri = "https://${domain}";
       unixSettings =
