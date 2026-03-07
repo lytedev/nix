@@ -14,14 +14,14 @@ in
   dragon = host ./dragon.nix { };
   foxtrot = host ./foxtrot.nix { };
   thinker = host ./thinker.nix { };
-  htpc = host ./htpc.nix { };
+  # htpc = host ./htpc.nix { }; # broken: rtl8812au marked broken upstream
   # htpc2 = stableHost ./htpc2.nix { };
   router = stableHost ./router.nix { };
   bigtower = stableHost ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
   flipflop = host ./flipflop.nix { };
   flipflop2 = host ./flipflop2.nix { };
-  babyflip = host ./babyflip.nix { };
+  babyflip = host ./babyflip { };
   flab = host ./flab.nix { };
 
   steamdeck = steamdeckHost ./steamdeck.nix { };

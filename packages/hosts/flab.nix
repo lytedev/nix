@@ -1,67 +1,43 @@
 {
   config,
-  diskoConfigurations,
-  hardware,
-  pkgs,
-  # lib,
   ...
 }:
 {
   system.stateVersion = "25.11";
-  networking = {
-    hostName = "flab";
-    wifi.enable = true;
-  };
-
-  boot.loader.systemd-boot.enable = true;
+  networking.hostName = "flab";
+  diskConfig = "babyflip";
+  hardwareModules = [
+    "framework-12-13th-gen-intel"
+    "common-cpu-intel"
+    "common-pc-ssd"
+  ];
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"
     "nvme"
   ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [
-    "kvm-intel"
-  ];
+  boot.kernelModules = [ "kvm-intel" ];
   boot.kernelParams = [ "mem_sleep_default=deep" ];
 
-  hardware = {
-    graphics = {
-      enable = true;
-      enable32Bit = true;
-      extraPackages = with pkgs; [
-        intel-media-driver
-        intel-ocl
-        intel-vaapi-driver
-      ];
-    };
-    sensor.iio.enable = true; # auto-rotation in tablet mode
-  };
-
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
-
-  imports = with hardware; [
-    diskoConfigurations.babyflip
-    framework-12-13th-gen-intel
-    common-cpu-intel
-    common-pc-ssd
-  ];
-
-  # services.tlp.enable = false;
-
-  # TODO: causes suspend issues (suspends again immediately after waking)
-  # services.tuned = {
-  # enable = true;
-  # };
+  hardware.bluetooth.powerOnBoot = true;
 
   podman.enable = true;
-  lyte.desktop.enable = true;
-  lyte.desktop.niri.enable = true;
-  lyte.laptop.enable = true;
-  family-account.enable = true;
+  lyte = {
+    two-in-one.enable = true;
+    gpu = "intel";
+    desktop.niri.enable = true;
+    family-account.enable = true;
+    push-to-talk.enable = true;
+    claude = {
+      enable = true;
+      sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
+      matrixWebhooks = {
+        notify = config.sops.secrets.claude-matrix-webhook.path;
+        hive = config.sops.secrets.claude-matrix-webhook-hive.path;
+        code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
+      };
+    };
+  };
   sops = {
     secrets.claude-matrix-webhook = {
       sopsFile = ../../secrets/workstations/secrets.yml;
@@ -80,15 +56,4 @@
     };
   };
 
-  lyte.shell.enable = true;
-  lyte.push-to-talk.enable = true;
-  lyte.claude = {
-    enable = true;
-    sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
-    matrixWebhooks = {
-      notify = config.sops.secrets.claude-matrix-webhook.path;
-      hive = config.sops.secrets.claude-matrix-webhook-hive.path;
-      code-review = config.sops.secrets.claude-matrix-webhook-code-review.path;
-    };
-  };
 }

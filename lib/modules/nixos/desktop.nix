@@ -91,6 +91,11 @@ in
     })
 
     (lib.mkIf cfg.enable {
+      boot.loader = {
+        efi.canTouchEfiVariables = lib.mkDefault true;
+        systemd-boot.enable = lib.mkDefault true;
+      };
+
       services.orca.enable = false;
 
       # Configure GDM to use daniel's monitor configuration
@@ -153,18 +158,7 @@ in
         "application/xhtml+xml" = "firefox.desktop";
       };
 
-      hardware =
-        if builtins.hasAttr "graphics" options.hardware then
-          {
-            graphics.enable = true;
-          }
-        else
-          {
-            opengl = {
-              enable = true;
-              driSupport = true;
-            };
-          };
+      hardware.graphics.enable = true;
 
       services.flatpak.enable = true;
       services.udev.extraRules = ''
@@ -267,6 +261,27 @@ in
       lyte.userSymlinks = lib.mkIf (cfg.easyeffects.presetsSource != null) {
         ".config/easyeffects/output" = toString cfg.easyeffects.presetsSource;
       };
+    })
+
+    # GPU: Intel
+    (lib.mkIf (config.lyte.gpu == "intel") {
+      hardware.graphics = {
+        enable32Bit = true;
+        extraPackages = with pkgs; [
+          intel-media-driver
+          intel-ocl
+          intel-vaapi-driver
+        ];
+      };
+    })
+
+    # GPU: AMD
+    (lib.mkIf (config.lyte.gpu == "amd") {
+      services.xserver.videoDrivers = lib.mkDefault [ "modesetting" ];
+      hardware.graphics = {
+        enable32Bit = true;
+      };
+      hardware.amdgpu.initrd.enable = lib.mkDefault true;
     })
   ];
 }

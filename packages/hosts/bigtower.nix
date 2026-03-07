@@ -37,8 +37,6 @@
 
   boot = {
     # kernelPackages = pkgs.linuxPackages_zen;
-    loader.efi.canTouchEfiVariables = true;
-    loader.systemd-boot.enable = true;
     initrd.availableKernelModules = [
       "xhci_pci"
       "nvme"
@@ -51,7 +49,6 @@
 
   imports = with hardware; [
     common-cpu-amd
-    common-gpu-amd
     common-pc-ssd
   ];
 
@@ -99,7 +96,9 @@
   services.desktopManager.gnome.enable = true;
 
   programs.steam.enable = true;
-  lyte.desktop.enable = true;
 
-  lyte.shell.enable = true;
+  lyte = {
+    desktop.enable = true;
+    gpu = "amd";
+  };
 }

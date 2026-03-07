@@ -13,8 +13,6 @@
     wifi.enable = true;
   };
 
-  boot.loader.systemd-boot.enable = true;
-
   services.fprintd = {
     # TODO: am I missing a driver? see arch wiki for this h/w
     enable = false;
@@ -68,23 +66,7 @@
   boot.extraModulePackages = with config.boot.kernelPackages; [ acpi_call ];
   boot.kernelParams = [ "mem_sleep_default=deep" ];
 
-  hardware = {
-    graphics = {
-      enable = true;
-      enable32Bit = true;
-      extraPackages = with pkgs; [
-        intel-media-driver
-        intel-ocl
-        intel-vaapi-driver
-      ];
-    };
-    sensor.iio.enable = true; # auto-rotation in tablet mode
-  };
-
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = false;
-  };
+  hardware.bluetooth.powerOnBoot = false;
 
   imports = with hardware; [
     (diskoConfigurations.standardWithHibernateSwap {
@@ -96,16 +78,18 @@
   ];
 
   programs.steam.enable = true;
-  lyte.desktop.enable = true;
-  lyte.laptop.enable = true;
-  family-account.enable = true;
-  lyte.shell.enable = true;
-  lyte.desktop.easyeffects = {
-    enable = true;
-    preset = "philonmetal";
-    presetsSource = fetchGit {
-      url = "https://github.com/ceiphr/ee-framework-presets";
-      rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
+
+  lyte = {
+    two-in-one.enable = true;
+    gpu = "intel";
+    family-account.enable = true;
+    desktop.easyeffects = {
+      enable = true;
+      preset = "philonmetal";
+      presetsSource = fetchGit {
+        url = "https://github.com/ceiphr/ee-framework-presets";
+        rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
+      };
     };
   };
 }

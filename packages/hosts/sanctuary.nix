@@ -8,8 +8,6 @@
   networking.hostName = "sanctuary-av";
 
   boot = {
-    loader.efi.canTouchEfiVariables = true;
-    loader.systemd-boot.enable = true;
     initrd.availableKernelModules = [
       "xhci_pci"
       "nvme"
@@ -22,7 +20,6 @@
   imports = with hardware; [
     (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
     common-cpu-amd
-    common-gpu-amd
     common-pc-ssd
   ];
 
@@ -45,7 +42,10 @@
   # TODO: nixos tests?
 
   networking.wifi.enable = true;
-  lyte.desktop.enable = true;
-  lyte.shell.enable = true;
-  family-account.enable = true;
+
+  lyte = {
+    desktop.enable = true;
+    gpu = "amd";
+    family-account.enable = true;
+  };
 }

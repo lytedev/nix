@@ -47,7 +47,7 @@
 
     (
       { config, ... }:
-      lib.mkIf config.family-account.enable {
+      lib.mkIf config.lyte.family-account.enable {
         users.groups.flanfam = { };
         users.users.flanfam = {
           isNormalUser = true;
@@ -107,7 +107,27 @@
   ];
 
   options = {
-    family-account = {
+    hardwareModules = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "List of nixos-hardware module names to import (e.g. \"lenovo-thinkpad-t480\").";
+    };
+    diskConfig = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Name of the diskoConfiguration to import (e.g. \"thinker\").";
+    };
+    lyte.gpu = lib.mkOption {
+      type = lib.types.nullOr (
+        lib.types.enum [
+          "intel"
+          "amd"
+        ]
+      );
+      default = null;
+      description = "GPU vendor for graphics driver configuration (intel or amd).";
+    };
+    lyte.family-account = {
       enable = lib.mkEnableOption "Enable a user account for family members";
     };
     prevent-suspend = {

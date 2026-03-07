@@ -7,7 +7,6 @@
   hello_world_script = pkgs.writeScriptBin "hello_world_script" (
     builtins.readFile ./rust/hello_world_script/main.rs
   );
-  vibe = pkgs.writeScriptBin "vibe" (builtins.readFile ./vibe.bash);
   mcpm-aider = pkgs.writeScriptBin "mcpm-aider" (builtins.readFile ./mcp-manager.bash);
   # Thin wrappers around npx for agent tools
   claude-code = pkgs.writeShellApplication {

@@ -64,5 +64,5 @@
     openFirewall = true;
   };
 
-  family-account.enable = true;
+  lyte.family-account.enable = true;
 }

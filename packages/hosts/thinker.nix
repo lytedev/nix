@@ -1,47 +1,17 @@
 {
-  pkgs,
-  diskoConfigurations,
-  hardware,
-  ...
-}:
-{
   system.stateVersion = "24.11";
   networking.hostName = "thinker";
-
-  boot = {
-    loader = {
-      efi.canTouchEfiVariables = true;
-      systemd-boot.enable = true;
-    };
-    initrd.availableKernelModules = [
-      "xhci_pci"
-      "nvme"
-      "ahci"
-    ];
-  };
-
-  imports = with hardware; [
-    diskoConfigurations.thinker
-    lenovo-thinkpad-t480
-    common-pc-laptop-ssd
+  diskConfig = "thinker";
+  hardwareModules = [
+    "lenovo-thinkpad-t480"
+    "common-pc-laptop-ssd"
   ];
 
-  hardware.bluetooth.enable = true;
-  programs.steam.enable = true;
-  networking.wifi.enable = true;
-  lyte.desktop = {
-    enable = true;
-    niri.enable = true;
-  };
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "nvme"
+    "ahci"
+  ];
+
   lyte.laptop.enable = true;
-  lyte.shell.enable = true;
-  lyte.desktop.easyeffects = {
-    enable = true;
-    preset = "philonmetal";
-    presetsSource = fetchGit {
-      url = "https://github.com/ceiphr/ee-framework-presets";
-      rev = "27885fe00c97da7c441358c7ece7846722fd12fa";
-    };
-  };
-  environment.systemPackages = with pkgs; [ vibe ];
 }

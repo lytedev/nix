@@ -1,5 +1,26 @@
 inputs:
 let
+  hardware = inputs.hardware.outputs.nixosModules;
+  diskoConfigurations = inputs.self.outputs.diskoConfigurations;
+
+  # Extract hardwareModules and diskConfig from a host file to generate
+  # additional imports. Works with both plain attrsets and function-based
+  # modules -- Nix's laziness means the dummy args are never forced as long
+  # as hardwareModules/diskConfig are plain values.
+  hostImportsFor =
+    hostModule:
+    let
+      raw =
+        if builtins.isFunction hostModule then
+          hostModule (builtins.mapAttrs (_: _: null) (builtins.functionArgs hostModule))
+        else
+          hostModule;
+      hwNames = raw.hardwareModules or [ ];
+      diskName = raw.diskConfig or null;
+    in
+    (map (name: hardware.${name}) hwNames)
+    ++ (if diskName != null then [ diskoConfigurations.${diskName} ] else [ ]);
+
   baseHost =
     {
       nixpkgs,
@@ -11,6 +32,9 @@ let
     }:
     (
       path:
+      let
+        hostModule = import path;
+      in
       (
         {
           system ? "x86_64-linux",
@@ -18,8 +42,7 @@ let
         (nixosSystem {
           inherit system;
           specialArgs = {
-            hardware = inputs.hardware.outputs.nixosModules;
-            diskoConfigurations = inputs.self.outputs.diskoConfigurations;
+            inherit hardware diskoConfigurations;
           };
           modules = [
             {
@@ -31,8 +54,9 @@ let
           ++ extraModules
           ++ [
             inputs.self.outputs.nixosModules.default
-            (import path)
-          ];
+            hostModule
+          ]
+          ++ (hostImportsFor hostModule);
         })
       )
     );
