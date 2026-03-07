@@ -26,6 +26,8 @@
   hardware.bluetooth.powerOnBoot = true;
 
   lyte = {
+    editableConfigFiles = true;
+    flakePath = "/etc/nix/flake";
     two-in-one.enable = true;
     gpu = "intel";
     family-account.enable = true;

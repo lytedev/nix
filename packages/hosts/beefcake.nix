@@ -20,7 +20,7 @@
     };
   };
 
-  podman.enable = true;
+  lyte.podman.enable = true;
   lyte.headscale.usePreAuthKey = true;
 
   services.deno-netlify-ddns-client = {
@@ -43,7 +43,6 @@
   ];
 
   lyte.shell.enable = true;
-  lyte.dotfilesInStore = true;
 
   /*
     non-root processes and services that access secrets need to be part of

@@ -52,6 +52,25 @@
 
     services.udev.packages = with pkgs; [ steam ];
 
+    # Esync/fsync: Wine/Proton need a high file descriptor limit (at least 524288)
+    # https://github.com/lutris/docs/blob/master/HowToEsync.md
+    security.pam.loginLimits = [
+      {
+        domain = "*";
+        item = "nofile";
+        type = "hard";
+        value = "524288";
+      }
+      {
+        domain = "*";
+        item = "nofile";
+        type = "soft";
+        value = "524288";
+      }
+    ];
+    systemd.settings.Manager.DefaultLimitNOFILE = 524288;
+    systemd.user.extraConfig = "DefaultLimitNOFILE=524288";
+
     environment = {
       systemPackages = with pkgs; [
         dualsensectl # for interfacing with dualsense controllers programmatically

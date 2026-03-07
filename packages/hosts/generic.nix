@@ -31,5 +31,4 @@
   programs.steam.enable = true;
   lyte.shell.enable = true;
   lyte.desktop.enable = true;
-  lyte.shell.enable = true;
 }

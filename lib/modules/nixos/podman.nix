@@ -6,10 +6,10 @@
 }:
 {
   options = {
-    podman.enable = lib.mkEnableOption "Enable podman and associated general NixOS defaults";
+    lyte.podman.enable = lib.mkEnableOption "Enable podman and associated general NixOS defaults";
   };
 
-  config = lib.mkIf config.podman.enable {
+  config = lib.mkIf config.lyte.podman.enable {
     environment = {
       systemPackages = with pkgs; [
         podman-tui

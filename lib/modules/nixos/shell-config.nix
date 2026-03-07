@@ -16,13 +16,6 @@ in
     lyte = {
       shell = {
         enable = lib.mkEnableOption "Enable my default shell configuration and applications";
-        learn-jujutsu-not-git = {
-          enable = lib.mkOption {
-            type = lib.types.bool;
-            default = true;
-            description = "Soft-disable the 'git' command in an effort to force me to learn jujutsu (jj)";
-          };
-        };
       };
     };
   };
@@ -53,17 +46,9 @@ in
           ${pkgs.fzf}/bin/fzf --fish | source
         '';
 
-        shellAliases = {
-          disks = "df -h && lsblk";
-          sctl = "sudo systemctl";
-          bt = "bluetoothctl";
-          pa = "pulsemixer";
-          pv = "pavucontrol";
-          sctlu = "systemctl --user";
-        }
-        // lib.optionalAttrs cfg.shell.learn-jujutsu-not-git.enable {
-          git = ''echo "use jj (jujutsu) instead of git, silly! (override with command git ...)"'';
-        };
+        # All aliases live in dotfiles/fish/conf.d/aliases.fish
+        # and dotfiles/fish/functions/
+        shellAliases = { };
       };
 
       traceroute.enable = true;
@@ -76,6 +61,10 @@ in
     };
 
     environment = {
+      # Disable NixOS default "ls = ls --color=tty" — we use eza aliases
+      # in dotfiles/fish/conf.d/aliases.fish instead
+      shellAliases.ls = null;
+
       variables = {
         EDITOR = "hx";
         SYSTEMD_EDITOR = "hx";
@@ -156,6 +145,7 @@ in
       ".config/fish/functions/jujutsu-git-colocate.fish" =
         "${dotfilesPath}/fish/functions/jujutsu-git-colocate.fish";
       ".config/fish/functions/pp.fish" = "${dotfilesPath}/fish/functions/pp.fish";
+      ".config/fish/functions/git.fish" = "${dotfilesPath}/fish/functions/git.fish";
       # Fish conf.d
       ".config/fish/conf.d/aliases.fish" = "${dotfilesPath}/fish/conf.d/aliases.fish";
 

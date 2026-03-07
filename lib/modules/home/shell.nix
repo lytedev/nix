@@ -17,13 +17,6 @@ in
       };
       shell = {
         enable = lib.mkEnableOption "Enable home-manager shell configuration for the user";
-        learn-jujutsu-not-git = {
-          enable = lib.mkOption {
-            type = lib.types.bool;
-            default = true;
-            description = "Soft-disable the 'git' command in an effort to force me to learn jujutsu (jj)";
-          };
-        };
       };
     };
   };

@@ -7,6 +7,7 @@ alias lA='la --all' # --all twice to show . and ..
 alias tree='ls --tree --level=3'
 alias lt='ll --sort=modified'
 alias lat='la --sort=modified'
+alias lta='lat'
 alias lc='lt --sort=accessed'
 alias lT='lt --reverse'
 alias lC='lc --reverse'
@@ -26,6 +27,14 @@ alias '......'='d ../../../../..'
 alias '.......'='d ../../../../../..'
 alias '........'='d ../../../../../../..'
 alias '.........'='d ../../../../../../../..'
+
+# system
+alias disks='df -h && lsblk'
+alias sctl='sudo systemctl'
+alias sctlu='systemctl --user'
+alias bt='bluetoothctl'
+alias pa='pulsemixer'
+alias pv='pavucontrol'
 
 # tools
 alias p='ping'

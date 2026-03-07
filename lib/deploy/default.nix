@@ -39,10 +39,7 @@ in
   nodes = {
     beefcake = deployer "beefcake" { };
     dragon = deployer "dragon" { };
-    htpc = deployer "htpc" {
-      remoteBuild = false;
-
-    };
+    # htpc = deployer "htpc" { remoteBuild = false; }; # broken: rtl8812au marked broken upstream
     bigtower = deployer "bigtower" { };
     rascal = deployer "rascal" { };
     foxtrot = deployer "foxtrot" { };

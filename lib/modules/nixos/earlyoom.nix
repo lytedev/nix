@@ -40,7 +40,7 @@ in
 
         # avoid killing system services and session infrastructure
         "--avoid"
-        "(^|/)(init|systemd|sshd|seatd|dbus|pipewire|wireplumber|gdm|greetd|niri|sway|gnome-shell|mutter|polkit|tailscaled|NetworkManager|avahi|earlyoom)$"
+        "(^|/)(init|systemd|sshd|seatd|dbus|pipewire|wireplumber|kwin_wayland|plasmashell|plasma-login|gdm|greetd|niri|sway|gnome-shell|mutter|polkit|tailscaled|NetworkManager|avahi|earlyoom)$"
       ];
 
       killHook = pkgs.writeShellScript "earlyoom-kill-notify" ''

@@ -13,5 +13,7 @@
     "ahci"
   ];
 
+  lyte.editableConfigFiles = true;
+  lyte.flakePath = "/etc/nix/flake";
   lyte.laptop.enable = true;
 }

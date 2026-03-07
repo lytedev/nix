@@ -35,7 +35,6 @@
     ];
   };
 
-  prevent-suspend.enable = true;
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
 
@@ -114,9 +113,12 @@
 
   programs.nix-ld.enable = true;
   # programs.steam.enable = true;
-  podman.enable = true;
 
   lyte = {
+    editableConfigFiles = true;
+    flakePath = "/etc/nix/flake";
+    podman.enable = true;
+    prevent-suspend.enable = true;
     headscale.usePreAuthKey = true;
     desktop.enable = true;
     gpu = "amd";

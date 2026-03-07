@@ -75,8 +75,10 @@
   };
 
   programs.steam.enable = true;
-  podman.enable = true;
   lyte = {
+    editableConfigFiles = true;
+    flakePath = "/etc/nix/flake";
+    podman.enable = true;
     laptop.enable = true;
     family-account.enable = true;
     push-to-talk.enable = true;

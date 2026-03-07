@@ -41,8 +41,6 @@
     common-pc-ssd
   ];
 
-  prevent-suspend.enable = true;
-
   hardware.bluetooth = {
     enable = true;
     settings = {
@@ -54,8 +52,6 @@
   };
 
   networking.wifi.enable = true;
-  lyte.desktop.enable = true;
-  lyte.shell.enable = true;
 
   services.sunshine = {
     enable = true;
@@ -64,5 +60,9 @@
     openFirewall = true;
   };
 
-  lyte.family-account.enable = true;
+  lyte = {
+    prevent-suspend.enable = true;
+    desktop.enable = true;
+    family-account.enable = true;
+  };
 }

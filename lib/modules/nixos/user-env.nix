@@ -12,7 +12,6 @@
 let
   cfg = config.lyte;
   danielHome = config.users.users.daniel.home;
-  flakePath = cfg.flakePath;
 
   # Generate dconf load commands from settings attrset
   mkDconfScript =
@@ -94,16 +93,12 @@ let
 in
 {
   options.lyte = {
-    flakePath = lib.mkOption {
-      type = lib.types.str;
-      default = "/etc/nix/flake";
-      description = "Absolute path to the nix flake source directory, used for dotfile symlinks";
-    };
+    editableConfigFiles = lib.mkEnableOption "Use live flakePath symlinks instead of nix store paths (requires flakePath to be set)";
 
-    dotfilesInStore = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Use nix store paths for dotfiles instead of live flakePath (for hosts without a repo checkout)";
+    flakePath = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Absolute path to the nix flake source directory, used for dotfile symlinks when editableConfigFiles is enabled";
     };
 
     flakeStorePath = lib.mkOption {
@@ -114,8 +109,8 @@ in
 
     resolvedFlakePath = lib.mkOption {
       type = lib.types.str;
-      default = if cfg.dotfilesInStore then cfg.flakeStorePath else cfg.flakePath;
-      description = "Resolved flake path: store path when dotfilesInStore is true, live flakePath otherwise";
+      default = if cfg.editableConfigFiles then cfg.flakePath else cfg.flakeStorePath;
+      description = "Resolved flake path: live flakePath when editableConfigFiles is true, store path otherwise";
       readOnly = true;
     };
 
@@ -154,6 +149,13 @@ in
   };
 
   config = {
+    assertions = [
+      {
+        assertion = cfg.editableConfigFiles -> cfg.flakePath != null;
+        message = "lyte.editableConfigFiles requires lyte.flakePath to be set explicitly";
+      }
+    ];
+
     # Run as daniel during system activation
     system.userActivationScripts.lyteUserEnv = {
       text = ''

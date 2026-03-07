@@ -51,8 +51,6 @@
     supportedFilesystems = [ "ntfs" ];
   };
 
-  prevent-suspend.enable = true;
-
   hardware.bluetooth = {
     enable = true;
     # package = pkgs.bluez;
@@ -95,6 +93,7 @@
   programs.steam.enable = true;
 
   lyte = {
+    prevent-suspend.enable = true;
     desktop.enable = true;
     gpu = "amd";
   };

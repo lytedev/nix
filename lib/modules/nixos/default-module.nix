@@ -96,7 +96,7 @@
 
     (
       { config, ... }:
-      lib.mkIf config.prevent-suspend.enable {
+      lib.mkIf config.lyte.prevent-suspend.enable {
         systemd.targets.sleep.enable = false;
         systemd.targets.suspend.enable = false;
         systemd.targets.hibernate.enable = false;
@@ -150,7 +150,7 @@
     lyte.family-account = {
       enable = lib.mkEnableOption "Enable a user account for family members";
     };
-    prevent-suspend = {
+    lyte.prevent-suspend = {
       enable = lib.mkEnableOption "Ensure the host does not suspend";
     };
   };

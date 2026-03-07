@@ -5,7 +5,7 @@
 }:
 {
   programs.git = {
-    enable = !config.lyte.shell.learn-jujutsu-not-git.enable;
+    enable = true;
 
     lfs = {
       enable = true;

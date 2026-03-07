@@ -21,8 +21,10 @@
 
   hardware.bluetooth.powerOnBoot = true;
 
-  podman.enable = true;
   lyte = {
+    editableConfigFiles = true;
+    flakePath = "/etc/nix/flake";
+    podman.enable = true;
     two-in-one.enable = true;
     gpu = "intel";
     # desktop.niri.enable = true; # temporarily disabled

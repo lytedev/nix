@@ -18,7 +18,7 @@ function fish_greeting
     if test -L "$XDG_CONFIG_HOME/atuin/config.toml" && not test -e "$XDG_CONFIG_HOME/atuin/config.toml"
         set_color yellow
         echo "warning: broken config symlink: atuin/config.toml"
-        echo "         dotfile symlinks are broken — check lyte.flakePath or lyte.dotfilesInStore"
+        echo "         dotfile symlinks are broken — check lyte.flakePath or lyte.editableConfigFiles"
         set_color normal
     end
 end

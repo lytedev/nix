@@ -47,9 +47,8 @@ flakeInputs:
     programs.dconf.enable = true;
     environment.etc."niri/laptop.kdl".text = lib.mkDefault "";
 
-    # Enable plasma-login-manager for login
+    # Enable display manager for login
     services.xserver.enable = true;
-    services.displayManager.plasma-login-manager.enable = true;
 
     qt = {
       enable = true;
