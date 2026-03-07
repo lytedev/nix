@@ -10,9 +10,9 @@
     iosevka-lyte-build = inputs.iosevka-lyte.outputs.packages.x86_64-linux.default;
   };
 
-  aarch64-linux = {
-    # PinePhone disk image for flashing
-    pinephone-disk-image =
-      inputs.self.nixosConfigurations.pinephone.config.mobile.outputs.generatedDiskImages.disk-image;
-  };
+  # aarch64-linux = {
+  #   # PinePhone disk image for flashing
+  #   pinephone-disk-image =
+  #     inputs.self.nixosConfigurations.pinephone.config.mobile.outputs.generatedDiskImages.disk-image;
+  # };
 }

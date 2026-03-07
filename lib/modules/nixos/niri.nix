@@ -47,34 +47,14 @@ flakeInputs:
     programs.dconf.enable = true;
     environment.etc."niri/laptop.kdl".text = lib.mkDefault "";
 
-    # Enable GDM for login
-    services = {
-      xserver.enable = true;
-    }
-    // (
-      if
-        (builtins.hasAttr "displayManager" options.services)
-        && (builtins.hasAttr "gdm" options.services.displayManager)
-      then
-        {
-          displayManager.gdm = {
-            enable = true;
-            wayland = true;
-          };
-        }
-      else
-        {
-          xserver.displayManager.gdm = {
-            enable = true;
-            wayland = true;
-          };
-        }
-    );
+    # Enable plasma-login-manager for login
+    services.xserver.enable = true;
+    services.displayManager.plasma-login-manager.enable = true;
 
     qt = {
       enable = true;
-      platformTheme = "gnome";
-      style = "adwaita-dark";
+      platformTheme = "kde";
+      style = "breeze";
     };
 
     # workaround for bug
@@ -88,13 +68,13 @@ flakeInputs:
         common = {
           default = lib.mkForce [
             "gtk"
-            "gnome"
+            "kde"
           ];
         };
         niri = {
           default = [
             "gtk"
-            "gnome"
+            "kde"
           ];
         };
       };
@@ -108,10 +88,6 @@ flakeInputs:
       serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
     };
     systemd.user.services.xdg-desktop-portal-gtk = {
-      after = [ "xdg-desktop-autostart.target" ];
-      serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
-    };
-    systemd.user.services.xdg-desktop-portal-gnome = {
       after = [ "xdg-desktop-autostart.target" ];
       serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
     };

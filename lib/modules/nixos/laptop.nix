@@ -25,19 +25,11 @@
       lyte.desktop.enable = lib.mkDefault true;
       hardware.bluetooth.enable = lib.mkDefault true;
       networking.wifi.enable = lib.mkDefault true;
-      lyte.dconfSettings."org/gnome/desktop/peripherals/touchpad" = {
-        disable-while-typing = false;
-        natural-scroll = true;
+      services.libinput.touchpad = {
+        naturalScrolling = true;
+        disableWhileTyping = false;
+        tapping = true;
       };
-
-      environment.etc."niri/laptop.kdl".text = ''
-        input {
-          touchpad {
-            tap
-            natural-scroll
-          }
-        }
-      '';
 
       environment.systemPackages = with pkgs; [
         acpi

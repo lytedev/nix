@@ -17,7 +17,7 @@ in
   # htpc = host ./htpc.nix { }; # broken: rtl8812au marked broken upstream
   # htpc2 = stableHost ./htpc2.nix { };
   router = stableHost ./router.nix { };
-  bigtower = stableHost ./bigtower.nix { };
+  bigtower = host ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
   flipflop = host ./flipflop.nix { };
   flipflop2 = host ./flipflop2.nix { };
@@ -26,7 +26,7 @@ in
 
   steamdeck = steamdeckHost ./steamdeck.nix { };
   steamdeckoled = steamdeckHost ./steamdeckoled.nix { };
-  pinephone = mobileHost "pine64-pinephone" ./pinephone.nix { };
+  # pinephone = mobileHost "pine64-pinephone" ./pinephone.nix { }; # temporarily disabled
 
   pv23 = baseHost (
     stable

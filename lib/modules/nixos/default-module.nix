@@ -113,9 +113,29 @@
       description = "List of nixos-hardware module names to import (e.g. \"lenovo-thinkpad-t480\").";
     };
     diskConfig = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.nullOr (
+        lib.types.either lib.types.str (
+          lib.types.submodule {
+            options = {
+              name = lib.mkOption {
+                type = lib.types.str;
+                description = "Name of the diskoConfiguration to import.";
+              };
+              params = lib.mkOption {
+                type = lib.types.attrs;
+                default = { };
+                description = "Parameters to pass to the diskoConfiguration function.";
+              };
+            };
+          }
+        )
+      );
       default = null;
-      description = "Name of the diskoConfiguration to import (e.g. \"thinker\").";
+      description = ''
+        Disko configuration to import. Either a plain string name for configs
+        that are plain attrsets (e.g. "thinker"), or { name, params } for
+        configs that are functions (e.g. { name = "unencrypted"; params = { disk = "/dev/nvme0n1"; }; }).
+      '';
     };
     lyte.gpu = lib.mkOption {
       type = lib.types.nullOr (

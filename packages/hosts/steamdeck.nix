@@ -1,20 +1,11 @@
 {
-  diskoConfigurations,
-  # hardware, # do NOT use nixos-hardware with jovian config
-  ...
-}:
-{
   system.stateVersion = "24.11";
+  networking.hostName = "steamdeck";
 
-  networking = {
-    hostName = "steamdeck";
-    wifi.enable = true;
+  diskConfig = {
+    name = "unencrypted";
+    params.disk = "/dev/nvme0n1";
   };
 
-  imports = [
-    (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
-  ];
-
   lyte.steamdeck.enable = true;
-  lyte.headscale.usePreAuthKey = true;
 }

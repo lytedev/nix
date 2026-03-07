@@ -17,24 +17,23 @@ in
       desktop = {
         enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
         gnome.enable = lib.mkOption {
-          default = config.lyte.desktop.enable;
+          default = false;
           example = true;
           description = "Enable GNOME desktop configuration and applications";
           type = types.bool;
         };
         cosmic.enable = lib.mkEnableOption "Enable Cosmic desktop configuration and applications";
-        plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
-        niri.enable = lib.mkOption {
+        plasma.enable = lib.mkOption {
           default = config.lyte.desktop.enable;
+          example = true;
+          description = "Enable Plasma desktop configuration and applications";
+          type = types.bool;
+        };
+        niri.enable = lib.mkOption {
+          default = false; # temporarily disabled in favor of Plasma
           description = "Enable niri configuration and applications";
           type = types.bool;
           example = true;
-        };
-        gdm.backgroundImage = lib.mkOption {
-          default = null;
-          example = "/path/to/background.jpg";
-          description = "Path to GDM background image. Set to null to use default.";
-          type = types.nullOr types.path;
         };
         firefox = {
           enable = lib.mkOption {
@@ -62,46 +61,16 @@ in
   };
 
   config = lib.mkMerge [
-    # Apply GDM background image if configured
-    (lib.mkIf (cfg.enable && cfg.gdm.backgroundImage != null) {
-      nixpkgs.overlays = [
-        (self: super: {
-          squashfsTools = super.squashfsTools.override { zstdSupport = true; };
-          gnome = super.gnome.overrideScope (
-            selfg: superg: {
-              gnome-shell = superg.gnome-shell.overrideAttrs (old: {
-                patches = (old.patches or [ ]) ++ [
-                  (pkgs.writeText "gdm-bg.patch" ''
-                    --- a/data/theme/gnome-shell-sass/widgets/_login-lock.scss
-                    +++ b/data/theme/gnome-shell-sass/widgets/_login-lock.scss
-                    @@ -15,4 +15,5 @@ $_gdm_dialog_width: 23em;
-                     /* Login Dialog */
-                     .login-dialog {
-                       background-color: $_gdm_bg;
-                    +  background-image: url('file://${cfg.gdm.backgroundImage}');
-                    +  background-size: cover;
-                     }
-                  '')
-                ];
-              });
-            }
-          );
-        })
-      ];
-    })
-
     (lib.mkIf cfg.enable {
       boot.loader = {
         efi.canTouchEfiVariables = lib.mkDefault true;
         systemd-boot.enable = lib.mkDefault true;
       };
 
-      services.orca.enable = false;
-
-      # Configure GDM to use daniel's monitor configuration
-      systemd.tmpfiles.rules = [
-        "L+ /var/lib/gdm/.config/monitors.xml - - - - ${danielHome}/.config/monitors.xml"
-      ];
+      services.xserver = {
+        autoRepeatDelay = lib.mkDefault 200;
+        autoRepeatInterval = lib.mkDefault 10;
+      };
 
       services.pipewire.enable = true;
       environment.systemPackages = with pkgs; [

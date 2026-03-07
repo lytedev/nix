@@ -1,9 +1,6 @@
 {
   pkgs,
   config,
-  hardware,
-  diskoConfigurations,
-  # homeConfigurations,
   ...
 }:
 {
@@ -11,6 +8,15 @@
   networking = {
     hostName = "dragon";
     wifi.enable = true;
+  };
+
+  hardwareModules = [
+    "common-cpu-amd"
+    "common-pc-ssd"
+  ];
+  diskConfig = {
+    name = "unencrypted";
+    params.disk = "/dev/nvme0n1";
   };
 
   boot = {
@@ -28,12 +34,6 @@
       "riscv64-linux"
     ];
   };
-
-  imports = with hardware; [
-    (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
-    common-cpu-amd
-    common-pc-ssd
-  ];
 
   prevent-suspend.enable = true;
   hardware.bluetooth.enable = true;
@@ -120,7 +120,7 @@
     headscale.usePreAuthKey = true;
     desktop.enable = true;
     gpu = "amd";
-    desktop.niri.enable = true;
+    # desktop.niri.enable = true; # temporarily disabled
     desktop.music-production = {
       enable = true;
       users = [ "daniel" ];

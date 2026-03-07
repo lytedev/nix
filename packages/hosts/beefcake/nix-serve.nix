@@ -60,7 +60,7 @@
       # build main laptop configuration
       nixos-rebuild build --flake "$flake#foxtrot" --accept-flake-config
       # build pinephone configuration (aarch64, uses binfmt)
-      nixos-rebuild build --flake "$flake#pinephone" --accept-flake-config
+      # nixos-rebuild build --flake "$flake#pinephone" --accept-flake-config # temporarily disabled
       # ensure dev shell packages are built (and cached)
       nix develop "$flake" --build
     '';

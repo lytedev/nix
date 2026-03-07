@@ -16,10 +16,16 @@ let
         else
           hostModule;
       hwNames = raw.hardwareModules or [ ];
-      diskName = raw.diskConfig or null;
+      diskCfg = raw.diskConfig or null;
+      diskImport =
+        if diskCfg == null then
+          [ ]
+        else if builtins.isString diskCfg then
+          [ diskoConfigurations.${diskCfg} ]
+        else
+          [ (diskoConfigurations.${diskCfg.name} (diskCfg.params or { })) ];
     in
-    (map (name: hardware.${name}) hwNames)
-    ++ (if diskName != null then [ diskoConfigurations.${diskName} ] else [ ]);
+    (map (name: hardware.${name}) hwNames) ++ diskImport;
 
   baseHost =
     {

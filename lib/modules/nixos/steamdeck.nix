@@ -11,6 +11,8 @@
 
   config = lib.mkIf config.lyte.steamdeck.enable {
     hardware.bluetooth.enable = true;
+    networking.wifi.enable = lib.mkDefault true;
+    lyte.headscale.usePreAuthKey = lib.mkDefault true;
     boot = {
       # kernelPackages = pkgs.linuxPackages_latest; # do NOT use with jovian config
       loader = {
@@ -19,7 +21,6 @@
       };
     };
 
-    lyte.desktop.enable = true;
     lyte.shell.enable = true;
 
     environment.systemPackages = with pkgs; [
@@ -27,15 +28,18 @@
       steam-rom-manager
     ];
 
+    services.desktopManager.plasma6.enable = true;
+    xdg.portal = {
+      enable = true;
+      extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
+    };
     services.flatpak.enable = true;
     systemd.services.flatpak-repo = {
       wantedBy = [ "multi-user.target" ];
       after = [
         "network-online.target"
-        "tailscaled.service"
       ];
       wants = [ "network-online.target" ];
-      requires = [ "tailscaled.service" ];
       path = with pkgs; [ flatpak ];
       script = ''
         for delay in 1 2 4 8 15 30; do
@@ -54,8 +58,6 @@
       };
     };
 
-    services.displayManager.gdm.enable = lib.mkForce false;
-
     # TODO: syncthing for daniel user on steamdecks for rom syncing?
 
     nixpkgs.config.allowUnfree = true;
@@ -72,7 +74,7 @@
       steam = {
         enable = true;
         autoStart = true;
-        desktopSession = "gnome";
+        desktopSession = "plasma";
         user = "daniel";
         updater = {
           splash = "jovian";

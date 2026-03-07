@@ -1,6 +1,4 @@
 {
-  diskoConfigurations,
-  hardware,
   pkgs,
   lib,
   config,
@@ -68,14 +66,17 @@
 
   hardware.bluetooth.powerOnBoot = false;
 
-  imports = with hardware; [
-    (diskoConfigurations.standardWithHibernateSwap {
+  hardwareModules = [
+    "common-cpu-intel"
+    "common-pc-ssd"
+  ];
+  diskConfig = {
+    name = "standardWithHibernateSwap";
+    params = {
       disk = "/dev/nvme0n1";
       swapSize = "16G";
-    })
-    common-cpu-intel
-    common-pc-ssd
-  ];
+    };
+  };
 
   programs.steam.enable = true;
 

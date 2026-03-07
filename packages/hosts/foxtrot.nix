@@ -2,9 +2,6 @@
   pkgs,
   lib,
   config,
-  hardware,
-  diskoConfigurations,
-  # homeConfigurations,
   ...
 }:
 {
@@ -13,6 +10,9 @@
     hostName = "foxtrot";
     hostId = "00482f0a";
   };
+
+  hardwareModules = [ "framework-13-7040-amd" ];
+  diskConfig = "foxtrotZfs";
 
   boot = {
     kernelParams = [
@@ -37,11 +37,6 @@
       "riscv64-linux"
     ];
   };
-
-  imports = with hardware; [
-    diskoConfigurations.foxtrotZfs
-    framework-13-7040-amd
-  ];
 
   hardware = {
     framework.amd-7040.preventWakeOnAC = true;
@@ -86,10 +81,7 @@
     family-account.enable = true;
     push-to-talk.enable = true;
     desktop = {
-      # environment = "plasma";
-      # cosmic.enable = false;
-      gnome.enable = true;
-      niri.enable = true;
+      # niri.enable = true; # temporarily disabled
       easyeffects = {
         enable = true;
         preset = "philonmetal";

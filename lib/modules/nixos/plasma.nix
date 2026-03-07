@@ -11,20 +11,18 @@
     programs.kdeconnect.enable = true;
     services.xserver.enable = true;
 
-    services.displayManager.sddm = {
-      enable = true;
-      # package = lib.mkForce pkgs.kdePackages.sddm;
-      settings = { };
-      # theme = "";
-      enableHidpi = true;
-      wayland = {
-        enable = true;
-        compositor = "weston";
-      };
-    };
-
+    services.displayManager.plasma-login-manager.enable = true;
     services.desktopManager.plasma6.enable = true;
     programs.dconf.enable = true;
+
+    # Enable virtual keyboard (qtvirtualkeyboard) in KWin
+    environment.etc."xdg/kwinrc".text = lib.mkDefault ''
+      [Wayland]
+      VirtualKeyboardEnabled=true
+
+      [Input]
+      TabletMode=auto
+    '';
 
     # services.xrdp.enable = false;
     # services.xrdp.defaultWindowManager = "plasma";
@@ -39,8 +37,6 @@
       wl-clipboard
 
       kdePackages.qtvirtualkeyboard
-      maliit-keyboard
-      maliit-framework
 
       # kdePackages.kate
       # kdePackages.kcalc

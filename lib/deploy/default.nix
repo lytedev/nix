@@ -58,6 +58,6 @@ in
         "2201"
       ];
     };
-    pinephone = deployer "pinephone" { remoteBuild = false; };
+    # pinephone = deployer "pinephone" { remoteBuild = false; }; # temporarily disabled
   };
 }

@@ -25,7 +25,7 @@
   lyte = {
     two-in-one.enable = true;
     gpu = "intel";
-    desktop.niri.enable = true;
+    # desktop.niri.enable = true; # temporarily disabled
     family-account.enable = true;
     push-to-talk.enable = true;
     claude = {

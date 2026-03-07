@@ -18,12 +18,17 @@ in
       desktop = {
         enable = lib.mkEnableOption "Enable my default desktop configuration and applications";
         gnome.enable = lib.mkOption {
-          default = config.lyte.desktop.enable;
+          default = false;
           example = true;
           description = "Enable GNOME desktop configuration and applications";
           type = types.bool;
         };
-        plasma.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
+        plasma.enable = lib.mkOption {
+          default = config.lyte.desktop.enable;
+          example = true;
+          description = "Enable Plasma desktop configuration and applications";
+          type = types.bool;
+        };
         niri.enable = lib.mkEnableOption "Enable Plasma configuration and applications";
         cosmic.enable = lib.mkEnableOption "Enable Cosmic configuration and applications";
         music-production.enable = lib.mkEnableOption "Enable music production configuration";

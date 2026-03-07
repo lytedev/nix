@@ -1,5 +1,4 @@
 {
-  hardware,
   config,
   pkgs,
   ...
@@ -10,6 +9,11 @@
     hostName = "bigtower";
     wifi.enable = true;
   };
+
+  hardwareModules = [
+    "common-cpu-amd"
+    "common-pc-ssd"
+  ];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/5b6c2d65-2704-4ed1-b06d-5ee7110b3d28";
@@ -47,11 +51,6 @@
     supportedFilesystems = [ "ntfs" ];
   };
 
-  imports = with hardware; [
-    common-cpu-amd
-    common-pc-ssd
-  ];
-
   prevent-suspend.enable = true;
 
   hardware.bluetooth = {
@@ -75,25 +74,23 @@
     secrets.nix-cache-priv-key.mode = "0400";
   };
 
-  services.harmonia = {
-    enable = true;
-    signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
+  services = {
+    harmonia = {
+      enable = true;
+      signKeyPaths = [ config.sops.secrets.nix-cache-priv-key.path ];
+    };
+    sunshine = {
+      enable = true;
+      autoStart = true;
+      capSysAdmin = true;
+      openFirewall = true;
+    };
   };
 
   networking.firewall.allowedTCPPorts = [ 5000 ];
 
   # TODO: temporary: https://github.com/nix-community/home-manager/issues/3113#issuecomment-3368651274
   programs.dconf.enable = true;
-
-  services.sunshine = {
-    enable = true;
-    autoStart = true;
-    capSysAdmin = true;
-    openFirewall = true;
-  };
-
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
 
   programs.steam.enable = true;
 

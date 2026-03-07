@@ -1,11 +1,15 @@
 {
-  hardware,
-  config,
-  ...
-}:
-{
   system.stateVersion = "24.11";
   networking.hostName = "sanctuary-av";
+
+  hardwareModules = [
+    "common-cpu-amd"
+    "common-pc-ssd"
+  ];
+  diskConfig = {
+    name = "unencrypted";
+    params.disk = "/dev/nvme0n1";
+  };
 
   boot = {
     initrd.availableKernelModules = [
@@ -16,12 +20,6 @@
     ];
     kernelModules = [ "kvm-amd" ];
   };
-
-  imports = with hardware; [
-    (diskoConfigurations.unencrypted { disk = "/dev/nvme0n1"; })
-    common-cpu-amd
-    common-pc-ssd
-  ];
 
   powerManagement.cpuFreqGovernor = "performance";
 
