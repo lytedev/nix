@@ -75,6 +75,25 @@ let
         }
       );
 
+      opencode = prev.opencode.overrideAttrs (_: {
+        version = "1.2.21";
+        src = prev.fetchFromGitHub {
+          owner = "anomalyco";
+          repo = "opencode";
+          tag = "v1.2.21";
+          hash = "sha256-XCf0ijRZZjp16YS9V65ZMoQzTWYRUrle3L4vWIxvy3M=";
+        };
+        node_modules = prev.opencode.node_modules.overrideAttrs (_: {
+          src = prev.fetchFromGitHub {
+            owner = "anomalyco";
+            repo = "opencode";
+            tag = "v1.2.21";
+            hash = "sha256-XCf0ijRZZjp16YS9V65ZMoQzTWYRUrle3L4vWIxvy3M=";
+          };
+          outputHash = "sha256-twywrmswEl687u5mqWgVVzOeWOheNGuW3e4L5tq/Qbw=";
+        });
+      });
+
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}

@@ -130,49 +130,6 @@
     push-to-talk.enable = true;
     opencode = {
       enable = true;
-      package =
-        let
-          src = pkgs.fetchFromGitHub {
-            owner = "lytedev";
-            repo = "opencode";
-            rev = "a7c12666d7d0079eb86dd2aed228bd4f79b6bbf2";
-            hash = "sha256-cNtwjiuG2kJVPfRitC2aVkIgwssDhLsaxjctq9M/RLY=";
-          };
-          node_modules = pkgs.opencode.node_modules.overrideAttrs (_: {
-            inherit src;
-            outputHash = "sha256-Jdo3ktUIWBKosVmkeBr/E5Je0VHVxfUaSAbWshFZT9s=";
-          });
-          app_dist = pkgs.stdenvNoCC.mkDerivation {
-            name = "opencode-app-dist-dev";
-            inherit src;
-            nativeBuildInputs = [ pkgs.bun ];
-            buildPhase = ''
-              cp -r ${node_modules}/. .
-              chmod -R u+w node_modules packages
-              cd packages/app
-              bun run node_modules/vite/bin/vite.js build
-            '';
-            installPhase = ''
-              cp -r dist $out
-            '';
-          };
-        in
-        pkgs.opencode.overrideAttrs (old: {
-          version = "0.0.0-dev";
-          inherit src;
-          node_modules = node_modules;
-          preBuild = ''
-            cp -r ${app_dist} packages/app/dist
-            chmod -R u+w packages/app/dist
-          '';
-          buildPhase = ''
-            runHook preBuild
-            cd ./packages/opencode
-            bun --bun ./script/build.ts --single --skip-install --skip-app-build
-            bun --bun ./script/schema.ts schema.json
-            runHook postBuild
-          '';
-        });
       environmentFiles = [ config.sops.templates."opencode-env".path ];
     };
     claude = {

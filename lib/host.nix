@@ -54,6 +54,7 @@ let
             {
               imports = extraImports;
               nixpkgs.overlays = extraOverlays;
+              nix.registry.nixpkgs.flake = nixpkgs;
             }
             inputs.determinate.nixosModules.default
           ]

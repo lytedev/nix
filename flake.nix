@@ -93,8 +93,8 @@
     jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # Determinate Nix — lazy trees, parallel eval
-    # NOTE: intentionally no nixpkgs follows to preserve FlakeHub cache hits
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
+    determinate.inputs.nixpkgs.follows = "nixpkgs";
 
     # other inputs
     hardware.url = "github:NixOS/nixos-hardware";
