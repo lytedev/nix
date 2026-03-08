@@ -40,28 +40,40 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ cfg.port ];
-
-    systemd.services.opencode-web = {
-      description = "opencode web UI";
-      wantedBy = [ "multi-user.target" ];
-      after = [
-        "network-online.target"
-        "sops-nix.service"
-      ];
-      wants = [ "network-online.target" ];
-      serviceConfig = {
-        User = "daniel";
-        Group = "daniel";
-        ExecStart = "${opencode-wrapper} web --hostname 0.0.0.0 --port ${toString cfg.port}";
-        Restart = "on-failure";
-        RestartSec = 5;
-        EnvironmentFile = cfg.environmentFiles;
-      }
-      // lib.optionalAttrs (cfg.project != null) {
-        WorkingDirectory = cfg.project;
+  config = lib.mkMerge [
+    # Dotfile symlinks — always present (module is imported on all hosts)
+    {
+      lyte.userSymlinks = {
+        ".config/opencode/opencode.jsonc" = "${config.lyte.dotfilesPath}/opencode/opencode.jsonc";
+        ".config/opencode/AGENTS.md" = "${config.lyte.resolvedFlakePath}/lib/modules/home/claude/CLAUDE.md";
+        ".config/opencode/plugin/notify.ts" = "${config.lyte.dotfilesPath}/opencode/plugin/notify.ts";
       };
-    };
-  };
+    }
+
+    # Web UI daemon — only when explicitly enabled
+    (lib.mkIf cfg.enable {
+      networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ cfg.port ];
+
+      systemd.services.opencode-web = {
+        description = "opencode web UI";
+        wantedBy = [ "multi-user.target" ];
+        after = [
+          "network-online.target"
+          "sops-nix.service"
+        ];
+        wants = [ "network-online.target" ];
+        serviceConfig = {
+          User = "daniel";
+          Group = "daniel";
+          ExecStart = "${opencode-wrapper} web --hostname 0.0.0.0 --port ${toString cfg.port}";
+          Restart = "on-failure";
+          RestartSec = 5;
+          EnvironmentFile = cfg.environmentFiles;
+        }
+        // lib.optionalAttrs (cfg.project != null) {
+          WorkingDirectory = cfg.project;
+        };
+      };
+    })
+  ];
 }
