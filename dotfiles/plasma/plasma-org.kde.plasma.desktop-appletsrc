@@ -5,6 +5,7 @@ RightButton;NoModifier=org.kde.contextmenu
 RightButton;NoModifier=org.kde.contextmenu
 
 [Containments][1]
+ItemGeometries-1280x720=
 ItemGeometries-1536x960=
 ItemGeometriesHorizontal=
 activityId=0d26c29f-1c8b-4073-a611-ef260bcbae6c
@@ -13,7 +14,7 @@ immutability=1
 lastScreen=0
 location=0
 plugin=org.kde.plasma.folder
-wallpaperplugin=org.kde.color
+wallpaperplugin=org.kde.image
 
 [Containments][1][ConfigDialog]
 DialogHeight=630
@@ -21,6 +22,10 @@ DialogWidth=810
 
 [Containments][1][Wallpaper][org.kde.color][General]
 Color=0,0,0
+
+[Containments][1][Wallpaper][org.kde.image][General]
+Image=file:///home/daniel/.home/Pictures/Wallpapers/night-snow-forest.jpg
+SlidePaths=/nix/store/s0ds9jwm5gwszkxdhdqv61mdsdj1xy6l-breeze-6.6.0/share/wallpapers/,/run/current-system/sw/share/wallpapers/
 
 [Containments][2]
 activityId=
@@ -36,15 +41,17 @@ immutability=1
 plugin=org.kde.plasma.digitalclock
 
 [Containments][2][Applets][21][Configuration]
-popupHeight=400
+popupHeight=451
 popupWidth=560
 
 [Containments][2][Applets][21][Configuration][Appearance]
+dateFormat=isoDate
 fontWeight=400
+use24hFormat=2
 
-[Containments][2][Applets][22]
-immutability=1
-plugin=org.kde.plasma.showdesktop
+[Containments][2][Applets][21][Configuration][ConfigDialog]
+DialogHeight=630
+DialogWidth=810
 
 [Containments][2][Applets][3]
 immutability=1
@@ -148,6 +155,15 @@ migrated=true
 immutability=1
 plugin=org.kde.plasma.weather
 
+[Containments][2][Applets][7][Applets][20][Configuration][ConfigDialog]
+DialogHeight=630
+DialogWidth=810
+
+[Containments][2][Applets][7][Applets][20][Configuration][WeatherStation]
+placeDisplayName=Overland Park, Kansas, US
+placeInfo=place|Overland Park, Kansas, US|extra|US0KS0455;Overland Park
+provider=wettercom
+
 [Containments][2][Applets][7][Applets][23]
 immutability=1
 plugin=org.kde.plasma.brightness
@@ -182,7 +198,7 @@ hiddenItems=org.kde.plasma.clipboard
 knownItems=org.kde.kdeconnect,org.kde.plasma.cameraindicator,org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.kscreen,org.kde.plasma.battery,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.keyboardindicator,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.printmanager,org.kde.plasma.volume,org.kde.plasma.weather
 
 [Containments][2][General]
-AppletOrder=3;4;5;6;7;21;22
+AppletOrder=3;4;5;6;7;21
 
 [Containments][27]
 activityId=0d26c29f-1c8b-4073-a611-ef260bcbae6c
