@@ -78,21 +78,40 @@ I want to either:
 - Ensure a self-hosted VPN is _also_ an option
   - Setup Headscale in addition to Tailscale?
 
-# GNOME 48
+# Declarative KDE Plasma Configuration
 
-[Why?](https://release.gnome.org/48/)
+**Problem**: KDE Plasma settings (shortcuts, themes, panels, window rules, etc.)
+are not managed declaratively. Changes made in the KDE Settings UI are ephemeral
+and not reproducible across hosts.
 
-- HDR!
-- Global shortcuts!
-- Notification stacking!
-- Performance improvements, especially dynamic triple-buffering for some of the
-  thinkpads and the TV PC.
-- Image viewer can do simple edits, a small speedup when cropping nonsense off
-  kids' coloring pages.
-- Try out their new main font?
+[plasma-manager](https://github.com/pjones/plasma-manager) exists but **requires
+home-manager**, which was removed from this config.
 
-- `nixpkgs` PR: https://github.com/NixOS/nixpkgs/pull/386514
-- release notes: https://release.gnome.org/48/
+## Alternatives without home-manager
+
+1. **`environment.etc."xdg/..."`** for system-wide defaults — already used for
+   `kwinrc` in `plasma.nix`. KDE reads `/etc/xdg/` as fallback. Simplest option.
+2. **`lyte.userFiles`** to write KDE config files directly to `~/.config/`.
+   Full declarative control but overwrites entire files (no merge with UI changes).
+3. **Port plasma-manager's `write_config.py`** (~300 lines, pure Python) into a
+   `system.userActivationScripts` entry for key-level merging without home-manager.
+
+## Key KDE config files
+
+`kdeglobals`, `kwinrc`, `kwinrulesrc`, `plasmashellrc`, `plasmarc`,
+`kglobalshortcutsrc`, `khotkeysrc`, `kcminputrc`, `kscreenlockerrc`,
+`krunnerrc`, `powerdevilrc`, `kxkbrc`, `dolphinrc`, `katerc`, `klipperrc`,
+`baloofilerc`, `ksmserverrc`, `ksplashrc`, `plasma-localerc`, `plasmanotifyrc`
+
+All are INI-format files under `~/.config/`. plasma-manager also ships `rc2nix`
+which reads existing KDE config and generates Nix expressions — useful for
+bootstrapping even without using plasma-manager itself.
+
+## Recommendation
+
+Options 1+2 are likely sufficient. The merge approach (option 3) is only needed
+if mixing declarative keys with user-tweakable KDE Settings UI changes. On
+fully-controlled hosts (steamdecks), overwriting is fine.
 
 # macOS+Nix
 
@@ -104,5 +123,5 @@ not sure how it will play with the corporate controlware
 **Problem**: From anywhere on any of my devices I should be able to remote into
 an existing (or at least usable) graphical session.
 
-Should be possible with "raw" GNOME, I think it just requires some setup. Can
+Should be possible with KDE/Plasma (KRDC/KRFB) or other tools. Can
 the setup get baked into Nix or must it be done manually?
