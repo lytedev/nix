@@ -82,6 +82,7 @@
     laptop.enable = true;
     family-account.enable = true;
     push-to-talk.enable = true;
+    syncthing.enable = true;
     desktop = {
       # niri.enable = true; # temporarily disabled
       easyeffects = {
@@ -104,10 +105,20 @@
     };
   };
 
+  services.syncthing = {
+    cert = config.sops.secrets.syncthing-cert.path;
+    key = config.sops.secrets.syncthing-key.path;
+  };
+
   sops.secrets =
     let
       workstationSecret = {
         sopsFile = ../../secrets/workstations/secrets.yml;
+        mode = "0400";
+        owner = "daniel";
+      };
+      syncthingSecret = {
+        sopsFile = ../../secrets/foxtrot/secrets.yml;
         mode = "0400";
         owner = "daniel";
       };
@@ -116,5 +127,7 @@
       claude-matrix-webhook = workstationSecret;
       claude-matrix-webhook-hive = workstationSecret;
       claude-matrix-webhook-code-review = workstationSecret;
+      syncthing-key = syncthingSecret;
+      syncthing-cert = syncthingSecret;
     };
 }

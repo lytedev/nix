@@ -49,6 +49,7 @@
         workstationSecret = danielSecret // {
           sopsFile = ../../secrets/workstations/secrets.yml;
         };
+        syncthingSecret = danielSecret;
       in
       {
         ddns-pass.mode = "0400";
@@ -59,6 +60,8 @@
         slack-user-token = danielSecret;
         notion-token = danielSecret;
         opencode-server-password = danielSecret;
+        syncthing-key = syncthingSecret;
+        syncthing-cert = syncthingSecret;
       };
     templates."opencode-env" = {
       owner = "daniel";
@@ -67,6 +70,11 @@
         OPENCODE_SERVER_PASSWORD=${config.sops.placeholder.opencode-server-password}
       '';
     };
+  };
+
+  services.syncthing = {
+    cert = config.sops.secrets.syncthing-cert.path;
+    key = config.sops.secrets.syncthing-key.path;
   };
 
   services = {
@@ -128,6 +136,7 @@
       users = [ "daniel" ];
     };
     push-to-talk.enable = true;
+    syncthing.enable = true;
     opencode = {
       enable = true;
       environmentFiles = [ config.sops.templates."opencode-env".path ];

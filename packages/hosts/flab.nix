@@ -30,6 +30,7 @@
     # desktop.niri.enable = true; # temporarily disabled
     family-account.enable = true;
     push-to-talk.enable = true;
+    syncthing.enable = true;
     claude = {
       enable = true;
       sfxPath = "${config.users.users.daniel.home}/Documents/wc3sfx/peon/sounds";
@@ -40,6 +41,12 @@
       };
     };
   };
+
+  services.syncthing = {
+    cert = config.sops.secrets.syncthing-cert.path;
+    key = config.sops.secrets.syncthing-key.path;
+  };
+
   sops = {
     secrets.claude-matrix-webhook = {
       sopsFile = ../../secrets/workstations/secrets.yml;
@@ -53,6 +60,16 @@
     };
     secrets.claude-matrix-webhook-code-review = {
       sopsFile = ../../secrets/workstations/secrets.yml;
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.syncthing-key = {
+      sopsFile = ../../secrets/flab/secrets.yml;
+      mode = "0400";
+      owner = "daniel";
+    };
+    secrets.syncthing-cert = {
+      sopsFile = ../../secrets/flab/secrets.yml;
       mode = "0400";
       owner = "daniel";
     };

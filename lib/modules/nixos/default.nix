@@ -33,6 +33,7 @@ inputs: {
   claude = import ./claude.nix;
   push-to-talk = import ./push-to-talk.nix;
   opencode = import ./opencode.nix;
+  syncthing = import ./syncthing.nix;
 
   remote-disk-key-entry-on-boot =
     {

@@ -18,6 +18,7 @@ keys:
 
   - &ssh-foxtrot age1lqenktsj33u25xrz3vxkcf3afkuvfrqaq89gymzqg6kcqhkzrgvsupq89y
   - &sshd-at-flab age1ytzu6re77mfwvqye7nppqgygqsypulq6gnfs9lz5xq925c7kfvxquvxnan
+  - &sshd-at-thinker age1g9n7scq97ug9sej7j4vkt889397jg44qqtsnj4gwgcptxjhe0fxsysjdfd
 
   # after updating this file, you may need to update the keys for any associated files like so:
   # sops updatekeys secrets.file
@@ -64,6 +65,11 @@ creation_rules:
       - *daniel
       - *sshd-at-dragon
       - *ssh-foxtrot
+      - *sshd-at-flab
+  - path_regex: secrets/flab/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
       - *sshd-at-flab
   - path_regex: secrets/foxtrot/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:

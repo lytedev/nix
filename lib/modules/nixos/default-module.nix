@@ -44,6 +44,7 @@
     claude
     push-to-talk
     opencode
+    syncthing
 
     (
       { config, ... }:
