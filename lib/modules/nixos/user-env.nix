@@ -54,9 +54,9 @@ let
             fullTarget = if lib.hasPrefix "/" target then target else "${home}/${target}";
           in
           ''
-            mkdir -p "$(dirname "${fullTarget}")"
+            mkdir -p "$(dirname "${fullTarget}")" || { echo "warning: failed to create parent dir for ${fullTarget}" >&2; }
             if [ "$(readlink -f "${fullTarget}")" != "$(readlink -f "${source}")" ]; then
-              ln -sfT "${source}" "${fullTarget}"
+              ln -sfT "${source}" "${fullTarget}" || echo "warning: failed to symlink ${fullTarget}" >&2
             fi
           ''
         ) symlinkEntries

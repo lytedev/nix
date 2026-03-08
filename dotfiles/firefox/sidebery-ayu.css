@@ -1,0 +1,149 @@
+/* Ayu theme for Sidebery — auto dark/light based on system preference */
+
+/* Shared values */
+:root {
+  --general-border-radius: 6px;
+  --general-margin: 4px;
+  --tabs-lvl-opacity: 0.15;
+  --tabs-discarded-title-opacity: 0.4;
+  --tabs-discarded-favicon-opacity: 0.4;
+  --tabs-activated-color-layer-opacity: 0;
+  --tabs-color-layer-opacity: 0;
+  --tabs-border-radius: 4px;
+}
+
+/* ── Ayu Dark ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --toolbar-scrollbar-color: #1B1F29;
+    --toolbar-el-overlay-selected-border: #E6B450;
+    --toolbar-el-overlay-selected-bg: rgba(230, 180, 80, 0.15);
+    --toolbar-el-overlay-active-border: #E6B450;
+    --toolbar-el-overlay-active-bg: rgba(230, 180, 80, 0.1);
+    --toolbar-el-overlay-clicked-bg: rgba(230, 180, 80, 0.2);
+    --toolbar-el-overlay-hover-bg: rgba(191, 189, 182, 0.07);
+    --toolbar-fg: #BFBDB6;
+    --toolbar-bg: #0D1017;
+    --frame-scrollbar-color: #1B1F29;
+    --frame-el-overlay-selected-border: #E6B450;
+    --frame-el-overlay-selected-bg: rgba(230, 180, 80, 0.15);
+    --frame-el-overlay-clicked-bg: rgba(230, 180, 80, 0.2);
+    --frame-el-overlay-hover-bg: rgba(191, 189, 182, 0.07);
+    --frame-fg: #BFBDB6;
+    --frame-bg: #0D1017;
+
+    --nav-btn-accent: #E6B450;
+    --nav-btn-fg: #5A6378;
+    --nav-btn-active-shadow: 0 0 4px rgba(230, 180, 80, 0.3);
+
+    --tabs-activated-fg: #BFBDB6;
+    --tabs-activated-bg: #141821;
+    --tabs-normal-fg: #5A6378;
+    --tabs-normal-bg: #0D1017;
+    --tabs-activated-shadow: inset 2px 0 0 #E6B450;
+    --tabs-progress-bg: #E6B450;
+
+    --bookmarks-expanded-folder-bg: #10141C;
+    --bookmarks-node-activated-fg: #E6B450;
+    --bookmarks-expanded-folder-shadow: inset 2px 0 0 #1B1F29;
+
+    --popup-scrollbar-color: #1B1F29;
+    --popup-fg: #BFBDB6;
+    --popup-bg: #141821;
+    --popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+    --ctx-menu-separator: #1B1F29;
+    --ctx-menu-fg: #BFBDB6;
+    --ctx-menu-bg: #141821;
+    --ctx-menu-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+    --search-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    --notification-fg: #BFBDB6;
+    --notification-bg: #141821;
+
+    --scroll-color: #1B1F29;
+    --scroll-progress-bg: #E6B450;
+
+    --status-notice: #59C2FF;
+    --status-active: #E6B450;
+    --status-err: #D95757;
+    --status-ok: #AAD94C;
+    --windows-popup-window-border: #1B1F29;
+    --active-el-overlay-clicked-bg: rgba(230, 180, 80, 0.2);
+    --active-el-overlay-hover-bg: rgba(230, 180, 80, 0.1);
+    --active-el-fg: #E6B450;
+    --active-el-bg: #141821;
+    --border: #1B1F29;
+    --accent: #E6B450;
+    --active-el-shadow: 0 0 4px rgba(230, 180, 80, 0.2);
+  }
+}
+
+/* ── Ayu Light ── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --toolbar-scrollbar-color: #E0DDD5;
+    --toolbar-el-overlay-selected-border: #FFAA28;
+    --toolbar-el-overlay-selected-bg: rgba(255, 170, 40, 0.15);
+    --toolbar-el-overlay-active-border: #FFAA28;
+    --toolbar-el-overlay-active-bg: rgba(255, 170, 40, 0.1);
+    --toolbar-el-overlay-clicked-bg: rgba(255, 170, 40, 0.2);
+    --toolbar-el-overlay-hover-bg: rgba(92, 97, 106, 0.07);
+    --toolbar-fg: #5C616A;
+    --toolbar-bg: #FCFCFC;
+    --frame-scrollbar-color: #E0DDD5;
+    --frame-el-overlay-selected-border: #FFAA28;
+    --frame-el-overlay-selected-bg: rgba(255, 170, 40, 0.15);
+    --frame-el-overlay-clicked-bg: rgba(255, 170, 40, 0.2);
+    --frame-el-overlay-hover-bg: rgba(92, 97, 106, 0.07);
+    --frame-fg: #5C616A;
+    --frame-bg: #FCFCFC;
+
+    --nav-btn-accent: #FFAA28;
+    --nav-btn-fg: #8D97A5;
+    --nav-btn-active-shadow: 0 0 4px rgba(255, 170, 40, 0.3);
+
+    --tabs-activated-fg: #5C616A;
+    --tabs-activated-bg: #F2F2F2;
+    --tabs-normal-fg: #8D97A5;
+    --tabs-normal-bg: #FCFCFC;
+    --tabs-activated-shadow: inset 2px 0 0 #FFAA28;
+    --tabs-progress-bg: #FFAA28;
+
+    --bookmarks-expanded-folder-bg: #F5F5F5;
+    --bookmarks-node-activated-fg: #FFAA28;
+    --bookmarks-expanded-folder-shadow: inset 2px 0 0 #E0DDD5;
+
+    --popup-scrollbar-color: #E0DDD5;
+    --popup-fg: #5C616A;
+    --popup-bg: #F2F2F2;
+    --popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+    --ctx-menu-separator: #E0DDD5;
+    --ctx-menu-fg: #5C616A;
+    --ctx-menu-bg: #F2F2F2;
+    --ctx-menu-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+    --search-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    --notification-fg: #5C616A;
+    --notification-bg: #F2F2F2;
+
+    --scroll-color: #E0DDD5;
+    --scroll-progress-bg: #FFAA28;
+
+    --status-notice: #39BAE6;
+    --status-active: #FFAA28;
+    --status-err: #D95757;
+    --status-ok: #70BF56;
+    --windows-popup-window-border: #E0DDD5;
+    --active-el-overlay-clicked-bg: rgba(255, 170, 40, 0.2);
+    --active-el-overlay-hover-bg: rgba(255, 170, 40, 0.1);
+    --active-el-fg: #FFAA28;
+    --active-el-bg: #F2F2F2;
+    --border: #E0DDD5;
+    --accent: #FFAA28;
+    --active-el-shadow: 0 0 4px rgba(255, 170, 40, 0.2);
+  }
+}

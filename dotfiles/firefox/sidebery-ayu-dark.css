@@ -1,0 +1,84 @@
+/* Ayu Dark theme for Sidebery */
+
+:root {
+  /* General */
+  --general-border-radius: 6px;
+  --general-margin: 4px;
+  --toolbar-scrollbar-color: #1B1F29;
+  --toolbar-el-overlay-selected-border: #E6B450;
+  --toolbar-el-overlay-selected-bg: rgba(230, 180, 80, 0.15);
+  --toolbar-el-overlay-active-border: #E6B450;
+  --toolbar-el-overlay-active-bg: rgba(230, 180, 80, 0.1);
+  --toolbar-el-overlay-clicked-bg: rgba(230, 180, 80, 0.2);
+  --toolbar-el-overlay-hover-bg: rgba(191, 189, 182, 0.07);
+  --toolbar-fg: #BFBDB6;
+  --toolbar-bg: #0D1017;
+  --frame-scrollbar-color: #1B1F29;
+  --frame-el-overlay-selected-border: #E6B450;
+  --frame-el-overlay-selected-bg: rgba(230, 180, 80, 0.15);
+  --frame-el-overlay-clicked-bg: rgba(230, 180, 80, 0.2);
+  --frame-el-overlay-hover-bg: rgba(191, 189, 182, 0.07);
+  --frame-fg: #BFBDB6;
+  --frame-bg: #0D1017;
+
+  /* Navigation bar */
+  --nav-btn-accent: #E6B450;
+  --nav-btn-fg: #5A6378;
+  --nav-btn-active-shadow: 0 0 4px rgba(230, 180, 80, 0.3);
+
+  /* Tabs */
+  --tabs-activated-fg: #BFBDB6;
+  --tabs-activated-bg: #141821;
+  --tabs-normal-fg: #5A6378;
+  --tabs-normal-bg: #0D1017;
+  --tabs-activated-shadow: inset 2px 0 0 #E6B450;
+  --tabs-lvl-opacity: 0.15;
+  --tabs-discarded-title-opacity: 0.4;
+  --tabs-discarded-favicon-opacity: 0.4;
+  --tabs-activated-color-layer-opacity: 0;
+  --tabs-color-layer-opacity: 0;
+  --tabs-border-radius: 4px;
+  --tabs-progress-bg: #E6B450;
+
+  /* Bookmarks */
+  --bookmarks-expanded-folder-bg: #10141C;
+  --bookmarks-node-activated-fg: #E6B450;
+  --bookmarks-expanded-folder-shadow: inset 2px 0 0 #1B1F29;
+
+  /* Popup */
+  --popup-scrollbar-color: #1B1F29;
+  --popup-fg: #BFBDB6;
+  --popup-bg: #141821;
+  --popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  /* Context menu */
+  --ctx-menu-separator: #1B1F29;
+  --ctx-menu-fg: #BFBDB6;
+  --ctx-menu-bg: #141821;
+  --ctx-menu-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  /* Search bar */
+  --search-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  /* Notification */
+  --notification-fg: #BFBDB6;
+  --notification-bg: #141821;
+
+  /* Scroll */
+  --scroll-color: #1B1F29;
+  --scroll-progress-bg: #E6B450;
+
+  /* Other */
+  --status-notice: #59C2FF;
+  --status-active: #E6B450;
+  --status-err: #D95757;
+  --status-ok: #AAD94C;
+  --windows-popup-window-border: #1B1F29;
+  --active-el-overlay-clicked-bg: rgba(230, 180, 80, 0.2);
+  --active-el-overlay-hover-bg: rgba(230, 180, 80, 0.1);
+  --active-el-fg: #E6B450;
+  --active-el-bg: #141821;
+  --border: #1B1F29;
+  --accent: #E6B450;
+  --active-el-shadow: 0 0 4px rgba(230, 180, 80, 0.2);
+}

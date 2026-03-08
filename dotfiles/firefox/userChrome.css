@@ -1,3 +1,60 @@
+/* Ayu Dark theme for Firefox chrome */
+:root {
+  --ayu-bg: #0D1017;
+  --ayu-bg-lift: #10141C;
+  --ayu-panel: #141821;
+  --ayu-line: #1B1F29;
+  --ayu-fg: #BFBDB6;
+  --ayu-fg-dim: #5A6378;
+  --ayu-accent: #E6B450;
+  --ayu-blue: #59C2FF;
+  --ayu-red: #D95757;
+  --ayu-green: #AAD94C;
+
+  --toolbar-bgcolor: var(--ayu-panel) !important;
+  --toolbar-color: var(--ayu-fg) !important;
+  --toolbar-field-background-color: var(--ayu-bg) !important;
+  --toolbar-field-color: var(--ayu-fg) !important;
+  --toolbar-field-border-color: var(--ayu-line) !important;
+  --toolbar-field-focus-background-color: var(--ayu-bg-lift) !important;
+  --toolbar-field-focus-color: var(--ayu-fg) !important;
+  --toolbar-field-focus-border-color: var(--ayu-accent) !important;
+  --lwt-sidebar-background-color: var(--ayu-bg) !important;
+  --lwt-sidebar-text-color: var(--ayu-fg) !important;
+  --arrowpanel-background: var(--ayu-panel) !important;
+  --arrowpanel-color: var(--ayu-fg) !important;
+  --arrowpanel-border-color: var(--ayu-line) !important;
+  --tab-selected-bgcolor: var(--ayu-bg-lift) !important;
+  --urlbar-box-bgcolor: var(--ayu-bg) !important;
+}
+
+/* Navigation bar */
+#nav-bar {
+  background-color: var(--ayu-panel) !important;
+  border-bottom: 1px solid var(--ayu-line) !important;
+}
+
+/* URL bar */
+#urlbar-background {
+  background-color: var(--ayu-bg) !important;
+  border: 1px solid var(--ayu-line) !important;
+}
+
+#urlbar[focused] #urlbar-background {
+  border-color: var(--ayu-accent) !important;
+}
+
+/* Bookmarks bar */
+#PersonalToolbar {
+  background-color: var(--ayu-bg) !important;
+  color: var(--ayu-fg-dim) !important;
+}
+
+/* Sidebar */
+#sidebar-box {
+  background-color: var(--ayu-bg) !important;
+}
+
 #TabsToolbar {
   visibility: collapse;
 }

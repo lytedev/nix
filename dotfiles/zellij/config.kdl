@@ -286,7 +286,7 @@ keybinds {
 			Detach
 		}
 	}
-	"shared_except \"locked\"" {
+	shared_except "locked" {
 		bind "Alt -" {
 			Resize "Decrease"
 		}
@@ -321,42 +321,42 @@ keybinds {
 			Quit
 		}
 	}
-	"shared_except \"move\" \"locked\"" {
+	shared_except "move" "locked" {
 		bind "Ctrl h" {
 			SwitchToMode "Move"
 		}
 	}
-	"shared_except \"normal\" \"locked\"" {
+	shared_except "normal" "locked" {
 		bind "Enter" "Esc" {
 			SwitchToMode "Normal"
 		}
 	}
-	"shared_except \"pane\" \"locked\"" {
+	shared_except "pane" "locked" {
 		bind "Ctrl p" {
 			SwitchToMode "Pane"
 		}
 	}
-	"shared_except \"resize\" \"locked\"" {
+	shared_except "resize" "locked" {
 		bind "Ctrl n" {
 			SwitchToMode "Resize"
 		}
 	}
-	"shared_except \"scroll\" \"locked\"" {
+	shared_except "scroll" "locked" {
 		bind "Ctrl s" {
 			SwitchToMode "Scroll"
 		}
 	}
-	"shared_except \"session\" \"locked\"" {
+	shared_except "session" "locked" {
 		bind "Ctrl o" {
 			SwitchToMode "Session"
 		}
 	}
-	"shared_except \"tab\" \"locked\"" {
+	shared_except "tab" "locked" {
 		bind "Ctrl t" {
 			SwitchToMode "Tab"
 		}
 	}
-	"shared_except \"tmux\" \"locked\"" {
+	shared_except "tmux" "locked" {
 		bind "Ctrl b" {
 			SwitchToMode "Tmux"
 		}
