@@ -60,6 +60,9 @@ in
       # These act as XDG defaults — Plasma will use them for new profiles
       # but per-host layout (screens, panels, containments) is managed by Plasma itself
       environment.etc."xdg/plasma-org.kde.plasma.desktop-appletsrc".text = lib.mkDefault ''
+        [Containments][2][General]
+        thickness=32
+
         [Containments][2][Applets][21][Configuration][Appearance]
         dateFormat=isoDate
         showDate=true
