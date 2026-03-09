@@ -92,17 +92,44 @@ in
         provider=wettercom
       '';
 
-      # Keyboard repeat, numlock, and trackpad defaults
+      # Keyboard repeat and numlock defaults
       environment.etc."xdg/kcminputrc".text = lib.mkDefault ''
         [Keyboard]
         NumLock=0
         RepeatDelay=200
         RepeatRate=80
+      '';
 
-        [Touchpad]
-        NaturalScroll=true
-        TapToClick=true
-        DisableWhileTyping=false
+      # Apply touchpad settings to all touchpad devices via KWin DBus at login.
+      # The old [Touchpad] section in kcminputrc only works on X11; on Plasma 6
+      # Wayland, KWin requires per-device config sections. This script applies
+      # settings generically to any touchpad without knowing vendor/product IDs.
+      lyte.userFiles.".config/autostart/plasma-touchpad-defaults.desktop" = ''
+        [Desktop Entry]
+        Type=Application
+        Name=Touchpad Defaults
+        Exec=${pkgs.writeShellScript "plasma-touchpad-defaults" ''
+          sleep 2
+          for dev in /org/kde/KWin/InputDevice/*; do
+            sysname="''${dev##*/}"
+            is_touchpad=$(dbus-send --session --dest=org.kde.KWin --type=method_call \
+              --print-reply "$dev" org.freedesktop.DBus.Properties.Get \
+              string:org.kde.KWin.InputDevice string:touchpad 2>/dev/null \
+              | grep -o 'boolean true' || true)
+            if [ -n "$is_touchpad" ]; then
+              dbus-send --session --dest=org.kde.KWin --type=method_call \
+                "$dev" org.freedesktop.DBus.Properties.Set \
+                string:org.kde.KWin.InputDevice string:naturalScroll variant:boolean:true
+              dbus-send --session --dest=org.kde.KWin --type=method_call \
+                "$dev" org.freedesktop.DBus.Properties.Set \
+                string:org.kde.KWin.InputDevice string:tapToClick variant:boolean:true
+              dbus-send --session --dest=org.kde.KWin --type=method_call \
+                "$dev" org.freedesktop.DBus.Properties.Set \
+                string:org.kde.KWin.InputDevice string:disableWhileTyping variant:boolean:false
+            fi
+          done
+        ''}
+        X-KDE-autostart-phase=2
       '';
 
       # Screen lock after 10 minutes, DPMS standby after 15 minutes
