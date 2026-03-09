@@ -99,7 +99,7 @@ in
         [Touchpad]
         NaturalScroll=true
         TapToClick=true
-        DisableWhileTyping=true
+        DisableWhileTyping=false
       '';
 
       # Screen lock after 10 minutes, DPMS standby after 15 minutes

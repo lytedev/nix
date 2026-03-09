@@ -47,6 +47,37 @@ let
   mkUserActivation =
     home: symlinkEntries: fileEntries: dconfEntries:
     let
+      manifestDir = "${home}/.local/state/lyte-user-env";
+      manifestFile = "${manifestDir}/managed-symlinks";
+
+      # All managed symlink targets (resolved to absolute paths)
+      managedTargets = lib.mapAttrsToList (
+        target: _source: if lib.hasPrefix "/" target then target else "${home}/${target}"
+      ) symlinkEntries;
+
+      # Write current manifest to a store path for comparison
+      currentManifest = pkgs.writeText "lyte-managed-symlinks" (
+        lib.concatStringsSep "\n" (lib.sort builtins.lessThan managedTargets) + "\n"
+      );
+
+      # Clean up symlinks that were in the previous manifest but not the current one
+      cleanupCmd = ''
+        # Stale symlink cleanup
+        mkdir -p "${manifestDir}"
+        if [ -f "${manifestFile}" ]; then
+          while IFS= read -r old_target; do
+            [ -z "$old_target" ] && continue
+            if ! grep -qxF "$old_target" "${currentManifest}"; then
+              if [ -L "$old_target" ]; then
+                echo "lyte-user-env: removing stale symlink: $old_target" >&2
+                rm -f "$old_target"
+              fi
+            fi
+          done < "${manifestFile}"
+        fi
+        cp "${currentManifest}" "${manifestFile}"
+      '';
+
       symlinkCmds = lib.concatStringsSep "\n" (
         lib.mapAttrsToList (
           target: source:
@@ -79,6 +110,7 @@ let
       ''
         set -euo pipefail
       ''
+      + (lib.optionalString (symlinkEntries != { }) ("\n# Clean up stale symlinks\n" + cleanupCmd))
       + (lib.optionalString (symlinkEntries != { }) ("\n# Symlinks\n" + symlinkCmds))
       + (lib.optionalString (fileEntries != { }) ("\n# Written files\n" + fileCmds))
       + (lib.optionalString (dconfEntries != { }) ("\n# dconf settings\n" + mkDconfScript dconfEntries))
