@@ -1,7 +1,7 @@
 /* Ayu theme for Sidebery — auto dark/light based on system preference */
 
 /* Shared values */
-:root {
+#root.root {
   --general-border-radius: 6px;
   --general-margin: 4px;
   --tabs-lvl-opacity: 0.15;
@@ -14,7 +14,7 @@
 
 /* ── Ayu Dark ── */
 @media (prefers-color-scheme: dark) {
-  :root {
+  #root.root {
     --toolbar-scrollbar-color: #1B1F29;
     --toolbar-el-overlay-selected-border: #E6B450;
     --toolbar-el-overlay-selected-bg: rgba(230, 180, 80, 0.15);
@@ -82,7 +82,7 @@
 
 /* ── Ayu Light ── */
 @media (prefers-color-scheme: light) {
-  :root {
+  #root.root {
     --toolbar-scrollbar-color: #E0DDD5;
     --toolbar-el-overlay-selected-border: #FFAA28;
     --toolbar-el-overlay-selected-bg: rgba(255, 170, 40, 0.15);
