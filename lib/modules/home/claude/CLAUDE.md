@@ -109,6 +109,12 @@ jj rebase -d main  # Rebase current onto main
 jj undo
 ```
 
+After pushing, if you need to make follow-up changes, use `jj new` to create a
+fresh commit, then `jj tug` to advance the bookmark forward to include it. Do
+**not** squash or rebase to fold changes into already-pushed commits — that
+rewrites history. `jj tug` (alias for `jj bookmark move`) advances the bookmark
+pointer to the latest commit while preserving the full commit chain.
+
 # Monitoring & Waiting
 
 When waiting on CI, remote builds, or long-running processes, prefer watch/poll
