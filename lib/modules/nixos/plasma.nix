@@ -218,10 +218,14 @@ in
       # services.xrdp.defaultWindowManager = "plasma";
       # services.xrdp.openFirewall = false;
 
-      # Merge /etc/xdg/kglobalshortcutsrc overrides into the user's file.
-      # Plasma rewrites ~/.config/kglobalshortcutsrc on every logout, so
-      # /etc/xdg/ defaults are permanently shadowed once a user file exists.
-      # Run this command manually after a rebuild to push shortcut changes.
+      # Merge /etc/xdg/kglobalshortcutsrc overrides into the user's file and
+      # apply them live via D-Bus.  Plasma rewrites ~/.config/kglobalshortcutsrc
+      # on every logout, permanently shadowing /etc/xdg/ defaults once a user
+      # file exists.  Run this command manually after a rebuild to push shortcut
+      # changes.  The script both patches the config file (so Plasma persists
+      # the values on next logout) and calls setForeignShortcutKeys on KWin's
+      # kglobalaccel D-Bus interface (so shortcuts take effect immediately
+      # without logging out).
       environment.systemPackages = with pkgs; [
         (writeShellScriptBin "plasma-sync-shortcuts" ''
           set -euo pipefail
@@ -241,34 +245,24 @@ in
           cp "$dst" "$dst.bak"
           echo "Backed up $dst to $dst.bak"
 
+          # Phase 1: Patch the config file so Plasma persists values on logout.
+          # Uses awk with ENVIRON to preserve KDE's literal \t shortcut
+          # separators (awk -v would interpret \t as tab).  Handles KDE's
+          # nested [section][subsection] INI syntax that crudini cannot parse.
           group=""
           while IFS="" read -r line || [ -n "$line" ]; do
-            # Skip blank lines
             [ -z "$line" ] && continue
-
-            # Track current group
             if [[ "$line" =~ ^\[(.+)\]$ ]]; then
               group="''${BASH_REMATCH[1]}"
-              # Ensure group exists in user file
               if ! grep -qxF "[$group]" "$dst"; then
                 printf '\n[%s]\n' "$group" >> "$dst"
                 echo "  Added new group [$group]"
               fi
               continue
             fi
-
-            # Parse key=value
             key="''${line%%=*}"
             value="''${line#*=}"
-
-            if [ -z "$group" ]; then
-              continue
-            fi
-
-            # Use awk to replace or insert the key under the correct group.
-            # This handles KDE's nested [section][subsection] syntax that
-            # crudini cannot parse.  Pass values via ENVIRON to avoid awk's
-            # -v flag interpreting \t as tab characters.
+            [ -z "$group" ] && continue
             _AWK_GROUP="[$group]" _AWK_KEY="$key" _AWK_VALUE="$value" \
             ${pkgs.gawk}/bin/awk '
               BEGIN { group=ENVIRON["_AWK_GROUP"]; key=ENVIRON["_AWK_KEY"]; value=ENVIRON["_AWK_VALUE"]; found_group=0; replaced=0 }
@@ -278,11 +272,130 @@ in
               { print }
               END { if (found_group && !replaced) print key "=" value }
             ' "$dst" > "$dst.tmp" && mv "$dst.tmp" "$dst"
-
             echo "  [$group] $key"
           done < "$src"
+          echo "Config file updated."
 
-          echo "Done. Log out and back in, or run: dbus-send --session --dest=org.kde.keyboard /modules/kglobalshortcuts org.kde.kglobalshortcuts.reloadConfig 2>/dev/null || true"
+          # Phase 2: Apply shortcuts live via D-Bus so they take effect
+          # immediately without logging out.  Uses busctl to call
+          # setForeignShortcutKeys on KWin's embedded kglobalaccel.
+          # Shortcut strings are converted to Qt key codes by a small
+          # Python helper.
+          echo "Applying shortcuts live via D-Bus..."
+          ${pkgs.python3}/bin/python3 ${pkgs.writeText "plasma-apply-shortcuts.py" ''
+            import subprocess, sys, os, re
+
+            MODS = {"Meta": 0x10000000, "Alt": 0x08000000, "Ctrl": 0x04000000, "Shift": 0x02000000}
+            KEYS = {
+                **{chr(c): c for c in range(0x41, 0x5B)},  # A-Z
+                **{str(c - 0x30): c for c in range(0x30, 0x3A)},  # 0-9
+                "Tab": 0x01000001, "Screensaver": 0x0100010A,
+                "F12": 0x01000043,
+                "Volume Down": 0x01000070, "Volume Up": 0x01000071,
+                "Volume Mute": 0x01000072,
+                "Microphone Volume Down": 0x0100007F,
+                "Microphone Volume Up": 0x01000080,
+                "Microphone Mute": 0x01000081,
+            }
+
+            def shortcut_to_qtkey(s):
+                parts = s.strip().split("+")
+                code = 0
+                key_parts = []
+                for p in parts:
+                    p = p.strip()
+                    if p in MODS:
+                        code |= MODS[p]
+                    else:
+                        key_parts.append(p)
+                key_name = "+".join(key_parts)
+                if key_name not in KEYS:
+                    return None
+                return code | KEYS[key_name]
+
+            def apply_shortcut(component, action, friendly_comp, friendly_action, key_codes):
+                """Call setForeignShortcutKeys via busctl."""
+                n = len(key_codes)
+                # Each QKeySequence is a(ai) with 4 ints (key + 3 padding zeros)
+                cmd = [
+                    "busctl", "--user", "call",
+                    "org.kde.kglobalaccel", "/kglobalaccel",
+                    "org.kde.KGlobalAccel", "setForeignShortcutKeys",
+                    "asa(ai)",
+                    "4", component, action, friendly_comp, friendly_action,
+                    str(n),
+                ]
+                for kc in key_codes:
+                    cmd.extend(["4", str(kc), "0", "0", "0"])
+                subprocess.run(cmd, check=True)
+
+            def parse_config(path):
+                """Parse kglobalshortcutsrc into list of (component, action, friendly_comp, description, key_codes)."""
+                entries = []
+                group = ""
+                friendly_name = ""
+                with open(path) as f:
+                    for line in f:
+                        line = line.rstrip("\n")
+                        if not line:
+                            continue
+                        m = re.match(r"^\[(.+)\]$", line)
+                        if m:
+                            group = m.group(1)
+                            friendly_name = ""
+                            continue
+                        if "=" not in line or not group:
+                            continue
+                        key, value = line.split("=", 1)
+                        if key == "_k_friendly_name":
+                            friendly_name = value
+                            continue
+                        # value format: "shortcut(s),default(s),description"
+                        parts = value.split(",")
+                        if len(parts) < 3:
+                            continue
+                        shortcuts_str = parts[0]
+                        description = ",".join(parts[2:])
+                        shortcut_strs = shortcuts_str.split("\\t")
+                        key_codes = []
+                        ok = True
+                        for ss in shortcut_strs:
+                            ss = ss.strip()
+                            if not ss or ss == "none":
+                                continue
+                            kc = shortcut_to_qtkey(ss)
+                            if kc is None:
+                                print(f"  SKIP [{group}] {key}: unknown key in '{ss}'")
+                                ok = False
+                                break
+                            key_codes.append(kc)
+                        if not ok or not key_codes:
+                            continue
+                        fn = friendly_name or group
+                        entries.append((group, key, fn, description.strip() or key, key_codes))
+                return entries
+
+            src = os.environ.get("SYNC_SRC", "/etc/xdg/kglobalshortcutsrc")
+            entries = parse_config(src)
+
+            # Apply in two passes.  On the first pass, shortcuts that reuse a
+            # key previously claimed by another action may silently fail (the
+            # daemon rejects the new binding while the old owner still holds
+            # it).  The first pass frees old bindings; the second pass retries
+            # any that ended up empty.
+            for pass_num in (1, 2):
+                for component, action, friendly_comp, description, key_codes in entries:
+                    try:
+                        apply_shortcut(component, action, friendly_comp, description, key_codes)
+                        if pass_num == 1:
+                            print(f"  OK [{component}] {action}")
+                    except subprocess.CalledProcessError as e:
+                        if pass_num == 2:
+                            print(f"  FAIL [{component}] {action}: {e}")
+
+            print(f"Applied {len(entries)} shortcuts")
+          ''}
+          echo "Done. All shortcuts are active."
         '')
 
         wl-clipboard
