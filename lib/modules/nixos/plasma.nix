@@ -34,12 +34,32 @@ in
       # It wraps qtvirtualkeyboard and speaks the Wayland input-method protocol.
       # KWin's KCM discovers it via X-KDE-Wayland-VirtualKeyboard=true in its .desktop file.
       # The kwinrc InputMethod key must point to the .desktop file path.
-      # Set Ghostty as default terminal emulator
-      environment.etc."xdg/kdeglobals".text = lib.mkDefault ''
-        [General]
-        TerminalApplication=ghostty
-        TerminalService=com.mitchellh.ghostty.desktop
-      '';
+      # KDE global defaults: Ayu Dark color scheme, ghostty terminal, theme settings
+      # Full file in dotfiles/plasma/kdeglobals; delivered via /etc/xdg/ so KDE
+      # reads it as a default without symlinking into the repo.
+      environment.etc."xdg/kdeglobals".text = lib.mkDefault (
+        builtins.readFile ../../../dotfiles/plasma/kdeglobals
+      );
+
+      # Global keyboard shortcuts (vim-style window nav, desktop switching, etc.)
+      environment.etc."xdg/kglobalshortcutsrc".text = lib.mkDefault (
+        builtins.readFile ../../../dotfiles/plasma/kglobalshortcutsrc
+      );
+
+      # Session management: restore previous session on login
+      environment.etc."xdg/ksmserverrc".text = lib.mkDefault (
+        builtins.readFile ../../../dotfiles/plasma/ksmserverrc
+      );
+
+      # Notification defaults: popup position, seen apps
+      environment.etc."xdg/plasmanotifyrc".text = lib.mkDefault (
+        builtins.readFile ../../../dotfiles/plasma/plasmanotifyrc
+      );
+
+      # Default MIME type associations (Helix for text, Ark for archives, etc.)
+      environment.etc."xdg/mimeapps.list".text = lib.mkDefault (
+        builtins.readFile ../../../dotfiles/plasma/mimeapps.list
+      );
 
       # Window rules: no titlebar/frame for Ghostty
       environment.etc."xdg/kwinrulesrc".text = lib.mkDefault ''
@@ -215,15 +235,11 @@ in
 
       programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
 
-      # Shared plasma config dotfiles
+      # Color scheme files are read-only (KDE never writes to them), so symlinks are safe.
+      # All writable plasma configs are delivered via /etc/xdg/ above instead.
       lyte.userSymlinks = {
-        ".config/kdeglobals" = "${config.lyte.dotfilesPath}/plasma/kdeglobals";
-        ".config/plasmanotifyrc" = "${config.lyte.dotfilesPath}/plasma/plasmanotifyrc";
-        ".config/ksmserverrc" = "${config.lyte.dotfilesPath}/plasma/ksmserverrc";
         ".local/share/color-schemes/AyuDark.colors" = "${config.lyte.dotfilesPath}/plasma/AyuDark.colors";
         ".local/share/color-schemes/AyuLight.colors" = "${config.lyte.dotfilesPath}/plasma/AyuLight.colors";
-        ".config/mimeapps.list" = "${config.lyte.dotfilesPath}/plasma/mimeapps.list";
-        ".config/kglobalshortcutsrc" = "${config.lyte.dotfilesPath}/plasma/kglobalshortcutsrc";
       };
     })
 

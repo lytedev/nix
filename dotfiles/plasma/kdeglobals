@@ -134,6 +134,8 @@ ForegroundVisited=210,166,255
 
 [General]
 ColorScheme=AyuDark
+TerminalApplication=ghostty
+TerminalService=com.mitchellh.ghostty.desktop
 
 [KDE]
 AnimationDurationFactor=0.25
