@@ -1,6 +1,21 @@
 [kwin]
 _k_friendly_name=KWin
 Overview=Meta+Tab\tMeta+W,Meta+W,Toggle Overview
+Show Desktop=Meta+D,Meta+D,Peek at Desktop
+Window to Desktop 1=Meta+Shift+1,,Window to Desktop 1
+Window to Desktop 2=Meta+Shift+2,,Window to Desktop 2
+Window to Desktop 3=Meta+Shift+3,,Window to Desktop 3
+Window to Desktop 4=Meta+Shift+4,,Window to Desktop 4
+Switch to Desktop 1=Meta+1,,Switch to Desktop 1
+Switch to Desktop 2=Meta+2,,Switch to Desktop 2
+Switch to Desktop 3=Meta+3,,Switch to Desktop 3
+Switch to Desktop 4=Meta+4,,Switch to Desktop 4
+Switch One Desktop to the Left=Meta+Ctrl+H,,Switch One Desktop to the Left
+Switch One Desktop to the Right=Meta+Ctrl+L,,Switch One Desktop to the Right
+Switch Window Down=Meta+J,,Switch Window Down
+Switch Window Left=Meta+H,,Switch Window Left
+Switch Window Right=Meta+L,,Switch Window Right
+Switch Window Up=Meta+K,,Switch Window Up
 
 [kmix]
 _k_friendly_name=Audio Volume
@@ -12,3 +27,11 @@ increase_volume=Volume Up,Volume Up,Increase Volume
 increase_volume_small=Shift+Volume Up,Shift+Volume Up,Increase Volume by 1%
 mic_mute=Microphone Mute\tMeta+Volume Mute\tMeta+Shift+V,Microphone Mute\tMeta+Volume Mute,Mute Microphone
 mute=Volume Mute,Volume Mute,Mute
+
+[org.kde.dolphin.desktop]
+_k_friendly_name=Dolphin
+_launch=Meta+E,Meta+E,Dolphin
+
+[org.kde.spectacle.desktop]
+_k_friendly_name=Spectacle
+RectangularRegionScreenShot=Meta+Shift+S,Meta+Shift+Print,Capture Rectangular Region

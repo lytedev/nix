@@ -14,6 +14,16 @@ in
       xdg.portal.extraPortals = with pkgs.kdePackages; [ xdg-desktop-portal-kde ];
 
       programs.kdeconnect.enable = true;
+      networking.firewall = rec {
+        allowedTCPPortRanges = [
+          {
+            from = 1714;
+            to = 1764;
+          }
+        ];
+        allowedUDPPortRanges = allowedTCPPortRanges;
+      };
+
       services.xserver.enable = true;
 
       services.desktopManager.plasma6.enable = true;
@@ -77,9 +87,10 @@ in
         provider=wettercom
       '';
 
-      # Keyboard repeat and trackpad defaults
+      # Keyboard repeat, numlock, and trackpad defaults
       environment.etc."xdg/kcminputrc".text = lib.mkDefault ''
         [Keyboard]
+        NumLock=0
         RepeatDelay=200
         RepeatRate=80
 
@@ -88,6 +99,12 @@ in
         TapToClick=true
         DisableWhileTyping=true
       '';
+
+      # Electron/Chromium native Wayland support
+      environment.sessionVariables = {
+        ELECTRON_OZONE_PLATFORM_HINT = "auto";
+        NIXOS_OZONE_WL = "1";
+      };
 
       environment.etc."xdg/kwinrc".text = lib.mkDefault ''
         [Wayland]
@@ -101,6 +118,14 @@ in
         [Desktops]
         Number=4
         Rows=1
+
+        [Compositing]
+        AllowTearing=true
+
+        [MouseBindings]
+        CommandAll1=Move
+        CommandAll2=Toggle raise and lower
+        CommandAll3=Resize
       '';
 
       # services.xrdp.enable = false;
