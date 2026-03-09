@@ -110,7 +110,7 @@ let
         '';
       });
     }
-    // (import ../../packages { pkgs = prev; });
+    // (import ../../packages { pkgs = final; });
 in
 {
   default = flakeOverlay;
