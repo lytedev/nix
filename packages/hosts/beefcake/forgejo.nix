@@ -217,6 +217,7 @@ in
       })
     // {
       forgejo = {
+        serviceConfig.ReadWritePaths = [ "/var/lib/forgejo-db" ];
         preStart = lib.mkAfter ''
           rm -rf ${config.services.forgejo.stateDir}/custom/public
           mkdir -p ${config.services.forgejo.stateDir}/custom/public/
