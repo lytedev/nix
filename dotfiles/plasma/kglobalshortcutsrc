@@ -2,14 +2,14 @@
 _k_friendly_name=KWin
 Overview=Meta+Tab\tMeta+W,Meta+W,Toggle Overview
 Show Desktop=Meta+D,Meta+D,Peek at Desktop
-Window to Desktop 1=Meta+Shift+1,,Window to Desktop 1
-Window to Desktop 2=Meta+Shift+2,,Window to Desktop 2
-Window to Desktop 3=Meta+Shift+3,,Window to Desktop 3
-Window to Desktop 4=Meta+Shift+4,,Window to Desktop 4
-Switch to Desktop 1=Meta+1,,Switch to Desktop 1
-Switch to Desktop 2=Meta+2,,Switch to Desktop 2
-Switch to Desktop 3=Meta+3,,Switch to Desktop 3
-Switch to Desktop 4=Meta+4,,Switch to Desktop 4
+Window to Desktop 1=Meta+Ctrl+Shift+1,,Window to Desktop 1
+Window to Desktop 2=Meta+Ctrl+Shift+2,,Window to Desktop 2
+Window to Desktop 3=Meta+Ctrl+Shift+3,,Window to Desktop 3
+Window to Desktop 4=Meta+Ctrl+Shift+4,,Window to Desktop 4
+Switch to Desktop 1=Meta+Ctrl+1,,Switch to Desktop 1
+Switch to Desktop 2=Meta+Ctrl+2,,Switch to Desktop 2
+Switch to Desktop 3=Meta+Ctrl+3,,Switch to Desktop 3
+Switch to Desktop 4=Meta+Ctrl+4,,Switch to Desktop 4
 Switch One Desktop to the Left=Meta+Ctrl+H,,Switch One Desktop to the Left
 Switch One Desktop to the Right=Meta+Ctrl+L,,Switch One Desktop to the Right
 Switch Window Down=Meta+J,,Switch Window Down
@@ -43,4 +43,14 @@ RectangularRegionScreenShot=Meta+Shift+S,Meta+Shift+Print,Capture Rectangular Re
 
 [plasmashell]
 _k_friendly_name=plasmashell
+activate task manager entry 1=Meta+1,Meta+1,Activate Task Manager Entry 1
+activate task manager entry 2=Meta+2,Meta+2,Activate Task Manager Entry 2
+activate task manager entry 3=Meta+3,Meta+3,Activate Task Manager Entry 3
+activate task manager entry 4=Meta+4,Meta+4,Activate Task Manager Entry 4
+activate task manager entry 5=Meta+5,Meta+5,Activate Task Manager Entry 5
+activate task manager entry 6=Meta+6,Meta+6,Activate Task Manager Entry 6
+activate task manager entry 7=Meta+7,Meta+7,Activate Task Manager Entry 7
+activate task manager entry 8=Meta+8,Meta+8,Activate Task Manager Entry 8
+activate task manager entry 9=Meta+9,Meta+9,Activate Task Manager Entry 9
+activate task manager entry 10=Meta+0,Meta+0,Activate Task Manager Entry 10
 clipboard_action=Meta+V,,Show Clipboard Items
