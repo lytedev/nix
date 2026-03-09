@@ -75,6 +75,30 @@ let
         }
       );
 
+      # use the baseline (no-AVX2) bun binary so builds work on older CPUs
+      # (e.g., beefcake's Xeon E5-2680 v2 which only has AVX, not AVX2)
+      bun =
+        let
+          baselineHashes = {
+            "1.3.3" = "sha256-KB5sutlp6y9e9XJMbLoB2kDNX+rW+CksUO1gvU26eK4=";
+            "1.3.9" = "sha256-EE1NA39LNeECFcBQfhd5aR85xXvZHd7v4RyteB4/xLk=";
+          };
+        in
+        prev.bun.overrideAttrs (
+          old:
+          if prev.stdenv.hostPlatform.isx86_64 then
+            {
+              src = prev.fetchurl {
+                url = "https://github.com/oven-sh/bun/releases/download/bun-v${old.version}/bun-linux-x64-baseline.zip";
+                hash =
+                  baselineHashes.${old.version}
+                    or (throw "bun-baseline: no hash for v${old.version}; add it to baselineHashes in lib/overlays/default.nix");
+              };
+            }
+          else
+            { }
+        );
+
       opencode = prev.opencode.overrideAttrs (_: {
         version = "1.2.22";
         src = prev.fetchFromGitHub {
