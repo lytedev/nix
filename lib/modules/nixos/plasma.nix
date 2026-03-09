@@ -218,7 +218,73 @@ in
       # services.xrdp.defaultWindowManager = "plasma";
       # services.xrdp.openFirewall = false;
 
+      # Merge /etc/xdg/kglobalshortcutsrc overrides into the user's file.
+      # Plasma rewrites ~/.config/kglobalshortcutsrc on every logout, so
+      # /etc/xdg/ defaults are permanently shadowed once a user file exists.
+      # Run this command manually after a rebuild to push shortcut changes.
       environment.systemPackages = with pkgs; [
+        (writeShellScriptBin "plasma-sync-shortcuts" ''
+          set -euo pipefail
+          src="/etc/xdg/kglobalshortcutsrc"
+          dst="''${XDG_CONFIG_HOME:-$HOME/.config}/kglobalshortcutsrc"
+
+          if [ ! -f "$src" ]; then
+            echo "No override file at $src" >&2
+            exit 1
+          fi
+
+          if [ ! -f "$dst" ]; then
+            echo "No user file at $dst — /etc/xdg/ defaults will apply automatically"
+            exit 0
+          fi
+
+          cp "$dst" "$dst.bak"
+          echo "Backed up $dst to $dst.bak"
+
+          group=""
+          while IFS="" read -r line || [ -n "$line" ]; do
+            # Skip blank lines
+            [ -z "$line" ] && continue
+
+            # Track current group
+            if [[ "$line" =~ ^\[(.+)\]$ ]]; then
+              group="''${BASH_REMATCH[1]}"
+              # Ensure group exists in user file
+              if ! grep -qxF "[$group]" "$dst"; then
+                printf '\n[%s]\n' "$group" >> "$dst"
+                echo "  Added new group [$group]"
+              fi
+              continue
+            fi
+
+            # Parse key=value
+            key="''${line%%=*}"
+            value="''${line#*=}"
+
+            if [ -z "$group" ]; then
+              continue
+            fi
+
+            # Use awk to replace or insert the key under the correct group.
+            # This handles KDE's nested [section][subsection] syntax that
+            # crudini cannot parse.  Pass values via ENVIRON to avoid awk's
+            # -v flag interpreting \t as tab characters.
+            _AWK_GROUP="[$group]" _AWK_KEY="$key" _AWK_VALUE="$value" \
+            ${pkgs.gawk}/bin/awk '
+              BEGIN { group=ENVIRON["_AWK_GROUP"]; key=ENVIRON["_AWK_KEY"]; value=ENVIRON["_AWK_VALUE"]; found_group=0; replaced=0 }
+              $0 == group { found_group=1; print; next }
+              /^\[/ { if (found_group && !replaced) { print key "=" value; replaced=1 }; found_group=0 }
+              found_group && index($0, key "=") == 1 { print key "=" value; replaced=1; next }
+              { print }
+              END { if (found_group && !replaced) print key "=" value }
+            ' "$dst" > "$dst.tmp" && mv "$dst.tmp" "$dst"
+
+            echo "  [$group] $key"
+          done < "$src"
+
+          echo "Done. Log out and back in, or run: dbus-send --session --dest=org.kde.keyboard /modules/kglobalshortcuts org.kde.kglobalshortcuts.reloadConfig 2>/dev/null || true"
+        '')
+
         wl-clipboard
         # inkscape
         # krita
