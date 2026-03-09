@@ -30,6 +30,13 @@
       exec npx -y @openai/codex "$@"
     '';
   };
+  claude-to-opencode = pkgs.writeShellApplication {
+    name = "claude-to-opencode";
+    runtimeInputs = [ pkgs.python3 ];
+    text = ''
+      exec python3 ${./claude-to-opencode.py} "$@"
+    '';
+  };
   fbkeyboard = pkgs.callPackage ./fbkeyboard.nix { };
   stevia = pkgs.callPackage ./stevia.nix { };
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };
