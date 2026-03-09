@@ -1,3 +1,7 @@
+[kwin]
+_k_friendly_name=KWin
+Overview=Meta+Tab\tMeta+W,Meta+W,Toggle Overview
+
 [kmix]
 _k_friendly_name=Audio Volume
 decrease_microphone_volume=Microphone Volume Down,Microphone Volume Down,Decrease Microphone Volume

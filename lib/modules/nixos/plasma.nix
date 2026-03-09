@@ -46,6 +46,49 @@ in
         rules=1
       '';
 
+      # Common plasma desktop defaults (clock, launcher, pager, taskbar)
+      # These act as XDG defaults — Plasma will use them for new profiles
+      # but per-host layout (screens, panels, containments) is managed by Plasma itself
+      environment.etc."xdg/plasma-org.kde.plasma.desktop-appletsrc".text = lib.mkDefault ''
+        [Containments][2][Applets][21][Configuration][Appearance]
+        dateFormat=isoDate
+        fontWeight=400
+        use24hFormat=2
+
+        [Containments][2][Applets][3][Configuration][General]
+        icon=nix-snowflake
+        systemFavorites=suspend\\,hibernate\\,reboot\\,shutdown
+
+        [Containments][2][Applets][4][Configuration][General]
+        showOnlyCurrentScreen=true
+        wrapPage=true
+
+        [Containments][2][Applets][5][Configuration][General]
+        launchers=applications:com.mitchellh.ghostty.desktop,preferred://browser,applications:systemsettings.desktop,preferred://filemanager
+
+        [Containments][2][Applets][7][General]
+        extraItems=org.kde.kdeconnect,org.kde.plasma.cameraindicator,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.kscreen,org.kde.plasma.battery,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.keyboardindicator,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.printmanager,org.kde.plasma.volume,org.kde.plasma.weather,org.kde.plasma.clipboard
+        knownItems=org.kde.kdeconnect,org.kde.plasma.cameraindicator,org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.kscreen,org.kde.plasma.battery,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.keyboardindicator,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.printmanager,org.kde.plasma.volume,org.kde.plasma.weather
+        hiddenItems=org.kde.plasma.clipboard
+
+        [Containments][2][Applets][7][Applets][20][Configuration][WeatherStation]
+        placeDisplayName=Overland Park, Kansas, US
+        placeInfo=place|Overland Park, Kansas, US|extra|US0KS0455;Overland Park
+        provider=wettercom
+      '';
+
+      # Keyboard repeat and trackpad defaults
+      environment.etc."xdg/kcminputrc".text = lib.mkDefault ''
+        [Keyboard]
+        RepeatDelay=200
+        RepeatRate=80
+
+        [Touchpad]
+        NaturalScroll=true
+        TapToClick=true
+        DisableWhileTyping=true
+      '';
+
       environment.etc."xdg/kwinrc".text = lib.mkDefault ''
         [Wayland]
         InputMethod=${pkgs.kdePackages.plasma-keyboard}/share/applications/org.kde.plasma.keyboard.desktop
@@ -100,13 +143,10 @@ in
       # Shared plasma config dotfiles
       lyte.userSymlinks = {
         ".config/kdeglobals" = "${config.lyte.dotfilesPath}/plasma/kdeglobals";
-        ".config/kcminputrc" = "${config.lyte.dotfilesPath}/plasma/kcminputrc";
         ".config/plasmanotifyrc" = "${config.lyte.dotfilesPath}/plasma/plasmanotifyrc";
         ".config/ksmserverrc" = "${config.lyte.dotfilesPath}/plasma/ksmserverrc";
         ".local/share/color-schemes/AyuDark.colors" = "${config.lyte.dotfilesPath}/plasma/AyuDark.colors";
         ".local/share/color-schemes/AyuLight.colors" = "${config.lyte.dotfilesPath}/plasma/AyuLight.colors";
-        ".config/plasma-org.kde.plasma.desktop-appletsrc" =
-          "${config.lyte.dotfilesPath}/plasma/plasma-org.kde.plasma.desktop-appletsrc";
         ".config/mimeapps.list" = "${config.lyte.dotfilesPath}/plasma/mimeapps.list";
         ".config/kglobalshortcutsrc" = "${config.lyte.dotfilesPath}/plasma/kglobalshortcutsrc";
       };
