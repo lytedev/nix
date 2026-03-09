@@ -137,3 +137,42 @@ nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode-stable.db \
 
 Sessions in misc directories (`/`, `~`, `~/.config`) will remain as `global` —
 this is expected since they don't belong to a specific project.
+
+## Importing Claude Code sessions
+
+The `claude-to-opencode` tool converts Claude Code session JSONL files into
+OpenCode-importable JSON. Claude Code stores sessions at
+`~/.claude/projects/<encoded-path>/<uuid>.jsonl`.
+
+Tool calls and results are preserved as readable text wrapped in XML-style
+fences (`<migrated_claude_code_tool_use>`, `<migrated_claude_code_tool_result>`,
+etc.) so they appear as normal conversation content in OpenCode. Thinking blocks
+are similarly wrapped in `<migrated_claude_code_thinking>`.
+
+```bash
+# List available Claude Code sessions (optionally filter by project path)
+claude-to-opencode --list
+claude-to-opencode --list --project code/nix
+
+# Convert a single session (outputs JSON to stdout)
+claude-to-opencode ~/.claude/projects/<dir>/<uuid>.jsonl > session.json
+opencode import session.json
+
+# Convert all sessions for a project at once
+claude-to-opencode --all --project code/nix
+# then import:
+for f in /tmp/claude-to-opencode/*.json; do opencode import "$f"; done
+```
+
+Imported sessions get `project_id = 'global'` — if the project already exists
+in the OpenCode DB for that directory, OpenCode may remap it automatically.
+Otherwise, use the SQL fix in the section above to remap them.
+
+Imported sessions are prefixed with `[Claude Code]` in the title for easy
+identification. Sessions with no conversation content (e.g. only a
+`file-history-snapshot` line) get a generic title — clean them up after import:
+
+```bash
+nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode-stable.db \
+  "DELETE FROM session WHERE title LIKE '[Claude Code] Claude Code session%'"
+```
