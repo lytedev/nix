@@ -61,6 +61,19 @@ in
         builtins.readFile ../../../dotfiles/plasma/mimeapps.list
       );
 
+      # Use 24-hour clock and ISO 8601 dates (YYYY-MM-DD) across all KDE apps.
+      # en_DK is English with European/ISO formatting conventions.
+      environment.etc."xdg/plasma-localerc".text = lib.mkDefault ''
+        [Formats]
+        LC_TIME=en_DK.UTF-8
+      '';
+
+      # Disable Baloo file indexing (filename and content search)
+      environment.etc."xdg/baloofilerc".text = lib.mkDefault ''
+        [Basic Settings]
+        Indexing-Enabled=false
+      '';
+
       # Window rules: no titlebar/frame for Ghostty
       environment.etc."xdg/kwinrulesrc".text = lib.mkDefault ''
         [1]
@@ -196,6 +209,9 @@ in
         CommandAll1=Move
         CommandAll2=Toggle raise and lower
         CommandAll3=Resize
+
+        [Plugins]
+        hidecursorEnabled=true
       '';
 
       # services.xrdp.enable = false;

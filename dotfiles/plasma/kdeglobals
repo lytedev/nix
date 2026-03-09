@@ -136,6 +136,7 @@ ForegroundVisited=210,166,255
 ColorScheme=AyuDark
 TerminalApplication=ghostty
 TerminalService=com.mitchellh.ghostty.desktop
+TextEditor=Helix.desktop
 
 [KDE]
 AnimationDurationFactor=0.25
