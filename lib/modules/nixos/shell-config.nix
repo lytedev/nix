@@ -164,6 +164,7 @@ in
       ".config/git/config" = "${dotfilesPath}/git/config.local";
       ".config/jj/config.toml" = "${dotfilesPath}/jujutsu/config.toml";
       ".config/zellij/config.kdl" = "${dotfilesPath}/zellij/config.kdl";
+      ".config/zellij/layouts/compact-keys.kdl" = "${dotfilesPath}/zellij/layouts/compact-keys.kdl";
       ".config/htop/htoprc" = "${dotfilesPath}/htop/htoprc";
       ".config/senpai/senpai.scfg" = "${dotfilesPath}/senpai/senpai.scfg";
       ".cargo/config.toml" = "${dotfilesPath}/cargo/config.toml";
