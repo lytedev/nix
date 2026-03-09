@@ -62,6 +62,8 @@ in
       environment.etc."xdg/plasma-org.kde.plasma.desktop-appletsrc".text = lib.mkDefault ''
         [Containments][2][Applets][21][Configuration][Appearance]
         dateFormat=isoDate
+        showDate=true
+        dateDisplayFormat=adaptiveLocaleShort
         fontWeight=400
         use24hFormat=2
 
@@ -98,6 +100,24 @@ in
         NaturalScroll=true
         TapToClick=true
         DisableWhileTyping=true
+      '';
+
+      # Screen lock after 10 minutes, DPMS standby after 15 minutes
+      environment.etc."xdg/kscreenlockerrc".text = lib.mkDefault ''
+        [Daemon]
+        Autolock=true
+        Timeout=10
+        LockOnResume=true
+      '';
+
+      environment.etc."xdg/powermanagementprofilesrc".text = lib.mkDefault ''
+        [AC][DPMSControl]
+        idleTime=900
+        lockBeforeTurnOff=0
+
+        [Battery][DPMSControl]
+        idleTime=600
+        lockBeforeTurnOff=0
       '';
 
       # Electron/Chromium native Wayland support

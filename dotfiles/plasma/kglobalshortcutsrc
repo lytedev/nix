@@ -16,6 +16,11 @@ Switch Window Down=Meta+J,,Switch Window Down
 Switch Window Left=Meta+H,,Switch Window Left
 Switch Window Right=Meta+L,,Switch Window Right
 Switch Window Up=Meta+K,,Switch Window Up
+Window Minimize=Meta+Shift+Ctrl+H,,Minimize Window
+
+[ksmserver]
+_k_friendly_name=Session Management
+Lock Session=Meta+Shift+Ctrl+L\tScreensaver,Meta+L\tScreensaver,Lock Session
 
 [kmix]
 _k_friendly_name=Audio Volume
@@ -35,3 +40,7 @@ _launch=Meta+E,Meta+E,Dolphin
 [org.kde.spectacle.desktop]
 _k_friendly_name=Spectacle
 RectangularRegionScreenShot=Meta+Shift+S,Meta+Shift+Print,Capture Rectangular Region
+
+[plasmashell]
+_k_friendly_name=plasmashell
+clipboard_action=Meta+V,,Show Clipboard Items
