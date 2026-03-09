@@ -76,21 +76,21 @@ let
       );
 
       opencode = prev.opencode.overrideAttrs (_: {
-        version = "1.2.21";
+        version = "1.2.22";
         src = prev.fetchFromGitHub {
           owner = "anomalyco";
           repo = "opencode";
-          tag = "v1.2.21";
-          hash = "sha256-XCf0ijRZZjp16YS9V65ZMoQzTWYRUrle3L4vWIxvy3M=";
+          tag = "v1.2.22";
+          hash = "sha256-fSSXUPfvhlWb5YEtW+bbi2mJaOV4Cdx3hbp6lnysxuo=";
         };
         node_modules = prev.opencode.node_modules.overrideAttrs (_: {
           src = prev.fetchFromGitHub {
             owner = "anomalyco";
             repo = "opencode";
-            tag = "v1.2.21";
-            hash = "sha256-XCf0ijRZZjp16YS9V65ZMoQzTWYRUrle3L4vWIxvy3M=";
+            tag = "v1.2.22";
+            hash = "sha256-fSSXUPfvhlWb5YEtW+bbi2mJaOV4Cdx3hbp6lnysxuo=";
           };
-          outputHash = "sha256-twywrmswEl687u5mqWgVVzOeWOheNGuW3e4L5tq/Qbw=";
+          outputHash = "sha256-U0DRfGsk6SeFqh8DuUsEQ/KmfTokNbr29RSxKgbdqG0=";
         });
       });
 
