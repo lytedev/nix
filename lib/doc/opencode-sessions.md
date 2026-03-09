@@ -61,3 +61,79 @@ build a specific version. Check what versions exist in the old DB with:
 nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode.db \
   "SELECT version, COUNT(*) FROM session GROUP BY version ORDER BY COUNT(*) DESC"
 ```
+
+### Fixing project_id after import
+
+`opencode import` assigns all imported sessions `project_id = 'global'` instead
+of the correct project. The TUI filters sessions by project, so imported
+sessions won't appear in the session picker until this is fixed.
+
+**Step 1:** Copy missing project entries from the old DB. Check what's missing:
+
+```bash
+# List projects in old DB
+nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode.db \
+  "SELECT id, worktree FROM project"
+
+# List projects in stable DB
+nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode-stable.db \
+  "SELECT id, worktree FROM project"
+```
+
+Insert any missing projects into the stable DB (adjust values as needed):
+
+```bash
+nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode-stable.db "
+INSERT OR IGNORE INTO project (id, worktree, vcs, name, icon_url, icon_color, time_created, time_updated, sandboxes)
+VALUES ('<id>', '<worktree_path>', 'git', '', '', '', $(date +%s)000, $(date +%s)000, '[]');
+"
+```
+
+**Step 2:** Remap sessions to matching projects by directory:
+
+```bash
+nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode-stable.db "
+-- Match sessions to projects by longest directory prefix
+UPDATE session
+SET project_id = (
+  SELECT p.id FROM project p
+  WHERE p.id != 'global'
+    AND session.directory LIKE p.worktree || '%'
+  ORDER BY LENGTH(p.worktree) DESC
+  LIMIT 1
+)
+WHERE project_id = 'global'
+AND EXISTS (
+  SELECT 1 FROM project p
+  WHERE p.id != 'global'
+    AND session.directory LIKE p.worktree || '%'
+);
+
+-- Map opencode worktree dirs (contain project ID in path)
+UPDATE session
+SET project_id = SUBSTR(
+  directory,
+  LENGTH('/home/daniel/.home/.local/share/opencode/worktree/') + 1,
+  40
+)
+WHERE project_id = 'global'
+AND directory LIKE '/home/daniel/.home/.local/share/opencode/worktree/%'
+AND EXISTS (
+  SELECT 1 FROM project WHERE id = SUBSTR(
+    directory,
+    LENGTH('/home/daniel/.home/.local/share/opencode/worktree/') + 1,
+    40
+  )
+);
+"
+```
+
+**Step 3:** Verify the fix:
+
+```bash
+nix shell nixpkgs#sqlite -c sqlite3 ~/.local/share/opencode/opencode-stable.db \
+  "SELECT project_id, COUNT(*) FROM session GROUP BY project_id ORDER BY COUNT(*) DESC"
+```
+
+Sessions in misc directories (`/`, `~`, `~/.config`) will remain as `global` —
+this is expected since they don't belong to a specific project.
