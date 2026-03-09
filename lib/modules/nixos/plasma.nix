@@ -279,44 +279,26 @@ in
           # Phase 2: Apply shortcuts live via D-Bus so they take effect
           # immediately without logging out.  Uses busctl to call
           # setForeignShortcutKeys on KWin's embedded kglobalaccel.
-          # Shortcut strings are converted to Qt key codes by a small
-          # Python helper.
+          # Key strings are converted to Qt key codes via PyQt6's
+          # QKeySequence.fromString(), so any key Qt recognises works
+          # without maintaining a manual lookup table.
           echo "Applying shortcuts live via D-Bus..."
-          ${pkgs.python3}/bin/python3 ${pkgs.writeText "plasma-apply-shortcuts.py" ''
+          ${
+            (pkgs.python3.withPackages (p: [ p.pyqt6 ]))
+          }/bin/python3 ${pkgs.writeText "plasma-apply-shortcuts.py" ''
             import subprocess, sys, os, re
-
-            MODS = {"Meta": 0x10000000, "Alt": 0x08000000, "Ctrl": 0x04000000, "Shift": 0x02000000}
-            KEYS = {
-                **{chr(c): c for c in range(0x41, 0x5B)},  # A-Z
-                **{str(c - 0x30): c for c in range(0x30, 0x3A)},  # 0-9
-                "Tab": 0x01000001, "Screensaver": 0x0100010A,
-                "F12": 0x01000043,
-                "Volume Down": 0x01000070, "Volume Up": 0x01000071,
-                "Volume Mute": 0x01000072,
-                "Microphone Volume Down": 0x0100007F,
-                "Microphone Volume Up": 0x01000080,
-                "Microphone Mute": 0x01000081,
-            }
+            from PyQt6.QtGui import QKeySequence
 
             def shortcut_to_qtkey(s):
-                parts = s.strip().split("+")
-                code = 0
-                key_parts = []
-                for p in parts:
-                    p = p.strip()
-                    if p in MODS:
-                        code |= MODS[p]
-                    else:
-                        key_parts.append(p)
-                key_name = "+".join(key_parts)
-                if key_name not in KEYS:
+                """Convert a shortcut string like 'Meta+K' to a Qt key code int."""
+                ks = QKeySequence.fromString(s.strip())
+                if ks.count() == 0:
                     return None
-                return code | KEYS[key_name]
+                return ks[0].toCombined()
 
             def apply_shortcut(component, action, friendly_comp, friendly_action, key_codes):
                 """Call setForeignShortcutKeys via busctl."""
                 n = len(key_codes)
-                # Each QKeySequence is a(ai) with 4 ints (key + 3 padding zeros)
                 cmd = [
                     "busctl", "--user", "call",
                     "org.kde.kglobalaccel", "/kglobalaccel",
@@ -330,7 +312,7 @@ in
                 subprocess.run(cmd, check=True)
 
             def parse_config(path):
-                """Parse kglobalshortcutsrc into list of (component, action, friendly_comp, description, key_codes)."""
+                """Parse kglobalshortcutsrc into a list of shortcut entries."""
                 entries = []
                 group = ""
                 friendly_name = ""
@@ -356,6 +338,7 @@ in
                             continue
                         shortcuts_str = parts[0]
                         description = ",".join(parts[2:])
+                        # Multiple shortcuts are separated by literal \t in the file
                         shortcut_strs = shortcuts_str.split("\\t")
                         key_codes = []
                         ok = True
