@@ -83,6 +83,17 @@ the bookmark associated with the work, `jj push` to ensure it is sync'd up, then
 specifically asked. Double check the commit's contents do not include files that
 should be gitignored.
 
+**CRITICAL: Never rewrite a change after it has been pushed.** Once you `jj push`
+a change, that commit hash is on the remote. If you then `jj describe` or
+otherwise rewrite it, the local copy gets a new hash but the remote still has the
+old one. The next `jj git fetch` will bring back the remote's version, creating
+**divergent changes** (multiple commits sharing the same change ID). This is messy
+to clean up. Always `jj new` before making further modifications after pushing.
+
+Pushed changes are configured as immutable via `immutable_heads()` in the jj
+config — jj will **refuse** to rewrite them. If jj errors with "immutable", do
+`jj new` first, then make your changes in the new commit.
+
 ```bash
 # Make changes and describe them
 jj describe -m "feat: add feature X"  # Prefer conventional commit formatting

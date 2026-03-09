@@ -14,6 +14,11 @@ auto-track-bookmarks = true
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
 
+[revset-aliases]
+# Make any change that has been pushed to a remote immutable.
+# This prevents accidental rewrites that cause divergent changes.
+"immutable_heads()" = "trunk() | remote_bookmarks()"
+
 [template-aliases]
 "format_timestamp(timestamp)" = "timestamp.ago()"
 
