@@ -30,6 +30,15 @@
       exec npx -y @openai/codex "$@"
     '';
   };
+  oc = pkgs.writeShellApplication {
+    name = "oc";
+    runtimeInputs = with pkgs; [
+      fzf
+      sqlite
+      opencode
+    ];
+    text = builtins.readFile ./oc.bash;
+  };
   fbkeyboard = pkgs.callPackage ./fbkeyboard.nix { };
   stevia = pkgs.callPackage ./stevia.nix { };
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };
