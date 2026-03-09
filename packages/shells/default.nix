@@ -133,8 +133,7 @@ in
 
       # === Plugin Hosts & Routing ===
       carla # Versatile plugin host - load VST/LV2 and chain effects
-      helvum # PipeWire patchbay (GTK) - connect audio sources/sinks
-      qpwgraph # PipeWire patchbay (Qt) - alternative to helvum
+      qpwgraph # PipeWire patchbay (Qt) - connect audio sources/sinks
 
       # === Utilities ===
       audacity # Quick audio editing and recording
@@ -156,7 +155,7 @@ in
       echo "QUICK START:"
       echo "  reaper          - Main DAW (recommended)"
       echo "  carla           - Plugin host (load VST/LV2, chain effects)"
-      echo "  helvum          - Audio routing (connect apps together)"
+      echo "  qpwgraph        - Audio routing (connect apps together)"
       echo ""
       echo "INSTRUMENTS:"
       echo "  helm            - Polyphonic synth"
@@ -172,7 +171,7 @@ in
       echo "  2. yabridgectl add <path-to-vst-folder>"
       echo "  3. yabridgectl sync"
       echo ""
-      echo "TIP: Use Carla to host plugins, route with helvum/qpwgraph"
+      echo "TIP: Use Carla to host plugins, route with qpwgraph"
       echo ""
     '';
   };

@@ -111,8 +111,7 @@ in
 
       # === Plugin Hosts & Routing ===
       carla # Versatile plugin host (VST, LV2, etc.)
-      helvum # Patchbay for PipeWire
-      qpwgraph # Another PipeWire patchbay (Qt-based)
+      qpwgraph # PipeWire patchbay (Qt) - connect audio sources/sinks
 
       # === Audio Utilities ===
       audacity # Quick audio editing
