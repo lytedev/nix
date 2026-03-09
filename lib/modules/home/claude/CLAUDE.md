@@ -126,3 +126,4 @@ commands over `sleep N && check`:
 - **General processes**: prefer tools with built-in watch/follow modes
 
 Avoid `sleep 120 && ssh ... journalctl` patterns; use streaming/follow output instead.
+
