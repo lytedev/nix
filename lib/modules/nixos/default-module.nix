@@ -199,7 +199,6 @@
     i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
     i18n.supportedLocales = lib.mkDefault [
       "en_US.UTF-8/UTF-8"
-      "en_DK.UTF-8/UTF-8" # ISO 8601 dates, 24-hour time
     ];
     hardware.enableRedistributableFirmware = lib.mkDefault true;
 

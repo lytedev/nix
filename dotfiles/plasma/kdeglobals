@@ -168,3 +168,8 @@ activeForeground=191,189,182
 inactiveBackground=13,16,23
 inactiveBlend=90,99,120
 inactiveForeground=90,99,120
+
+[Locale]
+DateFormatShort=yyyy-MM-dd
+TimeFormat=HH:mm:ss
+TimeFormatShort=HH:mm
