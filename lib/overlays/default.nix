@@ -131,16 +131,6 @@ let
             '';
           };
 
-      # Fix tile editor double-toggle bug: the grabbedKeyboardEvent override
-      # re-dispatches the same shortcut that kglobalaccel already handled,
-      # causing the editor to open then immediately close on every keypress.
-      # https://bugs.kde.org/show_bug.cgi?id=PENDING
-      kdePackages = prev.kdePackages // {
-        kwin = prev.kdePackages.kwin.overrideAttrs (old: {
-          patches = (old.patches or [ ]) ++ [ ../../patches/kwin-tileseditor-double-toggle.patch ];
-        });
-      };
-
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}
