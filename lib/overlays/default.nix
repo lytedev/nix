@@ -131,6 +131,15 @@ let
             '';
           };
 
+      # Fix tile editor double-toggle bug: the grabbedKeyboardEvent override
+      # re-dispatches the same Meta+T shortcut that kglobalaccel already
+      # handled, causing toggle() to fire twice (open then immediately close).
+      kdePackages = prev.kdePackages // {
+        kwin = prev.kdePackages.kwin.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [ ../../patches/kwin-tileseditor-double-toggle.patch ];
+        });
+      };
+
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}
