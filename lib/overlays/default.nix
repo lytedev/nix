@@ -99,24 +99,27 @@ let
             { }
         );
 
-      opencode = prev.opencode.overrideAttrs (_: {
-        version = "1.2.22";
-        src = prev.fetchFromGitHub {
-          owner = "anomalyco";
-          repo = "opencode";
-          tag = "v1.2.22";
-          hash = "sha256-fSSXUPfvhlWb5YEtW+bbi2mJaOV4Cdx3hbp6lnysxuo=";
-        };
-        node_modules = prev.opencode.node_modules.overrideAttrs (_: {
-          src = prev.fetchFromGitHub {
-            owner = "anomalyco";
+      opencode =
+        let
+          opencode-src = prev.fetchFromGitHub {
+            owner = "lytedev";
             repo = "opencode";
-            tag = "v1.2.22";
-            hash = "sha256-fSSXUPfvhlWb5YEtW+bbi2mJaOV4Cdx3hbp6lnysxuo=";
+            rev = "b975e71732ace8c2a4d05cb1539199c50ae9fb3b";
+            hash = "sha256-lcyW+vJ7m+/6Zo12+9pzrmUvBwxp5iHlSTGgR5F/M0s=";
           };
-          outputHash = "sha256-U0DRfGsk6SeFqh8DuUsEQ/KmfTokNbr29RSxKgbdqG0=";
-        });
-      });
+        in
+        (final.callPackage "${opencode-src}/nix/opencode.nix" {
+          node_modules = final.callPackage "${opencode-src}/nix/node_modules.nix" {
+            rev = "b975e71";
+          };
+        }).overrideAttrs
+          {
+            postPatch = ''
+              substituteInPlace packages/script/src/index.ts \
+                --replace-fail 'throw new Error(`This script requires bun@''${expectedBunVersionRange}' \
+                               'console.warn(`Warning: This script expects bun@''${expectedBunVersionRange}'
+            '';
+          };
 
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
