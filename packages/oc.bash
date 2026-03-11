@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # oc - fuzzy session/project picker for opencode
 
-DB="$HOME/.local/share/opencode/opencode-stable.db"
+# Canonical DB (activation script consolidates all channel variants here)
+DB="$HOME/.local/share/opencode/opencode.db"
 if [[ ! -f "$DB" ]]; then
-  DB="$HOME/.local/share/opencode/opencode.db"
+  # Fallback: try known variants in case consolidation hasn't run yet
+  for variant in opencode-stable opencode-local; do
+    f="$HOME/.local/share/opencode/$variant.db"
+    if [[ -f "$f" ]]; then
+      DB="$f"
+      break
+    fi
+  done
 fi
 if [[ ! -f "$DB" ]]; then
   echo "No opencode database found" >&2
