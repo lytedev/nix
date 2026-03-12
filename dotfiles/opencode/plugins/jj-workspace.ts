@@ -40,7 +40,6 @@ const JjWorkspace: Plugin = async ({ $, directory, workspaceFetch }) => {
           const name = info.name!;
           const wsDir = info.directory!;
           const trunk = "trunk()";
-          const atWorkspace = `${name}@${name}`;
 
           // Clean up any leftover workspace with the same name
           await $`${JJ} workspace forget ${name}`.cwd(root).quiet().nothrow();
@@ -62,9 +61,7 @@ const JjWorkspace: Plugin = async ({ $, directory, workspaceFetch }) => {
           }
 
           // Create a bookmark so the workspace is addressable
-          await $`${JJ} bookmark create ${name} -r ${atWorkspace}`
-            .cwd(wsDir)
-            .nothrow();
+          await $`${JJ} bookmark create ${name}`.cwd(wsDir).nothrow();
         },
 
         async remove(info) {
