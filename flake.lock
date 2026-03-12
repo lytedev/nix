@@ -1589,11 +1589,11 @@
         "rocksdb": "rocksdb"
       },
       "locked": {
-        "lastModified": 1772124452,
-        "narHash": "sha256-svsYSgbOIZzVe9aQTE/DjZQ3vtU/lcEop3ix4hfGx9I=",
+        "lastModified": 1773290705,
+        "narHash": "sha256-9I+YSshk3iY+XEVvPhqAwXVVHi/2n2BR7oiSLYhZGXM=",
         "owner": "lytedev",
         "repo": "tuwunel",
-        "rev": "4ddf5db311c97abb2d16ab89138d383e6d8c454d",
+        "rev": "7c5069f10fb899d24741d1fee68fd7bc63de73a3",
         "type": "github"
       },
       "original": {
