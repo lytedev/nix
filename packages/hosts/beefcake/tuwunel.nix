@@ -34,10 +34,11 @@ in
       database_path = "${dataDir}/"
       database_backup_path = "${backupDir}/"
       database_backups_to_keep = 2
+      admin_execute = ["server backup-database"]
+      admin_signal_execute = ["server backup-database"]
       port = [${toString port}]
       allow_federation = false
       allow_registration = false
-      # admin_execute = ["users make-user-admin @daniel:lyte.dev"]
       sso_default_provider_id = "matrix.lyte.dev"
 
       [global.well_known]
@@ -74,6 +75,27 @@ in
     dataDir
     backupDir
   ];
+
+  # Trigger a RocksDB online backup before restic runs by sending SIGUSR2,
+  # which tuwunel handles via admin_signal_execute = ["server backup-database"]
+  systemd.services.tuwunel-backup = {
+    description = "Trigger tuwunel RocksDB online backup";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      ${lib.getExe' config.systemd.package "systemctl"} kill --signal=USR2 tuwunel.service
+      # give tuwunel time to flush and write the backup
+      sleep 10
+    '';
+  };
+  systemd.timers.tuwunel-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = [
+        "04:30"
+        "17:30"
+      ];
+    };
+  };
 
   # Caddy reverse proxy
   services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
