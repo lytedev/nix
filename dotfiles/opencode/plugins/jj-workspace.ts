@@ -32,6 +32,7 @@ const JjWorkspace: Plugin = async ({ $, directory, workspaceFetch }) => {
             name,
             branch: info.branch || name,
             directory: wsDir,
+            extra: { root },
           };
         },
 
@@ -65,7 +66,7 @@ const JjWorkspace: Plugin = async ({ $, directory, workspaceFetch }) => {
         },
 
         async remove(info) {
-          const root = info.projectDirectory ?? directory;
+          const root = (info.extra as any)?.root ?? directory;
           const name = info.name!;
           const wsDir = info.directory!;
 
