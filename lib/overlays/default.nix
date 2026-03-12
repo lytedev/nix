@@ -7,7 +7,12 @@ let
   flakeOverlay =
     final: prev:
     let
-      inherit (inputs) helix ghostty tuwunel;
+      inherit (inputs)
+        helix
+        ghostty
+        tuwunel
+        firefox-nightly
+        ;
       unstable-packages = import nixpkgs-unstable {
         system = final.system;
         config.allowUnfree = true;
@@ -22,6 +27,10 @@ let
 
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
+
+      # bleeding-edge Firefox variants
+      firefox-nightly = firefox-nightly.packages.${prev.system}.firefox-nightly-bin;
+      inherit (unstable-packages) firefox-devedition-bin;
 
       # nixpkgs-unstable split zig's setup-hook into zig.hook, but that hook
       # unconditionally prepends default flags that conflict with ghostty's own.
