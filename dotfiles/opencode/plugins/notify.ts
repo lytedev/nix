@@ -57,8 +57,8 @@ const Notify: Plugin = async (ctx) => {
     lastNotifyTime = now
 
     const from = await buildFrom()
-    // Use setsid to detach so Bun's shell doesn't kill pw-play mid-sound
-    ctx
+    // setsid detaches pw-play so it isn't killed when the shell command returns
+    await ctx
       .$`setsid claude-notify --type ${type} --title ${title} --body ${body} --urgency ${urgency} --from ${from}`
       .quiet()
       .nothrow()
