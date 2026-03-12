@@ -117,6 +117,8 @@ in
         ".config/opencode/opencode.jsonc" = "${config.lyte.dotfilesPath}/opencode/opencode.jsonc";
         ".config/opencode/AGENTS.md" = "${config.lyte.resolvedFlakePath}/lib/modules/home/claude/CLAUDE.md";
         ".config/opencode/plugins/notify.ts" = "${config.lyte.dotfilesPath}/opencode/plugins/notify.ts";
+        ".config/opencode/plugins/jj-workspace.ts" =
+          "${./../../..}/dotfiles/opencode/plugins/jj-workspace.ts";
       };
 
       # Consolidate DB variants and back up before each activation (rebuild)

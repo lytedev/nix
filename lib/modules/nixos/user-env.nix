@@ -75,7 +75,7 @@ let
             fi
           done < "${manifestFile}"
         fi
-        cp "${currentManifest}" "${manifestFile}"
+        install -m 644 "${currentManifest}" "${manifestFile}"
       '';
 
       symlinkCmds = lib.concatStringsSep "\n" (
