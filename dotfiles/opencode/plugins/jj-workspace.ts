@@ -3,6 +3,17 @@ import { existsSync } from "fs";
 import { join, resolve, basename } from "path";
 import { execSync } from "child_process";
 
+interface JjExtra {
+  root: string;
+}
+
+function parseExtra(extra: unknown): JjExtra | undefined {
+  if (extra != null && typeof extra === "object" && "root" in extra && typeof (extra as JjExtra).root === "string") {
+    return extra as JjExtra;
+  }
+  return undefined;
+}
+
 // Resolve jj path at plugin load time
 const JJ = (() => {
   try {
@@ -32,12 +43,12 @@ const JjWorkspace: Plugin = async ({ $, directory, workspaceFetch }) => {
             name,
             branch: info.branch || name,
             directory: wsDir,
-            extra: { root },
+            extra: { root } satisfies JjExtra,
           };
         },
 
         async create(info) {
-          const root = info.projectDirectory ?? directory;
+          const root = parseExtra(info.extra)?.root ?? info.projectDirectory ?? directory;
           const name = info.name!;
           const wsDir = info.directory!;
           const trunk = "trunk()";
@@ -66,7 +77,7 @@ const JjWorkspace: Plugin = async ({ $, directory, workspaceFetch }) => {
         },
 
         async remove(info) {
-          const root = (info.extra as any)?.root ?? directory;
+          const root = parseExtra(info.extra)?.root ?? directory;
           const name = info.name!;
           const wsDir = info.directory!;
 
