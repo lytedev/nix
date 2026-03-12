@@ -2,6 +2,7 @@
 let
   port = 6167;
   dataDir = "/storage/tuwunel";
+  backupDir = "/storage/tuwunel-backups";
 in
 {
   systemd.tmpfiles.settings."10-tuwunel" = {
@@ -12,9 +13,16 @@ in
         mode = "0700";
       };
     };
+    "${backupDir}" = {
+      d = {
+        user = "tuwunel";
+        group = "tuwunel";
+        mode = "0700";
+      };
+    };
   };
 
-  services.restic.commonPaths = [ dataDir ];
+  services.restic.commonPaths = [ backupDir ];
 
   sops.secrets.matrix-oauth-client-secret = { };
 
@@ -24,6 +32,8 @@ in
       [global]
       server_name = "lyte.dev"
       database_path = "${dataDir}/"
+      database_backup_path = "${backupDir}/"
+      database_backups_to_keep = 2
       port = [${toString port}]
       allow_federation = false
       allow_registration = false
@@ -60,7 +70,10 @@ in
   systemd.services.tuwunel.environment.TUWUNEL_CONFIG =
     lib.mkForce
       config.sops.templates."tuwunel.toml".path;
-  systemd.services.tuwunel.serviceConfig.ReadWritePaths = [ dataDir ];
+  systemd.services.tuwunel.serviceConfig.ReadWritePaths = [
+    dataDir
+    backupDir
+  ];
 
   # Caddy reverse proxy
   services.caddy.virtualHosts."matrix.lyte.dev".extraConfig = ''
