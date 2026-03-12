@@ -1,13 +1,16 @@
 > This file is managed by Nix. Prefer editing in ~/.config/home-manager in lib/modules/home/claude/CLAUDE.md in the nix config repo.
 
 # Package Management
+
 When running commands or tools that may not be installed on the system, prefer using `nix shell` or `comma` to run them without permanent installation:
 This system uses Nix for package management. Always consider if a tool can be run via nix shell or comma before suggesting installation.
+
 - Use `comma` (`,`) for quick execution: `, program-name args`
 - Use `nix shell nixpkgs#program-name` for more complex setups
 - Otherwise, permanent updates to the system should go in ~/.config/home-manager and be coordinated with the user if leaving the current project
 
 # Code Style
+
 Follow standard coding practices and use appropriate tools for the language/framework being used.
 Format code using the configured formatter _before_ pushing.
 
@@ -17,40 +20,40 @@ This host uses jj (jujutsu) for version control. Prefer jj commands over git.
 
 ## Quick Reference
 
-| Task | jj command |
-|------|------------|
-| Status | `jj status` or `jj st` |
-| Diff working copy | `jj diff` |
-| Diff specific revision | `jj diff -r @-` |
-| Log/history | `jj log` |
-| Short log | `jj log --no-graph -r ::@` |
-| Describe (commit msg) | `jj describe -m "message"` |
-| New empty change | `jj new` |
-| New change on specific rev | `jj new <rev>` |
-| Squash into parent | `jj squash` |
-| Split a change | `jj split` |
-| Edit a prior change | `jj edit <rev>` |
-| Abandon change | `jj abandon` |
-| Rebase | `jj rebase -d <dest>` |
-| Show a revision | `jj show <rev>` |
+| Task                       | jj command                 |
+| -------------------------- | -------------------------- |
+| Status                     | `jj status` or `jj st`     |
+| Diff working copy          | `jj diff`                  |
+| Diff specific revision     | `jj diff -r @-`            |
+| Log/history                | `jj log`                   |
+| Short log                  | `jj log --no-graph -r ::@` |
+| Describe (commit msg)      | `jj describe -m "message"` |
+| New empty change           | `jj new`                   |
+| New change on specific rev | `jj new <rev>`             |
+| Squash into parent         | `jj squash`                |
+| Split a change             | `jj split`                 |
+| Edit a prior change        | `jj edit <rev>`            |
+| Abandon change             | `jj abandon`               |
+| Rebase                     | `jj rebase -d <dest>`      |
+| Show a revision            | `jj show <rev>`            |
 
 ## Bookmarks (like git branches)
 
-| Task | jj command |
-|------|------------|
-| List bookmarks | `jj bookmark list` |
-| Create bookmark | `jj bookmark create <name>` |
-| Move bookmark to current | `jj bookmark set <name>` |
-| Delete bookmark | `jj bookmark delete <name>` |
+| Task                     | jj command                  |
+| ------------------------ | --------------------------- |
+| List bookmarks           | `jj bookmark list`          |
+| Create bookmark          | `jj bookmark create <name>` |
+| Move bookmark to current | `jj bookmark set <name>`    |
+| Delete bookmark          | `jj bookmark delete <name>` |
 
 ## Remote Operations
 
-| Task | jj command |
-|------|------------|
-| Fetch | `jj git fetch` |
-| Push | `jj git push` |
+| Task                   | jj command                  |
+| ---------------------- | --------------------------- |
+| Fetch                  | `jj git fetch`              |
+| Push                   | `jj git push`               |
 | Push specific bookmark | `jj git push -b <bookmark>` |
-| Clone | `jj git clone <url>` |
+| Clone                  | `jj git clone <url>`        |
 
 ## Revsets (revision selectors)
 
@@ -95,6 +98,11 @@ Pushed changes are configured as immutable via `immutable_heads()` in the jj
 config — jj will **refuse** to rewrite them. If jj errors with "immutable", do
 `jj new` first, then make your changes in the new commit.
 
+**Exception: rebasing is always safe** with `--ignore-immutable`. Rebasing only
+changes parentage, not content, and jj preserves change IDs across rebases. Use
+`jj rebase --ignore-immutable` freely when rebasing branches onto updated trunk
+or main. This does not risk divergent changes.
+
 ```bash
 # Make changes and describe them
 jj describe -m "feat: add feature X"  # Prefer conventional commit formatting
@@ -126,4 +134,3 @@ commands over `sleep N && check`:
 - **General processes**: prefer tools with built-in watch/follow modes
 
 Avoid `sleep 120 && ssh ... journalctl` patterns; use streaming/follow output instead.
-

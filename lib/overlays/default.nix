@@ -104,7 +104,7 @@ let
           opencode-src = prev.fetchFromGitHub {
             owner = "lytedev";
             repo = "opencode";
-            rev = "1238b8c8823e1e5b0aaff3e1c66e86435f971dc2";
+            rev = "1238b8c8823eeb5631660eaccb8aa72e940a2b76";
             hash = "sha256-IyeVqmNfD39QlyHDJJC7e7byXbjqmjiVujt9yVo9ivU=";
           };
         in
