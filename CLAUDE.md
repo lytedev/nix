@@ -27,19 +27,20 @@ home-manager setup. The active configuration is in `lib/modules/nixos/`.
 ## Deploying (deploy-rs)
 
 Remote hosts are deployed via [deploy-rs](https://github.com/serokell/deploy-rs).
-The `deploy` CLI is available in the default dev shell (`nix develop`) or via comma.
-Node configuration lives in `lib/deploy/default.nix`. All hosts are reached over
-the VPN at `<host>.internal.vpn.h.lyte.dev` and build remotely by default.
+Use `nix develop -c deploy` (not comma) to ensure the pinned version from the
+devshell is used. Node configuration lives in `lib/deploy/default.nix`. All hosts
+are reached over the VPN at `<host>.internal.vpn.h.lyte.dev` and build remotely
+by default.
 
 ```bash
 # Deploy all hosts
-, deploy .
+nix develop -c deploy .
 
 # Deploy a specific host (skipping checks with -s)
-, deploy -s --targets ".#beefcake"
+nix develop -c deploy -s --targets ".#beefcake"
 
 # Deploy from remote flake ref without a local clone
-, deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#beefcake"
+nix develop -c deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#beefcake"
 ```
 
 ## Forgejo (tea CLI)
