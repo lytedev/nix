@@ -103,6 +103,51 @@
         else
           { }
       )
+
+      # Fix "Switch to Desktop" session switching.
+      #
+      # steamos-manager writes a temporary SDDM config to
+      # /etc/sddm.conf.d/zzt-steamos-temp-login.conf to override the autologin
+      # session (e.g. from gamescope to plasma). Two things prevent this from
+      # working out of the box:
+      #
+      # 1. Config precedence: the NixOS SDDM module bakes
+      #    [Autologin] Session=gamescope-wayland.desktop into /etc/sddm.conf,
+      #    which is loaded *after* sddm.conf.d/ and overrides the temp file.
+      #    Fix: disable NixOS autoLogin so that section is omitted from
+      #    sddm.conf, and put the autologin config in a conf.d drop-in
+      #    (00-autologin.conf) that sorts before the zzt- temp file.
+      #
+      # 2. ExecStartPre cleanup: Jovian's autostart module adds an ExecStartPre
+      #    that deletes the temp file before SDDM starts, so it never gets
+      #    read on restart. Fix: clear the ExecStartPre list. The temp file
+      #    is already cleaned up by steamos-manager-session-cleanup.service
+      #    after the session starts.
+      {
+        # Prevent [Autologin] from appearing in /etc/sddm.conf so conf.d
+        # files can control the session without being overridden.
+        services.displayManager.autoLogin.enable = lib.mkForce false;
+
+        # Provide the default autologin via a conf.d drop-in instead.
+        # 00- prefix ensures it sorts before zz-steamos-autologin.conf and
+        # zzt-steamos-temp-login.conf, so steamos-manager can override it.
+        environment.etc."sddm.conf.d/00-autologin.conf".text = ''
+          [Autologin]
+          User=${config.jovian.steam.user}
+          Session=gamescope-wayland.desktop
+          Relogin=true
+        '';
+
+        # Remove Jovian's ExecStartPre that deletes the temp session file.
+        # Without this, the temp file written by steamos-manager for
+        # "Switch to Desktop" would be deleted before SDDM can read it.
+        # Note: this also clears the NixOS preStart "rm -f /tmp/.X0-lock"
+        # (harmless — only relevant for X11 sessions, not Wayland SDDM).
+        # Both preStart and Jovian's ExecStartPre feed into the same
+        # serviceConfig.ExecStartPre list, so we must force both empty.
+        systemd.services.display-manager.preStart = lib.mkForce "";
+        systemd.services.display-manager.serviceConfig.ExecStartPre = lib.mkForce [ ];
+      }
     ]
   );
 }
