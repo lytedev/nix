@@ -169,6 +169,7 @@
 
       "https://helix.cachix.org"
       "https://ghostty.cachix.org"
+      "https://jovian-nixos.cachix.org"
       "https://install.determinate.systems"
     ];
 
@@ -180,6 +181,7 @@
 
       "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
       "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+      "jovian-nixos.cachix.org-1:mAWLjAxLNlfxAnozUjOqGj4AxQwCl7MXwOfu7msVlAo="
       "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
     ];
   };
