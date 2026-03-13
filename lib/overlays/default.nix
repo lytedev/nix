@@ -113,13 +113,13 @@ let
           opencode-src = prev.fetchFromGitHub {
             owner = "lytedev";
             repo = "opencode";
-            rev = "19cea0aa696e9449c49ea648f2711c1fc62ac30a";
-            hash = "sha256-WuT2omeQC/69sjEAE0vp8UkyMdKxWtnaIWez7zZEwtc=";
+            rev = "54a5ba7084ebf9e6cc255afbd00a984dc89261f9";
+            hash = "sha256-qYEHiz6sQ56CJyYJglqSflu2SY2abLdgEqQ5NkUml24=";
           };
         in
         (final.callPackage "${opencode-src}/nix/opencode.nix" {
           node_modules = final.callPackage "${opencode-src}/nix/node_modules.nix" {
-            rev = "19cea0a";
+            rev = "54a5ba7";
           };
         }).overrideAttrs
           {
