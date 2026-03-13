@@ -27,9 +27,6 @@
         lyte.shell.enable = true;
         lyte.desktop.enable = true;
 
-        # Jovian manages the session (autologin to Steam), so disable the display manager
-        services.displayManager.sddm.enable = lib.mkForce false;
-
         environment.systemPackages = with pkgs; [
           steamdeck-firmware
           steam-rom-manager
@@ -95,6 +92,9 @@
         };
       }
 
+      # Jovian's autostart module enables SDDM for session management (including
+      # "Switch to Desktop"). Disable plasma-login-manager if present so it
+      # doesn't conflict with SDDM.
       (
         if (options.services.displayManager ? plasma-login-manager) then
           {
