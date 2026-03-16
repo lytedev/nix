@@ -281,8 +281,9 @@ in
 
                   ${concatStringsSep "\n    " acceptPorts}
 
-                  iifname "${lan}" accept comment "Allow local network to access the router"
-                  iifname "tailscale0" accept comment "Allow local network to access the router"
+                  iifname "${lan}" udp dport 67 accept comment "Allow DHCP from LAN"
+                  iifname "${lan}" tcp dport 22 accept comment "Allow SSH from LAN"
+                  iifname "tailscale0" accept comment "Allow Tailscale to access the router (gated by Headscale ACLs)"
 
                   ## ip6 saddr @LANv6 jump my_input_lan comment "Connections from private IP address ranges"
                   ## ip saddr @LANv4 jump my_input_lan comment "Connections from private IP address ranges"

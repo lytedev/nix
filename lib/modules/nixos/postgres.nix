@@ -30,15 +30,9 @@
         local  sameuser  all       peer map=user_map
         local  all       all       peer map=superuser_map
 
-        # lan ipv4
-        host  all       all     10.0.0.0/24   trust
+        # localhost only
         host  all       all     127.0.0.1/32  trust
-
-        # lan ipv6
         host  all       all     ::1/128       trust
-
-        # tailnet ipv4
-        host       all       all     100.64.0.0/10 trust
       '';
 
       identMap = ''
