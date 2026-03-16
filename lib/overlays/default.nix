@@ -91,6 +91,7 @@ let
           baselineHashes = {
             "1.3.3" = "sha256-KB5sutlp6y9e9XJMbLoB2kDNX+rW+CksUO1gvU26eK4=";
             "1.3.9" = "sha256-EE1NA39LNeECFcBQfhd5aR85xXvZHd7v4RyteB4/xLk=";
+            "1.3.10" = "sha256-QSAajF7nSp3Lsc4loRBPH5KYOLV6hFqnjZg3mwznzeI=";
           };
         in
         prev.bun.overrideAttrs (
