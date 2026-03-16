@@ -203,6 +203,9 @@ in
         CommandAll2=Toggle raise and lower
         CommandAll3=Resize
 
+        [Windows]
+        Placement=UnderMouse
+
         [Plugins]
         hidecursorEnabled=true
       '';
