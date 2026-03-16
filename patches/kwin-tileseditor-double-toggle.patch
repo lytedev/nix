@@ -1,17 +1,36 @@
+--- a/src/plugins/tileseditor/tileseditoreffect.h
++++ b/src/plugins/tileseditor/tileseditoreffect.h
+@@ -7,6 +7,7 @@
+ #pragma once
+ 
+ #include "effect/quickeffect.h"
++#include <chrono>
+ 
+ #include <QAction>
+ 
+@@ -47,6 +48,7 @@
+     std::unique_ptr<QTimer> m_shutdownTimer;
+     std::unique_ptr<QAction> m_toggleAction;
+     QList<QKeySequence> m_toggleShortcut;
++    std::chrono::steady_clock::time_point m_lastToggle;
+     int m_animationDuration = 200;
+ };
+ 
 --- a/src/plugins/tileseditor/tileseditoreffect.cpp
 +++ b/src/plugins/tileseditor/tileseditoreffect.cpp
-@@ -105,11 +105,11 @@
+@@ -55,6 +55,15 @@
  
- void TilesEditorEffect::grabbedKeyboardEvent(QKeyEvent *keyEvent)
+ void TilesEditorEffect::toggle()
  {
-+    // Swallow the toggle shortcut so it does not re-trigger toggle() or
-+    // reach the QML Keys.onPressed handler (whose deprecated `event`
-+    // parameter injection can cause the editor to misbehave).
-     if (m_toggleShortcut.contains(keyEvent->key() | keyEvent->modifiers())) {
--        if (keyEvent->type() == QEvent::KeyPress) {
--            toggle();
--        }
-         return;
-     }
-     QuickSceneEffect::grabbedKeyboardEvent(keyEvent);
- }
++    // Guard against rapid re-triggers.  When the tile editor is activated
++    // the main thread may block long enough for the OS key-repeat timer to
++    // fire before the physical key-up is processed, producing spurious
++    // Repeated/Released global-shortcut signals that call toggle() again.
++    auto now = std::chrono::steady_clock::now();
++    if (now - m_lastToggle < std::chrono::milliseconds(1000)) {
++        return;
++    }
++    m_lastToggle = now;
+     if (!isRunning()) {
+         activate();
+     } else {

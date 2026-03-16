@@ -208,7 +208,6 @@ in
 
         [Plugins]
         hidecursorEnabled=true
-        tileseditorEnabled=true
       '';
 
       # services.xrdp.enable = false;
