@@ -50,7 +50,8 @@
 
   systemd.services."build-lytedev-flake" = {
     script = ''
-      set -euo pipefail
+      # best-effort cache warming -- failures are expected since we build
+      # against latest nixpkgs after nix flake update
       repo_url="https://git.lyte.dev/lytedev/nix.git"
       repo_dir="/home/daniel/.home/.cache/nightly-flake-builds/nix"
 
@@ -68,7 +69,6 @@
       nix flake update --accept-flake-config
 
       # build configurations (populates cache)
-      # failures are expected since we build against latest nixpkgs
       nixos-rebuild build --flake ".#beefcake" --accept-flake-config || true
       nixos-rebuild build --flake ".#dragon" --accept-flake-config || true
       nixos-rebuild build --flake ".#foxtrot" --accept-flake-config || true
