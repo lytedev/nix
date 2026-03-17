@@ -68,13 +68,14 @@
       nix flake update --accept-flake-config
 
       # build configurations (populates cache)
-      nixos-rebuild build --flake ".#beefcake" --accept-flake-config
-      nixos-rebuild build --flake ".#dragon" --accept-flake-config
-      nixos-rebuild build --flake ".#foxtrot" --accept-flake-config
+      # failures are expected since we build against latest nixpkgs
+      nixos-rebuild build --flake ".#beefcake" --accept-flake-config || true
+      nixos-rebuild build --flake ".#dragon" --accept-flake-config || true
+      nixos-rebuild build --flake ".#foxtrot" --accept-flake-config || true
       # nixos-rebuild build --flake ".#pinephone" --accept-flake-config # temporarily disabled
 
       # ensure dev shell packages are built (and cached)
-      nix develop . --build
+      nix develop . --build || true
     '';
     path = with pkgs; [
       openssh
