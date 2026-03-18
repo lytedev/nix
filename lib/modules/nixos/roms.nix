@@ -29,7 +29,7 @@ in
     romSyncPubKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "SSH public keys authorized for read-only ROM sync (restricted via rrsync).";
+      description = "SSH public keys for ROM sync (can add/update but not delete, via rrsync).";
     };
 
     saveSyncPubKeys = lib.mkOption {
@@ -76,7 +76,7 @@ in
       shell = "${pkgs.bash}/bin/bash";
       openssh.authorizedKeys.keys =
         (map (
-          key: ''command="${pkgs.rrsync}/bin/rrsync -ro ${cfg.basePath}/roms",restrict ${key}''
+          key: ''command="${pkgs.rrsync}/bin/rrsync -no-del ${cfg.basePath}/roms",restrict ${key}''
         ) cfg.romSyncPubKeys)
         ++ (map (
           key: ''command="${pkgs.rrsync}/bin/rrsync ${cfg.basePath}/saves",restrict ${key}''

@@ -40,22 +40,29 @@ fi
 echo "Connected!"
 echo ""
 
+# Push new ROMs (miyoo -> server, add only, cannot delete)
+printf "${BLUE}[1/4] Pushing new ROMs...${NC}\n"
+rsync -avz --no-owner --no-group -e "$ROM_SSH" \
+    "$SD/Roms/" \
+    "$ROM_REMOTE:./"
+echo ""
+
 # Pull ROMs (server -> miyoo)
-printf "${BLUE}[1/3] Pulling ROMs...${NC}\n"
+printf "${BLUE}[2/4] Pulling ROMs...${NC}\n"
 rsync -avz --no-owner --no-group -e "$ROM_SSH" \
     "$ROM_REMOTE:./" \
     "$SD/Roms/"
 echo ""
 
 # Push saves (miyoo -> server, newer wins)
-printf "${BLUE}[2/3] Pushing saves...${NC}\n"
+printf "${BLUE}[3/4] Pushing saves...${NC}\n"
 rsync -avz --no-owner --no-group --update -e "$SAVE_SSH" \
     "$SD/Saves/CurrentProfile/saves/" \
     "$SAVE_REMOTE:saves/"
 echo ""
 
 # Pull saves (server -> miyoo, newer wins)
-printf "${BLUE}[3/3] Pulling saves...${NC}\n"
+printf "${BLUE}[4/4] Pulling saves...${NC}\n"
 rsync -avz --no-owner --no-group --update -e "$SAVE_SSH" \
     "$SAVE_REMOTE:saves/" \
     "$SD/Saves/CurrentProfile/saves/"
