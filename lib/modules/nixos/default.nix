@@ -26,6 +26,7 @@ inputs: {
   router = import ./router.nix;
   kanidm = import ./kanidm.nix;
   kanidm-migrations = import ./kanidm-migrations.nix;
+  kanidm-oauth2-secrets = import ./kanidm-oauth2-secrets.nix;
   headscale-server = import ./headscale-server.nix;
   steamdeck = import ./steamdeck.nix;
   mobile = import ./mobile.nix;

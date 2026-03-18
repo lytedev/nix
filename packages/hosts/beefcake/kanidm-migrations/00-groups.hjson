@@ -74,6 +74,17 @@
         "daniel",
         "lytebot"
       ]
+    },
+    {
+      "state": "present",
+      "id": "b3a7c1e2-5f84-4d09-a612-8e3f9d0c7b15",
+      "class": [
+        "group"
+      ],
+      "name": "photos.lyte.dev_users",
+      "member": [
+        "family"
+      ]
     }
   ]
 }

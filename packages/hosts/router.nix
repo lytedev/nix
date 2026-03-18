@@ -187,6 +187,7 @@ in
             "onlyoffice.h.lyte.dev"
             "openobserve.h.lyte.dev"
             "paperless.h.lyte.dev"
+            "photos.lyte.dev"
             "prometheus.h.lyte.dev"
             "video.lyte.dev"
             "vpn.h.lyte.dev"

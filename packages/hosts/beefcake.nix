@@ -92,6 +92,7 @@
     # ./beefcake/grafana.nix  # Disabled - replaced by OpenObserve
     ./beefcake/openobserve.nix
     ./beefcake/paperless.nix
+    ./beefcake/immich.nix
     # ./beefcake/actual.nix
     ./beefcake/factorio-servers.nix
     # ./beefcake/conduwuit.nix

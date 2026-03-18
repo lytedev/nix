@@ -128,5 +128,17 @@ in
     };
 
     # LDAP bound to localhost only; no firewall rule needed
+
+    # ── OAuth2 secret fetcher ──────────────────────────────────────────
+    # Automatically retrieves OAuth2 client secrets from Kanidm after
+    # startup and makes them available to consuming services.
+    lyte.kanidm-oauth2-secrets = {
+      enable = true;
+      tokenFile = config.sops.secrets.kanidm-oauth2-reader-token.path;
+    };
+
+    sops.secrets.kanidm-oauth2-reader-token = {
+      mode = "0400";
+    };
   };
 }

@@ -37,6 +37,7 @@
     router
     kanidm
     kanidm-migrations
+    kanidm-oauth2-secrets
     headscale-server
     laptop
     mobile
