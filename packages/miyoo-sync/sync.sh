@@ -10,11 +10,12 @@ echo "=== sync.sh started $(date) ==="
 
 . "$APPDIR/config.sh"
 
+export HOME="$APPDIR"
 DBCLIENT="$APPDIR/bin/dbclient"
 ROM_KEY="$APPDIR/bin/miyoo_rom_key"
 SAVE_KEY="$APPDIR/bin/miyoo_save_key"
-ROM_SSH="$DBCLIENT -y -y -i $ROM_KEY"
-SAVE_SSH="$DBCLIENT -y -y -i $SAVE_KEY"
+ROM_SSH="$DBCLIENT -i $ROM_KEY"
+SAVE_SSH="$DBCLIENT -i $SAVE_KEY"
 ROM_REMOTE="miyoo-sync@$SYNC_HOST"
 SAVE_REMOTE="miyoo-sync@$SYNC_HOST"
 
