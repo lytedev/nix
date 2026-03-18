@@ -1,0 +1,6 @@
+{
+	"label": "ROM Sync",
+	"icon": "/mnt/SDCARD/Icons/Default/app/search.png",
+	"launch": "launch.sh",
+	"description": "Sync ROMs and saves with server"
+}

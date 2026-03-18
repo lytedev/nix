@@ -102,6 +102,7 @@
     ./beefcake/cdn.nix
     ./beefcake/samba.nix
     ./beefcake/syncthing.nix
+    ./beefcake/roms.nix
     ./beefcake/n8n.nix
     ./beefcake/happy.nix
     ./beefcake/k3s.nix

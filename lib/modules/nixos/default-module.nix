@@ -47,6 +47,7 @@
     push-to-talk
     opencode
     syncthing
+    roms
 
     (
       { config, ... }:
