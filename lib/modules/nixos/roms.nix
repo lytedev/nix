@@ -1,13 +1,14 @@
-# Miyoo Mini Plus ROM and save game sync via rsync daemon.
+# Miyoo Mini Plus ROM and save game sync via rsync over SSH.
 #
-# Stores ROMs and saves under a single base path and exposes two
-# rsyncd modules on the LAN:
-#   miyoo-roms  (read-only)  - ROM files organized by system folder
-#   miyoo-saves (read-write) - RetroArch save files
+# Stores ROMs and saves under a single base path. A dedicated
+# miyoo-sync system user with a restricted SSH key (rrsync forced
+# command) limits access to rsync operations within that path.
 #
-# The Miyoo syncs via the rsync daemon protocol which requires no SSH
-# client on the device -- just `rsync rsync://server/module/`.
+# The Miyoo connects with a bundled static dbclient (dropbear SSH
+# client) and its private key, running:
+#   rsync -e "dbclient -i key" miyoo-sync@server:roms/ /mnt/SDCARD/Roms/
 {
+  pkgs,
   lib,
   config,
   ...
@@ -17,7 +18,7 @@ let
 in
 {
   options.lyte.roms = {
-    enable = lib.mkEnableOption "Miyoo Mini ROM/save storage with rsync daemon sync";
+    enable = lib.mkEnableOption "Miyoo Mini ROM/save storage with SSH-based sync";
 
     basePath = lib.mkOption {
       type = lib.types.str;
@@ -25,13 +26,10 @@ in
       description = "Base path containing roms/ and saves/ subdirectories.";
     };
 
-    allowedNetworks = lib.mkOption {
+    syncPubKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "192.168.0.0/16"
-        "10.0.0.0/8"
-      ];
-      description = "Networks allowed to connect to the rsync daemon.";
+      default = [ ];
+      description = "SSH public keys authorized for ROM/save sync (restricted via rrsync).";
     };
   };
 
@@ -39,46 +37,32 @@ in
     systemd.tmpfiles.settings."10-miyoo" = {
       "${cfg.basePath}".d = {
         mode = "0755";
-        user = "daniel";
+        user = "miyoo-sync";
         group = "users";
       };
       "${cfg.basePath}/roms".d = {
         mode = "0755";
-        user = "daniel";
+        user = "miyoo-sync";
         group = "users";
       };
       "${cfg.basePath}/saves".d = {
         mode = "0755";
-        user = "daniel";
+        user = "miyoo-sync";
         group = "users";
       };
     };
 
-    services.rsyncd = {
-      enable = true;
-      settings = {
-        global = {
-          uid = "daniel";
-          gid = "users";
-          "use chroot" = "yes";
-          "max connections" = 2;
-        };
-        miyoo-roms = {
-          path = "${cfg.basePath}/roms";
-          comment = "Miyoo Mini ROM files";
-          "read only" = "yes";
-          "hosts allow" = lib.concatStringsSep " " cfg.allowedNetworks;
-        };
-        miyoo-saves = {
-          path = "${cfg.basePath}/saves";
-          comment = "Miyoo Mini save files";
-          "read only" = "no";
-          "hosts allow" = lib.concatStringsSep " " cfg.allowedNetworks;
-        };
-      };
+    users.groups.miyoo-sync = { };
+    users.users.miyoo-sync = {
+      isSystemUser = true;
+      group = "miyoo-sync";
+      extraGroups = [ "users" ];
+      home = cfg.basePath;
+      shell = "${pkgs.bash}/bin/bash";
+      openssh.authorizedKeys.keys = map (
+        key: ''command="${pkgs.rrsync}/bin/rrsync ${cfg.basePath}",restrict ${key}''
+      ) cfg.syncPubKeys;
     };
-
-    networking.firewall.allowedTCPPorts = [ 873 ];
 
     services.restic.commonPaths = [ "${cfg.basePath}/saves" ];
   };

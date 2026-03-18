@@ -8,3 +8,6 @@ result*
 *.qcow2
 
 mise.local.toml
+
+# Miyoo sync: private key and cross-compiled binaries (not for git)
+packages/miyoo-sync/bin/
