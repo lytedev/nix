@@ -38,17 +38,17 @@ in
       "${cfg.basePath}".d = {
         mode = "0755";
         user = "miyoo-sync";
-        group = "users";
+        group = "miyoo-sync";
       };
       "${cfg.basePath}/roms".d = {
         mode = "0755";
         user = "miyoo-sync";
-        group = "users";
+        group = "miyoo-sync";
       };
       "${cfg.basePath}/saves".d = {
         mode = "0755";
         user = "miyoo-sync";
-        group = "users";
+        group = "miyoo-sync";
       };
     };
 
@@ -56,7 +56,6 @@ in
     users.users.miyoo-sync = {
       isSystemUser = true;
       group = "miyoo-sync";
-      extraGroups = [ "users" ];
       home = cfg.basePath;
       shell = "${pkgs.bash}/bin/bash";
       openssh.authorizedKeys.keys = map (
