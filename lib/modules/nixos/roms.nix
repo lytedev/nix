@@ -79,7 +79,7 @@ in
           key: ''command="${pkgs.rrsync}/bin/rrsync -no-del ${cfg.basePath}/roms",restrict ${key}''
         ) cfg.romSyncPubKeys)
         ++ (map (
-          key: ''command="${pkgs.rrsync}/bin/rrsync ${cfg.basePath}/saves",restrict ${key}''
+          key: ''command="${pkgs.rrsync}/bin/rrsync -no-del ${cfg.basePath}/saves",restrict ${key}''
         ) cfg.saveSyncPubKeys);
     };
 
