@@ -30,6 +30,7 @@
         environment.systemPackages = with pkgs; [
           steamdeck-firmware
           steam-rom-manager
+          shipwright # Ship of Harkinian — OoT PC port
         ];
 
         # flatpak is already enabled by lyte.desktop, but the repo service is steamdeck-specific
