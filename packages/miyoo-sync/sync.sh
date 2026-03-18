@@ -6,8 +6,7 @@ sysdir=/mnt/SDCARD/.tmp_update
 export PATH="$sysdir/bin:$PATH"
 SD=/mnt/SDCARD
 APPDIR="$(cd "$(dirname "$0")" && pwd)"
-LOG="$APPDIR/sync.log"
-echo "=== sync.sh started $(date) ===" > "$LOG"
+echo "=== sync.sh started $(date) ==="
 
 . "$APPDIR/config.sh"
 
@@ -26,7 +25,7 @@ BLUE='\033[1;34m'
 NC='\033[0m'
 
 bail() {
-    echo "ERROR: $1" >> "$LOG"
+    echo "ERROR: $1"
     exit 1
 }
 
@@ -75,4 +74,4 @@ fi
 
 echo ""
 echo "Done!"
-echo "=== sync.sh finished $(date) ===" >> "$LOG"
+echo "=== sync.sh finished $(date) ==="
