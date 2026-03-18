@@ -10,9 +10,12 @@ APPDIR="$(cd "$(dirname "$0")" && pwd)"
 . "$APPDIR/config.sh"
 
 DBCLIENT="$APPDIR/bin/dbclient"
-KEY="$APPDIR/bin/miyoo_key"
-SSH="$DBCLIENT -y -y -i $KEY"
-REMOTE="miyoo-sync@$SYNC_HOST"
+ROM_KEY="$APPDIR/bin/miyoo_rom_key"
+SAVE_KEY="$APPDIR/bin/miyoo_save_key"
+ROM_SSH="$DBCLIENT -y -y -i $ROM_KEY"
+SAVE_SSH="$DBCLIENT -y -y -i $SAVE_KEY"
+ROM_REMOTE="miyoo-sync@$SYNC_HOST"
+SAVE_REMOTE="miyoo-sync@$SYNC_HOST"
 
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -33,7 +36,10 @@ echo ""
 
 # Test connectivity
 echo "Connecting to $SYNC_HOST..."
-if ! $DBCLIENT -y -y -i "$KEY" "$REMOTE" echo ok > /dev/null 2>&1; then
+if ! $DBCLIENT -y -y -i "$ROM_KEY" "$ROM_REMOTE" echo ok > /dev/null 2>&1; then
+    bail "Cannot reach $SYNC_HOST with ROM key - is WiFi on?"
+fi
+if ! $DBCLIENT -y -y -i "$SAVE_KEY" "$SAVE_REMOTE" echo ok > /dev/null 2>&1; then
     bail "Cannot reach $SYNC_HOST - is WiFi on?"
 fi
 echo "Connected!"
@@ -41,33 +47,33 @@ echo ""
 
 # Pull ROMs (server -> miyoo)
 printf "${BLUE}[1/3] Pulling ROMs...${NC}\n"
-rsync -avz -e "$SSH" \
-    "$REMOTE:roms/" \
+rsync -avz -e "$ROM_SSH" \
+    "$ROM_REMOTE:./" \
     "$SD/Roms/"
 echo ""
 
 # Push saves (miyoo -> server, newer wins)
 printf "${BLUE}[2/3] Pushing saves...${NC}\n"
-rsync -avz --update -e "$SSH" \
+rsync -avz --update -e "$SAVE_SSH" \
     "$SD/Saves/CurrentProfile/saves/" \
-    "$REMOTE:saves/saves/"
+    "$SAVE_REMOTE:saves/"
 echo ""
 
 # Pull saves (server -> miyoo, newer wins)
 printf "${BLUE}[3/3] Pulling saves...${NC}\n"
-rsync -avz --update -e "$SSH" \
-    "$REMOTE:saves/saves/" \
+rsync -avz --update -e "$SAVE_SSH" \
+    "$SAVE_REMOTE:saves/" \
     "$SD/Saves/CurrentProfile/saves/"
 
 # Optionally sync save states
 if [ "$SYNC_STATES" = "1" ]; then
     echo ""
     printf "${BLUE}[+] Syncing save states...${NC}\n"
-    rsync -avz --update -e "$SSH" \
+    rsync -avz --update -e "$SAVE_SSH" \
         "$SD/Saves/CurrentProfile/states/" \
-        "$REMOTE:saves/states/"
-    rsync -avz --update -e "$SSH" \
-        "$REMOTE:saves/states/" \
+        "$SAVE_REMOTE:states/"
+    rsync -avz --update -e "$SAVE_SSH" \
+        "$SAVE_REMOTE:states/" \
         "$SD/Saves/CurrentProfile/states/"
 fi
 

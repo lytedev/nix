@@ -26,10 +26,16 @@ in
       description = "Base path containing roms/ and saves/ subdirectories.";
     };
 
-    syncPubKeys = lib.mkOption {
+    romSyncPubKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "SSH public keys authorized for ROM/save sync (restricted via rrsync).";
+      description = "SSH public keys authorized for read-only ROM sync (restricted via rrsync).";
+    };
+
+    saveSyncPubKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "SSH public keys authorized for read-write save sync (restricted via rrsync).";
     };
   };
 
@@ -50,6 +56,16 @@ in
         user = "miyoo-sync";
         group = "miyoo-sync";
       };
+      "${cfg.basePath}/saves/saves".d = {
+        mode = "0755";
+        user = "miyoo-sync";
+        group = "miyoo-sync";
+      };
+      "${cfg.basePath}/saves/states".d = {
+        mode = "0755";
+        user = "miyoo-sync";
+        group = "miyoo-sync";
+      };
     };
 
     users.groups.miyoo-sync = { };
@@ -58,9 +74,13 @@ in
       group = "miyoo-sync";
       home = cfg.basePath;
       shell = "${pkgs.bash}/bin/bash";
-      openssh.authorizedKeys.keys = map (
-        key: ''command="${pkgs.rrsync}/bin/rrsync ${cfg.basePath}",restrict ${key}''
-      ) cfg.syncPubKeys;
+      openssh.authorizedKeys.keys =
+        (map (
+          key: ''command="${pkgs.rrsync}/bin/rrsync -ro ${cfg.basePath}/roms",restrict ${key}''
+        ) cfg.romSyncPubKeys)
+        ++ (map (
+          key: ''command="${pkgs.rrsync}/bin/rrsync ${cfg.basePath}/saves",restrict ${key}''
+        ) cfg.saveSyncPubKeys);
     };
 
     services.restic.commonPaths = [ "${cfg.basePath}/saves" ];

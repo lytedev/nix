@@ -4,8 +4,11 @@
   # using OnionOS folder names (GBA, SFC, GB, GBC, MD, etc.)
   lyte.roms = {
     enable = true;
-    syncPubKeys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMUUxrBAXf2L53CZUJ2yAsk26+gI4UgqNrqw5z0n21e8 miyoo-mini-sync"
+    romSyncPubKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIRNP/N+892JNg7uFNS9fserl6/6OnpkG63izptF1Os9 miyoo-mini-rom-sync"
+    ];
+    saveSyncPubKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIATbpRZ6R1zWP6443Xlo3EM3tKquavrXwVXxq8wRqIe8 miyoo-mini-save-sync"
     ];
   };
 }
