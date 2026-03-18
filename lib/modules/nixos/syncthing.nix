@@ -78,7 +78,10 @@ in
       };
     };
 
-    # Syncthing tray for KDE
+    # Syncthing Tray plasmoid for KDE Plasma system tray.
+    # The plasmoid integrates natively with Plasma's system tray and uses
+    # systemd to monitor the syncthing service (no built-in launcher needed).
+    # See: https://github.com/Martchus/syncthingtray#configuring-plasmoid
     environment.systemPackages = lib.mkIf config.lyte.desktop.plasma.enable [
       pkgs.syncthingtray
     ];
