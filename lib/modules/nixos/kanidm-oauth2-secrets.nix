@@ -7,9 +7,13 @@
 # (where Kanidm runs), it depends on kanidm.service directly. On remote
 # hosts, it depends on tailscaled.service for VPN connectivity.
 #
-# One-time bootstrap (per Kanidm instance, not per host):
-#   1. Deploy with the oauth-secret-reader service account in migrations
-#   2. kanidm service-account api-token generate oauth-secret-reader "OAuth secret fetcher"
+# Each host gets its own Kanidm service account (e.g. host-beefcake,
+# host-mail) with group memberships controlling which OAuth2 client
+# secrets it can access.
+#
+# One-time bootstrap per host:
+#   1. Deploy with the host-<name> service account in migrations
+#   2. kanidm service-account api-token generate host-<name> "Host identity"
 #   3. Store the token in sops under the key referenced by tokenFile
 #   4. Redeploy — all configured secrets are now auto-fetched
 {

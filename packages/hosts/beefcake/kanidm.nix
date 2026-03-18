@@ -134,10 +134,10 @@ in
     # startup and makes them available to consuming services.
     lyte.kanidm-oauth2-secrets = {
       enable = true;
-      tokenFile = config.sops.secrets.kanidm-oauth2-reader-token.path;
+      tokenFile = config.sops.secrets.kanidm-host-beefcake-token.path;
     };
 
-    sops.secrets.kanidm-oauth2-reader-token = {
+    sops.secrets.kanidm-host-beefcake-token = {
       mode = "0400";
     };
   };
