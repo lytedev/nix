@@ -110,9 +110,10 @@
     # Matrix bridges
     ./beefcake/heisenbridge.nix
     ./beefcake/mautrix-discord.nix
-    ./beefcake/mautrix-whatsapp.nix
-    ./beefcake/mautrix-meta-facebook.nix
-    ./beefcake/mautrix-meta-instagram.nix
+    # Disabled: as_token not accepted by homeserver (crash-looping since conduwuit is disabled)
+    # ./beefcake/mautrix-whatsapp.nix
+    # ./beefcake/mautrix-meta-facebook.nix
+    # ./beefcake/mautrix-meta-instagram.nix
     ./beefcake/mautrix-slack.nix
     ./beefcake/matrix-hookshot.nix
     ./beefcake/unifi.nix

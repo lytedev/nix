@@ -4,4 +4,4 @@
 SYNC_HOST="beefcake.lan"
 
 # Set to 1 to also sync save states (can be large).
-SYNC_STATES=0
+SYNC_STATES=1
