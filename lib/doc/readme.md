@@ -15,6 +15,10 @@ $ pass age-key >> ${XDG_CONFIG_HOME:-~/.config}/sops/age/keys.txt
 $ , deploy .
 ```
 
+# Google Photos to Immich
+
+See `./lib/doc/immich-google-photos-migration.md`.
+
 # Update a specific remote host, skipping checks
 
 ```shell
