@@ -1,6 +1,6 @@
 {
   # Miyoo Mini Plus ROM and save sync via rsync over SSH.
-  # ROMs go in /storage/daniel/miyoo-mini/roms/<SYSTEM>/
+  # ROMs go in /storage/miyoo-mini/roms/<SYSTEM>/
   # using OnionOS folder names (GBA, SFC, GB, GBC, MD, etc.)
   lyte.roms = {
     enable = true;

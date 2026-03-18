@@ -22,7 +22,7 @@ in
 
     basePath = lib.mkOption {
       type = lib.types.str;
-      default = "/storage/daniel/miyoo-mini";
+      default = "/storage/miyoo-mini";
       description = "Base path containing roms/ and saves/ subdirectories.";
     };
 
