@@ -1,0 +1,19 @@
+{
+  "id": "ad6ffb10-227a-4218-82ce-f890e88d7f0d",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "4760af1a-58b7-4fdc-a3ab-decb3ce938b2",
+      "class": [
+        "account",
+        "service_account"
+      ],
+      "displayname": "Host: beefcake",
+      "name": "host-beefcake",
+      "description": "Host identity for beefcake",
+      "entry_managed_by": [
+        {"value": "idm_admins"}
+      ]
+    }
+  ]
+}

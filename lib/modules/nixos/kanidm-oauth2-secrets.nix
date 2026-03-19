@@ -28,7 +28,15 @@ let
 
   secretsDir = "/run/kanidm-oauth2-secrets";
 
-  kanidm = lib.getExe pkgs.kanidm;
+  curl = lib.getExe pkgs.curl;
+  jq = lib.getExe pkgs.jq;
+
+  # Kanidm URL from client config, or fall back to server URL if local
+  kanidmUrl =
+    if config.services.kanidm.enableClient or false then
+      config.services.kanidm.clientSettings.uri
+    else
+      "https://localhost:8443";
 
   # Generate a fetch stanza for one secret
   mkFetchStanza =
@@ -41,7 +49,9 @@ let
       echo "Fetching OAuth2 secret for ${client}..."
       attempt=0
       while [ "$attempt" -lt 5 ]; do
-        if secret="$(${kanidm} system oauth2 show-basic-secret ${lib.escapeShellArg client} 2>/dev/null)" && [ -n "$secret" ]; then
+        if secret="$(${curl} -sf -H "Authorization: Bearer $KANIDM_TOKEN" \
+            "${kanidmUrl}/v1/oauth2/${client}/_basic_secret" | ${jq} -r '.')" \
+            && [ -n "$secret" ] && [ "$secret" != "null" ]; then
           printf '%s' "$secret" | install -m ${lib.escapeShellArg secretCfg.mode} -o ${lib.escapeShellArg secretCfg.owner} -g ${lib.escapeShellArg secretCfg.group} /dev/stdin ${dest}
           echo "  → ${dest}"
           break
@@ -51,8 +61,7 @@ let
         sleep 2
       done
       if [ "$attempt" -ge 5 ]; then
-        echo "ERROR: Failed to fetch secret for ${client}" >&2
-        exit 1
+        echo "WARNING: Failed to fetch secret for ${client} (token may not be bootstrapped yet)" >&2
       fi
     '';
 

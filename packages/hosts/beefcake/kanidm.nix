@@ -74,6 +74,11 @@ in
       migrations.files = {
         "00-groups.hjson" = ./kanidm-migrations/00-groups.hjson;
         "20-oauth2.hjson" = ./kanidm-migrations/20-oauth2.hjson;
+        "24-cleanup-host-accounts.hjson" = ./kanidm-migrations/24-cleanup-host-accounts.hjson;
+        "25-host-accounts.hjson" = ./kanidm-migrations/25-host-accounts.hjson;
+        "26-host-beefcake-privileges.hjson" = ./kanidm-migrations/26-host-beefcake-privileges.hjson;
+        "30-immich-group.hjson" = ./kanidm-migrations/30-immich-group.hjson;
+
       };
 
       migrations.secretFiles = {

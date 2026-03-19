@@ -73,7 +73,7 @@ in
   # ── Caddy reverse proxy ─────────────────────────────────────────────
   services.caddy.virtualHosts.${domain} = {
     extraConfig = ''
-      reverse_proxy :${toString port} {
+      reverse_proxy [::1]:${toString port} {
         header_up X-Real-Ip {remote_host}
       }
     '';

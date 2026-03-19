@@ -8,7 +8,7 @@
   services.caddy.virtualHosts."nix.h.lyte.dev" = {
     extraConfig = ''
       # Binary cache cascade: dragon (fast SSDs) → localhost (CI builds) → bigtower
-      # Each level falls through on cache miss (404) or backend down (502)
+      # Each level falls through on cache miss (404) or backend down (502).
       reverse_proxy dragon.lan:5000 {
         transport http {
           dial_timeout 2s
@@ -18,10 +18,25 @@
           reverse_proxy localhost:5000 {
             @miss status 404 502
             handle_response @miss {
-              reverse_proxy bigtower.lan:5000
+              reverse_proxy bigtower.lan:5000 {
+                transport http {
+                  dial_timeout 2s
+                  response_header_timeout 3s
+                }
+                @miss status 404 502
+                handle_response @miss {
+                  respond "not found" 404
+                }
+              }
             }
           }
         }
+      }
+
+      # Catch transport-level errors (timeouts, connection refused) from any
+      # tier and return 404 so nix builds from source instead of failing.
+      handle_errors {
+        respond "not found" 404
       }
     '';
   };

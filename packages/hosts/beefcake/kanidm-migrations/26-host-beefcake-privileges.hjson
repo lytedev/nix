@@ -1,0 +1,12 @@
+{
+  "id": "11cae52c-338a-4bbd-bf66-8feaa63e8b24",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "00000000-0000-0000-0000-000000000027",
+      "member": [
+        {"value": "host-beefcake"}
+      ]
+    }
+  ]
+}

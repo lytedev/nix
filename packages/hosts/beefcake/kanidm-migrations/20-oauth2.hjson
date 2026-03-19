@@ -62,13 +62,18 @@
     },
     {
       "state": "present",
-      "id": "d8e4f2a1-7c35-4b89-9e06-2a1d5f8c3e47",
-      "name": "photos.lyte.dev",
+      "id": "c51de6b3-bf98-4a59-9620-6bef56fa2339",
+      "class": [
+        "account",
+        "oauth2_resource_server",
+        "oauth2_resource_server_basic"
+      ],
       "displayname": "Immich Photos",
+      "name": "photos.lyte.dev",
       "oauth2_rs_origin_landing": "https://photos.lyte.dev/",
-      "oauth2_rs_origin": "https://photos.lyte.dev/auth/login",
+      "oauth2_rs_origin": "https://photos.lyte.dev",
       "oauth2_allow_insecure_client_disable_pkce": true,
-      "oauth2_strict_redirect_uri": false,
+      "oauth2_strict_redirect_uri": true,
       "oauth2_rs_scope_map": [
         {
           "group": "photos.lyte.dev_users",
