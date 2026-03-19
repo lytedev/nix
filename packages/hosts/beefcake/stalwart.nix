@@ -132,9 +132,13 @@ in
               "127.0.0.1:8080"
             ];
             protocol = "http";
-            url = "https://${host}";
           };
         };
+      };
+
+      http = {
+        url = "'https://${host}'";
+        use-x-forwarded = true;
       };
 
       certificate.caddy = {
@@ -236,7 +240,11 @@ in
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
       reverse_proxy [::1]:8080 {
+        header_up Host {host}
         header_up X-Real-Ip {remote_host}
+        header_up -X-Forwarded-For
+        header_up -X-Forwarded-Host
+        header_up -X-Forwarded-Proto
       }
     '';
   };
