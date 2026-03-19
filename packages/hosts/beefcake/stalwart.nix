@@ -10,6 +10,7 @@ let
   dataDir = "/storage/stalwart";
   certDir = "${dataDir}/certs";
   credsDir = "/run/credentials/stalwart-mail.service";
+  httpPort = 38181;
 in
 {
   systemd.tmpfiles.settings."10-stalwart" = {
@@ -128,8 +129,8 @@ in
           };
           jmap = {
             bind = [
-              "[::1]:8080"
-              "127.0.0.1:8080"
+              "[::1]:${toString httpPort}"
+              "127.0.0.1:${toString httpPort}"
             ];
             protocol = "http";
           };
@@ -239,7 +240,7 @@ in
 
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
-      reverse_proxy [::1]:8080 {
+      reverse_proxy [::1]:${toString httpPort} {
         header_up Host {host}
         header_up X-Real-Ip {remote_host}
         header_up -X-Forwarded-For
