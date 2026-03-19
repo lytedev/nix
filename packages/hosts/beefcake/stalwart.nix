@@ -34,9 +34,6 @@ in
 
   sops.secrets = {
     stalwart-admin-password.mode = "0400";
-    stalwart-postmaster-password.mode = "0400";
-    stalwart-daniel-password.mode = "0400";
-    stalwart-valerie-password.mode = "0400";
     stalwart-mailgun-password.mode = "0400";
   };
 
@@ -83,24 +80,20 @@ in
     993
   ];
 
-  lyte.kanidm-oauth2-secrets.secrets.stalwart-oauth = {
-    client = host;
-    owner = "stalwart-mail";
-    group = "stalwart-mail";
-  };
-
   services.stalwart-mail = {
     enable = true;
     openFirewall = false;
     dataDir = dataDir;
     credentials = {
       admin_password = config.sops.secrets.stalwart-admin-password.path;
-      postmaster_password = config.sops.secrets.stalwart-postmaster-password.path;
-      daniel_password = config.sops.secrets.stalwart-daniel-password.path;
-      valerie_password = config.sops.secrets.stalwart-valerie-password.path;
       mailgun_password = config.sops.secrets.stalwart-mailgun-password.path;
     };
     settings = {
+      authentication.fallback-admin = {
+        user = "admin";
+        secret = "%{file:${credsDir}/admin_password}%";
+      };
+
       server = {
         hostname = host;
         tls = {
@@ -139,7 +132,7 @@ in
 
       http = {
         url = "'https://${host}'";
-        use-x-forwarded = true;
+        use-x-forwarded = false;
       };
 
       certificate.caddy = {
@@ -158,7 +151,7 @@ in
         fts = "rocksdb";
         blob = "rocksdb";
         lookup = "rocksdb";
-        directory = "memory";
+        directory = "internal";
       };
 
       lookup.default = {
@@ -166,47 +159,16 @@ in
         domain = domain;
       };
 
-      directory.memory = {
-        type = "memory";
-        principals = [
-          {
-            class = "admin";
-            name = "admin";
-            secret = "%{file:${credsDir}/admin_password}%";
-          }
-          {
-            class = "individual";
-            name = "postmaster";
-            secret = "%{file:${credsDir}/postmaster_password}%";
-            email = [
-              "postmaster@${domain}"
-              "abuse@${domain}"
-            ];
-          }
-          {
-            class = "individual";
-            name = "daniel";
-            secret = "%{file:${credsDir}/daniel_password}%";
-            email = [ "daniel@${domain}" ];
-          }
-          {
-            class = "individual";
-            name = "valerie";
-            secret = "%{file:${credsDir}/valerie_password}%";
-            email = [ "valerie@${domain}" ];
-          }
-        ];
+      directory.internal = {
+        type = "internal";
+        store = "rocksdb";
       };
 
-      # Stalwart's external OIDC directory does not initiate browser OAuth
-      # flows itself, so mainstream mail/web clients still need app passwords
-      # or internal auth today. Keep the OAuth client + secret fetcher in place
-      # for future use and interoperability improvements.
       session.auth = {
         mechanisms = "[plain]";
-        directory = "'memory'";
+        directory = "'internal'";
       };
-      session.rcpt.directory = "'memory'";
+      session.rcpt.directory = "'internal'";
       session.auth.must-match-sender = false;
 
       queue.strategy.route = [ { "else" = "'relay'"; } ];
@@ -230,11 +192,9 @@ in
   systemd.services.stalwart-mail = {
     after = [
       "copy-stalwart-certificates-from-caddy.service"
-      "kanidm-oauth2-secrets.service"
     ];
     wants = [
       "copy-stalwart-certificates-from-caddy.service"
-      "kanidm-oauth2-secrets.service"
     ];
   };
 
