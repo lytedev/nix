@@ -147,6 +147,10 @@ in
           nat = {
             tcp = {
               "SSH" = 22;
+              "SMTP" = 25;
+              "SMTPS" = 465;
+              "Submission" = 587;
+              "IMAPS" = 993;
               "HTTP" = 80;
               "HTTPS" = 443;
               "Minecraft Flanilla Creative" = 26968;
@@ -178,6 +182,7 @@ in
             "grafana.h.lyte.dev"
             "happy.h.lyte.dev"
             "idm.h.lyte.dev"
+            "mail.lyte.dev"
             "matrix.lyte.dev"
             "nextcloud.h.lyte.dev"
             "nix.h.lyte.dev"

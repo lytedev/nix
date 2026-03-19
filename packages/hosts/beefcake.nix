@@ -93,6 +93,7 @@
     ./beefcake/openobserve.nix
     ./beefcake/paperless.nix
     ./beefcake/immich.nix
+    ./beefcake/stalwart.nix
     # ./beefcake/actual.nix
     ./beefcake/factorio-servers.nix
     # ./beefcake/conduwuit.nix
