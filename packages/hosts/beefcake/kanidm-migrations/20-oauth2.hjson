@@ -73,6 +73,7 @@
       "oauth2_rs_origin_landing": "https://photos.lyte.dev/",
       "oauth2_rs_origin": "https://photos.lyte.dev/auth/login",
       "oauth2_allow_insecure_client_disable_pkce": true,
+      "oauth2_jwt_legacy_crypto_enable": true,
       "oauth2_strict_redirect_uri": false,
       "oauth2_rs_scope_map": [
         {
