@@ -34,7 +34,8 @@ in
 
   sops.secrets = {
     stalwart-admin-password.mode = "0400";
-    stalwart-mailgun-password.mode = "0400";
+    stalwart-smtp-relay-username.mode = "0400";
+    stalwart-smtp-relay-password.mode = "0400";
   };
 
   # Copy the mail certificate that Caddy provisions so Stalwart can terminate
@@ -86,7 +87,8 @@ in
     dataDir = dataDir;
     credentials = {
       admin_password = config.sops.secrets.stalwart-admin-password.path;
-      mailgun_password = config.sops.secrets.stalwart-mailgun-password.path;
+      smtp_relay_username = config.sops.secrets.stalwart-smtp-relay-username.path;
+      smtp_relay_password = config.sops.secrets.stalwart-smtp-relay-password.path;
     };
     settings = {
       authentication.fallback-admin = {
@@ -136,8 +138,8 @@ in
       };
 
       certificate.caddy = {
-        cert = "file://${certDir}/fullchain.pem";
-        private-key = "file://${certDir}/privkey.pem";
+        cert = "%{file:${certDir}/fullchain.pem}%";
+        private-key = "%{file:${certDir}/privkey.pem}%";
       };
 
       store.rocksdb = {
@@ -184,8 +186,8 @@ in
       queue.route.relay.protocol = "smtp";
       queue.route.relay.tls.enable = true;
       queue.route.relay.tls.implicit = false;
-      queue.route.relay.auth.username = "grafana@lyte.dev";
-      queue.route.relay.auth.secret = "%{file:${credsDir}/mailgun_password}%";
+      queue.route.relay.auth.username = "%{file:${credsDir}/smtp_relay_username}%";
+      queue.route.relay.auth.secret = "%{file:${credsDir}/smtp_relay_password}%";
     };
   };
 
