@@ -76,6 +76,7 @@ in
         "20-oauth2.hjson" = ./kanidm-migrations/20-oauth2.hjson;
         "25-host-accounts.hjson" = ./kanidm-migrations/25-host-accounts.hjson;
         "26-host-beefcake-privileges.hjson" = ./kanidm-migrations/26-host-beefcake-privileges.hjson;
+        "27-oauth2-admins.hjson" = ./kanidm-migrations/27-oauth2-admins.hjson;
         "30-immich-group.hjson" = ./kanidm-migrations/30-immich-group.hjson;
         "35-immich-mobile-redirects.hjson" = ./kanidm-migrations/35-immich-mobile-redirects.hjson;
       };

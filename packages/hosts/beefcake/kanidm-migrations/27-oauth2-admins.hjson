@@ -1,0 +1,17 @@
+{
+  "id": "7d6f4f8e-923c-4e18-9c25-3b0f463f5f72",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "00000000-0000-0000-0000-000000000027",
+      "class": [
+        "group"
+      ],
+      "name": "idm_oauth2_admins",
+      "member": [
+        "host-beefcake",
+        "daniel"
+      ]
+    }
+  ]
+}

@@ -71,6 +71,20 @@
       "displayname": "Immich Photos",
       "name": "photos.lyte.dev",
       "oauth2_rs_origin_landing": "https://photos.lyte.dev/",
+      // NOTE:
+      // Immich mobile also needs these supplemental redirect URLs:
+      //   https://photos.lyte.dev/user-settings
+      //   https://photos.lyte.dev/api/oauth/mobile-redirect
+      //   app.immich:///oauth-callback
+      //
+      // Kanidm supports these via:
+      //   kanidm system oauth2 add-redirect-url photos.lyte.dev <url>
+      //
+      // However, the HJSON migration path currently rejects multivalue and
+      // opaque oauth2_rs_origin entries with SC0007UrlSyntaxInvalid, even
+      // though the normal OAuth client API/CLI accepts them. Keep the web
+      // redirect declarative here and add the mobile redirects imperatively
+      // after deploy until Kanidm's migration support catches up.
       "oauth2_rs_origin": "https://photos.lyte.dev/auth/login",
       "oauth2_allow_insecure_client_disable_pkce": true,
       "oauth2_jwt_legacy_crypto_enable": true,
