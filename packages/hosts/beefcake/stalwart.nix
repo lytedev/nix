@@ -171,21 +171,21 @@ in
       session.rcpt.directory = "'internal'";
       session.auth.must-match-sender = false;
 
-      queue.strategy.route = [ { "else" = "'relay'"; } ];
-      remote.relay = {
-        type = "relay";
-        address = "smtp.mailgun.org";
-        port = 587;
-        protocol = "smtp";
-        tls = {
-          enable = true;
-          implicit = false;
-        };
-        auth = {
-          username = "grafana@lyte.dev";
-          secret = "%{file:${credsDir}/mailgun_password}%";
-        };
+      queue.strategy.route."0000" = {
+        "if" = "is_local_domain('', rcpt_domain)";
+        "then" = "'local'";
       };
+      queue.strategy.route."0001"."else" = "'relay'";
+
+      queue.route.local.type = "local";
+      queue.route.relay.type = "relay";
+      queue.route.relay.address = "smtp.mailgun.org";
+      queue.route.relay.port = 587;
+      queue.route.relay.protocol = "smtp";
+      queue.route.relay.tls.enable = true;
+      queue.route.relay.tls.implicit = false;
+      queue.route.relay.auth.username = "grafana@lyte.dev";
+      queue.route.relay.auth.secret = "%{file:${credsDir}/mailgun_password}%";
     };
   };
 
