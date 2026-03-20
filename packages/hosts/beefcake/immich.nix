@@ -56,6 +56,7 @@ in
         issuerUrl = "https://idm.h.lyte.dev/oauth2/openid/${domain}/.well-known/openid-configuration";
         clientId = domain;
         clientSecret._secret = "/run/kanidm-oauth2-secrets/immich-oauth.secret";
+        mobileRedirectUri = "https://${domain}/api/oauth/mobile-redirect";
         scope = "openid profile email";
         autoRegister = true;
         buttonText = "Login with Kanidm";
