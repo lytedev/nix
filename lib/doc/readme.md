@@ -19,6 +19,10 @@ $ , deploy .
 
 See `./lib/doc/immich-google-photos-migration.md`.
 
+# Immich Next Steps
+
+See `./lib/doc/immich-next-steps.md`.
+
 # Update a specific remote host, skipping checks
 
 ```shell
