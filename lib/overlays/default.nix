@@ -28,14 +28,78 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
-      atuin = prev.atuin.overrideAttrs (old: {
-        version = "18.13.3";
-        src = prev.fetchurl {
-          url = "https://github.com/atuinsh/atuin/archive/refs/tags/v18.13.3.tar.gz";
-          hash = "sha256-hLt6CDHEPV8BVpOADVn4bLNcBz89eC2jKtIexHG0yAY=";
-        };
-        cargoHash = "sha256-KamAFi6OHE38ss8rIncNecNMVjd8gAeSWMh8G7Yb/rQ=";
-      });
+      atuin = unstable-packages.callPackage (
+        {
+          fetchFromGitHub,
+          rustPlatform,
+          installShellFiles,
+          lib,
+          stdenv,
+          nixosTests,
+          nix-update-script,
+        }:
+        rustPlatform.buildRustPackage (finalAttrs: {
+          pname = "atuin";
+          version = "18.13.3";
+
+          src = fetchFromGitHub {
+            owner = "atuinsh";
+            repo = "atuin";
+            tag = "v${finalAttrs.version}";
+            hash = "sha256-ojIL8Iy74UgFE4Mp75oHWbZDsFRKRhOBdkPP/TtZpz4=";
+          };
+
+          cargoHash = "sha256-KamAFi6OHE38ss8rIncNecNMVjd8gAeSWMh8G7Yb/rQ=";
+
+          buildNoDefaultFeatures = true;
+          buildFeatures = [
+            "client"
+            "sync"
+            "clipboard"
+            "daemon"
+          ];
+
+          nativeBuildInputs = [ installShellFiles ];
+
+          postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+            installShellCompletion --cmd atuin \
+              --bash <($out/bin/atuin gen-completions -s bash) \
+              --fish <($out/bin/atuin gen-completions -s fish) \
+              --zsh <($out/bin/atuin gen-completions -s zsh)
+          '';
+
+          checkFlags = [
+            "--skip=registration"
+            "--skip=sync"
+            "--skip=change_password"
+            "--skip=multi_user_test"
+          ];
+
+          preCheck = ''
+            export HOME=$(mktemp -d)
+          '';
+
+          passthru = {
+            tests = {
+              inherit (nixosTests) atuin;
+            };
+            updateScript = nix-update-script { };
+          };
+
+          meta = {
+            description = "Replacement for a shell history which records additional commands context with optional encrypted synchronization between machines";
+            homepage = "https://github.com/atuinsh/atuin";
+            license = lib.licenses.mit;
+            maintainers = with lib.maintainers; [
+              SuperSandro2000
+              sciencentistguy
+              _0x4A6F
+              rvdp
+            ];
+            mainProgram = "atuin";
+          };
+        })
+      ) { };
 
       # bleeding-edge Firefox variants
       firefox-nightly = firefox-nightly.packages.${prev.system}.firefox-nightly-bin;
