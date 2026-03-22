@@ -28,6 +28,15 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
+      atuin = prev.atuin.overrideAttrs (old: {
+        version = "18.13.3";
+        src = prev.fetchurl {
+          url = "https://github.com/atuinsh/atuin/archive/refs/tags/v18.13.3.tar.gz";
+          hash = "sha256-hLt6CDHEPV8BVpOADVn4bLNcBz89eC2jKtIexHG0yAY=";
+        };
+        cargoHash = "sha256-KamAFi6OHE38ss8rIncNecNMVjd8gAeSWMh8G7Yb/rQ=";
+      });
+
       # bleeding-edge Firefox variants
       firefox-nightly = firefox-nightly.packages.${prev.system}.firefox-nightly-bin;
       inherit (unstable-packages) firefox-devedition-bin;
