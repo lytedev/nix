@@ -183,6 +183,7 @@ in
             "happy.h.lyte.dev"
             "idm.h.lyte.dev"
             "mail.lyte.dev"
+            "webmail.lyte.dev"
             "matrix.lyte.dev"
             "nextcloud.h.lyte.dev"
             "nix.h.lyte.dev"
