@@ -73,6 +73,7 @@ let
               "sync"
               "clipboard"
               "daemon"
+              "hex"
             ];
 
             nativeBuildInputs = [ installShellFiles ];
