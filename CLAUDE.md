@@ -43,12 +43,19 @@ nix develop -c deploy -s --targets ".#beefcake"
 nix develop -c deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#beefcake"
 ```
 
+## Issue Tracking
+
+Issues are tracked as markdown files in `issues/open/` and `issues/closed/`.
+See `issues/README.md` for the convention. One file per issue, status is
+directory-based (move between `open/` and `closed/`).
+
+When working on a task related to an existing issue, check `issues/open/` for
+context. When resolving an issue, move its file to `issues/closed/`.
+
 ## Forgejo (tea CLI)
-Remote is hosted on Forgejo. Use `tea` for issues/PRs:
+Remote is hosted on Forgejo. Use `tea` for PRs:
 
 ```bash
-tea issue list
-tea issue create -t "title" -d "description"
 tea pr list
 tea pr create              # interactive
 tea pr merge <id>
