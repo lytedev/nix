@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 {
   users.users.atuin = {
@@ -34,6 +34,8 @@
     serviceConfig = {
       Group = "atuin";
       User = "atuin";
+      # atuin 18.13 moved the server to a separate binary
+      ExecStart = lib.mkForce "${lib.getExe' config.services.atuin.package "atuin-server"} start";
     };
   };
   services.caddy.virtualHosts."atuin.h.lyte.dev" = {

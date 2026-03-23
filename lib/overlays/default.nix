@@ -60,6 +60,13 @@ let
 
             cargoHash = "sha256-VYwzMnfc/a4Sghmr5oMfhvoMkaWlY4w4e4Flu8MWQg0=";
 
+            # atuin 18.13 split the server into a separate crate/binary
+            cargoBuildFlags = [
+              "--package"
+              "atuin"
+              "--package"
+              "atuin-server"
+            ];
             buildNoDefaultFeatures = true;
             buildFeatures = [
               "client"
