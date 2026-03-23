@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -74,10 +73,13 @@ in
 
     relayDomains = [ domain ];
 
-    config = {
-      # Route mail via the transport map
-      transport_maps = "hash:/etc/postfix/transport";
+    # Transport map: route lyte.dev mail to beefcake's Stalwart over VPN
+    transport = ''
+      ${domain}    smtp:[${beefcakeSmtp}]:25
+      .${domain}   smtp:[${beefcakeSmtp}]:25
+    '';
 
+    config = {
       # Queue config: retry for up to 5 days if beefcake is down
       maximal_queue_lifetime = "5d";
       bounce_queue_lifetime = "5d";
@@ -105,27 +107,6 @@ in
       # Inet interfaces — listen on all for inbound
       inet_interfaces = "all";
       inet_protocols = "all";
-    };
-  };
-
-  # Transport map: route lyte.dev mail to beefcake's Stalwart (port 25) over VPN
-  environment.etc."postfix/transport" = {
-    text = ''
-      ${domain}    smtp:[${beefcakeSmtp}]:25
-      .${domain}   smtp:[${beefcakeSmtp}]:25
-    '';
-  };
-
-  # Rebuild transport map after activation
-  systemd.services.postfix-transport-map = {
-    description = "Rebuild Postfix transport map";
-    after = [ "network.target" ];
-    before = [ "postfix.service" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs.postfix}/bin/postmap /etc/postfix/transport";
     };
   };
 }
