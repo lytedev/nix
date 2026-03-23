@@ -200,6 +200,54 @@ in
     ];
   };
 
+  # Ensure standard mailboxes (like Archive) exist for all accounts.
+  # Stalwart only auto-creates Inbox, Drafts, Sent, Trash, Junk.
+  systemd.services.stalwart-ensure-mailboxes = {
+    description = "Ensure standard JMAP mailboxes exist";
+    after = [ "stalwart-mail.service" ];
+    requires = [ "stalwart-mail.service" ];
+    wantedBy = [ "multi-user.target" ];
+    path = with pkgs; [
+      curl
+      jq
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      set -euo pipefail
+      admin_pass="$(cat ${credsDir}/admin_password)"
+      jmap_url="http://[::1]:${toString httpPort}/jmap/"
+
+      # Get all accounts (non-admin individual users)
+      accounts=$(curl -sf -u "admin:$admin_pass" \
+        "http://[::1]:${toString httpPort}/api/principal" \
+        -G -d 'types=individual&fields=name' | jq -r '.data.items[].name')
+
+      for acct in $accounts; do
+        echo "Checking mailboxes for $acct..."
+
+        # Authenticate as admin to get a session for this account
+        # Use admin credentials with the JMAP API
+        existing=$(curl -sf -u "admin:$admin_pass" "$jmap_url" \
+          -H 'Content-Type: application/json' \
+          -d "{\"using\":[\"urn:ietf:params:jmap:core\",\"urn:ietf:params:jmap:mail\"],\"methodCalls\":[[\"Mailbox/get\",{\"accountId\":\"$acct\",\"ids\":null,\"properties\":[\"name\",\"role\"]},\"a\"]]}" \
+          | jq -r '.methodResponses[0][1].list[]?.role // empty')
+
+        if ! echo "$existing" | grep -q '^archive$'; then
+          echo "Creating Archive mailbox for $acct"
+          curl -sf -u "admin:$admin_pass" "$jmap_url" \
+            -H 'Content-Type: application/json' \
+            -d "{\"using\":[\"urn:ietf:params:jmap:core\",\"urn:ietf:params:jmap:mail\"],\"methodCalls\":[[\"Mailbox/set\",{\"accountId\":\"$acct\",\"create\":{\"archive\":{\"name\":\"Archive\",\"role\":\"archive\",\"sortOrder\":50}}},\"a\"]]}" \
+            | jq '.methodResponses[0][1].created // .methodResponses[0][1].notCreated'
+        else
+          echo "Archive mailbox already exists for $acct"
+        fi
+      done
+    '';
+  };
+
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
       @cors_preflight method OPTIONS
