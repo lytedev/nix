@@ -41,6 +41,7 @@ in
       default = {
         wallpapers = "${danielHome}/Sync/wallpapers";
         shared = "${danielHome}/Sync/shared";
+        notes = "${danielHome}/doc/notes";
       };
       description = "Mapping of folder label to local path";
     };

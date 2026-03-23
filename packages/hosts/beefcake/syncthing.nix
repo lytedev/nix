@@ -41,6 +41,46 @@
         # Password should be set via the web UI on first login or via sops
         # This will prompt for password setup on first access
       };
+
+      devices = {
+        flab = {
+          id = "GWQNBFC-JJW4N44-KICEWWU-UPCLY5Q-5TOTYCX-NDDP63K-EFF7RUU-P2PGWAX";
+          autoAcceptFolders = true;
+        };
+        thinker = {
+          id = "BRNARRJ-Q2FG42U-BO2YUM3-WGA2IUA-ZQDXTNC-4O5AVWC-G5RQRCI-6ZWLQQR";
+          autoAcceptFolders = true;
+        };
+        dragon = {
+          id = "ZXBA3C3-H2O3NVP-4THM4BE-G644ZUW-W4OWEMB-KUCMPOV-5SQBSQZ-JADSGQ2";
+          autoAcceptFolders = true;
+        };
+        foxtrot = {
+          id = "YMA4L72-CTVKNBM-IKNI77T-ERA2AJ2-HMA5PDU-WYM6ROR-7O7HVLC-54NRWA4";
+          autoAcceptFolders = true;
+        };
+        babyflip = {
+          id = "B2CSTI7-3JAPJF3-6LYPNUP-KKSNIAR-NUA2ZBX-R3LPB77-BYHEKGF-3BQI5QY";
+          autoAcceptFolders = true;
+        };
+      };
+
+      folders = {
+        "notes" = {
+          path = "/storage/notes";
+          devices = [
+            "flab"
+            "thinker"
+            "dragon"
+            "foxtrot"
+            "babyflip"
+          ];
+          versioning = {
+            type = "simple";
+            params.keep = "5";
+          };
+        };
+      };
     };
   };
 
