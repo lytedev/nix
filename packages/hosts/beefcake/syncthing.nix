@@ -67,7 +67,7 @@
 
       folders = {
         "notes" = {
-          path = "/storage/daniel/notes";
+          path = "/storage/syncthing/notes";
           devices = [
             "flab"
             "thinker"
