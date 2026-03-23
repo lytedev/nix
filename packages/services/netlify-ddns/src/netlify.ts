@@ -338,7 +338,6 @@ export const handleDdnsRequest = async (
 				const recordsToAdd: (Omit<NetlifyDNSRecord, 'id'>)[] = []
 
 				// initialize to-add array
-				// TODO: add additionalRecords!
 				domainMappings.subdomains.forEach((subdomain) => {
 					if (!subdomain.only || subdomain.only.includes(aType)) {
 						recordsToAdd.push({
@@ -348,6 +347,19 @@ export const handleDdnsRequest = async (
 								: `${subdomain.name}.${domain}`,
 							ttlSeconds: subdomain.ttlSeconds || DEFAULT_TTL,
 							value: remoteHost,
+						})
+					}
+					// add any additional static records (MX, TXT, etc.)
+					if (subdomain.additionalRecords) {
+						subdomain.additionalRecords.forEach((rec) => {
+							recordsToAdd.push({
+								type: rec.type,
+								hostname: rec.name == '@'
+									? domain
+									: `${rec.name}.${domain}`,
+								ttlSeconds: rec.ttlSeconds || DEFAULT_TTL,
+								value: rec.value,
+							})
 						})
 					}
 				})

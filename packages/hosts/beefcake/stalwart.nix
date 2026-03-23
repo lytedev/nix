@@ -36,6 +36,7 @@ in
     stalwart-admin-password.mode = "0400";
     stalwart-smtp-relay-username.mode = "0400";
     stalwart-smtp-relay-password.mode = "0400";
+    stalwart-dkim-private-key.mode = "0400";
   };
 
   # Copy the mail certificate that Caddy provisions so Stalwart can terminate
@@ -89,6 +90,7 @@ in
       admin_password = config.sops.secrets.stalwart-admin-password.path;
       smtp_relay_username = config.sops.secrets.stalwart-smtp-relay-username.path;
       smtp_relay_password = config.sops.secrets.stalwart-smtp-relay-password.path;
+      dkim_private_key = config.sops.secrets.stalwart-dkim-private-key.path;
     };
     settings = {
       authentication.fallback-admin = {
@@ -195,6 +197,19 @@ in
         create = true;
         subscribe = true;
       };
+
+      # DKIM signing
+      signature.dkim-lyte = {
+        algorithm = "rsa-sha256";
+        domain = domain;
+        selector = "'stalwart'";
+        private-key = "%{file:${credsDir}/dkim_private_key}%";
+        headers = "['From', 'To', 'Date', 'Subject', 'Message-ID']";
+        canonicalization = "'relaxed/relaxed'";
+        set-body-length = false;
+        report = true;
+      };
+      auth.dkim.sign = "['dkim-lyte']";
     };
   };
 
