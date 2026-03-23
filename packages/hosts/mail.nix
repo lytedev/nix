@@ -69,7 +69,10 @@ in
     domain = domain;
     origin = domain;
     destination = [ ]; # no local delivery
-    networks = [ "127.0.0.0/8" "[::1]/128" ];
+    networks = [
+      "127.0.0.0/8"
+      "[::1]/128"
+    ];
 
     relayDomains = [ domain ];
 
