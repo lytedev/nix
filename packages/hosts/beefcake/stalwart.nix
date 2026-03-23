@@ -135,6 +135,8 @@ in
       http = {
         url = "'https://${host}'";
         use-x-forwarded = false;
+        # Allow Bulwark webmail (webmail.lyte.dev) to make browser-side JMAP requests
+        permissive-cors = true;
       };
 
       certificate.caddy = {
