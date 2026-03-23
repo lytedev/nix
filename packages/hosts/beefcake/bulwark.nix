@@ -1,12 +1,60 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 let
   domain = "webmail.lyte.dev";
   port = 3000;
+  clientId = "bulwark-webmail";
+  stalwartUrl = "https://mail.lyte.dev";
+  stalwartLocal = "http://[::1]:38181";
+  adminCredsDir = "/run/credentials/stalwart-mail.service";
 in
 {
   sops.secrets."bulwark.env" = {
     mode = "0400";
-    # Contains: SESSION_SECRET, OAUTH_CLIENT_SECRET (if confidential client)
+  };
+
+  # Ensure the Bulwark OAuth client principal exists in Stalwart
+  systemd.services.stalwart-ensure-bulwark-oauth = {
+    description = "Ensure Bulwark OAuth client exists in Stalwart";
+    after = [ "stalwart-mail.service" ];
+    requires = [ "stalwart-mail.service" ];
+    wantedBy = [ "multi-user.target" ];
+    path = with pkgs; [
+      curl
+      jq
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      set -euo pipefail
+      admin_pass="$(cat ${adminCredsDir}/admin_password)"
+
+      # Check if the OAuth client already exists
+      existing=$(curl -sf -u "admin:$admin_pass" \
+        "${stalwartLocal}/api/principal/${clientId}" 2>/dev/null || true)
+
+      if [ -n "$existing" ] && echo "$existing" | jq -e '.data.name' >/dev/null 2>&1; then
+        echo "OAuth client '${clientId}' already exists, skipping"
+        exit 0
+      fi
+
+      echo "Creating OAuth client '${clientId}'..."
+      curl -sf -u "admin:$admin_pass" \
+        -X POST \
+        -H "Content-Type: application/json" \
+        -d '${
+          builtins.toJSON {
+            type = "oauthClient";
+            name = clientId;
+            description = "Bulwark webmail OAuth client";
+            urls = [ "https://${domain}/api/auth/callback" ];
+          }
+        }' \
+        "${stalwartLocal}/api/principal"
+
+      echo "OAuth client '${clientId}' created"
+    '';
   };
 
   virtualisation.oci-containers.containers.bulwark = {
@@ -17,12 +65,12 @@ in
       config.sops.secrets."bulwark.env".path
     ];
     environment = {
-      JMAP_SERVER_URL = "https://mail.lyte.dev";
+      JMAP_SERVER_URL = stalwartUrl;
       HOSTNAME = "0.0.0.0";
       PORT = toString port;
       OAUTH_ENABLED = "true";
-      OAUTH_CLIENT_ID = "bulwark-webmail";
-      OAUTH_ISSUER_URL = "https://mail.lyte.dev";
+      OAUTH_CLIENT_ID = clientId;
+      OAUTH_ISSUER_URL = stalwartUrl;
     };
   };
 
