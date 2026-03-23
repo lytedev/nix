@@ -12,7 +12,7 @@
     "steamdeckoled": "100.64.0.10",
     "rascal": "100.64.0.11",
     "sanctuary": "100.64.0.12",
-    "mail": "100.64.0.15"
+    "pebble": "100.64.0.15"
   },
 
   "groups": {
@@ -38,12 +38,12 @@
     },
     {
       "action": "accept",
-      "src": ["tag:server", "group:servers", "beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary", "mail"],
+      "src": ["tag:server", "group:servers", "beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary", "pebble"],
       "dst": ["beefcake:80,443", "router:53"]
     },
     {
       "action": "accept",
-      "src": ["mail"],
+      "src": ["pebble"],
       "dst": ["beefcake:25"]
     },
     {
@@ -93,7 +93,7 @@
     {
       "action": "accept",
       "src": ["group:admin", "tag:admindevice"],
-      "dst": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary", "mail"],
+      "dst": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary", "pebble"],
       "users": ["root", "autogroup:nonroot"]
     },
     {

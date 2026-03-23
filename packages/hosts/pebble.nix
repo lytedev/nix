@@ -10,7 +10,7 @@ let
 in
 {
   system.stateVersion = "25.11";
-  networking.hostName = "mail";
+  networking.hostName = "pebble";
 
   # Hetzner VPS: 2 vCPU Intel Xeon, 4GB RAM, 38G disk
   # BIOS boot (no UEFI)
