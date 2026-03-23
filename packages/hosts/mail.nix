@@ -65,7 +65,7 @@ in
   # Stalwart over Tailscale. No local delivery, no mailboxes.
   services.postfix = {
     enable = true;
-    hostname = "mail.${domain}";
+    hostname = "relay.${domain}";
     domain = domain;
     origin = domain;
     destination = [ ]; # no local delivery
@@ -102,7 +102,7 @@ in
       disable_vrfy_command = true;
 
       # Announce our MX hostname
-      smtpd_banner = "mail.${domain} ESMTP";
+      smtpd_banner = "relay.${domain} ESMTP";
 
       # Don't rewrite headers
       smtp_header_checks = "";
