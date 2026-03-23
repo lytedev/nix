@@ -1,0 +1,1 @@
+/etc/nix/flake/dotfiles/helix/queries/hjson/highlights.scm

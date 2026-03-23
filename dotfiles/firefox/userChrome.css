@@ -1,16 +1,38 @@
-/* Ayu Dark theme for Firefox chrome */
-:root {
-  --ayu-bg: #0D1017;
-  --ayu-bg-lift: #10141C;
-  --ayu-panel: #141821;
-  --ayu-line: #1B1F29;
-  --ayu-fg: #BFBDB6;
-  --ayu-fg-dim: #5A6378;
-  --ayu-accent: #E6B450;
-  --ayu-blue: #59C2FF;
-  --ayu-red: #D95757;
-  --ayu-green: #AAD94C;
+/* Ayu theme for Firefox chrome — auto dark/light based on system preference */
 
+/* ── Ayu Dark ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ayu-bg: #0D1017;
+    --ayu-bg-lift: #10141C;
+    --ayu-panel: #141821;
+    --ayu-line: #1B1F29;
+    --ayu-fg: #BFBDB6;
+    --ayu-fg-dim: #5A6378;
+    --ayu-accent: #E6B450;
+    --ayu-blue: #59C2FF;
+    --ayu-red: #D95757;
+    --ayu-green: #AAD94C;
+  }
+}
+
+/* ── Ayu Light ── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --ayu-bg: #FCFCFC;
+    --ayu-bg-lift: #F5F5F5;
+    --ayu-panel: #F2F2F2;
+    --ayu-line: #E0DDD5;
+    --ayu-fg: #5C616A;
+    --ayu-fg-dim: #8D97A5;
+    --ayu-accent: #FFAA28;
+    --ayu-blue: #39BAE6;
+    --ayu-red: #D95757;
+    --ayu-green: #70BF56;
+  }
+}
+
+:root {
   --toolbar-bgcolor: var(--ayu-panel) !important;
   --toolbar-color: var(--ayu-fg) !important;
   --toolbar-field-background-color: var(--ayu-bg) !important;
