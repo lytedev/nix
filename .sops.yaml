@@ -56,6 +56,11 @@ creation_rules:
     - age:
       - *daniel
       - *sshd-at-dragon
+  - path_regex: secrets/pebble/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *sshd-at-pebble
   - path_regex: secrets/bigtower/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:

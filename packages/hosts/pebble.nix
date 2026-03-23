@@ -9,6 +9,19 @@ let
   domain = "lyte.dev";
 in
 {
+  sops = {
+    defaultSopsFile = ../../secrets/pebble/secrets.yml;
+    secrets = {
+      netlify-ddns-password.mode = "0400";
+    };
+  };
+
+  services.deno-netlify-ddns-client = {
+    enable = true;
+    passwordFile = config.sops.secrets.netlify-ddns-password.path;
+    username = "pebble";
+  };
+
   system.stateVersion = "25.11";
   networking.hostName = "pebble";
 
