@@ -67,7 +67,7 @@
 
       folders = {
         "notes" = {
-          path = "/storage/notes";
+          path = "/storage/daniel/notes";
           devices = [
             "flab"
             "thinker"
