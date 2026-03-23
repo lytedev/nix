@@ -139,6 +139,11 @@
     # NOTE: crane and rust-overlay are NOT safe to deduplicate — they are
     # tightly coupled build toolchains and version mismatches cause hash
     # resolution failures (e.g. hash '' has wrong length for 'sha1').
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     flake-compat = {
       # used by: deploy-rs, ghostty, git-hooks
       url = "github:edolstra/flake-compat";

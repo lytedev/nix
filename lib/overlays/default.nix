@@ -1,6 +1,7 @@
 {
   nixpkgs,
   nixpkgs-unstable,
+  rust-overlay,
   ...
 }@inputs:
 let
@@ -28,17 +29,25 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
-      atuin = unstable-packages.callPackage (
+      atuin =
+        let
+          rust-bin = rust-overlay.lib.mkRustBin { } unstable-packages;
+          rustToolchain = rust-bin.stable."1.94.0".minimal;
+          rustPlatform' = unstable-packages.makeRustPlatform {
+            rustc = rustToolchain;
+            cargo = rustToolchain;
+          };
+        in
+        unstable-packages.callPackage (
         {
           fetchFromGitHub,
-          rustPlatform,
           installShellFiles,
           lib,
           stdenv,
           nixosTests,
           nix-update-script,
         }:
-        rustPlatform.buildRustPackage (finalAttrs: {
+        rustPlatform'.buildRustPackage (finalAttrs: {
           pname = "atuin";
           version = "18.13.3";
 
@@ -46,10 +55,10 @@ let
             owner = "atuinsh";
             repo = "atuin";
             tag = "v${finalAttrs.version}";
-            hash = "sha256-ojIL8Iy74UgFE4Mp75oHWbZDsFRKRhOBdkPP/TtZpz4=";
+            hash = "sha256-hLt6CDHEPV8BVpOADVn4bLNcBz89eC2jKtIexHG0yAY=";
           };
 
-          cargoHash = "sha256-KamAFi6OHE38ss8rIncNecNMVjd8gAeSWMh8G7Yb/rQ=";
+          cargoHash = "sha256-VYwzMnfc/a4Sghmr5oMfhvoMkaWlY4w4e4Flu8MWQg0=";
 
           buildNoDefaultFeatures = true;
           buildFeatures = [
