@@ -135,8 +135,6 @@ in
       http = {
         url = "'https://${host}'";
         use-x-forwarded = false;
-        # Allow Bulwark webmail (webmail.lyte.dev) to make browser-side JMAP requests
-        permissive-cors = true;
       };
 
       certificate.caddy = {
@@ -204,6 +202,18 @@ in
 
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
+      @cors_preflight method OPTIONS
+      @cors_webmail header Origin https://webmail.${domain}
+
+      handle @cors_preflight {
+        header Access-Control-Allow-Origin "https://webmail.${domain}"
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization"
+        header Access-Control-Allow-Credentials "true"
+        header Access-Control-Max-Age "86400"
+        respond "" 204
+      }
+
       reverse_proxy [::1]:${toString httpPort} {
         header_up Host {host}
         header_up X-Real-Ip {remote_host}
@@ -211,6 +221,9 @@ in
         header_up -X-Forwarded-Host
         header_up -X-Forwarded-Proto
       }
+
+      header @cors_webmail Access-Control-Allow-Origin "https://webmail.${domain}"
+      header @cors_webmail Access-Control-Allow-Credentials "true"
     '';
   };
 }
