@@ -42,6 +42,7 @@ in
     # htpc = deployer "htpc" { remoteBuild = false; }; # broken: rtl8812au marked broken upstream
     bigtower = deployer "bigtower" { };
     rascal = deployer "rascal" { };
+    mail = deployer "mail" { hostname = "204.168.181.230"; };
     foxtrot = deployer "foxtrot" { };
     thinker = deployer "thinker" { };
     steamdeck = deployer "steamdeck" { remoteBuild = false; };

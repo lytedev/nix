@@ -19,6 +19,7 @@ in
   router = stableHost ./router.nix { };
   bigtower = host ./bigtower.nix { };
   rascal = stableHost ./rascal.nix { };
+  mail = stableHost ./mail.nix { };
   flipflop = host ./flipflop.nix { };
   flipflop2 = host ./flipflop2.nix { };
   babyflip = host ./babyflip { };

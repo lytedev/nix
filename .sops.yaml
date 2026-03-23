@@ -19,6 +19,7 @@ keys:
   - &ssh-foxtrot age1lqenktsj33u25xrz3vxkcf3afkuvfrqaq89gymzqg6kcqhkzrgvsupq89y
   - &sshd-at-flab age1ytzu6re77mfwvqye7nppqgygqsypulq6gnfs9lz5xq925c7kfvxquvxnan
   - &sshd-at-thinker age1g9n7scq97ug9sej7j4vkt889397jg44qqtsnj4gwgcptxjhe0fxsysjdfd
+  - &sshd-at-mail age1ttp49sl37jcnqphhzvdd5t0hpk2qwel3cuf7an0ar5hvxnlw7eas73ree9
 
   # after updating this file, you may need to update the keys for any associated files like so:
   # sops updatekeys secrets.file
@@ -44,6 +45,7 @@ creation_rules:
       - *sshd-at-rascal
       - *sshd-at-steamdeck
       - *sshd-at-steamdeckoled
+      - *sshd-at-mail
   - path_regex: secrets/router/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:

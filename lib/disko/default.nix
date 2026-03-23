@@ -628,6 +628,58 @@ rec {
       };
     };
 
+  # BIOS boot variant of unencrypted — for VPS/cloud hosts without UEFI
+  unencrypted-bios =
+    {
+      disk,
+      name ? "primary",
+      ...
+    }:
+    {
+      disko.devices = {
+        disk = {
+          ${name} = {
+            type = "disk";
+            device = disk;
+            content = {
+              type = "gpt";
+              partitions = {
+                boot = {
+                  size = "1M";
+                  type = "EF02"; # BIOS boot partition
+                };
+                root = {
+                  size = "100%";
+                  content = {
+                    type = "btrfs";
+                    extraArgs = [ "-f" ];
+                    mountpoint = "/partition-root";
+                    subvolumes = {
+                      "/rootfs" = {
+                        mountpoint = "/";
+                        mountOptions = [ "compress=zstd" ];
+                      };
+                      "/home" = {
+                        mountpoint = "/home";
+                        mountOptions = [ "compress=zstd" ];
+                      };
+                      "/nix" = {
+                        mountpoint = "/nix";
+                        mountOptions = [
+                          "compress=zstd"
+                          "noatime"
+                        ];
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+
   beefcake =
     let
       zpools = {
