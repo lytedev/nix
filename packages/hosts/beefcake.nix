@@ -144,6 +144,7 @@
     ./beefcake/restic.nix
     ./beefcake/caddy.nix
     ./beefcake/forgejo.nix
+    ./beefcake/forgejo-github-mirror.nix
     ./beefcake/vaultwarden.nix
     ./beefcake/atuin.nix
     ./beefcake/kanidm.nix

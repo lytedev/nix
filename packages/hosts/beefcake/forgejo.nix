@@ -252,8 +252,6 @@ in
   # gitea-runner-beefcake.after = [ "sops-nix.service" ];
 
   services.gitea-actions-runner = {
-    # TODO: simple git-based automation would be dope? maybe especially for
-    # mirroring to github super easy?
     # package = pkgs.forgejo-runner;
 
     instances =
