@@ -39,7 +39,7 @@ in
     folders = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = {
-        wallpapers = "${danielHome}/Sync/wallpapers";
+        wallpapers = "${danielHome}/Pictures/Wallpapers";
         shared = "${danielHome}/Sync/shared";
         notes = "${danielHome}/Documents/notes";
       };
