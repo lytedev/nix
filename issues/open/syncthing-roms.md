@@ -1,18 +1,21 @@
 # Syncthing ROM Syncing
 
 **Labels**: service, beefcake, steamdeck
+**Related**: lib/modules/nixos/roms.nix, packages/hosts/beefcake/roms.nix
 
-Steamdeck and beefcake have emulator ROM directories that should be
-synced via Syncthing, but the current setup is unclear.
+## Miyoo Mini — done
 
-Beefcake runs syncthing as a dedicated `syncthing` user at `/storage/syncthing`
-with its own separate config (not using the shared `lyte.syncthing` module).
-Steamdecks are currently offline and couldn't be inspected.
+ROM and save sync via rsync over SSH is working. Dedicated `miyoo-sync` user
+with restricted rrsync access. Supports OnionOS folder structure (GBA, SFC, GB,
+GBC, MD, etc.) at `/storage/miyoo-mini/`.
 
-## TODO
+## Steamdeck — not done
+
+Steamdeck ROM syncing via Syncthing is still unimplemented.
+`lib/modules/nixos/steamdeck.nix` has a TODO for this.
+
+### Remaining work
 
 - Turn on steamdeck and inspect ROM directory structure
-- Check beefcake's syncthing folder config (need root or syncthing user access)
-- Add a `roms` folder to the shared syncthing module (or a host-specific folder override)
-- Decide whether beefcake should use the shared module or keep its server-specific setup
+- Add a `roms` syncthing folder for steamdeck(s)
 - Wire up steamdeck(s) with `lyte.syncthing.enable` and sops keys

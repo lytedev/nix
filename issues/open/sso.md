@@ -1,28 +1,33 @@
 # SSO
 
 **Labels**: service, beefcake
+**Related**: packages/hosts/beefcake/kanidm-migrations/20-oauth2.hjson
 
-I would love for Jellyfin, Audiobookshelf, Samba shares, etc. to all use a single
-authentication/authorization mechanism for the whole family.
+Kanidm is deployed at `idm.h.lyte.dev` with declarative HJSON migrations and
+a `kanidm-oauth2-secrets` module for automatic secret fetching.
 
-Kanidm is fully setup, but not integrated with anything.
+## Integrated
 
-Perhaps the SpacetimeDB instance would be a good starting point? Just need JWTs?
+- Immich (photos.lyte.dev)
+- Headscale (vpn.h.lyte.dev)
+- Tuwunel/Matrix (matrix.lyte.dev)
+- Bulwark/Stalwart webmail (webmail.lyte.dev)
+- Forgejo (git.lyte.dev) — OAuth2 client configured in migrations
 
-Kanidm 1.9 introduces native HJSON-based entry migrations (`migration_path`),
-replacing the broken NixOS provision module and the need for oddlama/kanidm-provision.
-A custom `kanidm-migrations` NixOS module generates the migration files from Nix config.
+## Not yet integrated
+
+- Jellyfin (video.lyte.dev)
+- Audiobookshelf (audio.lyte.dev)
+- Nextcloud
+- Vaultwarden
+- Samba shares
 
 ## Kanidm Alternatives
 
-Currently, I'm too ignorant to pretend to know why I might want to swap, but
-just in case:
+Just in case:
 
 - Authelia
-- authentik (has some recent CVEs? sign of bad code or of good white hats?)
+- authentik
 - ZITADEL
-- Keycloak
+- Keycloak (JVM — prefer to avoid)
 - Ory
-
-I definitely want to avoid anything JVM-related due to my own inexperience and
-negative predispositions, which I believe excludes keycloak
