@@ -34,9 +34,12 @@
 
       deploy = import ./lib/deploy inputs;
 
+      darwinConfigurations = import ./packages/hosts/darwin inputs;
+
+      darwinModules = import ./lib/modules/darwin inputs;
+
       /*
         TODO: nix-on-droid for phone terminal usage? mobile-nixos?
-        TODO: nix-darwin for work?
         TODO: nixos ISO?
       */
     }
@@ -130,6 +133,11 @@
     tuwunel = {
       # personal fork with OIDC server for next-gen auth (MSC2965)
       url = "github:lytedev/tuwunel/oidc-server";
+    };
+
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin/master";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     mobile-nixos = {

@@ -129,6 +129,23 @@ let
         )
       ];
     };
+  darwinHost =
+    path:
+    {
+      system ? "aarch64-darwin",
+    }:
+    inputs.nix-darwin.lib.darwinSystem {
+      inherit system;
+      specialArgs = { };
+      modules = [
+        {
+          nixpkgs.overlays = [ ];
+          nix.registry.nixpkgs.flake = inputs.nixpkgs-unstable;
+        }
+        inputs.self.outputs.darwinModules.default
+        (import path)
+      ];
+    };
 in
 {
   inherit
@@ -136,6 +153,7 @@ in
     stable
     unstable
     mobileHost
+    darwinHost
     ;
   stableHost = baseHost stable;
   host = baseHost unstable;

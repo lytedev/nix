@@ -32,6 +32,7 @@ rec {
     steamdeckHost
     mobileHost
     baseHost
+    darwinHost
     ;
 
   uGenPkgs = genPkgs inputs.nixpkgs-unstable;

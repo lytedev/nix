@@ -1,0 +1,58 @@
+{
+  self,
+  sops-nix,
+  ...
+}:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
+{
+  imports = with self.outputs.darwinModules; [
+    sops-nix.darwinModules.sops
+    shell-defaults-and-applications
+    user-env
+  ];
+
+  config = {
+    system.configurationRevision = toString (
+      self.shortRev or self.dirtyShortRev or self.lastModified or "unknown"
+    );
+
+    lyte.flakeStorePath = "${self}";
+    lyte.shell.enable = lib.mkDefault true;
+
+    nixpkgs = {
+      config.allowUnfree = lib.mkDefault true;
+      overlays = [ self.flakeLib.forSelfOverlay ];
+    };
+
+    nix = {
+      settings = {
+        trusted-users = [
+          "@admin"
+          "daniel"
+        ];
+        accept-flake-config = true;
+      }
+      // ((import ../../../flake.nix).nixConfig);
+    };
+
+    sops = {
+      age = {
+        sshKeyPaths = lib.mkDefault [ "/etc/ssh/ssh_host_ed25519_key" ];
+        keyFile = lib.mkDefault "/var/lib/sops-nix/key.txt";
+        generateKey = lib.mkDefault true;
+      };
+    };
+
+    users.users.daniel = {
+      home = "/Users/daniel";
+      shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
+    };
+
+    security.pam.services.sudo_local.touchIdAuth = true;
+  };
+}
