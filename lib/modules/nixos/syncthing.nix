@@ -65,7 +65,7 @@ in
 
         devices = lib.mapAttrs (name: id: {
           inherit id name;
-          autoAcceptFolders = true;
+          autoAcceptFolders = false;
         }) cfg.devices;
 
         folders = lib.mapAttrs (label: path: {
