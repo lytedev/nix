@@ -56,7 +56,7 @@ in
       configDir = "${danielHome}/.config/syncthing";
       openDefaultPorts = true;
       overrideDevices = false;
-      overrideFolders = false;
+      overrideFolders = true;
 
       settings = {
         options = {
