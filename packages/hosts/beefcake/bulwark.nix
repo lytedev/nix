@@ -16,8 +16,7 @@ in
   systemd.services.stalwart-ensure-bulwark-oauth = {
     description = "Ensure Bulwark OAuth client exists in Stalwart";
     after = [ "stalwart-mail.service" ];
-    requires = [ "stalwart-mail.service" ];
-    wantedBy = [ "multi-user.target" ];
+    wants = [ "stalwart-mail.service" ];
     path = with pkgs; [
       curl
       jq
@@ -70,6 +69,15 @@ in
 
       exit 0
     '';
+  };
+
+  # Run the OAuth provisioning 2 minutes after boot, not during activation
+  systemd.timers.stalwart-ensure-bulwark-oauth = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "2m";
+      Unit = "stalwart-ensure-bulwark-oauth.service";
+    };
   };
 
   virtualisation.oci-containers.containers.bulwark = {
