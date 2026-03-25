@@ -25,10 +25,21 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      Restart = "on-failure";
+      RestartSec = "5s";
     };
     script = ''
       set -euo pipefail
       admin_pass="$(cat ${adminCredsDir}/admin_password)"
+
+      # Wait for Stalwart to be ready
+      for i in $(seq 1 30); do
+        if curl -sf "${stalwartLocal}/.well-known/openid-configuration" >/dev/null 2>&1; then
+          break
+        fi
+        echo "Waiting for Stalwart to be ready... ($i/30)"
+        sleep 2
+      done
 
       # Check if the OAuth client already exists
       existing=$(curl -sf -u "admin:$admin_pass" \
