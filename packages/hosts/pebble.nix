@@ -33,6 +33,18 @@ in
     username = "pebble";
   };
 
+  # DKIM public key — single source of truth, referenced by dns-zones for the TXT record
+  # Corresponding private key: sops secrets/beefcake/secrets.yml stalwart-dkim-private-key
+  lyte.dns.dkimPublicKey = builtins.concatStringsSep "" [
+    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyAoaMRRXTV/5vYJanS08"
+    "r0ELsDLqqABSiXoAwHE1fILyxFNBs6bwIMXVhu4q3H/EElF0sXh+lroW7OBSn8vV"
+    "N7YZzjIF4otweoFgF02upOCDFX03Rk+yipLykEq7hWeLzvneM2MMaWnOScUl5KDb"
+    "d6+Wzww3NXDLDDUhhzjjD5yxnPPkKHI9F0A3aj/jxO8s4XA7iBfZKMCw+qFFRJka"
+    "e1VsoNn6pMe7p13vGXVHdfRI5/YAvLZnQeoZaQsl7pdemT8qnjhOmSbZ6QgER+18"
+    "Fv2IhR88GhfIGGRS4sXw0eF3+HUSjWSoIsZb5AyA+vU3/mVRneqUepIzIxReDIEX"
+    "tQIDAQAB"
+  ];
+
   # --- Knot DNS authoritative server ---
   lyte.dns-server = {
     enable = true;

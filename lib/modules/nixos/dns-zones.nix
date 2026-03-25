@@ -7,17 +7,7 @@
 let
   dnsLib = dns-nix.lib;
   inherit (lib) mkOption types;
-
-  # DKIM public key (RSA, from stalwart._domainkey.lyte.dev)
-  dkimPubKey = builtins.concatStringsSep "" [
-    "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyAoaMRRXTV/5vYJanS08"
-    "r0ELsDLqqABSiXoAwHE1fILyxFNBs6bwIMXVhu4q3H/EElF0sXh+lroW7OBSn8vV"
-    "N7YZzjIF4otweoFgF02upOCDFX03Rk+yipLykEq7hWeLzvneM2MMaWnOScUl5KDb"
-    "d6+Wzww3NXDLDDUhhzjjD5yxnPPkKHI9F0A3aj/jxO8s4XA7iBfZKMCw+qFFRJka"
-    "e1VsoNn6pMe7p13vGXVHdfRI5/YAvLZnQeoZaQsl7pdemT8qnjhOmSbZ6QgER+18"
-    "Fv2IhR88GhfIGGRS4sXw0eF3+HUSjWSoIsZb5AyA+vU3/mVRneqUepIzIxReDIEX"
-    "tQIDAQAB"
-  ];
+  cfg = config.lyte.dns;
 
   # --- lyte.dev zone ---
   lyteDev = {
@@ -63,7 +53,7 @@ let
       _dmarc.TXT = [ "v=DMARC1; p=quarantine; rua=mailto:postmaster@lyte.dev" ];
 
       # DKIM
-      "stalwart._domainkey".TXT = [ dkimPubKey ];
+      "stalwart._domainkey".TXT = [ "v=DKIM1; k=rsa; p=${cfg.dkimPublicKey}" ];
 
       # Mailgun sending verification
       email.CNAME = [ "mailgun.org." ];
@@ -71,50 +61,9 @@ let
       # --- Static records ---
       pebble.A = [ "204.168.181.230" ];
 
-      # --- Dynamic records (initial values, updated by dns-updater) ---
-      # beefcake subdomains — these will be overwritten by nsupdate
-      "beefcake.h".A = [ "0.0.0.0" ];
-      "paperless.h".A = [ "0.0.0.0" ];
-      git.A = [ "0.0.0.0" ];
-      "grafana.h".A = [ "0.0.0.0" ];
-      "prometheus.h".A = [ "0.0.0.0" ];
-      "finances.h".A = [ "0.0.0.0" ];
-      video.A = [ "0.0.0.0" ];
-      "video.h".A = [ "0.0.0.0" ];
-      audio.A = [ "0.0.0.0" ];
-      "audio.h".A = [ "0.0.0.0" ];
-      "tasks.h".A = [ "0.0.0.0" ];
-      "spacetimedb.h".A = [ "0.0.0.0" ];
-      "idm.h".A = [ "0.0.0.0" ];
-      "*.vpn.h".A = [ "0.0.0.0" ];
-      "vpn4.h".A = [ "0.0.0.0" ];
-      "vpn.h".A = [ "0.0.0.0" ];
-      "nix.h".A = [ "0.0.0.0" ];
-      "nextcloud.h".A = [ "0.0.0.0" ];
-      "onlyoffice.h".A = [ "0.0.0.0" ];
-      "atuin.h".A = [ "0.0.0.0" ];
-      mail.A = [ "0.0.0.0" ];
-      files.A = [ "0.0.0.0" ];
-      a.A = [ "0.0.0.0" ];
-      api.A = [ "0.0.0.0" ];
-      matrix.A = [ "0.0.0.0" ];
-      "hookshot.matrix".A = [ "0.0.0.0" ];
-      element.A = [ "0.0.0.0" ];
-      bw.A = [ "0.0.0.0" ];
-      webmail.A = [ "0.0.0.0" ];
-
-      # router subdomains
-      "router.h".A = [ "0.0.0.0" ];
-      h.A = [ "0.0.0.0" ];
-      "*.h".A = [ "0.0.0.0" ];
-
-      # other dynamic hosts
-      "dragon.h".A = [ "0.0.0.0" ];
-      "ruby.remote".A = [ "0.0.0.0" ];
-      "rift.remote".A = [ "0.0.0.0" ];
-      ourcraft.A = [ "0.0.0.0" ];
-      "bouncyballs.m".A = [ "0.0.0.0" ];
-      "chromebox.h".A = [ "0.0.0.0" ];
+      # Dynamic A/AAAA records are NOT in the zone file. They are created
+      # at runtime by the dns-updater module via nsupdate. NXDOMAIN is
+      # better than routing to a bogus 0.0.0.0 if a host hasn't checked in.
     };
   };
 
@@ -141,15 +90,16 @@ let
       "ns5.he.net."
     ];
 
-    # Router manages @ and * for dmf.me
-    A = [ "0.0.0.0" ];
-    subdomains = {
-      "*".A = [ "0.0.0.0" ];
-    };
+    # Dynamic: router manages @ and * via nsupdate
   };
 in
 {
   options.lyte.dns = {
+    dkimPublicKey = mkOption {
+      type = types.str;
+      description = "DKIM public key (base64, no headers). Used in the stalwart._domainkey TXT record and can be referenced by other modules.";
+    };
+
     zones = mkOption {
       type = types.attrsOf types.str;
       readOnly = true;
