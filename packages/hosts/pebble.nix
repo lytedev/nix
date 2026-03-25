@@ -13,13 +13,75 @@ in
     defaultSopsFile = ../../secrets/pebble/secrets.yml;
     secrets = {
       netlify-ddns-password.mode = "0400";
+      tsig-beefcake-h.mode = "0440";
+      tsig-beefcake-h.group = "knot";
+      tsig-router-h.mode = "0440";
+      tsig-router-h.group = "knot";
+      tsig-pebble.mode = "0440";
+      tsig-pebble.group = "knot";
+      tsig-secondary-1984.mode = "0440";
+      tsig-secondary-1984.group = "knot";
+      tsig-secondary-he.mode = "0440";
+      tsig-secondary-he.group = "knot";
     };
   };
 
+  # Keep existing DDNS client during parallel-run phase
   services.deno-netlify-ddns-client = {
     enable = true;
     passwordFile = config.sops.secrets.netlify-ddns-password.path;
     username = "pebble";
+  };
+
+  # --- Knot DNS authoritative server ---
+  lyte.dns-server = {
+    enable = true;
+
+    tsigKeys = {
+      beefcake-h = {
+        secretFile = config.sops.secrets.tsig-beefcake-h.path;
+      };
+      router-h = {
+        secretFile = config.sops.secrets.tsig-router-h.path;
+      };
+      pebble = {
+        secretFile = config.sops.secrets.tsig-pebble.path;
+      };
+      secondary-1984 = {
+        secretFile = config.sops.secrets.tsig-secondary-1984.path;
+      };
+      secondary-he = {
+        secretFile = config.sops.secrets.tsig-secondary-he.path;
+      };
+    };
+
+    acl = [
+      {
+        id = "acl-update-beefcake";
+        key = "beefcake-h";
+        action = [ "update" ];
+      }
+      {
+        id = "acl-update-router";
+        key = "router-h";
+        action = [ "update" ];
+      }
+      {
+        id = "acl-update-pebble";
+        key = "pebble";
+        action = [ "update" ];
+      }
+      {
+        id = "acl-xfr-1984";
+        key = "secondary-1984";
+        action = [ "transfer" ];
+      }
+      {
+        id = "acl-xfr-he";
+        key = "secondary-he";
+        action = [ "transfer" ];
+      }
+    ];
   };
 
   system.stateVersion = "25.11";
@@ -54,6 +116,10 @@ in
       allowedTCPPorts = [
         22
         25 # SMTP inbound
+        53 # DNS
+      ];
+      allowedUDPPorts = [
+        53 # DNS
       ];
     };
   };

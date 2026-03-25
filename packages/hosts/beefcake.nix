@@ -17,16 +17,58 @@
     secrets = {
       netlify-ddns-password.mode = "0400";
       nix-cache-priv-key.mode = "0400";
+      tsig-beefcake-h.mode = "0400";
     };
   };
 
   lyte.podman.enable = true;
   lyte.headscale.usePreAuthKey = true;
 
+  # Keep existing DDNS client during parallel-run phase
   services.deno-netlify-ddns-client = {
     enable = true;
     passwordFile = config.sops.secrets.netlify-ddns-password.path;
     username = "beefcake.h";
+  };
+
+  # --- Knot DNS dynamic updater (replaces deno-netlify-ddns long-term) ---
+  lyte.dns-updater = {
+    enable = true;
+    server = "204.168.181.230"; # pebble
+    zone = "lyte.dev";
+    tsigKeyFile = config.sops.secrets.tsig-beefcake-h.path;
+    tsigKeyName = "beefcake-h";
+    records = [
+      "beefcake.h"
+      "paperless.h"
+      "git"
+      "grafana.h"
+      "prometheus.h"
+      "finances.h"
+      "video"
+      "video.h"
+      "audio"
+      "audio.h"
+      "tasks.h"
+      "spacetimedb.h"
+      "idm.h"
+      "*.vpn.h"
+      "vpn4.h"
+      "vpn.h"
+      "nix.h"
+      "nextcloud.h"
+      "onlyoffice.h"
+      "atuin.h"
+      "mail"
+      "files"
+      "a"
+      "api"
+      "matrix"
+      "hookshot.matrix"
+      "element"
+      "bw"
+      "webmail"
+    ];
   };
 
   environment.systemPackages = with pkgs; [

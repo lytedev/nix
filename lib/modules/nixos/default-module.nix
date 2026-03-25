@@ -20,6 +20,9 @@
     disko.nixosModules.disko
     slippi.nixosModules.default
     deno-netlify-ddns-client
+    dns-zones
+    dns-server
+    dns-updater
     shell-defaults-and-applications
     desktop
     gnome
