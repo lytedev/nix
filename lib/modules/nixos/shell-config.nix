@@ -41,7 +41,6 @@ in
           source ${dotfilesPath}/fish/interactiveShellInit.fish
 
           # Shell integrations
-          ${pkgs.atuin}/bin/atuin hex init | source
           ${pkgs.atuin}/bin/atuin init fish --disable-up-arrow | source
           ${pkgs.direnv}/bin/direnv hook fish | source
           ${pkgs.fzf}/bin/fzf --fish | source
