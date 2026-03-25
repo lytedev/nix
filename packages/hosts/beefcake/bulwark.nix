@@ -25,21 +25,25 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      Restart = "on-failure";
-      RestartSec = "5s";
     };
     script = ''
-      set -euo pipefail
       admin_pass="$(cat ${adminCredsDir}/admin_password)"
 
-      # Wait for Stalwart to be ready
+      # Wait for Stalwart to be ready (up to 60s)
+      ready=false
       for i in $(seq 1 30); do
         if curl -sf "${stalwartLocal}/.well-known/openid-configuration" >/dev/null 2>&1; then
+          ready=true
           break
         fi
         echo "Waiting for Stalwart to be ready... ($i/30)"
         sleep 2
       done
+
+      if [ "$ready" != "true" ]; then
+        echo "Stalwart not ready after 60s, will retry next boot"
+        exit 0
+      fi
 
       # Check if the OAuth client already exists
       existing=$(curl -sf -u "admin:$admin_pass" \
@@ -62,9 +66,9 @@ in
             urls = [ "https://${domain}/api/auth/callback" ];
           }
         }' \
-        "${stalwartLocal}/api/principal"
+        "${stalwartLocal}/api/principal" || echo "Failed to create OAuth client, will retry next boot"
 
-      echo "OAuth client '${clientId}' created"
+      exit 0
     '';
   };
 
