@@ -1610,11 +1610,11 @@
         "rocksdb": "rocksdb"
       },
       "locked": {
-        "lastModified": 1773290705,
-        "narHash": "sha256-9I+YSshk3iY+XEVvPhqAwXVVHi/2n2BR7oiSLYhZGXM=",
+        "lastModified": 1774453134,
+        "narHash": "sha256-nXWKRfVHi7dvCRDOqNetkT+O8eQ73ezFnhhbgHkToas=",
         "owner": "lytedev",
         "repo": "tuwunel",
-        "rev": "7c5069f10fb899d24741d1fee68fd7bc63de73a3",
+        "rev": "d48332b9af58dbbbf509ea3e144b88a6d9d9eead",
         "type": "github"
       },
       "original": {
