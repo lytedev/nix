@@ -49,7 +49,7 @@ in
 
   config = lib.mkIf cfg.enable {
     sops.secrets.syncthing-gui-password = {
-      sopsFile = ../../secrets/workstations/syncthing.yml;
+      sopsFile = ../../../secrets/workstations/syncthing.yml;
       mode = "0440";
       owner = "daniel";
       group = "users";
