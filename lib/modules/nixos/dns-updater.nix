@@ -21,7 +21,6 @@ in
 
     server = mkOption {
       type = types.str;
-      default = "204.168.181.230";
       description = "IP address or hostname of the Knot DNS server to send updates to.";
     };
 
