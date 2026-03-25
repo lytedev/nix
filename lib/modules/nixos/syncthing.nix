@@ -48,6 +48,13 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    sops.secrets.syncthing-gui-password = {
+      sopsFile = ../../secrets/workstations/syncthing.yml;
+      mode = "0440";
+      owner = "daniel";
+      group = "users";
+    };
+
     services.syncthing = {
       enable = true;
       user = "daniel";
@@ -59,6 +66,11 @@ in
       overrideFolders = true;
 
       settings = {
+        gui = {
+          user = "daniel";
+          # Password is set at runtime via systemd service below
+        };
+
         options = {
           urAccepted = -1;
         };
@@ -77,6 +89,34 @@ in
           };
         }) cfg.folders;
       };
+    };
+
+    # Set the GUI password from sops secret after syncthing starts
+    systemd.services.syncthing-set-gui-password = {
+      description = "Set Syncthing GUI password from sops secret";
+      after = [ "syncthing.service" ];
+      requires = [ "syncthing.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = [ pkgs.syncthing ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = "daniel";
+        Group = "users";
+        Environment = "STNODEFAULTFOLDER=1";
+      };
+      script = ''
+        export STCONFDIR="${danielHome}/.config/syncthing"
+        PASSWORD="$(cat ${config.sops.secrets.syncthing-gui-password.path})"
+        # Wait for syncthing API to be ready
+        for i in $(seq 1 30); do
+          if syncthing cli config gui get 2>/dev/null | grep -q user; then
+            break
+          fi
+          sleep 2
+        done
+        syncthing cli config gui password set "$PASSWORD"
+      '';
     };
 
     # Syncthing Tray plasmoid for KDE Plasma system tray.
