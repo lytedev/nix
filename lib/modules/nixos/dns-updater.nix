@@ -170,16 +170,9 @@ in
         ''
           set -euo pipefail
 
-          # Build TSIG key file for nsupdate
+          # Read TSIG secret for nsupdate
           TSIG_SECRET="$(cat "${cfg.tsigKeyFile}" | tr -d '[:space:]')"
-          KEYFILE="$(mktemp /run/dns-updater-XXXXXX.key)"
-          trap 'rm -f "$KEYFILE"' EXIT
-          cat > "$KEYFILE" <<KEYEOF
-          key "${cfg.tsigKeyName}" {
-            algorithm ${cfg.tsigAlgorithm};
-            secret "$TSIG_SECRET";
-          };
-          KEYEOF
+          TSIG_ARG="${cfg.tsigAlgorithm}:${cfg.tsigKeyName}:$TSIG_SECRET"
 
           ${lib.optionalString cfg.ipv4 ''
             IP4="$(curl -4 -sf --max-time 10 https://api.ipify.org || curl -4 -sf --max-time 10 https://ifconfig.me)"
@@ -201,7 +194,7 @@ in
 
           # Send nsupdate commands
           echo "Sending DNS updates to ${cfg.server}..."
-          knsupdate -k "$KEYFILE" <<UPDATEEOF
+          knsupdate -y "$TSIG_ARG" <<UPDATEEOF
           server ${cfg.server}
           ${primaryV4}
           ${primaryV6}
