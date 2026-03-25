@@ -168,7 +168,6 @@ in
                 algorithm: ecdsap256sha256
                 ksk-lifetime: 0
                 zsk-lifetime: 30d
-                ksk-submission: []
                 nsec3: true
 
             STATICEOF
