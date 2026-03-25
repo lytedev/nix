@@ -41,7 +41,13 @@ in
           source ${dotfilesPath}/fish/interactiveShellInit.fish
 
           # Shell integrations
-          ${pkgs.atuin}/bin/atuin init fish --disable-up-arrow | source
+          # ATUIN_NOBIND prevents atuin from binding any keys (including up-arrow
+          # inside atuin hex), then we manually bind only ctrl-r
+          set -gx ATUIN_NOBIND true
+          ${pkgs.atuin}/bin/atuin hex init | source
+          ${pkgs.atuin}/bin/atuin init fish | source
+          bind -M insert ctrl-r _atuin_search
+          bind ctrl-r _atuin_search
           ${pkgs.direnv}/bin/direnv hook fish | source
           ${pkgs.fzf}/bin/fzf --fish | source
         '';
