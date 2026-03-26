@@ -23,9 +23,9 @@
 
   services.paperless = {
     enable = true;
-    # package = pkgs.paperless-ngx;
     dataDir = "/storage/paperless";
     passwordFile = config.sops.secrets.paperless-superuser-password.path;
+    settings.PAPERLESS_URL = "https://paperless.h.lyte.dev";
   };
 
   services.caddy.virtualHosts."paperless.h.lyte.dev" = {
