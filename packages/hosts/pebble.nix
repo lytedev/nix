@@ -85,7 +85,14 @@ in
       }
       {
         id = "acl-xfr-1984";
-        key = "secondary-1984";
+        address = [
+          "45.76.37.222" # ns0.1984.is
+          "194.58.192.36" # ns1.1984.is
+          "45.32.180.186" # ns2.1984.is
+          "93.95.226.52" # ns2.1984.is (secondary)
+          "185.42.137.114" # ns1.1984hosting.com
+          "93.95.226.53" # ns2.1984hosting.com
+        ];
         action = [ "transfer" ];
       }
       {
