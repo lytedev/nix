@@ -129,6 +129,10 @@ in
       };
 
       hosts = {
+        printer = {
+          ip = "192.168.0.35";
+          mac = "f8:89:d2:fd:96:15";
+        };
         dragon = {
           ip = "192.168.0.10";
           nat.tcp.SSH = 4822;
