@@ -92,6 +92,7 @@ in
           "93.95.226.52" # ns2.1984.is (secondary)
           "185.42.137.114" # ns1.1984hosting.com
           "93.95.226.53" # ns2.1984hosting.com
+          "93.95.224.6" # 1984 transfer server
         ];
         action = [ "transfer" ];
       }
