@@ -208,7 +208,7 @@ in
     fsType = "tmpfs";
     options = [
       "size=32G"
-      "mode=0755"
+      "mode=1777"
     ];
   };
 
