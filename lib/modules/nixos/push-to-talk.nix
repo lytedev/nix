@@ -54,8 +54,46 @@ let
             self.record_proc = None
             self.tmp_wav = None
             self.devices = {}
+            self.grabbed_devices = set()
             self.check_model()
             self.scan_devices()
+
+        def grab_devices(self):
+            """Grab all monitored devices to prevent key events reaching the compositor."""
+            for path, dev in self.devices.items():
+                if path not in self.grabbed_devices:
+                    try:
+                        dev.grab()
+                        self.grabbed_devices.add(path)
+                    except (OSError, IOError) as e:
+                        print(f"Failed to grab {path}: {e}", file=sys.stderr)
+
+        def ungrab_devices(self):
+            """Release all grabbed devices."""
+            for path in list(self.grabbed_devices):
+                dev = self.devices.get(path)
+                if dev:
+                    try:
+                        dev.ungrab()
+                    except (OSError, IOError):
+                        pass
+            self.grabbed_devices.clear()
+
+        def erase_leaked_key(self):
+            """Send a backspace to delete the 'v' that leaked before we grabbed."""
+            try:
+                subprocess.Popen(
+                    [WTYPE_CMD, "-k", "BackSpace"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                try:
+                    subprocess.Popen(
+                        [YDOTOOL_CMD, "key", "14:1", "14:0"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    )
+                except Exception:
+                    pass
 
         def check_model(self):
             if not os.path.isfile(MODEL_PATH):
@@ -94,6 +132,7 @@ let
 
             for path in old_paths - new_paths:
                 if path in self.devices:
+                    self.grabbed_devices.discard(path)
                     try:
                         self.devices[path].close()
                     except Exception:
@@ -117,6 +156,8 @@ let
                     stderr=subprocess.DEVNULL,
                 )
                 self.recording = True
+                self.grab_devices()
+                self.erase_leaked_key()
                 print("Recording started", file=sys.stderr)
             except Exception as e:
                 print(f"Failed to start recording: {e}", file=sys.stderr)
@@ -126,6 +167,7 @@ let
             if not self.recording:
                 return
             self.recording = False
+            self.ungrab_devices()
 
             if self.record_proc:
                 self.record_proc.send_signal(signal.SIGINT)
@@ -255,6 +297,7 @@ let
                     except OSError:
                         path = dev.path
                         print(f"Device disconnected: {path}", file=sys.stderr)
+                        self.grabbed_devices.discard(path)
                         try:
                             dev.close()
                         except Exception:
