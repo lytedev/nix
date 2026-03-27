@@ -5,12 +5,6 @@
   ...
 }:
 let
-  anubis = {
-    user = "anubis";
-    group = "anubis";
-    dir = "/storage/anubis";
-    port = 8529;
-  };
   runnerCount = 1;
   logos = {
     png = pkgs.fetchurl {
@@ -281,68 +275,15 @@ in
           ];
         });
   };
-  # environment.systemPackages = with pkgs; [nodejs];
-  # TODO: goes through anubis now
-  # services.caddy.virtualHosts."git.lyte.dev" = {
-  #   extraConfig = ''
-  #     reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT} {
-  #       header_up X-Real-Ip {remote_host}
-  #     }
-  #   '';
-  # };
   services.caddy.virtualHosts."http://git.beefcake.lan" = {
     extraConfig = ''
       reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT}
     '';
   };
 
-  users.groups.${anubis.group} = { };
-  users.users.${anubis.user} = {
-    isSystemUser = true;
-    createHome = false;
-    home = anubis.dir;
-    group = anubis.group;
-    linger = true;
-  };
-  # systemd.services.podman-anubis.serviceConfig = {
-  #   User = user;
-  #   Group = user;
-  # };
-  systemd.tmpfiles.settings."10-${anubis.user}" = {
-    "${anubis.dir}" = {
-      "d" = {
-        mode = "0770";
-        user = anubis.user;
-        group = anubis.group;
-      };
-    };
-  };
-  virtualisation.oci-containers.containers.forgejo-anubis =
-    let
-      inherit (anubis) port;
-    in
-    {
-      autoStart = true;
-      image = "ghcr.io/techarohq/anubis:latest"; # TODO: set specific version
-      extraOptions = [ "--network=host" ];
-      # user = "${toString user}:${toString config.users.groups.${anubis.group}.gid}";
-      environment = {
-        BIND = ":${toString port}";
-        DIFFICULTY = "4";
-        METRICS_BIND = "127.0.0.1:9091";
-        SERVE_ROBOTS_TXT = "true";
-        TARGET = "http://127.0.0.1:${toString config.services.forgejo.settings.server.HTTP_PORT}";
-        POLICY_FNAME = "/data/cfg/botPolicy.json";
-      };
-      ports = [ "127.0.0.1:${toString port}:${toString port}" ];
-      volumes = [
-        "${./anubis-policy.json}:/data/cfg/botPolicy.json:ro"
-      ];
-    };
   services.caddy.virtualHosts."git.lyte.dev" = {
     extraConfig = ''
-      redir /.within.website/x/cmd/anubis/static/img/* https://lyte.dev/img/logo.svg 302
-      reverse_proxy :${toString anubis.port} {
+      reverse_proxy :${toString config.services.forgejo.settings.server.HTTP_PORT} {
         header_up X-Real-Ip {remote_host}
       }
     '';
