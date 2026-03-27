@@ -67,31 +67,6 @@ let
     };
   };
 
-  # --- dmf.me zone ---
-  dmfMe = {
-    SOA = {
-      nameServer = "ns0.1984.is.";
-      adminEmail = "dns@lyte.dev";
-      serial = 2025032500;
-      refresh = 7200;
-      retry = 3600;
-      expire = 1209600;
-      minimum = 3600;
-    };
-
-    NS = [
-      "ns0.1984.is."
-      "ns1.1984.is."
-      "ns2.1984.is."
-      "ns1.he.net."
-      "ns2.he.net."
-      "ns3.he.net."
-      "ns4.he.net."
-      "ns5.he.net."
-    ];
-
-    # Dynamic: router manages @ and * via nsupdate
-  };
 in
 {
   options.lyte.dns = {
@@ -109,6 +84,5 @@ in
 
   config.lyte.dns.zones = {
     "lyte.dev" = dnsLib.toString "lyte.dev" lyteDev;
-    "dmf.me" = dnsLib.toString "dmf.me" dmfMe;
   };
 }

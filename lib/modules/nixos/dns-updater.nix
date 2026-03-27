@@ -65,7 +65,7 @@ in
         }
       );
       default = [ ];
-      description = "Additional zones and records to update (e.g., dmf.me).";
+      description = "Additional zones and records to update.";
     };
 
     ipv4 = mkOption {
