@@ -3,7 +3,7 @@
 # Web UI: https://photos.lyte.dev
 # SSO:    Kanidm OIDC via kanidm-oauth2-secrets fetcher (automatic)
 # Media:  /storage/immich (ZFS, backed up via restic)
-{ config, ... }:
+{ config, pkgs, ... }:
 let
   domain = "photos.lyte.dev";
   port = 2283;
@@ -70,6 +70,53 @@ in
     "video"
     "render"
   ];
+
+  # ── Ensure mobile OAuth redirect URIs are registered in Kanidm ──────
+  # Kanidm's HJSON migration rejects opaque URIs like app.immich://,
+  # so we add them imperatively after Kanidm starts. This is additive
+  # and idempotent — existing URIs are preserved.
+  systemd.services.immich-ensure-mobile-oauth = {
+    description = "Register Immich mobile OAuth redirect URIs in Kanidm";
+    after = [ "kanidm.service" ];
+    wants = [ "kanidm.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    path = [ pkgs.kanidm ];
+    script = ''
+      # Wait for Kanidm to be ready
+      for i in $(seq 1 30); do
+        if curl -sf https://idm.h.lyte.dev/status >/dev/null 2>&1; then
+          break
+        fi
+        echo "Waiting for Kanidm... ($i/30)"
+        sleep 2
+      done
+
+      export KANIDM_TOKEN=$(cat /run/secrets/kanidm-host-beefcake-token)
+
+      for url in \
+        "https://${domain}/user-settings" \
+        "https://${domain}/api/oauth/mobile-redirect" \
+        "app.immich:/" \
+        "app.immich:///oauth-callback"; do
+        echo "Ensuring redirect URL: $url"
+        kanidm system oauth2 add-redirect-url ${domain} "$url" \
+          --url https://idm.h.lyte.dev 2>&1 || true
+      done
+
+      exit 0
+    '';
+  };
+
+  systemd.timers.immich-ensure-mobile-oauth = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "2m";
+      Unit = "immich-ensure-mobile-oauth.service";
+    };
+  };
 
   # ── Caddy reverse proxy ─────────────────────────────────────────────
   services.caddy.virtualHosts.${domain} = {
