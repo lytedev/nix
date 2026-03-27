@@ -206,8 +206,12 @@ in
     lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake${builtins.toString n}") runnerCount)
       (name: {
         after = [ "sops-nix.service" ];
-        serviceConfig.CacheDirectory = "gitea-runner";
-        serviceConfig.Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
+        serviceConfig = {
+          CacheDirectory = "gitea-runner";
+          Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
+          # Mount tmpfs over the cache dir so runner workdirs live in RAM
+          TemporaryFileSystem = "/var/cache/gitea-runner:size=4G";
+        };
       })
     // {
       forgejo = {
