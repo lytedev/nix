@@ -208,8 +208,15 @@ in
     fsType = "tmpfs";
     options = [
       "size=32G"
-      "mode=1777"
+      "mode=0700"
     ];
+  };
+  systemd.tmpfiles.settings."10-gitea-runner-cache" = {
+    "/var/cache/gitea-runner".d = {
+      mode = "0700";
+      user = "gitea-runner";
+      group = "gitea-runner";
+    };
   };
 
   systemd.services =
