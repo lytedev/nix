@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -103,6 +104,8 @@ in
       }
     ];
   };
+
+  environment.systemPackages = [ pkgs.ghostty-terminfo ];
 
   system.stateVersion = "25.11";
   networking.hostName = "pebble";
