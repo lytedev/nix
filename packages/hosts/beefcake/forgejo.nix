@@ -202,6 +202,16 @@ in
     };
   };
 
+  # Run Forgejo runner workdirs on tmpfs for faster CI builds
+  fileSystems."/var/cache/gitea-runner" = {
+    device = "none";
+    fsType = "tmpfs";
+    options = [
+      "size=32G"
+      "mode=0755"
+    ];
+  };
+
   systemd.services =
     lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake${builtins.toString n}") runnerCount)
       (name: {
