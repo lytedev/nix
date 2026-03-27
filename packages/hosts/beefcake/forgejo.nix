@@ -5,7 +5,7 @@
   ...
 }:
 let
-  runnerCount = 1;
+  runnerCount = 8;
   logos = {
     png = pkgs.fetchurl {
       url = "https://lyte.dev/icon.png";

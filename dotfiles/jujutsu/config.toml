@@ -39,5 +39,5 @@ concat(
 paginate = "never"
 
 [user]
-email = "daniel@lyte.dev"
-name = "Daniel Flanagan"
+email = "ci@lyte.dev"
+name = "CI"
