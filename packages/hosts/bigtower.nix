@@ -135,6 +135,7 @@
       });
 
   lyte = {
+    headscale.usePreAuthKey = true;
     prevent-suspend.enable = true;
     desktop.enable = true;
     gpu = "amd";

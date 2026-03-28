@@ -40,8 +40,8 @@ in
     beefcake = deployer "beefcake" { };
     dragon = deployer "dragon" { };
     # htpc = deployer "htpc" { remoteBuild = false; }; # broken: rtl8812au marked broken upstream
-    bigtower = deployer "bigtower" { };
-    sanctuary = deployer "sanctuary" { };
+    bigtower = deployer "bigtower" { hostname = "bigtower.lan"; };
+    sanctuary = deployer "sanctuary" { hostname = "sanctuary-av.lan"; };
     rascal = deployer "rascal" { };
     pebble = deployer "pebble" { hostname = "204.168.181.230"; };
     foxtrot = deployer "foxtrot" { };

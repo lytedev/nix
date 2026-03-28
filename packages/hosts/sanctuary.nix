@@ -91,6 +91,7 @@
       });
 
   lyte = {
+    headscale.usePreAuthKey = true;
     desktop.enable = true;
     gpu = "amd";
     family-account.enable = true;
