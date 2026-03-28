@@ -10,7 +10,7 @@
 }:
 let
   cfg = config.lyte;
-  danielHome = config.users.users.daniel.home;
+  userHome = config.users.users.${cfg.username}.home;
 
   # Build the user activation script
   mkUserActivation =
@@ -72,7 +72,7 @@ let
       );
     in
     ''
-      echo "lyte-user-env: setting up user environment for daniel..."
+      echo "lyte-user-env: setting up user environment for ${cfg.username}..."
       ${lib.optionalString (symlinkEntries != { }) cleanupCmd}
       ${lib.optionalString (symlinkEntries != { }) symlinkCmds}
       ${lib.optionalString (fileEntries != { }) fileCmds}
@@ -84,6 +84,12 @@ let
 in
 {
   options.lyte = {
+    username = lib.mkOption {
+      type = lib.types.str;
+      default = "daniel";
+      description = "Primary user account name for user-env management";
+    };
+
     editableConfigFiles = lib.mkEnableOption "Use live flakePath symlinks instead of nix store paths (requires flakePath to be set)";
 
     flakePath = lib.mkOption {
@@ -144,7 +150,7 @@ in
     # nix-darwin uses system.activationScripts (run as root)
     # sudo -u daniel to run as the target user
     system.activationScripts.postActivation.text = ''
-      sudo -u daniel bash -c '${mkUserActivation danielHome cfg.userSymlinks resolvedUserFiles}'
+      sudo -u ${cfg.username} bash -c '${mkUserActivation userHome cfg.userSymlinks resolvedUserFiles}'
     '';
   };
 }

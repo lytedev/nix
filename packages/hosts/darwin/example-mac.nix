@@ -17,6 +17,7 @@
 
   lyte = {
     shell.enable = true;
+    # username = "daniel";  # default; override for different usernames
     # editableConfigFiles = true;
     # flakePath = "/Users/daniel/code/nix";
   };

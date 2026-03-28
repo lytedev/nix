@@ -38,7 +38,8 @@ in
     };
 
     environment = {
-      shellAliases.ls = null;
+      # NixOS allows null to unset aliases, but nix-darwin does not
+      # shellAliases.ls = null;
 
       variables = {
         EDITOR = "hx";

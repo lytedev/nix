@@ -33,7 +33,7 @@
       settings = {
         trusted-users = [
           "@admin"
-          "daniel"
+          config.lyte.username
         ];
         accept-flake-config = true;
       }
@@ -48,8 +48,8 @@
       };
     };
 
-    users.users.daniel = {
-      home = "/Users/daniel";
+    users.users.${config.lyte.username} = {
+      home = lib.mkDefault "/Users/${config.lyte.username}";
       shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
     };
 
