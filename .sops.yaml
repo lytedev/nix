@@ -20,6 +20,7 @@ keys:
   - &sshd-at-flab age1ytzu6re77mfwvqye7nppqgygqsypulq6gnfs9lz5xq925c7kfvxquvxnan
   - &sshd-at-thinker age1g9n7scq97ug9sej7j4vkt889397jg44qqtsnj4gwgcptxjhe0fxsysjdfd
   - &sshd-at-pebble age1ttp49sl37jcnqphhzvdd5t0hpk2qwel3cuf7an0ar5hvxnlw7eas73ree9
+  - &sshd-at-sanctuary age16nwp3d98fdd6rtjv348rckqwcksjmyxjzfxkza3kaxhyna9cng0sj3cddg
 
   # after updating this file, you may need to update the keys for any associated files like so:
   # sops updatekeys secrets.file
@@ -61,6 +62,11 @@ creation_rules:
     - age:
       - *daniel
       - *sshd-at-pebble
+  - path_regex: secrets/sanctuary/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *sshd-at-sanctuary
   - path_regex: secrets/bigtower/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:

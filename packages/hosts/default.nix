@@ -24,6 +24,7 @@ in
   flipflop2 = host ./flipflop2.nix { };
   babyflip = host ./babyflip { };
   flab = host ./flab.nix { };
+  sanctuary = host ./sanctuary.nix { };
 
   steamdeck = steamdeckHost ./steamdeck.nix { };
   steamdeckoled = steamdeckHost ./steamdeckoled.nix { };

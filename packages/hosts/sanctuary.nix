@@ -1,4 +1,10 @@
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   system.stateVersion = "24.11";
   networking.hostName = "sanctuary-av";
 
@@ -40,6 +46,49 @@
   # TODO: nixos tests?
 
   networking.wifi.enable = true;
+
+  # --- Forgejo runners for agent tasks ---
+  sops = {
+    defaultSopsFile = ../../secrets/sanctuary/secrets.yml;
+    secrets."forgejo-runner.env".mode = "0400";
+  };
+
+  services.gitea-actions-runner = {
+    instances =
+      let
+        runnerCount = 4;
+      in
+      lib.genAttrs (builtins.genList (n: "sanctuary${builtins.toString n}") runnerCount) (name: {
+        enable = true;
+        name = "sanctuary";
+        url = "https://git.lyte.dev";
+        settings.container.network = "host";
+        labels = [
+          "sanctuary:host"
+          "nixos-host:host"
+          "agent:host"
+        ];
+        tokenFile = config.sops.secrets."forgejo-runner.env".path;
+        hostPackages = with pkgs; [
+          nix
+          bash
+          coreutils
+          curl
+          gawk
+          gitMinimal
+          gnused
+          nodejs
+          gnutar
+          wget
+        ];
+      });
+  };
+
+  systemd.services =
+    lib.genAttrs (builtins.genList (n: "gitea-runner-sanctuary${builtins.toString n}") 4)
+      (name: {
+        after = [ "sops-nix.service" ];
+      });
 
   lyte = {
     desktop.enable = true;

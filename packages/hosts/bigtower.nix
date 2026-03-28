@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
 {
@@ -69,7 +70,10 @@
 
   sops = {
     defaultSopsFile = ../../secrets/bigtower/secrets.yml;
-    secrets.nix-cache-priv-key.mode = "0400";
+    secrets = {
+      nix-cache-priv-key.mode = "0400";
+      "forgejo-runner.env".mode = "0400";
+    };
   };
 
   services = {
@@ -91,6 +95,44 @@
   programs.dconf.enable = true;
 
   programs.steam.enable = true;
+
+  # --- Forgejo runners for agent tasks ---
+  services.gitea-actions-runner = {
+    instances =
+      let
+        runnerCount = 4;
+      in
+      lib.genAttrs (builtins.genList (n: "bigtower${builtins.toString n}") runnerCount) (name: {
+        enable = true;
+        name = "bigtower";
+        url = "https://git.lyte.dev";
+        settings.container.network = "host";
+        labels = [
+          "bigtower:host"
+          "nixos-host:host"
+          "agent:host"
+        ];
+        tokenFile = config.sops.secrets."forgejo-runner.env".path;
+        hostPackages = with pkgs; [
+          nix
+          bash
+          coreutils
+          curl
+          gawk
+          gitMinimal
+          gnused
+          nodejs
+          gnutar
+          wget
+        ];
+      });
+  };
+
+  systemd.services =
+    lib.genAttrs (builtins.genList (n: "gitea-runner-bigtower${builtins.toString n}") 4)
+      (name: {
+        after = [ "sops-nix.service" ];
+      });
 
   lyte = {
     prevent-suspend.enable = true;
