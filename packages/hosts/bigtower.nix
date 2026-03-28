@@ -100,7 +100,7 @@
   services.gitea-actions-runner = {
     instances =
       let
-        runnerCount = 4;
+        runnerCount = 2;
       in
       lib.genAttrs (builtins.genList (n: "bigtower${builtins.toString n}") runnerCount) (name: {
         enable = true;
@@ -129,7 +129,7 @@
   };
 
   systemd.services =
-    lib.genAttrs (builtins.genList (n: "gitea-runner-bigtower${builtins.toString n}") 4)
+    lib.genAttrs (builtins.genList (n: "gitea-runner-bigtower${builtins.toString n}") 2)
       (name: {
         after = [ "sops-nix.service" ];
       });
