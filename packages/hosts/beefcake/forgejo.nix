@@ -5,7 +5,10 @@
   ...
 }:
 let
-  runnerCount = 8;
+  # 1 nixos-host runner for CI (serialized, full nix cache)
+  # 2 agent runners for coding agents (parallelized, minimal nix usage)
+  ciRunnerCount = 1;
+  agentRunnerCount = 2;
   logos = {
     png = pkgs.fetchurl {
       url = "https://lyte.dev/icon.png";
@@ -202,17 +205,43 @@ in
     };
   };
 
+  # Run Forgejo runner workdirs on tmpfs for faster CI builds.
+  # Uses fileSystems (not TemporaryFileSystem) so runners still see /nix/store.
+  fileSystems."/var/cache/gitea-runner" = {
+    device = "none";
+    fsType = "tmpfs";
+    options = [
+      "size=32G"
+      "mode=0700"
+    ];
+  };
+  systemd.tmpfiles.settings."10-gitea-runner-cache" = {
+    "/var/cache/gitea-runner".d = {
+      mode = "0700";
+      user = "gitea-runner";
+      group = "gitea-runner";
+    };
+  };
+
   systemd.services =
-    lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake${builtins.toString n}") runnerCount)
+    lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake-ci${builtins.toString n}") ciRunnerCount)
       (name: {
         after = [ "sops-nix.service" ];
         serviceConfig = {
           CacheDirectory = "gitea-runner";
           Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
-          # Mount tmpfs over the cache dir so runner workdirs live in RAM
-          TemporaryFileSystem = "/var/cache/gitea-runner:size=4G";
         };
       })
+    //
+      lib.genAttrs
+        (builtins.genList (n: "gitea-runner-beefcake-agent${builtins.toString n}") agentRunnerCount)
+        (name: {
+          after = [ "sops-nix.service" ];
+          serviceConfig = {
+            CacheDirectory = "gitea-runner";
+            Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
+          };
+        })
     // {
       forgejo = {
         serviceConfig.ReadWritePaths = [ "/var/lib/forgejo-db" ];
@@ -242,42 +271,56 @@ in
     # package = pkgs.forgejo-runner;
 
     instances =
-      lib.genAttrs (builtins.genList (n: "beefcake${builtins.toString n}") runnerCount)
-        (name: {
-          enable = true;
-          name = "beefcake";
-          url = "https://git.lyte.dev"; # TODO: get from nix config?
-          settings = {
-            container = {
-              # use the shared network which is bridged by default
-              # this lets us hit git.lyte.dev just fine
-              # network = "podman";
-              network = "host";
-            };
-          };
-          labels = [
-            # type ":host" does not depend on docker/podman/lxc
-            # "beefcake:host"
-            "beefcake:host"
-            "nixos-host:host"
-            # "podman"
-            # "nix-2.24.12:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-v3-nix-v2.24.12"
-            # "nix-latest:docker://git.lyte.dev/lytedev/nix:forgejo-actions-container-latest"
-          ];
-          tokenFile = config.sops.secrets."forgejo-runner.env".path;
-          hostPackages = with pkgs; [
-            nix
-            bash
-            coreutils
-            curl
-            gawk
-            gitMinimal
-            gnused
-            nodejs
-            gnutar # needed for cache action
-            wget
-          ];
-        });
+      # CI runners — serialized nix builds with full cache
+      lib.genAttrs (builtins.genList (n: "beefcake-ci${builtins.toString n}") ciRunnerCount) (name: {
+        enable = true;
+        name = "beefcake";
+        url = "https://git.lyte.dev";
+        settings.container.network = "host";
+        labels = [
+          "beefcake:host"
+          "nixos-host:host"
+        ];
+        tokenFile = config.sops.secrets."forgejo-runner.env".path;
+        hostPackages = with pkgs; [
+          nix
+          bash
+          coreutils
+          curl
+          gawk
+          gitMinimal
+          gnused
+          nodejs
+          gnutar
+          wget
+        ];
+      })
+      # Agent runners — parallel coding agents
+      //
+        lib.genAttrs (builtins.genList (n: "beefcake-agent${builtins.toString n}") agentRunnerCount)
+          (name: {
+            enable = true;
+            name = "beefcake";
+            url = "https://git.lyte.dev";
+            settings.container.network = "host";
+            labels = [
+              "beefcake:host"
+              "agent:host"
+            ];
+            tokenFile = config.sops.secrets."forgejo-runner.env".path;
+            hostPackages = with pkgs; [
+              nix
+              bash
+              coreutils
+              curl
+              gawk
+              gitMinimal
+              gnused
+              nodejs
+              gnutar
+              wget
+            ];
+          });
   };
   services.caddy.virtualHosts."http://git.beefcake.lan" = {
     extraConfig = ''
