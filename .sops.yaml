@@ -47,6 +47,7 @@ creation_rules:
       - *sshd-at-steamdeck
       - *sshd-at-steamdeckoled
       - *sshd-at-pebble
+      - *sshd-at-sanctuary
   - path_regex: secrets/router/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:
