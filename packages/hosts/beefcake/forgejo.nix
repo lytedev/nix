@@ -262,6 +262,9 @@ in
         name = "beefcake";
         url = "https://git.lyte.dev";
         settings.container.network = "host";
+        settings.host.workdir_parent = "/run/gitea-runner-cache/workdirs";
+        settings.cache.dir = "/run/gitea-runner-cache/actions-cache";
+        settings.runner.envs.XDG_CACHE_HOME = "/run/gitea-runner-cache";
         labels = [
           "beefcake:host"
           "nixos-host:host"
@@ -288,6 +291,9 @@ in
             name = "beefcake";
             url = "https://git.lyte.dev";
             settings.container.network = "host";
+            settings.host.workdir_parent = "/run/gitea-runner-cache/workdirs";
+            settings.cache.dir = "/run/gitea-runner-cache/actions-cache";
+            settings.runner.envs.XDG_CACHE_HOME = "/run/gitea-runner-cache";
             labels = [
               "beefcake:host"
               "agent:host"
