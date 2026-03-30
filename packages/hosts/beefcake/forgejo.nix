@@ -221,6 +221,11 @@ in
       user = "gitea-runner";
       group = "gitea-runner";
     };
+    "/var/cache/private/gitea-runner".d = {
+      mode = "0700";
+      user = "gitea-runner";
+      group = "gitea-runner";
+    };
   };
 
   systemd.services =

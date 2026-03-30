@@ -65,7 +65,6 @@
         settings.container.network = "host";
         labels = [
           "sanctuary:host"
-          "nixos-host:host"
           "agent:host"
         ];
         tokenFile = config.sops.secrets."forgejo-runner.env".path;
@@ -88,8 +87,6 @@
     lib.genAttrs (builtins.genList (n: "gitea-runner-sanctuary${builtins.toString n}") 2)
       (name: {
         after = [ "sops-nix.service" ];
-        serviceConfig.CacheDirectory = "gitea-runner";
-        serviceConfig.Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
       });
 
   lyte = {
