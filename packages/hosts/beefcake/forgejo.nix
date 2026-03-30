@@ -217,12 +217,7 @@ in
   };
   systemd.tmpfiles.settings."10-gitea-runner-cache" = {
     "/var/cache/gitea-runner".d = {
-      mode = "0700";
-      user = "gitea-runner";
-      group = "gitea-runner";
-    };
-    "/var/cache/private/gitea-runner".d = {
-      mode = "0700";
+      mode = "0755";
       user = "gitea-runner";
       group = "gitea-runner";
     };
@@ -232,20 +227,14 @@ in
     lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake-ci${builtins.toString n}") ciRunnerCount)
       (name: {
         after = [ "sops-nix.service" ];
-        serviceConfig = {
-          CacheDirectory = "gitea-runner";
-          Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
-        };
+        serviceConfig.Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
       })
     //
       lib.genAttrs
         (builtins.genList (n: "gitea-runner-beefcake-agent${builtins.toString n}") agentRunnerCount)
         (name: {
           after = [ "sops-nix.service" ];
-          serviceConfig = {
-            CacheDirectory = "gitea-runner";
-            Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
-          };
+          serviceConfig.Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
         })
     // {
       forgejo = {
