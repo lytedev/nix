@@ -226,6 +226,7 @@ in
       (name: {
         after = [ "sops-nix.service" ];
         environment.XDG_CACHE_HOME = "/run/gitea-runner-cache";
+        serviceConfig.ReadWritePaths = [ "/run/gitea-runner-cache" ];
       })
     // {
       forgejo = {
