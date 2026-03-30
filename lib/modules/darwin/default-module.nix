@@ -29,7 +29,7 @@
       overlays = [ self.flakeLib.forSelfOverlay ];
     };
 
-    nix = {
+    nix = lib.mkIf config.nix.enable {
       settings = {
         trusted-users = [
           "@admin"
