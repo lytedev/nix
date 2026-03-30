@@ -48,6 +48,7 @@
       };
     };
 
+    users.knownUsers = [ config.lyte.username ];
     users.users.${config.lyte.username} = {
       home = lib.mkDefault "/Users/${config.lyte.username}";
       shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
