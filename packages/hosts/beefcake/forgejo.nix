@@ -283,7 +283,7 @@ in
         ];
         tokenFile = config.sops.secrets."forgejo-runner.env".path;
         hostPackages = with pkgs; [
-          nix
+          config.nix.package
           bash
           coreutils
           curl
@@ -309,7 +309,7 @@ in
             ];
             tokenFile = config.sops.secrets."forgejo-runner.env".path;
             hostPackages = with pkgs; [
-              nix
+              config.nix.package
               bash
               coreutils
               curl
