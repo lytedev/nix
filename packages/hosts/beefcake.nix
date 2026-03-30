@@ -69,6 +69,7 @@
       "chat"
       "bw"
       "webmail"
+      "photos"
       "happy.h"
       "n8n.h"
       "openobserve.h"
