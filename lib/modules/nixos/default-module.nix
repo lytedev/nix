@@ -185,6 +185,10 @@
         ];
         accept-flake-config = true;
         auto-optimise-store = lib.mkDefault true;
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
       }
       // ((import ../../../flake.nix).nixConfig);
     };
