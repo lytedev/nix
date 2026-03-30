@@ -216,19 +216,17 @@ in
     ];
   };
 
+  # Set XDG_CACHE_HOME for all runner services to use the tmpfs
   systemd.services =
-    lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake-ci${builtins.toString n}") ciRunnerCount)
+    lib.genAttrs
+      (
+        (builtins.genList (n: "gitea-runner-beefcake\\x2dci${builtins.toString n}") ciRunnerCount)
+        ++ (builtins.genList (n: "gitea-runner-beefcake\\x2dagent${builtins.toString n}") agentRunnerCount)
+      )
       (name: {
         after = [ "sops-nix.service" ];
-        serviceConfig.Environment = "XDG_CACHE_HOME=/run/gitea-runner-cache";
+        environment.XDG_CACHE_HOME = "/run/gitea-runner-cache";
       })
-    //
-      lib.genAttrs
-        (builtins.genList (n: "gitea-runner-beefcake-agent${builtins.toString n}") agentRunnerCount)
-        (name: {
-          after = [ "sops-nix.service" ];
-          serviceConfig.Environment = "XDG_CACHE_HOME=/run/gitea-runner-cache";
-        })
     // {
       forgejo = {
         serviceConfig.ReadWritePaths = [ "/var/lib/forgejo-db" ];
