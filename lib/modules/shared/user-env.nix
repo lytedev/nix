@@ -18,8 +18,7 @@ let
   isDarwin = !(options ? services && options.services ? fwupd);
   userHome = config.users.users.${cfg.username}.home;
 
-  # ln flag: -T on Linux (no-target-directory), -h on macOS (no-follow)
-  lnFlag = if isDarwin then "-sfh" else "-sfT";
+  lnFlags = "-sf";
 
   # Generate dconf load commands from settings attrset (Linux only)
   mkDconfScript =
@@ -92,7 +91,7 @@ let
           ''
             mkdir -p "$(dirname "${fullTarget}")" || { echo "warning: failed to create parent dir for ${fullTarget}" >&2; }
             if [ "$(readlink -f "${fullTarget}")" != "$(readlink -f "${source}")" ]; then
-              ln ${lnFlag} "${source}" "${fullTarget}" || echo "warning: failed to symlink ${fullTarget}" >&2
+              ln ${lnFlags} "${source}" "${fullTarget}" || echo "warning: failed to symlink ${fullTarget}" >&2
             fi
           ''
         ) symlinkEntries
