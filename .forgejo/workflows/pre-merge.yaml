@@ -25,7 +25,7 @@ jobs:
           out_link="$build_dir/pr-$ref"
         fi
 
-        nix run https://flakehub.com/f/DeterminateSystems/nix/2.32.4 -- --option max-jobs auto --show-trace build --accept-flake-config \
+        nix --option max-jobs auto --show-trace build --accept-flake-config \
           --out-link "$out_link" \
           .#nixosConfigurations.beefcake.config.system.build.toplevel \
           .#nixosConfigurations.router.config.system.build.toplevel \
