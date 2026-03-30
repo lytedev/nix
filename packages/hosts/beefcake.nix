@@ -66,8 +66,13 @@
       "matrix"
       "hookshot.matrix"
       "element"
+      "chat"
       "bw"
       "webmail"
+      "happy.h"
+      "n8n.h"
+      "openobserve.h"
+      "syncthing.h"
     ];
   };
 
