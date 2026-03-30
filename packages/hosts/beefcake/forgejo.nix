@@ -206,35 +206,28 @@ in
   };
 
   # Run Forgejo runner workdirs on tmpfs for faster CI builds.
-  # Uses fileSystems (not TemporaryFileSystem) so runners still see /nix/store.
-  fileSystems."/var/cache/gitea-runner" = {
+  # Mounted at /run/gitea-runner-cache to avoid conflicts with systemd's CacheDirectory.
+  fileSystems."/run/gitea-runner-cache" = {
     device = "none";
     fsType = "tmpfs";
     options = [
       "size=32G"
-      "mode=0700"
+      "mode=1777"
     ];
-  };
-  systemd.tmpfiles.settings."10-gitea-runner-cache" = {
-    "/var/cache/gitea-runner".d = {
-      mode = "0755";
-      user = "gitea-runner";
-      group = "gitea-runner";
-    };
   };
 
   systemd.services =
     lib.genAttrs (builtins.genList (n: "gitea-runner-beefcake-ci${builtins.toString n}") ciRunnerCount)
       (name: {
         after = [ "sops-nix.service" ];
-        serviceConfig.Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
+        serviceConfig.Environment = "XDG_CACHE_HOME=/run/gitea-runner-cache";
       })
     //
       lib.genAttrs
         (builtins.genList (n: "gitea-runner-beefcake-agent${builtins.toString n}") agentRunnerCount)
         (name: {
           after = [ "sops-nix.service" ];
-          serviceConfig.Environment = "XDG_CACHE_HOME=/var/cache/gitea-runner";
+          serviceConfig.Environment = "XDG_CACHE_HOME=/run/gitea-runner-cache";
         })
     // {
       forgejo = {
