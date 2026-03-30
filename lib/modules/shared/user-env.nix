@@ -1,19 +1,27 @@
-# User environment management without Home Manager
+# User environment management (shared between NixOS and nix-darwin)
 #
 # Provides declarative user home directory file/symlink management,
-# dconf settings, GTK/cursor theming, and Firefox profile setup
-# using NixOS-native mechanisms (system.userActivationScripts).
+# and on Linux: dconf settings.
+# Activation mechanism differs per platform:
+#   NixOS:      system.userActivationScripts (runs as user)
+#   nix-darwin: system.activationScripts.postActivation (runs as root, sudo -u)
 {
   config,
   lib,
   pkgs,
+  options,
   ...
 }:
 let
   cfg = config.lyte;
-  danielHome = config.users.users.daniel.home;
+  # Detect darwin by checking for a darwin-only option (avoids config recursion)
+  isDarwin = !(options ? services && options.services ? fwupd);
+  userHome = config.users.users.${cfg.username}.home;
 
-  # Generate dconf load commands from settings attrset
+  # ln flag: -T on Linux (no-target-directory), -h on macOS (no-follow)
+  lnFlag = if isDarwin then "-sfh" else "-sfT";
+
+  # Generate dconf load commands from settings attrset (Linux only)
   mkDconfScript =
     settings:
     lib.concatStringsSep "\n" (
@@ -50,17 +58,14 @@ let
       manifestDir = "${home}/.local/state/lyte-user-env";
       manifestFile = "${manifestDir}/managed-symlinks";
 
-      # All managed symlink targets (resolved to absolute paths)
       managedTargets = lib.mapAttrsToList (
         target: _source: if lib.hasPrefix "/" target then target else "${home}/${target}"
       ) symlinkEntries;
 
-      # Write current manifest to a store path for comparison
       currentManifest = pkgs.writeText "lyte-managed-symlinks" (
         lib.concatStringsSep "\n" (lib.sort builtins.lessThan managedTargets) + "\n"
       );
 
-      # Clean up symlinks that were in the previous manifest but not the current one
       cleanupCmd = ''
         # Stale symlink cleanup
         mkdir -p "${manifestDir}"
@@ -87,7 +92,7 @@ let
           ''
             mkdir -p "$(dirname "${fullTarget}")" || { echo "warning: failed to create parent dir for ${fullTarget}" >&2; }
             if [ "$(readlink -f "${fullTarget}")" != "$(readlink -f "${source}")" ]; then
-              ln -sfT "${source}" "${fullTarget}" || echo "warning: failed to symlink ${fullTarget}" >&2
+              ln ${lnFlag} "${source}" "${fullTarget}" || echo "warning: failed to symlink ${fullTarget}" >&2
             fi
           ''
         ) symlinkEntries
@@ -109,22 +114,32 @@ let
     pkgs.writeShellScript "lyte-user-env-activate" (
       ''
         set -euo pipefail
+        echo "lyte-user-env: setting up user environment for ${cfg.username}..."
       ''
       + (lib.optionalString (symlinkEntries != { }) ("\n# Clean up stale symlinks\n" + cleanupCmd))
       + (lib.optionalString (symlinkEntries != { }) ("\n# Symlinks\n" + symlinkCmds))
       + (lib.optionalString (fileEntries != { }) ("\n# Written files\n" + fileCmds))
-      + (lib.optionalString (dconfEntries != { }) ("\n# dconf settings\n" + mkDconfScript dconfEntries))
+      + (lib.optionalString (!isDarwin && dconfEntries != { }) (
+        "\n# dconf settings\n" + mkDconfScript dconfEntries
+      ))
     );
 
-  # Convert userFiles (string content) to nix store paths for safe copying
   resolvedUserFiles = lib.mapAttrs (
     name: content: pkgs.writeText (builtins.replaceStrings [ "/" "." ] [ "-" "-" ] name) content
   ) cfg.userFiles;
 
-  danielScript = mkUserActivation danielHome cfg.userSymlinks resolvedUserFiles cfg.dconfSettings;
+  activationScript = mkUserActivation userHome cfg.userSymlinks resolvedUserFiles (
+    if !isDarwin then cfg.dconfSettings else { }
+  );
 in
 {
   options.lyte = {
+    username = lib.mkOption {
+      type = lib.types.str;
+      default = "daniel";
+      description = "Primary user account name for user-env management";
+    };
+
     editableConfigFiles = lib.mkEnableOption "Use live flakePath symlinks instead of nix store paths (requires flakePath to be set)";
 
     flakePath = lib.mkOption {
@@ -157,7 +172,7 @@ in
       type = lib.types.attrsOf lib.types.str;
       default = { };
       description = ''
-        Symlinks to create in daniel's home directory.
+        Symlinks to create in the user's home directory.
         Keys are relative to home (or absolute paths).
         Values are symlink targets (absolute paths).
       '';
@@ -167,7 +182,7 @@ in
       type = lib.types.attrsOf lib.types.str;
       default = { };
       description = ''
-        Files to write in daniel's home directory.
+        Files to write in the user's home directory.
         Keys are relative to home (or absolute paths).
         Values are file contents (written to nix store, then installed).
       '';
@@ -176,7 +191,7 @@ in
     dconfSettings = lib.mkOption {
       type = lib.types.attrsOf (lib.types.attrsOf lib.types.anything);
       default = { };
-      description = "dconf settings to apply. Keys are dconf paths, values are attrsets of key=value.";
+      description = "dconf settings to apply (Linux only). Keys are dconf paths, values are attrsets of key=value.";
     };
   };
 
@@ -188,13 +203,25 @@ in
       }
     ];
 
-    # Run as daniel during system activation
-    system.userActivationScripts.lyteUserEnv = {
-      text = ''
-        if [ "$(id -un)" = "daniel" ]; then
-          ${danielScript}
-        fi
-      '';
-    };
+    # Platform-specific activation mechanism
+    system =
+      if !isDarwin then
+        {
+          # NixOS: runs as user during activation
+          userActivationScripts.lyteUserEnv = {
+            text = ''
+              if [ "$(id -un)" = "${cfg.username}" ]; then
+                ${activationScript}
+              fi
+            '';
+          };
+        }
+      else
+        {
+          # nix-darwin: runs as root, sudo to target user
+          activationScripts.postActivation.text = ''
+            sudo -u ${cfg.username} ${activationScript}
+          '';
+        };
   };
 }

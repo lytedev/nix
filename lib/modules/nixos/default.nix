@@ -6,7 +6,7 @@ inputs: {
   nix-config = (import ../../../flake.nix).nixConfig;
 
   default = import ./default-module.nix inputs;
-  shell-defaults-and-applications = import ./shell-config.nix;
+  shell-defaults-and-applications = import ../shared/shell-config.nix;
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
   dns-zones = import ./dns-zones.nix inputs;
   dns-server = import ./dns-server.nix;
@@ -35,7 +35,7 @@ inputs: {
   mobile = import ./mobile.nix;
   music-production = import ./music-production.nix;
   earlyoom = import ./earlyoom.nix;
-  user-env = import ./user-env.nix;
+  user-env = import ../shared/user-env.nix;
   claude = import ./claude.nix;
   push-to-talk = import ./push-to-talk.nix;
   opencode = import ./opencode.nix;
