@@ -127,6 +127,7 @@
     flakePath = "/etc/nix/flake";
     podman.enable = true;
     server.enable = true;
+    server.logs.enable = false;
     headscale.usePreAuthKey = true;
     desktop.enable = true;
     gpu = "amd";

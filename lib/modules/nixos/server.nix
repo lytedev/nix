@@ -17,6 +17,24 @@ in
       default = "https://openobserve.h.lyte.dev/api/default";
       description = "OpenObserve OTLP endpoint for metrics and logs.";
     };
+
+    hostmetrics.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Collect host metrics (CPU, disk, filesystem, load, memory, network, paging, processes).";
+    };
+
+    nodeExporter.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable node_exporter with systemd unit metrics.";
+    };
+
+    logs.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Collect and ship journald and file logs.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -35,11 +53,11 @@ in
     users.users.opentelemetry-collector = {
       isSystemUser = true;
       group = "opentelemetry-collector";
-      extraGroups = [ "systemd-journal" ];
+      extraGroups = lib.optionals cfg.logs.enable [ "systemd-journal" ];
     };
 
     # Node exporter for systemd unit metrics
-    services.prometheus.exporters.node = {
+    services.prometheus.exporters.node = lib.mkIf cfg.nodeExporter.enable {
       enable = true;
       listenAddress = "127.0.0.1";
       enabledCollectors = [ "systemd" ];
@@ -50,57 +68,60 @@ in
       package = pkgs.opentelemetry-collector-contrib;
 
       settings = {
-        receivers = {
-          hostmetrics = {
-            collection_interval = "30s";
-            scrapers = {
-              cpu = { };
-              disk = { };
-              filesystem = { };
-              load = { };
-              memory = { };
-              network = { };
-              paging = { };
-              process = {
-                mute_process_name_error = true;
+        receivers =
+          lib.optionalAttrs cfg.hostmetrics.enable {
+            hostmetrics = {
+              collection_interval = "30s";
+              scrapers = {
+                cpu = { };
+                disk = { };
+                filesystem = { };
+                load = { };
+                memory = { };
+                network = { };
+                paging = { };
+                process = {
+                  mute_process_name_error = true;
+                };
+                processes = { };
               };
-              processes = { };
             };
-          };
+          }
+          // lib.optionalAttrs cfg.nodeExporter.enable {
+            "prometheus/node" = {
+              config = {
+                scrape_configs = [
+                  {
+                    job_name = "node";
+                    scrape_interval = "30s";
+                    static_configs = [
+                      {
+                        targets = [
+                          "${config.services.prometheus.exporters.node.listenAddress}:${toString config.services.prometheus.exporters.node.port}"
+                        ];
+                      }
+                    ];
+                  }
+                ];
+              };
+            };
+          }
+          // lib.optionalAttrs cfg.logs.enable {
+            journald = {
+              directory = "/var/log/journal";
+            };
 
-          "prometheus/node" = {
-            config = {
-              scrape_configs = [
+            filelog = {
+              include = [ "/var/log/*.log" ];
+              start_at = "end";
+              operators = [
                 {
-                  job_name = "node";
-                  scrape_interval = "30s";
-                  static_configs = [
-                    {
-                      targets = [
-                        "${config.services.prometheus.exporters.node.listenAddress}:${toString config.services.prometheus.exporters.node.port}"
-                      ];
-                    }
-                  ];
+                  type = "regex_parser";
+                  regex = "^(?P<timestamp>[^ ]+) (?P<severity>[^ ]+) (?P<message>.*)$";
                 }
               ];
             };
           };
-
-          journald = {
-            directory = "/var/log/journal";
-          };
-
-          filelog = {
-            include = [ "/var/log/*.log" ];
-            start_at = "end";
-            operators = [
-              {
-                type = "regex_parser";
-                regex = "^(?P<timestamp>[^ ]+) (?P<severity>[^ ]+) (?P<message>.*)$";
-              }
-            ];
-          };
-        };
 
         processors = {
           batch = {
@@ -147,33 +168,33 @@ in
         service = {
           telemetry.metrics.level = "none";
 
-          pipelines = {
-            metrics = {
-              receivers = [
-                "hostmetrics"
-                "prometheus/node"
-              ];
-              processors = [
+          pipelines =
+            let
+              defaultProcessors = [
                 "resourcedetection"
                 "resource"
                 "batch"
               ];
-              exporters = [ "otlphttp/openobserve" ];
+            in
+            lib.optionalAttrs (cfg.hostmetrics.enable || cfg.nodeExporter.enable) {
+              metrics = {
+                receivers =
+                  lib.optionals cfg.hostmetrics.enable [ "hostmetrics" ]
+                  ++ lib.optionals cfg.nodeExporter.enable [ "prometheus/node" ];
+                processors = defaultProcessors;
+                exporters = [ "otlphttp/openobserve" ];
+              };
+            }
+            // lib.optionalAttrs cfg.logs.enable {
+              logs = {
+                receivers = [
+                  "journald"
+                  "filelog"
+                ];
+                processors = defaultProcessors;
+                exporters = [ "otlphttp/openobserve" ];
+              };
             };
-
-            logs = {
-              receivers = [
-                "journald"
-                "filelog"
-              ];
-              processors = [
-                "resourcedetection"
-                "resource"
-                "batch"
-              ];
-              exporters = [ "otlphttp/openobserve" ];
-            };
-          };
         };
       };
     };

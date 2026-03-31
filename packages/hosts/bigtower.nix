@@ -135,6 +135,7 @@
 
   lyte = {
     server.enable = true;
+    server.logs.enable = false;
     headscale.usePreAuthKey = true;
     desktop.enable = true;
     gpu = "amd";
