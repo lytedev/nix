@@ -68,6 +68,8 @@ in
     iftop
   ];
 
+  lyte.server.enable = true;
+
   sops = {
     defaultSopsFile = ../../secrets/router/secrets.yml;
     age = {
