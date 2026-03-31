@@ -154,9 +154,9 @@ in
     ];
   };
 
+  lyte.server.enable = true;
   lyte.headscale.usePreAuthKey = true;
   lyte.shell.enable = false;
-  lyte.prevent-suspend.enable = true;
 
   # Disable services not needed on a minimal VPS
   services.avahi.enable = false;

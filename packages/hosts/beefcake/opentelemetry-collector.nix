@@ -1,25 +1,15 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 {
-  # Secrets for OpenObserve authentication
+  # beefcake-specific: override sops to use per-host secrets file
   sops.secrets."openobserve-otel.env" = {
-    group = "opentelemetry-collector";
-    mode = "0440";
+    sopsFile = ../../../secrets/beefcake/secrets.yml;
   };
 
-  # User and group for OpenTelemetry Collector
-  users.groups.opentelemetry-collector = { };
-  users.users.opentelemetry-collector = {
-    isSystemUser = true;
-    group = "opentelemetry-collector";
-  };
+  # beefcake-specific: OpenObserve runs locally, use localhost
+  lyte.server.openobserveEndpoint = "http://127.0.0.1:5080/api/default";
 
-  # Keep specialized Prometheus exporters — OTel Collector scrapes them
+  # beefcake-specific exporters: postgres, zfs
   services.prometheus.exporters = {
-    node = {
-      enable = true;
-      listenAddress = "127.0.0.1";
-      enabledCollectors = [ "systemd" ];
-    };
     postgres = {
       enable = true;
       listenAddress = "127.0.0.1";
@@ -31,219 +21,59 @@
     };
   };
 
-  services.opentelemetry-collector = {
-    enable = true;
-    package = pkgs.opentelemetry-collector-contrib;
-
-    settings = {
-      receivers = {
-        # Collect host metrics (replaces node_exporter)
-        hostmetrics = {
-          collection_interval = "30s";
-          scrapers = {
-            cpu = { };
-            disk = { };
-            filesystem = { };
-            load = { };
-            memory = { };
-            network = { };
-            paging = { };
-            process = {
-              mute_process_name_error = true;
-            };
-            processes = { };
-          };
-        };
-
-        # Scrape node_exporter (systemd unit metrics)
-        "prometheus/node" = {
-          config = {
-            scrape_configs = [
-              {
-                job_name = "node";
-                scrape_interval = "30s";
-                static_configs = [
-                  {
-                    targets = [
-                      "${config.services.prometheus.exporters.node.listenAddress}:${toString config.services.prometheus.exporters.node.port}"
-                    ];
-                  }
-                ];
-              }
-            ];
-          };
-        };
-
-        # Scrape ZFS exporter
-        "prometheus/zfs" = {
-          config = {
-            scrape_configs = [
-              {
-                job_name = "zfs";
-                scrape_interval = "30s";
-                static_configs = [
-                  {
-                    targets = [
-                      "${config.services.prometheus.exporters.zfs.listenAddress}:${toString config.services.prometheus.exporters.zfs.port}"
-                    ];
-                  }
-                ];
-              }
-            ];
-          };
-        };
-
-        # Scrape PostgreSQL exporter
-        "prometheus/postgres" = {
-          config = {
-            scrape_configs = [
-              {
-                job_name = "postgres";
-                scrape_interval = "30s";
-                static_configs = [
-                  {
-                    targets = [
-                      "${config.services.prometheus.exporters.postgres.listenAddress}:${toString config.services.prometheus.exporters.postgres.port}"
-                    ];
-                  }
-                ];
-              }
-            ];
-          };
-        };
-
-        # Collect systemd journal logs (all units)
-        journald = {
-          directory = "/var/log/journal";
-        };
-
-        # Collect file logs
-        filelog = {
-          include = [ "/var/log/*.log" ];
-          start_at = "end";
-          operators = [
+  # beefcake-specific: add postgres/zfs scrapers and self-metrics exporter
+  services.opentelemetry-collector.settings = {
+    receivers = {
+      "prometheus/zfs" = {
+        config = {
+          scrape_configs = [
             {
-              type = "regex_parser";
-              regex = "^(?P<timestamp>[^ ]+) (?P<severity>[^ ]+) (?P<message>.*)$";
+              job_name = "zfs";
+              scrape_interval = "30s";
+              static_configs = [
+                {
+                  targets = [
+                    "${config.services.prometheus.exporters.zfs.listenAddress}:${toString config.services.prometheus.exporters.zfs.port}"
+                  ];
+                }
+              ];
             }
           ];
         };
       };
 
-      processors = {
-        # Batch processing for efficiency
-        batch = {
-          timeout = "5s";
-          send_batch_size = 1024;
-        };
-
-        # Add resource attributes
-        resource = {
-          attributes = [
+      "prometheus/postgres" = {
+        config = {
+          scrape_configs = [
             {
-              key = "host.name";
-              value = "beefcake";
-              action = "upsert";
-            }
-            {
-              key = "service.name";
-              value = "beefcake-system";
-              action = "upsert";
+              job_name = "postgres";
+              scrape_interval = "30s";
+              static_configs = [
+                {
+                  targets = [
+                    "${config.services.prometheus.exporters.postgres.listenAddress}:${toString config.services.prometheus.exporters.postgres.port}"
+                  ];
+                }
+              ];
             }
           ];
-        };
-
-        # Detect resource information
-        resourcedetection = {
-          detectors = [
-            "system"
-            "env"
-          ];
-          system = {
-            hostname_sources = [ "os" ];
-          };
-        };
-      };
-
-      exporters = {
-        # Send metrics to OpenObserve
-        "otlphttp/metrics" = {
-          endpoint = "http://127.0.0.1:5080/api/default";
-          headers = {
-            Authorization = "\${env:OPENOBSERVE_AUTH}";
-            stream-name = "default";
-          };
-        };
-
-        # Send logs to OpenObserve
-        "otlphttp/logs" = {
-          endpoint = "http://127.0.0.1:5080/api/default";
-          headers = {
-            Authorization = "\${env:OPENOBSERVE_AUTH}";
-            stream-name = "default";
-          };
-        };
-
-        # Prometheus exporter for OTel Collector's own metrics (avoid port conflict with atuin)
-        prometheus = {
-          endpoint = "0.0.0.0:8889";
-          namespace = "otelcol";
-        };
-      };
-
-      service = {
-        # Disable internal telemetry to avoid port 8888 conflict with atuin
-        # We export collector metrics via the prometheus exporter in the pipeline instead
-        telemetry = {
-          metrics = {
-            level = "none";
-          };
-        };
-
-        pipelines = {
-          # Metrics pipeline
-          metrics = {
-            receivers = [
-              "hostmetrics"
-              "prometheus/node"
-              "prometheus/zfs"
-              "prometheus/postgres"
-            ];
-            processors = [
-              "resourcedetection"
-              "resource"
-              "batch"
-            ];
-            exporters = [
-              "otlphttp/metrics"
-              "prometheus"
-            ];
-          };
-
-          # Logs pipeline
-          logs = {
-            receivers = [
-              "journald"
-              "filelog"
-            ];
-            processors = [
-              "resourcedetection"
-              "resource"
-              "batch"
-            ];
-            exporters = [ "otlphttp/logs" ];
-          };
         };
       };
     };
-  };
 
-  # Ensure OTel collector can read journal
-  users.users.opentelemetry-collector.extraGroups = [ "systemd-journal" ];
+    exporters = {
+      prometheus = {
+        endpoint = "0.0.0.0:8889";
+        namespace = "otelcol";
+      };
+    };
 
-  # Set environment variables from secrets
-  systemd.services.opentelemetry-collector.serviceConfig = {
-    EnvironmentFile = config.sops.secrets."openobserve-otel.env".path;
-    SupplementaryGroups = [ "opentelemetry-collector" ];
+    service.pipelines.metrics = {
+      receivers = [
+        "prometheus/zfs"
+        "prometheus/postgres"
+      ];
+      exporters = [ "prometheus" ];
+    };
   };
 }

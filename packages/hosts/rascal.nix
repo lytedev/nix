@@ -96,6 +96,7 @@
     ];
   };
 
+  lyte.server.enable = true;
   lyte.headscale.usePreAuthKey = true;
   lyte.shell.enable = false;
 }

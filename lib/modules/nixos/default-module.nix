@@ -51,6 +51,7 @@
     push-to-talk
     opencode
     syncthing
+    server
     roms
 
     (

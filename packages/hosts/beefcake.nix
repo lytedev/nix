@@ -21,6 +21,7 @@
     };
   };
 
+  lyte.server.enable = true;
   lyte.podman.enable = true;
   lyte.headscale.usePreAuthKey = true;
 

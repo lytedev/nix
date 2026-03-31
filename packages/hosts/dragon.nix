@@ -126,7 +126,7 @@
     editableConfigFiles = true;
     flakePath = "/etc/nix/flake";
     podman.enable = true;
-    prevent-suspend.enable = true;
+    server.enable = true;
     headscale.usePreAuthKey = true;
     desktop.enable = true;
     gpu = "amd";

@@ -40,6 +40,7 @@ inputs: {
   push-to-talk = import ./push-to-talk.nix;
   opencode = import ./opencode.nix;
   syncthing = import ./syncthing.nix;
+  server = import ./server.nix;
   roms = import ./roms.nix;
 
   remote-disk-key-entry-on-boot =
