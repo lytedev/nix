@@ -170,11 +170,6 @@ rec {
       };
     };
 
-  foxtrotZfs = zfsEncryptedUser {
-    fullDiskDevicePath = "/dev/nvme0n1";
-    diskName = "foxtrot";
-  };
-
   standardWithHibernateSwap =
     {
       esp ? {
@@ -415,75 +410,6 @@ rec {
                       };
                     };
                   };
-                };
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-
-  foxtrot = {
-    disko.devices = {
-      disk = {
-        primary = {
-          type = "disk";
-          device = "nvme0n1";
-          content = {
-            type = "gpt";
-            partitions = {
-              ESP = ESP {
-                label = "disk-primary-ESP";
-                name = "disk-primary-ESP";
-              };
-              # swap = {
-              #   size = "4G";
-              #   content = {
-              #     type = "swap";
-              #     discardPolicy = "both";
-              #     resumeDevice = false;
-              #   };
-              # };
-              luks = {
-                size = "100%";
-                content = {
-                  type = "luks";
-                  name = "crypted";
-                  # if you want to use the key for interactive login be sure there is no trailing newline
-                  # for example use `echo -n "password" > /tmp/secret.key`
-                  keyFile = "/tmp/secret.key"; # Interactive
-                  # settings.keyFile = "/tmp/password.key";
-                  # additionalKeyFiles = ["/tmp/additionalSecret.key"];
-                  content = {
-                    type = "btrfs";
-                    extraArgs = [ "-f" ];
-                    subvolumes = {
-                      "/nixos-rootfs" = {
-                        mountpoint = "/";
-                        mountOptions = [ "compress=zstd" ];
-                      };
-                      "/nixos-home" = {
-                        mountpoint = "/home";
-                        mountOptions = [ "compress=zstd" ];
-                      };
-                      "/nix" = {
-                        mountpoint = "/nix";
-                        mountOptions = [
-                          "compress=zstd"
-                          "noatime"
-                        ];
-                      };
-                    };
-                  };
-                };
-              };
-              swap2 = {
-                size = "32G";
-                content = {
-                  type = "swap";
-                  discardPolicy = "both";
-                  resumeDevice = true; # resume from hiberation from this device
                 };
               };
             };

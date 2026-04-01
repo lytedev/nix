@@ -8,11 +8,17 @@
   system.stateVersion = "24.11";
   networking = {
     hostName = "foxtrot";
-    hostId = "00482f0a";
+    # hostId no longer needed (was for ZFS)
   };
 
   hardwareModules = [ "framework-13-7040-amd" ];
-  diskConfig = "foxtrotZfs";
+  diskConfig = {
+    name = "standardWithHibernateSwap";
+    params = {
+      disk = "/dev/nvme0n1";
+      swapSize = "32G";
+    };
+  };
 
   boot = {
     kernelParams = [
