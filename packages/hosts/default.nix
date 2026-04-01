@@ -95,5 +95,33 @@ in
     ];
   } ./live.nix { };
 
+  # Installer ISO with a target host's closure pre-cached in the nix store.
+  # Build: nix build .#nixosConfigurations.foxtrotInstaller.config.system.build.isoImage
+  foxtrotInstaller = baseHost rec {
+    nixpkgs = inputs.nixpkgs-unstable;
+    extraModules = [
+      (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix")
+      {
+        system.stateVersion = "25.05";
+        networking.hostName = "foxtrot-installer";
+        networking.networkmanager.enable = nixpkgs.lib.mkForce true;
+
+        # Include the foxtrot system closure in the ISO's nix store
+        system.extraDependencies = [
+          inputs.self.nixosConfigurations.foxtrot.config.system.build.toplevel
+        ];
+
+        environment.systemPackages = with nixpkgs.legacyPackages.x86_64-linux; [
+          disko
+          jq
+          git
+        ];
+
+        lyte.shell.enable = true;
+        lyte.desktop.enable = false;
+      }
+    ];
+  } ./live.nix { };
+
   # arm-dragon = host ./dragon.nix { system = "aarch64-linux"; };
 }
