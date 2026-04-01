@@ -38,7 +38,7 @@
   # OpenObserve container
   virtualisation.oci-containers.containers.openobserve = {
     autoStart = true;
-    image = "public.ecr.aws/zinclabs/openobserve:v0.40.4";
+    image = "public.ecr.aws/zinclabs/openobserve:v0.70.2";
     extraOptions = [
       "--pull=newer"
     ];
