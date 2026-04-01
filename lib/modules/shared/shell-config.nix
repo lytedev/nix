@@ -23,7 +23,7 @@ in
   };
 
   config = lib.mkIf cfg.shell.enable (
-    lib.recursiveUpdate
+    lib.mkMerge [
       {
         programs = {
           fish = {
@@ -123,55 +123,51 @@ in
           ".ssh/config" = "${dotfilesPath}/ssh/config";
         };
       }
-      (
-        if !isDarwin then
-          {
-            services.kanidm =
-              if hasNewKanidmModule then { client.enable = true; } else { enableClient = true; };
-            programs.nix-index.enable = true;
-            programs.command-not-found.enable = false;
-            services.fwupd.enable = lib.mkDefault true;
-            users.defaultUserShell = pkgs.fish;
+      (lib.mkIf (!isDarwin) {
+        services.kanidm =
+          if hasNewKanidmModule then { client.enable = true; } else { enableClient = true; };
+        programs.nix-index.enable = true;
+        programs.command-not-found.enable = false;
+        services.fwupd.enable = lib.mkDefault true;
+        users.defaultUserShell = pkgs.fish;
 
-            programs.traceroute.enable = true;
-            programs.git = {
-              enable = true;
-              package = pkgs.gitFull;
-              lfs.enable = true;
-            };
+        programs.traceroute.enable = true;
+        programs.git = {
+          enable = true;
+          package = pkgs.gitFull;
+          lfs.enable = true;
+        };
 
-            environment = {
-              shellAliases.ls = null;
-              variables.SYSTEMD_EDITOR = "hx";
-              sessionVariables.TERMINAL = "ghostty";
+        environment = {
+          shellAliases.ls = null;
+          variables.SYSTEMD_EDITOR = "hx";
+          sessionVariables.TERMINAL = "ghostty";
 
-              systemPackages = with pkgs; [
-                dnsutils
-                doggo
-                iftop
-                inetutils
-                iputils
-                killall
-                nettools
-                nmap
-                pciutils
-                senpai
-                unixtools.xxd
-                usbutils
+          systemPackages = with pkgs; [
+            dnsutils
+            doggo
+            iftop
+            inetutils
+            iputils
+            killall
+            nettools
+            nmap
+            pciutils
+            senpai
+            unixtools.xxd
+            usbutils
 
-                (pkgs.buildEnv {
-                  name = "my-linux-scripts";
-                  paths = [ ../home/scripts/linux ];
-                })
-              ];
-            };
+            (pkgs.buildEnv {
+              name = "my-linux-scripts";
+              paths = [ ../home/scripts/linux ];
+            })
+          ];
+        };
 
-            lyte.userSymlinks = {
-              ".config/senpai/senpai.scfg" = "${dotfilesPath}/senpai/senpai.scfg";
-            };
-          }
-        else
-          { }
-      )
+        lyte.userSymlinks = {
+          ".config/senpai/senpai.scfg" = "${dotfilesPath}/senpai/senpai.scfg";
+        };
+      })
+    ]
   );
 }
