@@ -30,7 +30,7 @@ let
     import tempfile
     import time
     import evdev
-    from evdev import ecodes, UInput
+    from evdev import ecodes
 
     MODEL_NAME = os.environ.get("PUSH_TO_TALK_MODEL", "${cfg.model}")
     MODEL_DIR = os.path.expanduser("~/.local/share/whisper")
@@ -250,18 +250,6 @@ let
                 if os.path.isfile(wav_path):
                     os.unlink(wav_path)
 
-        def replay_super(self):
-            """Replay a Super key tap so other Super shortcuts still work."""
-            try:
-                ui = UInput()
-                ui.write(ecodes.EV_KEY, KEY_LEFTMETA, 1)
-                ui.syn()
-                ui.write(ecodes.EV_KEY, KEY_LEFTMETA, 0)
-                ui.syn()
-                ui.close()
-            except Exception as e:
-                print(f"Failed to replay Super key: {e}", file=sys.stderr)
-
         def handle_event(self, event):
             if event.type != ecodes.EV_KEY:
                 return
@@ -269,22 +257,18 @@ let
             if event.code in (KEY_LEFTMETA, KEY_RIGHTMETA):
                 if event.value == 1:
                     self.super_held = True
-                    # Grab immediately so V never reaches the compositor
-                    if not self.super_grabbed:
-                        self.grab_devices()
-                        self.super_grabbed = True
                 elif event.value == 0:
                     self.super_held = False
                     if self.recording:
                         self.stop_recording_and_transcribe()
-                    if self.super_grabbed and not self.recording:
-                        # Super released without V — ungrab and replay Super
-                        self.ungrab_devices()
-                        self.replay_super()
-                    self.super_grabbed = False
 
             elif event.code == KEY_V:
                 if event.value == 1 and self.super_held:
+                    # Grab before starting recording so repeat events are swallowed
+                    if not self.super_grabbed:
+                        self.grab_devices()
+                        self.super_grabbed = True
+                    self.erase_leaked_key()
                     self.start_recording()
                 elif event.value == 0 and self.recording:
                     self.stop_recording_and_transcribe()
