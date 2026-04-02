@@ -38,7 +38,7 @@
 
     --tabs-activated-fg: #BFBDB6;
     --tabs-activated-bg: #141821;
-    --tabs-normal-fg: #5A6378;
+    --tabs-normal-fg: var(----tabs-activated-fg);
     --tabs-normal-bg: #0D1017;
     --tabs-activated-shadow: inset 2px 0 0 #E6B450;
     --tabs-progress-bg: #E6B450;

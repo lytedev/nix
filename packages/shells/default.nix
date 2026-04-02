@@ -51,7 +51,7 @@ in
       lua-language-server
       nodePackages.bash-language-server
       markdown-oxide
-      tea
+      forgejo-cli
       nh
     ];
   };
