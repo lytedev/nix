@@ -106,7 +106,7 @@ in
         Environment = "STNODEFAULTFOLDER=1";
       };
       script = ''
-        export STCONFDIR="${danielHome}/.config/syncthing"
+        export STHOMEDIR="${danielHome}/.config/syncthing"
         PASSWORD="$(cat ${config.sops.secrets.syncthing-gui-password.path})"
         # Wait for syncthing API to be ready
         for i in $(seq 1 30); do
