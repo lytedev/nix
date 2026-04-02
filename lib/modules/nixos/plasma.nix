@@ -421,6 +421,8 @@ in
       if hasPlasmaLoginManager then
         lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
           services.displayManager.plasma-login-manager.enable = true;
+          # Auto-unlock KDE Wallet on login via plasmalogin PAM
+          security.pam.services.plasmalogin.kwallet.enable = true;
         }
       else
         lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
