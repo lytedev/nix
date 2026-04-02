@@ -348,7 +348,7 @@ in
                                 ok = False
                                 break
                             key_codes.append(kc)
-                        if not ok or not key_codes:
+                        if not ok:
                             continue
                         fn = friendly_name or group
                         entries.append((group, key, fn, description.strip() or key, key_codes))
