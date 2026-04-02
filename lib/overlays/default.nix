@@ -29,6 +29,8 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
+      voxtype = inputs.voxtype.packages.${final.system}.default;
+
       atuin =
         let
           rust-bin = rust-overlay.lib.mkRustBin { } unstable-packages;

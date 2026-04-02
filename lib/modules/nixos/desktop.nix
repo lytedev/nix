@@ -105,6 +105,9 @@ in
 
         # Ghostty
         ghostty
+
+        # Voice-to-text
+        voxtype
       ];
 
       fonts.packages = [
@@ -147,14 +150,33 @@ in
         MOZ_ENABLE_WAYLAND = "1";
       };
 
+      # Voice-to-text daemon (push-to-talk via Super+V)
+      systemd.user.services.voxtype = {
+        description = "Voxtype push-to-talk voice-to-text";
+        wantedBy = [ "graphical-session.target" ];
+        after = [ "pipewire.service" ];
+        partOf = [ "graphical-session.target" ];
+        serviceConfig = {
+          ExecStart = "${pkgs.voxtype}/bin/voxtype listen";
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+      };
+
       # Symlinks for desktop configs
       lyte.userSymlinks = {
         ".config/ghostty" = "${dotfilesPath}/ghostty";
         ".local/share/fonts" = "/run/current-system/sw/share/X11/fonts";
       };
 
-      # Cursor theme index and GTK settings
+      # Cursor theme index, GTK settings, voxtype config
       lyte.userFiles = {
+        # Voxtype: Super+V push-to-talk
+        ".config/voxtype/config.toml" = ''
+          [hotkey]
+          key = "KEY_V"
+          modifiers = ["LEFTMETA"]
+        '';
         ".icons/default/index.theme" = ''
           [Icon Theme]
           Name=Default

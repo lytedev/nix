@@ -1434,6 +1434,7 @@
         "sops-nix": "sops-nix",
         "spicetify-nix": "spicetify-nix",
         "tuwunel": "tuwunel",
+        "voxtype": "voxtype",
         "zed": "zed"
       }
     },
@@ -1698,6 +1699,29 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "voxtype": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775048999,
+        "narHash": "sha256-w35TNOdJcgMdt98XusY8DjmY4UPv3NQ7m+vR8oliWRU=",
+        "owner": "peteonrails",
+        "repo": "voxtype",
+        "rev": "f292b6e1c9dbcfe4cdc7f781048db8be16c40c18",
+        "type": "github"
+      },
+      "original": {
+        "owner": "peteonrails",
+        "repo": "voxtype",
         "type": "github"
       }
     },
