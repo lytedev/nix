@@ -87,7 +87,7 @@
     podman.enable = true;
     laptop.enable = true;
     family-account.enable = true;
-    push-to-talk.enable = true;
+    push-to-talk.enable = false;
     syncthing.enable = true;
     desktop = {
       # niri.enable = true; # temporarily disabled
