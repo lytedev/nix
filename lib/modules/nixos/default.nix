@@ -37,7 +37,6 @@ inputs: {
   earlyoom = import ./earlyoom.nix;
   user-env = import ../shared/user-env.nix;
   claude = import ./claude.nix;
-  push-to-talk = import ./push-to-talk.nix;
   opencode = import ./opencode.nix;
   syncthing = import ./syncthing.nix;
   server = import ./server.nix;

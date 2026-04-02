@@ -136,7 +136,6 @@
       enable = true;
       users = [ "daniel" ];
     };
-    push-to-talk.enable = true;
     syncthing.enable = true;
     opencode = {
       enable = true;

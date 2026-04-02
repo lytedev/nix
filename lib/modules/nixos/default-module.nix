@@ -48,7 +48,7 @@
     earlyoom
     user-env
     claude
-    push-to-talk
+    # push-to-talk removed — replacing with telly-spelly or similar
     opencode
     syncthing
     server

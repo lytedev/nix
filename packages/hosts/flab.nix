@@ -29,7 +29,6 @@
     gpu = "intel";
     # desktop.niri.enable = true; # temporarily disabled
     family-account.enable = true;
-    push-to-talk.enable = true;
     syncthing.enable = true;
     claude = {
       enable = true;
