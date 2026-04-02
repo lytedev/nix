@@ -74,13 +74,13 @@ nix develop -c deploy -s --targets ".#beefcake"
 nix develop -c deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#beefcake"
 ```
 
-## Forgejo (tea CLI)
-Remote is hosted on Forgejo. Use `tea` for PRs:
+## Forgejo (fj CLI)
+Remote is hosted on Forgejo. Use `fj` (forgejo-cli, available via `nix develop`) for PRs:
 
 ```bash
-tea pr list
-tea pr create              # interactive
-tea pr merge <id>
+nix develop -c fj pr list
+nix develop -c fj pr create "title" --base main --head branch-name --body "description"
+nix develop -c fj pr merge <id>
 ```
 
 ## Nix
