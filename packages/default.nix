@@ -51,4 +51,5 @@
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };
   spacetimedb = pkgs.callPackage ./spacetimedb/package.nix { };
   kanidm = pkgs.callPackage ./kanidm/package.nix { };
+  text-to-mic = pkgs.callPackage ./text-to-mic.nix { };
 }
