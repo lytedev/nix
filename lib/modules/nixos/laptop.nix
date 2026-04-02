@@ -63,20 +63,30 @@
           "hibernate.target"
           "suspend-then-hibernate.target"
         ];
-        serviceConfig.Type = "oneshot";
-        script = ''
-          # Disable USB/Thunderbolt wakeup sources that cause spurious wakeups
-          for src in XHC0 XHC1 XHC3 XHC4 NHI0 NHI1; do
-            if grep -q "$src.*enabled" /proc/acpi/wakeup; then
-              echo "$src" > /proc/acpi/wakeup
-            fi
-          done
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = pkgs.writeShellScript "hibernate-prep" ''
+            export PATH="${
+              lib.makeBinPath [
+                pkgs.kmod
+                pkgs.gnugrep
+                pkgs.coreutils
+              ]
+            }:$PATH"
 
-          # Unload mt7921e WiFi — its firmware times out during hibernate
-          if lsmod | grep -q mt7921e; then
-            modprobe -r mt7921e 2>/dev/null || true
-          fi
-        '';
+            # Disable USB/Thunderbolt wakeup sources that cause spurious wakeups
+            for src in XHC0 XHC1 XHC3 XHC4 NHI0 NHI1; do
+              if grep -q "$src.*enabled" /proc/acpi/wakeup; then
+                echo "$src" > /proc/acpi/wakeup
+              fi
+            done
+
+            # Unload mt7921e WiFi — its firmware times out during hibernate
+            if lsmod | grep -q mt7921e; then
+              modprobe -r mt7921e 2>/dev/null || true
+            fi
+          '';
+        };
       };
 
       systemd.services.hibernate-resume = {
@@ -89,18 +99,28 @@
           "hibernate.target"
           "suspend-then-hibernate.target"
         ];
-        serviceConfig.Type = "oneshot";
-        script = ''
-          # Re-enable wakeup sources
-          for src in XHC0 XHC1 XHC3 XHC4 NHI0 NHI1; do
-            if grep -q "$src.*disabled" /proc/acpi/wakeup; then
-              echo "$src" > /proc/acpi/wakeup
-            fi
-          done
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = pkgs.writeShellScript "hibernate-resume" ''
+            export PATH="${
+              lib.makeBinPath [
+                pkgs.kmod
+                pkgs.gnugrep
+                pkgs.coreutils
+              ]
+            }:$PATH"
 
-          # Reload WiFi module
-          modprobe mt7921e 2>/dev/null || true
-        '';
+            # Re-enable wakeup sources
+            for src in XHC0 XHC1 XHC3 XHC4 NHI0 NHI1; do
+              if grep -q "$src.*disabled" /proc/acpi/wakeup; then
+                echo "$src" > /proc/acpi/wakeup
+              fi
+            done
+
+            # Reload WiFi module
+            modprobe mt7921e 2>/dev/null || true
+          '';
+        };
       };
 
       services.logind = {
