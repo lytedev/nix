@@ -16,7 +16,7 @@ keys:
   - &sshd-at-steamdeck age144px7qvy9axyx6czn9wrl2e55qzw7w35pgsxvdquedu25avewv8sz273t3
   - &sshd-at-steamdeckoled age19cczy8vufc3wv5sgttdlcj363dy9ulyafdy74fdcxvggly9zwcxsssrk0y
 
-  - &ssh-foxtrot age1lqenktsj33u25xrz3vxkcf3afkuvfrqaq89gymzqg6kcqhkzrgvsupq89y
+  - &ssh-foxtrot age165cgcalf4f06j2clxw6atxxc7s0lnt0nrcncratj9dw3af55fsvsdfhv0w
   - &sshd-at-flab age1ytzu6re77mfwvqye7nppqgygqsypulq6gnfs9lz5xq925c7kfvxquvxnan
   - &sshd-at-thinker age1g9n7scq97ug9sej7j4vkt889397jg44qqtsnj4gwgcptxjhe0fxsysjdfd
   - &sshd-at-pebble age1ttp49sl37jcnqphhzvdd5t0hpk2qwel3cuf7an0ar5hvxnlw7eas73ree9
