@@ -202,11 +202,14 @@
       };
     };
 
-    # Ensure /nix is world-readable and /home/daniel is owned correctly —
-    # btrfs subvolumes default to 700 root:root
+    # Ensure /nix is world-readable and home dirs have correct ownership —
+    # btrfs subvolumes default to 700 root:root, and some services create
+    # .config before the user logs in
     systemd.tmpfiles.rules = [
       "d /nix 0755 root root -"
       "d /home/daniel 0755 daniel daniel -"
+      "d /home/daniel/.home 0700 daniel daniel -"
+      "d /home/daniel/.home/.config 0755 daniel daniel -"
     ];
 
     systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp";
