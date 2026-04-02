@@ -49,12 +49,15 @@ pkgs.writeShellApplication {
 
     while IFS= read -r -p "> " line; do
       [ -z "$line" ] && continue
-      # Generate speech to a temp file (piper needs a file or stdout)
+      # Generate speech to a temp file
       TMPWAV=$(mktemp --suffix=.wav)
-      echo "$line" | piper-tts --model "$MODEL" --output_file "$TMPWAV" 2>/dev/null
+      echo "$line" | piper --model "$MODEL" --output_file "$TMPWAV" 2>/dev/null
       # Play to both the virtual sink (for meeting apps) and default output
-      pw-play --target "$SINK_NAME" "$TMPWAV" &
-      pw-play "$TMPWAV"
+      SINK_ID=$(pactl list short sinks | grep "$SINK_NAME" | cut -f1)
+      if [ -n "$SINK_ID" ]; then
+        paplay --device="$SINK_NAME" "$TMPWAV" &
+      fi
+      paplay "$TMPWAV"
       wait
       rm -f "$TMPWAV"
     done
