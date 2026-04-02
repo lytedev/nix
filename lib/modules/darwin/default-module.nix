@@ -14,6 +14,7 @@
     sops-nix.darwinModules.sops
     shell-defaults-and-applications
     user-env
+    desktop
   ];
 
   config = {
