@@ -50,6 +50,59 @@
 
       systemd.sleep.extraConfig = "HibernateDelaySec=11m";
 
+      # Disable wakeup sources and unload flaky WiFi module before hibernate
+      # to prevent "wakeup event detected during hibernation, rolling back"
+      # and mt7921e firmware timeout errors
+      systemd.services.hibernate-prep = {
+        description = "Prepare system for hibernation";
+        before = [
+          "hibernate.target"
+          "suspend-then-hibernate.target"
+        ];
+        wantedBy = [
+          "hibernate.target"
+          "suspend-then-hibernate.target"
+        ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          # Disable USB/Thunderbolt wakeup sources that cause spurious wakeups
+          for src in XHC0 XHC1 XHC3 XHC4 NHI0 NHI1; do
+            if grep -q "$src.*enabled" /proc/acpi/wakeup; then
+              echo "$src" > /proc/acpi/wakeup
+            fi
+          done
+
+          # Unload mt7921e WiFi — its firmware times out during hibernate
+          if lsmod | grep -q mt7921e; then
+            modprobe -r mt7921e 2>/dev/null || true
+          fi
+        '';
+      };
+
+      systemd.services.hibernate-resume = {
+        description = "Restore system after hibernation";
+        after = [
+          "hibernate.target"
+          "suspend-then-hibernate.target"
+        ];
+        wantedBy = [
+          "hibernate.target"
+          "suspend-then-hibernate.target"
+        ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          # Re-enable wakeup sources
+          for src in XHC0 XHC1 XHC3 XHC4 NHI0 NHI1; do
+            if grep -q "$src.*disabled" /proc/acpi/wakeup; then
+              echo "$src" > /proc/acpi/wakeup
+            fi
+          done
+
+          # Reload WiFi module
+          modprobe mt7921e 2>/dev/null || true
+        '';
+      };
+
       services.logind = {
       }
       // (
