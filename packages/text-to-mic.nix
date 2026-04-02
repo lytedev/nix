@@ -7,10 +7,11 @@ pkgs.writeShellApplication {
   runtimeInputs = with pkgs; [
     piper-tts
     pipewire
+    pulseaudio
     coreutils
   ];
   text = ''
-    VIRTUAL_MIC="TextToMic"
+    SINK_NAME="TextToMic"
 
     # Check for a piper voice model
     MODEL_DIR="''${XDG_DATA_HOME:-$HOME/.local/share}/piper-voices"
@@ -24,39 +25,38 @@ pkgs.writeShellApplication {
       ${pkgs.curl}/bin/curl -sL "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json" -o "$MODEL_JSON"
     fi
 
+    MODULE_ID=""
     cleanup() {
       echo ""
       echo "Cleaning up virtual mic..."
-      pw-cli destroy "$VIRTUAL_MIC" 2>/dev/null || true
+      if [ -n "$MODULE_ID" ]; then
+        pactl unload-module "$MODULE_ID" 2>/dev/null || true
+      fi
     }
     trap cleanup EXIT
 
-    # Create a virtual audio source (microphone) via PipeWire
-    echo "Creating virtual microphone '$VIRTUAL_MIC'..."
-    pw-cli create-node adapter "{
-      factory.name=support.null-audio-sink
-      node.name=$VIRTUAL_MIC
-      media.class=Audio/Source/Virtual
-      audio.position=[FL FR]
-      monitor.channel-volumes=true
-      monitor.passthrough=true
-    }" >/dev/null
-
-    sleep 0.5
+    # Create a null sink via PulseAudio — its monitor appears as a mic input
+    echo "Creating virtual microphone '$SINK_NAME'..."
+    MODULE_ID=$(pactl load-module module-null-sink sink_name="$SINK_NAME" \
+      sink_properties=device.description="$SINK_NAME")
 
     echo ""
-    echo "Virtual microphone '$VIRTUAL_MIC' is active."
-    echo "Set your meeting app's mic input to '$VIRTUAL_MIC'."
+    echo "Virtual microphone active."
+    echo "Set your meeting app's mic input to 'Monitor of $SINK_NAME'."
     echo ""
     echo "Type text and press Enter to speak. Ctrl-D or Ctrl-C to quit."
     echo ""
 
     while IFS= read -r -p "> " line; do
       [ -z "$line" ] && continue
-      # Generate speech, tee to both default output and virtual mic
-      echo "$line" | piper-tts --model "$MODEL" --output_raw 2>/dev/null | \
-        tee >(pw-play --target "$VIRTUAL_MIC" --rate 22050 --channels 1 --format s16 -) | \
-        pw-play --rate 22050 --channels 1 --format s16 -
+      # Generate speech to a temp file (piper needs a file or stdout)
+      TMPWAV=$(mktemp --suffix=.wav)
+      echo "$line" | piper-tts --model "$MODEL" --output_file "$TMPWAV" 2>/dev/null
+      # Play to both the virtual sink (for meeting apps) and default output
+      pw-play --target "$SINK_NAME" "$TMPWAV" &
+      pw-play "$TMPWAV"
+      wait
+      rm -f "$TMPWAV"
     done
   '';
 }
