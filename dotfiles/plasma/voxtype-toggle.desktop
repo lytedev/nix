@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
 Name=Voxtype Toggle Recording
-Exec=voxtype record toggle
+Exec=sh -c 'voxtype record toggle; state=$(voxtype status --format plain 2>/dev/null); case "$state" in *recording*) notify-send -a Voxtype -t 1500 -h string:x-kde-display-appname:Voxtype "Recording...";; *transcribing*) notify-send -a Voxtype -t 1500 -h string:x-kde-display-appname:Voxtype "Transcribing...";; *) notify-send -a Voxtype -t 1500 -h string:x-kde-display-appname:Voxtype "Ready";; esac'
 NoDisplay=true
 X-KDE-GlobalAccel-CommandShortcut=true
