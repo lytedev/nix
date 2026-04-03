@@ -108,6 +108,13 @@ in
 
         # Voice-to-text
         voxtype
+        (pkgs.makeDesktopItem {
+          name = "voxtype-toggle";
+          desktopName = "Voxtype Toggle Recording";
+          exec = "${pkgs.voxtype}/bin/voxtype record toggle";
+          noDisplay = true;
+          extraConfig."X-KDE-GlobalAccel-CommandShortcut" = "true";
+        })
       ];
 
       fonts.packages = [

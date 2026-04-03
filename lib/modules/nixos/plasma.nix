@@ -414,8 +414,6 @@ in
       lyte.userSymlinks = {
         ".local/share/color-schemes/AyuDark.colors" = "${config.lyte.dotfilesPath}/plasma/AyuDark.colors";
         ".local/share/color-schemes/AyuLight.colors" = "${config.lyte.dotfilesPath}/plasma/AyuLight.colors";
-        ".local/share/applications/voxtype-toggle.desktop" =
-          "${config.lyte.dotfilesPath}/plasma/voxtype-toggle.desktop";
       };
     })
 
