@@ -163,6 +163,13 @@ in
         wantedBy = [ "graphical-session.target" ];
         after = [ "pipewire.service" ];
         partOf = [ "graphical-session.target" ];
+        path = with pkgs; [
+          wtype
+          dotool
+          ydotool
+          wl-clipboard
+          libnotify
+        ];
         serviceConfig = {
           ExecStart = "${pkgs.voxtype}/bin/voxtype --no-hotkey daemon";
           Restart = "on-failure";
