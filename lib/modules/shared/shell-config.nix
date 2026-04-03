@@ -79,12 +79,17 @@ in
             nil
             nixd
             nixfmt-rfc-style
+            rbw
             ripgrep
             rsync
             sd
             w3m
+            wden
             xh
             zellij
+
+            aerc
+            iamb
 
             (pkgs.buildEnv {
               name = "my-common-scripts";
