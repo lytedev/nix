@@ -179,6 +179,8 @@ in
 
           [audio]
           device = "default"
+          sample_rate = 16000
+          max_duration_secs = 60
         '';
         ".icons/default/index.theme" = ''
           [Icon Theme]
