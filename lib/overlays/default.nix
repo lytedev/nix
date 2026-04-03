@@ -31,6 +31,22 @@ let
 
       voxtype = inputs.voxtype.packages.${final.system}.default;
 
+      # Override iamb with unreads fix PR #579
+      iamb = prev.iamb.overrideAttrs (old: rec {
+        version = "0.0.11-unreads-fix";
+        src = final.fetchFromGitHub {
+          owner = "VAWVAW";
+          repo = "iamb";
+          rev = "87a702d4a520d2c0ae54f9d76178f9f54e09b56e";
+          hash = "sha256-ycKOIdoMcz9XfpdP4IwgvcgI763tlWoQRdCCGoWsysA=";
+        };
+        cargoDeps = final.rustPlatform.fetchCargoVendor {
+          inherit src;
+          hash = "sha256-uWYNFNoCiqw6gYuHZWmZmZVs7lKNvhzjwEyxgcbvv+8=";
+        };
+        doInstallCheck = false;
+      });
+
       atuin =
         let
           rust-bin = rust-overlay.lib.mkRustBin { } unstable-packages;
