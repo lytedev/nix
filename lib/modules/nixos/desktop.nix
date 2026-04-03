@@ -157,7 +157,7 @@ in
         after = [ "pipewire.service" ];
         partOf = [ "graphical-session.target" ];
         serviceConfig = {
-          ExecStart = "${pkgs.voxtype}/bin/voxtype daemon --no-hotkey";
+          ExecStart = "${pkgs.voxtype}/bin/voxtype --no-hotkey daemon";
           Restart = "on-failure";
           RestartSec = 5;
         };
