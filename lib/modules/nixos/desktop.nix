@@ -171,17 +171,6 @@ in
 
       # Cursor theme index, GTK settings, voxtype config
       lyte.userFiles = {
-        # Voxtype: Super+V push-to-talk
-        ".config/voxtype/config.toml" = ''
-          [hotkey]
-          key = "KEY_V"
-          modifiers = ["LEFTMETA"]
-
-          [audio]
-          device = "default"
-          sample_rate = 16000
-          max_duration_secs = 60
-        '';
         ".icons/default/index.theme" = ''
           [Icon Theme]
           Name=Default
