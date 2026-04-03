@@ -176,6 +176,9 @@ in
           [hotkey]
           key = "KEY_V"
           modifiers = ["LEFTMETA"]
+
+          [audio]
+          device = "default"
         '';
         ".icons/default/index.theme" = ''
           [Icon Theme]
