@@ -32,8 +32,8 @@ let
       "ns5.he.net."
     ];
 
-    # Root A record — pebble's static IP
-    A = [ "204.168.181.230" ];
+    # Root A record — Netlify load balancer
+    A = [ "75.2.60.5" ];
 
     # Mail
     MX = [
