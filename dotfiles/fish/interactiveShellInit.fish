@@ -163,6 +163,17 @@ end
 function fish_right_prompt
 end
 
+# atuin - inline hex preamble instead of `atuin hex init` because
+# hex init hardcodes `atuin init fish` without --disable-up-arrow
+if status is-interactive; and test -t 0; and test -t 1
+    if not set -q ATUIN_HEX_ACTIVE; or test "$TMUX" != "$ATUIN_HEX_TMUX"
+        set -gx ATUIN_HEX_ACTIVE 1
+        set -gx ATUIN_HEX_TMUX "$TMUX"
+        exec atuin hex
+    end
+end
+atuin init fish --disable-up-arrow | source
+
 # key bindings
 fish_vi_key_bindings
 

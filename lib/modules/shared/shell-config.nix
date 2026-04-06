@@ -33,9 +33,7 @@ in
             interactiveShellInit = ''
               source ${dotfilesPath}/fish/interactiveShellInit.fish
 
-              # Shell integrations
-              ${pkgs.atuin}/bin/atuin hex init | source
-              ${pkgs.atuin}/bin/atuin init fish --disable-up-arrow | source
+              # Shell integrations (atuin is in interactiveShellInit.fish)
               ${pkgs.direnv}/bin/direnv hook fish | source
               ${pkgs.fzf}/bin/fzf --fish | source
             '';
