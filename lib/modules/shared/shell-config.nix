@@ -69,17 +69,20 @@ in
             fd
             file
             gawk
+            harper
             helix
             hexyl
             htop
             jq
             jujutsu
+            marksman
             nil
             nixd
             nixfmt-rfc-style
             rbw
             ripgrep
             rsync
+            rumdl
             sd
             w3m
             wden

@@ -61,6 +61,21 @@ indent = { tab-width = 2, unit = "  " }
 name = "hjson"
 source = { git = "https://github.com/lytedev/tree-sitter-hjson", rev = "main" }
 
+[language-server.harper-ls]
+command = "harper-ls"
+args = ["--stdio"]
+
+[language-server.rumdl]
+command = "rumdl"
+args = ["server"]
+
+[[language]]
+name = "markdown"
+language-servers = ["marksman", "harper-ls", "rumdl"]
+soft-wrap.enable = true
+text-width = 80
+soft-wrap.wrap-at-text-width = true
+
 [language-server.lexical]
 args = ["start"]
 command = "lexical"
