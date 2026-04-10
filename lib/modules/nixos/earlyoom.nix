@@ -20,10 +20,12 @@ in
     services.earlyoom = {
       enable = true;
 
-      # SIGTERM at 5% free memory (= 95% usage)
-      freeMemThreshold = 5;
-      # SIGKILL at 2% free memory (= 98% usage) if SIGTERM didn't work
-      freeMemKillThreshold = 2;
+      # SIGTERM at 8% free memory (= 92% usage)
+      freeMemThreshold = 8;
+      # SIGKILL at 5% free memory (= 95% usage) if SIGTERM didn't work
+      # must be well above SIGTERM to avoid the process sitting in the gap
+      # and earlyoom looping SIGTERM forever (see dragon OOM 2026-04-10)
+      freeMemKillThreshold = 5;
 
       # swap thresholds
       freeSwapThreshold = 10;
