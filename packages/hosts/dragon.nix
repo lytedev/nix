@@ -35,6 +35,14 @@
     ];
   };
 
+  # zram swap as a pressure relief valve for earlyoom — gives the kernel
+  # somewhere to page inactive memory so earlyoom has time to act
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 25;
+  };
+
   hardware.bluetooth.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
 
