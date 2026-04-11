@@ -131,8 +131,7 @@
     };
 
     tuwunel = {
-      # personal fork with OIDC server for next-gen auth (MSC2965)
-      url = "github:lytedev/tuwunel/oidc-server";
+      url = "github:matrix-construct/tuwunel";
     };
 
     voxtype = {
