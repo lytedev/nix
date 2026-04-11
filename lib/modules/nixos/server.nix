@@ -99,6 +99,9 @@ in
                         targets = [
                           "${config.services.prometheus.exporters.node.listenAddress}:${toString config.services.prometheus.exporters.node.port}"
                         ];
+                        labels = {
+                          host = hostname;
+                        };
                       }
                     ];
                   }
