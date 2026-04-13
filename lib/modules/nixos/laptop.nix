@@ -48,8 +48,6 @@
       # Enable WiFi powersave
       networking.networkmanager.wifi.powersave = true;
 
-      systemd.sleep.settings.Sleep.HibernateDelaySec = "11m";
-
       # Disable wakeup sources and unload flaky WiFi module before hibernate
       # to prevent "wakeup event detected during hibernation, rolling back"
       # and mt7921e firmware timeout errors
@@ -169,5 +167,13 @@
           }
       );
     })
+
+    # HibernateDelaySec — use new settings path if available, old extraConfig otherwise
+    (lib.mkIf config.lyte.laptop.enable (
+      if options.systemd.sleep ? settings then
+        { systemd.sleep.settings.Sleep.HibernateDelaySec = "11m"; }
+      else
+        { systemd.sleep.extraConfig = "HibernateDelaySec=11m"; }
+    ))
   ];
 }
