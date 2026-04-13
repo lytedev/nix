@@ -10,6 +10,7 @@
   # Required for mautrix bridges with E2EE support (libolm is deprecated but still needed)
   nixpkgs.config.permittedInsecurePackages = [
     "olm-3.2.16"
+    "unifi-controller-9.5.21"
   ];
 
   sops = {
