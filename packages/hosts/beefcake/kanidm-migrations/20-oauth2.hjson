@@ -62,6 +62,32 @@
     },
     {
       "state": "present",
+      "id": "a1685b27-6e41-4e04-9bd6-d61e5aebc3ba",
+      "class": [
+        "account",
+        "oauth2_resource_server",
+        "oauth2_resource_server_public"
+      ],
+      "name": "spacetimedb.h.lyte.dev",
+      "displayname": "SpacetimeDB",
+      "oauth2_rs_origin_landing": "https://spacetimedb.h.lyte.dev/",
+      // Public client with PKCE — required by kanidm for localhost redirects.
+      // Used by CLI OAuth2 auth code flow (oidc-token.sh).
+      "oauth2_rs_origin": "https://spacetimedb.h.lyte.dev/",
+      "oauth2_allow_localhost_redirect": true,
+      "oauth2_rs_scope_map": [
+        {
+          "group": "spacetimedb.h.lyte.dev_users",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ]
+        }
+      ]
+    },
+    {
+      "state": "present",
       "id": "c51de6b3-bf98-4a59-9620-6bef56fa2339",
       "class": [
         "account",

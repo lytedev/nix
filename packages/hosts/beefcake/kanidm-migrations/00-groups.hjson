@@ -74,6 +74,17 @@
         "daniel",
         "lytebot"
       ]
+    },
+    {
+      "state": "present",
+      "id": "b3a7e21c-8f4d-4a1b-9c6e-5d2f8a0b1c3e",
+      "class": [
+        "group"
+      ],
+      "name": "spacetimedb.h.lyte.dev_users",
+      "member": [
+        "daniel"
+      ]
     }
   ]
 }
