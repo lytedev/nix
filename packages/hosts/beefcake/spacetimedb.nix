@@ -55,6 +55,7 @@ in
         packages = with pkgs; [ spacetimedb ];
       };
       enable = true;
+      wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       script = ''${pkgs.spacetimedb}/bin/spacetime --root-dir /storage/spacetimedb start --listen-addr="${cfg.bindHost}:${toString cfg.port}"'';
     };
