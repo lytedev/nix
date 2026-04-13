@@ -14,7 +14,7 @@ let
     SOA = {
       nameServer = "ns0.1984.is.";
       adminEmail = "dns@lyte.dev";
-      serial = 2025032500;
+      serial = 2026041300;
       refresh = 7200;
       retry = 3600;
       expire = 1209600;
@@ -60,6 +60,8 @@ let
 
       # --- Static records ---
       pebble.A = [ "204.168.181.230" ];
+
+      "login.alaeria".CNAME = [ "alaeria-auth.lytedev20.deno.net." ];
 
       # Dynamic A/AAAA records are NOT in the zone file. They are created
       # at runtime by the dns-updater module via nsupdate. NXDOMAIN is
