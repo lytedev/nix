@@ -240,13 +240,6 @@ let
             '';
           };
 
-      # Debounce tile editor toggle to prevent key-repeat from firing
-      # toggle() multiple times while the main thread is blocked loading QML.
-      kdePackages = prev.kdePackages // {
-        kwin = prev.kdePackages.kwin.overrideAttrs (old: {
-          patches = (old.patches or [ ]) ++ [ ../../patches/kwin-tileseditor-double-toggle.patch ];
-        });
-      };
 
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
