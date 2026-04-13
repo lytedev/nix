@@ -48,7 +48,7 @@
       # Enable WiFi powersave
       networking.networkmanager.wifi.powersave = true;
 
-      systemd.sleep.extraConfig = "HibernateDelaySec=11m";
+      systemd.sleep.settings.Sleep.HibernateDelaySec = "11m";
 
       # Disable wakeup sources and unload flaky WiFi module before hibernate
       # to prevent "wakeup event detected during hibernation, rolling back"

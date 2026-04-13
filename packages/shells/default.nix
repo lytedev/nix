@@ -49,7 +49,7 @@ in
       nixd
       nixfmt
       lua-language-server
-      nodePackages.bash-language-server
+      bash-language-server
       markdown-oxide
       forgejo-cli
       nh
