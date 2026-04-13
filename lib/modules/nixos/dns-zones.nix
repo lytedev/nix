@@ -61,7 +61,8 @@ let
       # --- Static records ---
       pebble.A = [ "204.168.181.230" ];
 
-      "login.alaeria".CNAME = [ "alaeria-auth.lytedev20.deno.net." ];
+      "login.alaeria".CNAME = [ "alias.deno.net." ];
+      "_acme-challenge.login.alaeria".CNAME = [ "_acme.deno.net." ];
 
       # Dynamic A/AAAA records are NOT in the zone file. They are created
       # at runtime by the dns-updater module via nsupdate. NXDOMAIN is
