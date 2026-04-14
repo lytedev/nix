@@ -29,10 +29,38 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
-      # tests require AVX2+ which beefcake's Xeon E5-2680 v2 lacks
-      voxtype = (inputs.voxtype.packages.${final.system}.default).overrideAttrs {
-        doCheck = false;
-      };
+      # Re-wrap voxtype with doCheck=false on the unwrapped build.
+      # Tests require AVX2+ which beefcake's CI runner (Xeon E5-2680 v2) lacks.
+      voxtype =
+        let
+          unwrapped = (inputs.voxtype.packages.${final.system}.voxtype-unwrapped).overrideAttrs {
+            doCheck = false;
+          };
+        in
+        prev.symlinkJoin {
+          name = "voxtype-wrapped-${unwrapped.version}";
+          paths = [ unwrapped ];
+          buildInputs = [ prev.makeWrapper ];
+          postBuild = ''
+            wrapProgram $out/bin/voxtype \
+              --prefix PATH : ${
+                prev.lib.makeBinPath (
+                  with prev;
+                  [
+                    wtype
+                    dotool
+                    wl-clipboard
+                    ydotool
+                    xdotool
+                    xclip
+                    libnotify
+                    pciutils
+                  ]
+                )
+              }
+          '';
+          inherit (unwrapped) meta;
+        };
 
       # Override iamb with unreads fix PR #579
       iamb = prev.iamb.overrideAttrs (old: rec {
