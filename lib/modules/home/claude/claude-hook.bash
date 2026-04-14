@@ -108,12 +108,26 @@ case "$SUBCOMMAND" in
     NOTIFICATION_TYPE="$(echo "$HOOK_DATA" | jq -r '.type // empty')"
     MESSAGE="$(echo "$HOOK_DATA" | jq -r '.message // "Needs attention"')"
 
+    # Build a session label: prefer session_title, fall back to cwd basename
+    SESSION_LABEL=""
+    if [ -n "$CLAUDE_TITLE" ]; then
+      SESSION_LABEL="$CLAUDE_TITLE"
+    else
+      SESSION_LABEL="$(basename "$HOOK_CWD")"
+    fi
+
+    # Truncate message for desktop notification body (keep first 200 chars)
+    NOTIFY_BODY="$MESSAGE"
+    if [ "${#NOTIFY_BODY}" -gt 200 ]; then
+      NOTIFY_BODY="${NOTIFY_BODY:0:197}..."
+    fi
+
     if [ "$NOTIFICATION_TYPE" = "permission_prompt" ]; then
       write_status "permission" "$MESSAGE"
-      claude-notify --type permission --title "Permission needed" --body "$MESSAGE" --urgency critical --from "$FROM_URI" || true
+      claude-notify --type permission --title "Permission needed — $SESSION_LABEL" --body "$NOTIFY_BODY" --urgency critical --from "$FROM_URI" || true
     else
       write_status "idle" "$MESSAGE"
-      claude-notify --type idle --title "Session idle" --body "$MESSAGE" --urgency normal --from "$FROM_URI" || true
+      claude-notify --type idle --title "Idle — $SESSION_LABEL" --body "$NOTIFY_BODY" --urgency normal --from "$FROM_URI" || true
     fi
     ;;
   stop)
