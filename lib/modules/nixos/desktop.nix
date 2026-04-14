@@ -43,6 +43,11 @@ in
           };
           mobile = lib.mkEnableOption "Use mobile Firefox profile instead of desktop";
         };
+        voxtype.model = lib.mkOption {
+          type = types.str;
+          default = "base.en";
+          description = "Whisper model for voxtype (e.g. base.en, large-v3-turbo)";
+        };
         easyeffects = {
           enable = lib.mkEnableOption "Enable EasyEffects audio processing";
           preset = lib.mkOption {
@@ -105,6 +110,9 @@ in
 
         # Ghostty
         ghostty
+
+        # Audio recording (used by Claude Code /voice)
+        sox
 
         # Voice-to-text
         voxtype
@@ -170,6 +178,7 @@ in
           wl-clipboard
           libnotify
         ];
+        environment.VOXTYPE_MODEL = cfg.voxtype.model;
         serviceConfig = {
           ExecStart = "${pkgs.voxtype}/bin/voxtype --no-hotkey daemon";
           Restart = "on-failure";
