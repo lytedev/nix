@@ -29,7 +29,10 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
-      voxtype = inputs.voxtype.packages.${final.system}.default;
+      # tests require AVX2+ which beefcake's Xeon E5-2680 v2 lacks
+      voxtype = (inputs.voxtype.packages.${final.system}.default).overrideAttrs {
+        doCheck = false;
+      };
 
       # Override iamb with unreads fix PR #579
       iamb = prev.iamb.overrideAttrs (old: rec {
@@ -239,7 +242,6 @@ let
                                'console.warn(`Warning: This script expects bun@''${expectedBunVersionRange}'
             '';
           };
-
 
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
