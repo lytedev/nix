@@ -1,12 +1,16 @@
 # shellcheck shell=bash
 # claude-ws <name>
 # Launch Claude Code in an isolated jj workspace rooted at
-# $XDG_DATA_HOME/code-workspace/<name>. Session gets --name <name> and a
-# persistent --session-id. Inside zellij, runs in a new tab named <name>;
-# re-running focuses the existing tab.
+# $XDG_DATA_HOME/code-workspace/<name>. Per-workspace metadata is kept
+# outside the tree at $XDG_STATE_HOME/claude-ws/<name>/ so the workspace
+# working copy stays pristine. Session gets --name <name> and a persistent
+# --session-id. Inside zellij, runs in a new tab named <name>; re-running
+# focuses the existing tab.
 
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 WS_ROOT="$DATA_HOME/code-workspace"
+WS_STATE_ROOT="$STATE_HOME/claude-ws"
 
 usage() {
   cat <<'USAGE'
@@ -24,43 +28,51 @@ escape_path() {
   printf '%s' "$1" | tr '/.:' '---'
 }
 
-fmt_relative() {
-  # arg: unix timestamp. Echo short relative label like "3h", "2d", "-".
-  local ts="$1"
-  if [ -z "$ts" ] || [ "$ts" = "0" ]; then
-    printf '%s' "-"
-    return
-  fi
-  local now delta
-  now="$(date +%s)"
-  delta=$((now - ts))
-  if [ $delta -lt 60 ]; then printf '%ds' "$delta"
-  elif [ $delta -lt 3600 ]; then printf '%dm' $((delta / 60))
-  elif [ $delta -lt 86400 ]; then printf '%dh' $((delta / 3600))
-  elif [ $delta -lt 2592000 ]; then printf '%dd' $((delta / 86400))
-  else printf '%dmo' $((delta / 2592000))
-  fi
-}
-
 stat_mtime() {
   # arg: path. Echo mtime unix ts, or empty if missing.
   [ -e "$1" ] || return 0
   stat -c %Y "$1" 2>/dev/null || true
 }
 
+# Migrate in-tree .claude-ws/ metadata to out-of-tree state dir.
+# arg: workspace name. Idempotent.
+migrate_state() {
+  local name="$1"
+  local old="$WS_ROOT/$name/.claude-ws"
+  local new="$WS_STATE_ROOT/$name"
+  [ -d "$old" ] || return 0
+  if [ ! -d "$new" ]; then
+    mkdir -p "$WS_STATE_ROOT"
+    mv "$old" "$new"
+  else
+    # Both exist — merge any missing files, then drop the old dir.
+    local f
+    for f in "$old"/*; do
+      [ -e "$f" ] || continue
+      local bn
+      bn="$(basename "$f")"
+      [ -e "$new/$bn" ] || mv "$f" "$new/$bn"
+    done
+    rm -rf "$old"
+  fi
+}
+
 last_interaction_ts() {
-  # arg: ws_dir. Prefer .claude-ws/last-message (written by claude-hook on
-  # user-prompt/stop), fall back to the session's jsonl mtime.
-  local ws_dir="$1"
-  local lm="$ws_dir/.claude-ws/last-message"
+  # arg: workspace name. Prefer $WS_STATE_ROOT/<name>/last-message (written
+  # by claude-hook on user-prompt/stop), fall back to the session's jsonl
+  # mtime.
+  local name="$1"
+  local state_dir="$WS_STATE_ROOT/$name"
+  local lm="$state_dir/last-message"
   if [ -e "$lm" ]; then
     stat_mtime "$lm"
     return
   fi
-  local sid_file="$ws_dir/.claude-ws/session-id"
+  local sid_file="$state_dir/session-id"
   [ -f "$sid_file" ] || return 0
   local sid
   sid="$(cat "$sid_file")"
+  local ws_dir="$WS_ROOT/$name"
   local escaped
   escaped="$(escape_path "$ws_dir")"
   local jsonl="$HOME/.claude/projects/$escaped/$sid.jsonl"
@@ -71,23 +83,25 @@ list_workspaces() {
   # TSV: name\trepo_basename\trepo_path\tcreated_ts\taccessed_ts\tmsg_ts
   [ -d "$WS_ROOT" ] || return 0
   for dir in "$WS_ROOT"/*/; do
-    [ -d "$dir/.claude-ws" ] || continue
     name="$(basename "$dir")"
+    migrate_state "$name"
+    state_dir="$WS_STATE_ROOT/$name"
+    [ -d "$state_dir" ] || continue
     repo_path=""
-    if [ -f "$dir/.claude-ws/repo" ]; then
-      repo_path="$(cat "$dir/.claude-ws/repo")"
+    if [ -f "$state_dir/repo" ]; then
+      repo_path="$(cat "$state_dir/repo")"
     fi
     repo_base=""
     [ -n "$repo_path" ] && repo_base="$(basename "$repo_path")"
     created_ts=""
-    if [ -f "$dir/.claude-ws/created" ]; then
-      created_ts="$(cat "$dir/.claude-ws/created")"
+    if [ -f "$state_dir/created" ]; then
+      created_ts="$(cat "$state_dir/created")"
     else
-      created_ts="$(stat_mtime "$dir/.claude-ws")"
+      created_ts="$(stat_mtime "$state_dir")"
     fi
-    accessed_ts="$(stat_mtime "$dir/.claude-ws/last-accessed")"
+    accessed_ts="$(stat_mtime "$state_dir/last-accessed")"
     [ -z "$accessed_ts" ] && accessed_ts="$created_ts"
-    msg_ts="$(last_interaction_ts "$dir")"
+    msg_ts="$(last_interaction_ts "$name")"
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
       "$name" "$repo_base" "$repo_path" "$created_ts" "$accessed_ts" "$msg_ts"
   done
@@ -139,7 +153,8 @@ case "${1:-}" in
       NAME="$(pick_workspace)" || exit $?
     fi
     WS_PATH="$WS_ROOT/$NAME"
-    if [ ! -d "$WS_PATH" ]; then
+    STATE_DIR="$WS_STATE_ROOT/$NAME"
+    if [ ! -d "$WS_PATH" ] && [ ! -d "$STATE_DIR" ]; then
       echo "claude-ws: no workspace '$NAME'" >&2
       exit 1
     fi
@@ -151,12 +166,14 @@ case "${1:-}" in
         exit 0
         ;;
     esac
+    migrate_state "$NAME"
     repo=""
-    [ -f "$WS_PATH/.claude-ws/repo" ] && repo="$(cat "$WS_PATH/.claude-ws/repo")"
+    [ -f "$STATE_DIR/repo" ] && repo="$(cat "$STATE_DIR/repo")"
     if [ -n "$repo" ] && [ -d "$repo/.jj" ]; then
       (cd "$repo" && jj workspace forget "$NAME" 2>/dev/null) || true
     fi
     rm -rf "$WS_PATH"
+    rm -rf "$STATE_DIR"
     echo "removed $NAME"
     exit 0
     ;;
@@ -174,7 +191,8 @@ case "${1:-}" in
 esac
 
 WS_PATH="$WS_ROOT/$NAME"
-STATE_DIR="$WS_PATH/.claude-ws"
+migrate_state "$NAME"
+STATE_DIR="$WS_STATE_ROOT/$NAME"
 SID_FILE="$STATE_DIR/session-id"
 
 if [ ! -d "$WS_PATH/.jj" ]; then
@@ -208,7 +226,7 @@ fi
 export CLAUDE_SESSION_NAME="$NAME"
 # Inline env on the command so CLAUDE_SESSION_NAME reaches claude when spawned
 # via `zellij action new-tab --` (which doesn't inherit caller env).
-CLAUDE_CMD=(env "CLAUDE_SESSION_NAME=$NAME" claude --dangerously-skip-permissions --name "$NAME" "${CLAUDE_ARGS[@]}")
+CLAUDE_CMD=(env "CLAUDE_SESSION_NAME=$NAME" claude --dangerously-skip-permissions --remote-control "$NAME" --name "$NAME" "${CLAUDE_ARGS[@]}")
 
 if [ -n "${ZELLIJ:-}" ]; then
   if zellij action query-tab-names 2>/dev/null | grep -Fxq "$NAME"; then

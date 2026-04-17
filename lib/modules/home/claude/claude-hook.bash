@@ -104,8 +104,8 @@ touch_ws_activity() {
   # If this session is part of a claude-ws workspace, update its activity mtime.
   # Optional arg: last prompt text (truncated to 200 chars and stored).
   [ -n "${CLAUDE_SESSION_NAME:-}" ] || return 0
-  local data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
-  local ws_state="$data_home/code-workspace/$CLAUDE_SESSION_NAME/.claude-ws"
+  local state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+  local ws_state="$state_home/claude-ws/$CLAUDE_SESSION_NAME"
   [ -d "$ws_state" ] || return 0
   touch "$ws_state/last-message"
   if [ $# -ge 1 ] && [ -n "$1" ]; then
