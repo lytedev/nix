@@ -37,7 +37,7 @@ if [ -f "$SID_FILE" ]; then
   SID="$(cat "$SID_FILE")"
   CLAUDE_ARGS=(--resume "$SID")
 else
-  SID="$(uuidgen | tr 'A-Z' 'a-z')"
+  SID="$(uuidgen | tr '[:upper:]' '[:lower:]')"
   printf '%s\n' "$SID" >"$SID_FILE"
   CLAUDE_ARGS=(--session-id "$SID")
 fi
