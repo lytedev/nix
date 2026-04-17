@@ -102,6 +102,7 @@ let
     runtimeInputs = with pkgs; [
       jq
       coreutils
+      zellij
     ];
   };
 
@@ -138,6 +139,17 @@ let
       jq
     ];
     preamble = ''NOTIFY_PORT="${toString cfg.notifyPort}"'';
+  };
+
+  claude-ws = mkScript {
+    name = "claude-ws";
+    runtimeInputs = with pkgs; [
+      jujutsu
+      zellij
+      util-linux # uuidgen
+      coreutils
+      gnugrep
+    ];
   };
 
   claude-setup = mkScript {
@@ -194,6 +206,8 @@ in
       claude-notify-listen
       claude-matrix-send
       claude-setup
+      claude-ws
+      pkgs.rust-petname
     ];
 
     lyte.userSymlinks.".claude/CLAUDE.md" =

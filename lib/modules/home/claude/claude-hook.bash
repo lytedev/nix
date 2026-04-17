@@ -103,6 +103,14 @@ write_status() {
 case "$SUBCOMMAND" in
   session-start)
     write_status "working" "Session started"
+    if [ -n "${ZELLIJ:-}" ]; then
+      TAB_NAME="${CLAUDE_SESSION_NAME:-}"
+      if [ -z "$TAB_NAME" ]; then
+        TAB_NAME="$(echo "$HOOK_DATA" | jq -r '.session_name // empty')"
+      fi
+      : "${TAB_NAME:=$SESSION_ID}"
+      zellij action rename-tab "$TAB_NAME" 2>/dev/null || true
+    fi
     ;;
   notification)
     NOTIFICATION_TYPE="$(echo "$HOOK_DATA" | jq -r '.type // empty')"
