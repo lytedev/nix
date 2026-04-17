@@ -5,31 +5,70 @@
 # persistent --session-id. Inside zellij, runs in a new tab named <name>;
 # re-running focuses the existing tab.
 
-NAME="${1:-}"
-if [ -z "$NAME" ]; then
-  echo "usage: claude-ws <name>" >&2
-  exit 2
-fi
-
-# Find enclosing jj repo root (search upward from cwd).
-dir="$PWD"
-while [ "$dir" != "/" ] && [ ! -d "$dir/.jj" ]; do
-  dir="$(dirname "$dir")"
-done
-if [ ! -d "$dir/.jj" ]; then
-  echo "claude-ws: no jj repo above $PWD" >&2
-  exit 1
-fi
-REPO_ROOT="$dir"
-
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-WS_PATH="$DATA_HOME/code-workspace/$NAME"
+WS_ROOT="$DATA_HOME/code-workspace"
+
+usage() {
+  cat <<'USAGE'
+usage:
+  claude-ws                 fuzzy-pick existing workspace and launch
+  claude-ws <name>          create-or-resume workspace <name>
+  claude-ws ls              list existing workspaces
+  claude-ws -h | --help     show this help
+USAGE
+}
+
+list_workspaces() {
+  [ -d "$WS_ROOT" ] || return 0
+  for dir in "$WS_ROOT"/*/; do
+    [ -d "$dir/.claude-ws" ] || continue
+    basename "$dir"
+  done
+}
+
+case "${1:-}" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  ls)
+    list_workspaces
+    exit 0
+    ;;
+  "")
+    if ! command -v fzf >/dev/null; then
+      echo "claude-ws: fzf not found; pass a <name> arg" >&2
+      exit 2
+    fi
+    NAME="$(list_workspaces | fzf --prompt='workspace> ' --height=40% --reverse)" || exit 1
+    [ -n "$NAME" ] || exit 1
+    ;;
+  -*)
+    echo "claude-ws: unknown flag '$1'" >&2
+    usage >&2
+    exit 2
+    ;;
+  *)
+    NAME="$1"
+    ;;
+esac
+
+WS_PATH="$WS_ROOT/$NAME"
 STATE_DIR="$WS_PATH/.claude-ws"
 SID_FILE="$STATE_DIR/session-id"
 
 if [ ! -d "$WS_PATH/.jj" ]; then
+  # Creating a new workspace — need an enclosing jj repo to add it to.
+  dir="$PWD"
+  while [ "$dir" != "/" ] && [ ! -d "$dir/.jj" ]; do
+    dir="$(dirname "$dir")"
+  done
+  if [ ! -d "$dir/.jj" ]; then
+    echo "claude-ws: no jj repo above $PWD to create workspace '$NAME' from" >&2
+    exit 1
+  fi
   mkdir -p "$(dirname "$WS_PATH")"
-  (cd "$REPO_ROOT" && jj workspace add --name "$NAME" "$WS_PATH")
+  (cd "$dir" && jj workspace add --name "$NAME" "$WS_PATH")
 fi
 
 mkdir -p "$STATE_DIR"

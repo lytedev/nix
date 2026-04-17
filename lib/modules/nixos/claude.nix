@@ -149,6 +149,7 @@ let
       util-linux # uuidgen
       coreutils
       gnugrep
+      fzf
     ];
   };
 
