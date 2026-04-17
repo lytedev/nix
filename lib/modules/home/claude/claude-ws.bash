@@ -42,7 +42,10 @@ else
   CLAUDE_ARGS=(--session-id "$SID")
 fi
 
-CLAUDE_CMD=(claude --dangerously-skip-permissions --name "$NAME" "${CLAUDE_ARGS[@]}")
+export CLAUDE_SESSION_NAME="$NAME"
+# Inline env on the command so CLAUDE_SESSION_NAME reaches claude when spawned
+# via `zellij action new-tab --` (which doesn't inherit caller env).
+CLAUDE_CMD=(env "CLAUDE_SESSION_NAME=$NAME" claude --dangerously-skip-permissions --name "$NAME" "${CLAUDE_ARGS[@]}")
 
 if [ -n "${ZELLIJ:-}" ]; then
   if zellij action query-tab-names 2>/dev/null | grep -Fxq "$NAME"; then
