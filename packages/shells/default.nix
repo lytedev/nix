@@ -62,7 +62,7 @@ in
       happy-coder
       codex
       pkgs.opencode
-      zed-editor
+      # zed-editor  # broken: livekit-libwebrtc fails against new pipewire/spa API
     ];
     shellHook = ''
       # happy-coder looks for claude at ~/.local/bin/claude (not in PATH)
