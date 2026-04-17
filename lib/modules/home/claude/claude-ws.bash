@@ -51,5 +51,5 @@ if [ -n "${ZELLIJ:-}" ]; then
   exec zellij action new-tab --cwd "$WS_PATH" --name "$NAME" -- "${CLAUDE_CMD[@]}"
 fi
 
-cd "$WS_PATH"
+cd "$WS_PATH" || exit 1
 exec "${CLAUDE_CMD[@]}"
