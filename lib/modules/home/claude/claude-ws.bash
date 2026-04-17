@@ -19,11 +19,24 @@ USAGE
 }
 
 list_workspaces() {
+  # TSV: name\trepo_basename\trepo_path   (repo cols empty if unknown)
   [ -d "$WS_ROOT" ] || return 0
   for dir in "$WS_ROOT"/*/; do
     [ -d "$dir/.claude-ws" ] || continue
-    basename "$dir"
+    name="$(basename "$dir")"
+    repo_path=""
+    if [ -f "$dir/.claude-ws/repo" ]; then
+      repo_path="$(cat "$dir/.claude-ws/repo")"
+    fi
+    repo_base=""
+    [ -n "$repo_path" ] && repo_base="$(basename "$repo_path")"
+    printf '%s\t%s\t%s\n' "$name" "$repo_base" "$repo_path"
   done
+}
+
+format_list() {
+  # Read TSV, output aligned columns for human/fzf display.
+  awk -F'\t' '{ printf "%-30s  %-20s  %s\n", $1, $2, $3 }'
 }
 
 case "${1:-}" in
@@ -32,7 +45,7 @@ case "${1:-}" in
     exit 0
     ;;
   ls)
-    list_workspaces
+    list_workspaces | format_list
     exit 0
     ;;
   "")
@@ -40,7 +53,8 @@ case "${1:-}" in
       echo "claude-ws: fzf not found; pass a <name> arg" >&2
       exit 2
     fi
-    NAME="$(list_workspaces | fzf --prompt='workspace> ' --height=40% --reverse)" || exit 1
+    PICK="$(list_workspaces | format_list | fzf --prompt='workspace> ' --height=40% --reverse)" || exit 1
+    NAME="$(printf '%s\n' "$PICK" | awk '{print $1}')"
     [ -n "$NAME" ] || exit 1
     ;;
   -*)
@@ -69,6 +83,8 @@ if [ ! -d "$WS_PATH/.jj" ]; then
   fi
   mkdir -p "$(dirname "$WS_PATH")"
   (cd "$dir" && jj workspace add --name "$NAME" "$WS_PATH")
+  mkdir -p "$STATE_DIR"
+  printf '%s\n' "$dir" >"$STATE_DIR/repo"
 fi
 
 mkdir -p "$STATE_DIR"
