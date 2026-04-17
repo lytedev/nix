@@ -100,6 +100,19 @@ write_status() {
   mv "$tmpfile" "$SESSION_FILE"
 }
 
+touch_ws_activity() {
+  # If this session is part of a claude-ws workspace, update its activity mtime.
+  # Optional arg: last prompt text (truncated to 200 chars and stored).
+  [ -n "${CLAUDE_SESSION_NAME:-}" ] || return 0
+  local data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+  local ws_state="$data_home/code-workspace/$CLAUDE_SESSION_NAME/.claude-ws"
+  [ -d "$ws_state" ] || return 0
+  touch "$ws_state/last-message"
+  if [ $# -ge 1 ] && [ -n "$1" ]; then
+    printf '%s' "${1:0:200}" >"$ws_state/last-prompt" 2>/dev/null || true
+  fi
+}
+
 case "$SUBCOMMAND" in
   session-start)
     write_status "working" "Session started"
@@ -140,9 +153,11 @@ case "$SUBCOMMAND" in
     ;;
   stop)
     write_status "idle" "Stopped"
+    touch_ws_activity
     ;;
   user-prompt)
     write_status "working" "User prompt submitted"
+    touch_ws_activity "$(echo "$HOOK_DATA" | jq -r '.prompt // empty')"
     ;;
   session-end)
     rm -f "$SESSION_FILE"

@@ -49,8 +49,14 @@ stat_mtime() {
 }
 
 last_interaction_ts() {
-  # arg: ws_dir. Look up the session jsonl under ~/.claude/projects/<escaped>/<sid>.jsonl
+  # arg: ws_dir. Prefer .claude-ws/last-message (written by claude-hook on
+  # user-prompt/stop), fall back to the session's jsonl mtime.
   local ws_dir="$1"
+  local lm="$ws_dir/.claude-ws/last-message"
+  if [ -e "$lm" ]; then
+    stat_mtime "$lm"
+    return
+  fi
   local sid_file="$ws_dir/.claude-ws/session-id"
   [ -f "$sid_file" ] || return 0
   local sid
