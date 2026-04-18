@@ -8,6 +8,10 @@
     openFirewall = false;
   };
 
+  # Unifi's Java app routinely takes >90s to start under load; the default
+  # systemd timeout kills it mid-init and deploys roll back. Give it room.
+  systemd.services.unifi.serviceConfig.TimeoutStartSec = "5min";
+
   # Allow UniFi ports only on Tailscale interface
   networking.firewall.interfaces."tailscale0" = {
     allowedTCPPorts = [
