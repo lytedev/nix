@@ -38,6 +38,10 @@ in
             # the flat home layout our tmpfiles rule creates.
             home_attr = "name";
             home_alias = "none";
+            # Kanidm doesn't set a per-user shell by default. Without
+            # a local users.users declaration, we need to tell unixd
+            # what shell to hand out for login sessions.
+            default_shell = "${pkgs.fish}/bin/fish";
             kanidm.pam_allowed_login_groups = [ "administrators" ];
           }
         else
