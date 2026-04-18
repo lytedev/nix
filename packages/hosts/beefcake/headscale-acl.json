@@ -12,7 +12,8 @@
     "steamdeckoled": "100.64.0.10",
     "rascal": "100.64.0.11",
     "sanctuary": "100.64.0.12",
-    "pebble": "100.64.0.15"
+    "pebble": "100.64.0.15",
+    "thinker": "100.64.0.14"
   },
 
   "groups": {
@@ -87,13 +88,7 @@
     {
       "action": "accept",
       "src": ["group:admin", "tag:admindevice"],
-      "dst": ["tag:server"],
-      "users": ["root", "autogroup:nonroot"]
-    },
-    {
-      "action": "accept",
-      "src": ["group:admin", "tag:admindevice"],
-      "dst": ["beefcake", "router", "steamdeck", "steamdeckoled", "rascal", "dragon", "flab", "babyflip", "sanctuary", "pebble"],
+      "dst": ["*"],
       "users": ["root", "autogroup:nonroot"]
     },
     {
