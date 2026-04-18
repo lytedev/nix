@@ -48,10 +48,8 @@
   lyte.desktop.enable = false;
 
   # pinephone-specific user group additions
-  users.users.daniel.extraGroups = lib.mkAfter [
-    "feedbackd"
-    "dialout" # for ModemManager access without polkit prompts
-  ];
+  users.groups.feedbackd.members = [ config.lyte.username ];
+  users.groups.dialout.members = [ config.lyte.username ]; # ModemManager access without polkit prompts
 
   networking.hostName = "pinephone";
   networking.networkmanager.enable = true;

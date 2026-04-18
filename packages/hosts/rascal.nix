@@ -45,7 +45,7 @@
       home = "/storage/backups/beefcake";
       group = "beefcake";
       extraGroups = [ "sftponly" ];
-      openssh.authorizedKeys.keys = config.users.users.daniel.openssh.authorizedKeys.keys ++ [
+      openssh.authorizedKeys.keys = config.lyte.userSshKeys ++ [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK7HrojwoyHED+A/FzRjYmIL0hzofwBd9IYHH6yV0oPO root@beefcake"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOEI82VdbyR1RYqSnFtlffHBtHFdXO0v9RmQH7GkfXo restic@beefcake"
       ];

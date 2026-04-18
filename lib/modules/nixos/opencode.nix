@@ -6,12 +6,13 @@
 }:
 let
   cfg = config.lyte.opencode;
-  danielHome = config.users.users.daniel.home;
+  username = config.lyte.username;
+  danielHome = config.lyte.userHome;
 
   opencode-wrapper = pkgs.writeShellScript "opencode-web" ''
     # Include user profile and system paths for full tool access
-    export PATH="/etc/profiles/per-user/daniel/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
-    export HOME="/home/daniel/.home"
+    export PATH="/etc/profiles/per-user/${username}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH"
+    export HOME="${danielHome}"
     export OPENCODE_DISABLE_CHANNEL_DB=1
     export OPENCODE_EXPERIMENTAL=1
     export OPENCODE_EXPERIMENTAL_WORKSPACE=1
@@ -86,7 +87,7 @@ in
       # Back up canonical DB before each activation (rebuild)
       system.userActivationScripts.opencodeDbBackup = {
         text = ''
-          if [ "$(id -un)" = "daniel" ]; then
+          if [ "$(id -un)" = "${username}" ]; then
             ${dbBackupScript}
           fi
         '';
@@ -106,8 +107,8 @@ in
         ];
         wants = [ "network-online.target" ];
         serviceConfig = {
-          User = "daniel";
-          Group = "daniel";
+          User = username;
+          Group = username;
           ExecStart = "${opencode-wrapper} web --hostname 0.0.0.0 --port ${toString cfg.port}";
           Restart = "on-failure";
           RestartSec = 5;

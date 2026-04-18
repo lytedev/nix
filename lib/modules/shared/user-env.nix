@@ -16,7 +16,7 @@ let
   cfg = config.lyte;
   # Detect darwin by checking for a darwin-only option (avoids config recursion)
   isDarwin = !(options ? services && options.services ? fwupd);
-  userHome = config.users.users.${cfg.username}.home;
+  userHome = cfg.userHome;
 
   lnFlags = "-sf";
 
@@ -137,6 +137,26 @@ in
       type = lib.types.str;
       default = "daniel";
       description = "Primary user account name for user-env management";
+    };
+
+    userHome = lib.mkOption {
+      type = lib.types.str;
+      default = "/home/${cfg.username}";
+      description = ''
+        Home directory of the primary user. The user itself is provided by
+        kanidm (no local nix user declaration), so we cannot look it up via
+        `config.users.users.<name>.home` the way we used to.
+      '';
+    };
+
+    userSshKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        SSH public keys authorized for the primary user. Written to
+        `/etc/ssh/authorized_keys.d/<username>` so login works even when
+        kanidm is down.
+      '';
     };
 
     editableConfigFiles = lib.mkEnableOption "Use live flakePath symlinks instead of nix store paths (requires flakePath to be set)";

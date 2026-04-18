@@ -109,7 +109,7 @@ flakeInputs:
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.users.users.daniel.home}/.config/niri/noctalia.kdl ${config.users.users.daniel.home}/.config/niri/host-specific.kdl'";
+        ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.lyte.userHome}/.config/niri/noctalia.kdl ${config.lyte.userHome}/.config/niri/host-specific.kdl'";
       };
     };
 

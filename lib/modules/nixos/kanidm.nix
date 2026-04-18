@@ -29,6 +29,15 @@ in
       unixSettings =
         if hasNewKanidmModule then
           {
+            # Kanidm 1.10+ unixd v2 defaults uid/gid resolution to SPN
+            # form (name@domain). Force shortname so `daniel` resolves
+            # to the kanidm user (no local fallback needed).
+            uid_attr_map = "name";
+            gid_attr_map = "name";
+            # Report pw_dir as /home/<name> so kanidm agrees with
+            # the flat home layout our tmpfiles rule creates.
+            home_attr = "name";
+            home_alias = "none";
             kanidm.pam_allowed_login_groups = [ "administrators" ];
           }
         else

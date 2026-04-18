@@ -5,6 +5,6 @@
 }:
 {
   config = lib.mkIf config.virtualisation.libvirtd.enable {
-    users.users.daniel.extraGroups = [ "libvirtd" ];
+    users.groups.libvirtd.members = [ config.lyte.username ];
   };
 }

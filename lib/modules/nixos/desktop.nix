@@ -9,7 +9,7 @@ let
   cfg = config.lyte.desktop;
   types = lib.types;
   dotfilesPath = config.lyte.dotfilesPath;
-  danielHome = config.users.users.daniel.home;
+  danielHome = config.lyte.userHome;
 in
 {
   options = {

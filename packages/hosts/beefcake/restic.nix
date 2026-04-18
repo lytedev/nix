@@ -19,7 +19,7 @@
     home = "/storage/backups/restic";
     group = "restic";
     extraGroups = [ "sftponly" ];
-    openssh.authorizedKeys.keys = [ ] ++ config.users.users.daniel.openssh.authorizedKeys.keys;
+    openssh.authorizedKeys.keys = config.lyte.userSshKeys;
   };
   services.openssh.extraConfig = ''
     Match Group sftponly

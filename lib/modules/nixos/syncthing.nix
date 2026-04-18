@@ -11,7 +11,7 @@
 }:
 let
   cfg = config.lyte.syncthing;
-  danielHome = config.users.users.daniel.home;
+  danielHome = config.lyte.userHome;
 
   # Pre-generated device IDs (from TLS certs in secrets/syncthing/)
   allDeviceIDs = {

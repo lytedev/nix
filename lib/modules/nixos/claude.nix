@@ -163,7 +163,7 @@ let
     preamble = "HOOKS_CONFIG='${hooksConfig}'";
   };
 
-  danielHome = config.users.users.daniel.home;
+  danielHome = config.lyte.userHome;
 in
 {
   options.lyte.claude = {
