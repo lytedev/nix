@@ -198,17 +198,27 @@ SID_FILE="$STATE_DIR/session-id"
 if [ ! -d "$WS_PATH/.jj" ]; then
   # Creating a new workspace — need an enclosing jj repo to add it to.
   dir="$PWD"
-  while [ "$dir" != "/" ] && [ ! -d "$dir/.jj" ]; do
+  while [ "$dir" != "/" ] && [ ! -e "$dir/.jj" ]; do
     dir="$(dirname "$dir")"
   done
-  if [ ! -d "$dir/.jj" ]; then
+  if [ ! -e "$dir/.jj" ]; then
     echo "claude-ws: no jj repo above $PWD to create workspace '$NAME' from" >&2
     exit 1
   fi
+  # If we landed inside a secondary workspace, resolve to the main repo root
+  # via `jj workspace root` → `.jj/repo`, so the state's `repo` file points
+  # at the real repo instead of another workspace.
+  repo_root="$(cd "$dir" && jj workspace root 2>/dev/null || printf '%s' "$dir")"
+  if [ -f "$repo_root/.jj/repo" ]; then
+    # .jj/repo in a secondary workspace is a file with a relative path to
+    # the main repo's .jj dir; its parent is the main repo root.
+    main_jj="$(cd "$repo_root" && cd "$(cat .jj/repo)" && pwd)"
+    repo_root="$(dirname "$main_jj")"
+  fi
   mkdir -p "$(dirname "$WS_PATH")"
-  (cd "$dir" && jj workspace add --name "$NAME" "$WS_PATH")
+  (cd "$repo_root" && jj workspace add --name "$NAME" "$WS_PATH")
   mkdir -p "$STATE_DIR"
-  printf '%s\n' "$dir" >"$STATE_DIR/repo"
+  printf '%s\n' "$repo_root" >"$STATE_DIR/repo"
   date +%s >"$STATE_DIR/created"
 fi
 
