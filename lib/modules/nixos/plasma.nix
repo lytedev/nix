@@ -423,6 +423,33 @@ in
           services.displayManager.plasma-login-manager.enable = true;
           # Auto-unlock KDE Wallet on login via plasmalogin PAM
           security.pam.services.plasmalogin.kwallet.enable = true;
+          # Register the kanidm-provided primary user with
+          # accountsservice via its CacheUser D-Bus API so the plasma
+          # login greeter displays them. accounts-daemon's default
+          # enumeration relies on /etc/passwd (not NSS enumeration),
+          # so kanidm users are invisible to the greeter without this
+          # nudge. CacheUser does NOT create a local account; it just
+          # caches preferences against the existing NSS entry.
+          systemd.services.plasma-login-cache-primary-user = {
+            description = "Cache primary user with accounts-daemon for plasma greeter";
+            wantedBy = [ "multi-user.target" ];
+            after = [
+              "accounts-daemon.service"
+              "kanidm-unixd.service"
+            ];
+            requires = [ "accounts-daemon.service" ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+            };
+            script = ''
+              ${pkgs.systemd}/bin/busctl --system call \
+                org.freedesktop.Accounts \
+                /org/freedesktop/Accounts \
+                org.freedesktop.Accounts \
+                CacheUser s "${config.lyte.username}"
+            '';
+          };
         }
       else
         lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
