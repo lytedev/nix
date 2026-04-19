@@ -407,6 +407,22 @@
             ${find} ${home}/.home -depth -type d -empty -exec ${rmdir} {} + || true
           fi
 
+          # 1b. Retarget any surviving symlinks whose target was inside
+          #     the now-empty .home/ tree. `.nix-profile`, Steam's
+          #     proton prefix .dll shims, etc. rewrite ".home/" -> "".
+          echo "migrate-daniel-to-kanidm: retargeting dangling ${home}/.home/* symlinks"
+          ${find} ${home} -type l 2>/dev/null | while IFS= read -r link; do
+            tgt=$(${pkgs.coreutils}/bin/readlink "$link" 2>/dev/null || true)
+            case "$tgt" in
+              ${home}/.home/*)
+                newtgt="${home}/''${tgt#${home}/.home/}"
+                if [ -e "$newtgt" ] || [ -L "$newtgt" ]; then
+                  ${pkgs.coreutils}/bin/ln -sfn "$newtgt" "$link"
+                fi
+                ;;
+            esac
+          done
+
           # 2. chown everything under /home/<u> to the kanidm-provided
           #    uid/gid. Using the name via getent so we don't hardcode
           #    numeric values. Symlink targets aren't followed (-h at the
