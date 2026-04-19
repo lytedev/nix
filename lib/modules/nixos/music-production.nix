@@ -36,10 +36,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Add specified users to audio group for realtime scheduling
-    users.users = lib.genAttrs cfg.users (user: {
-      extraGroups = [ "audio" ];
-    });
+    # Add specified users to the audio group for realtime scheduling.
+    # Using `users.groups.audio.members` (string list) rather than
+    # `users.users.<u>.extraGroups` so this works for kanidm-provided
+    # users that have no local `users.users` declaration.
+    users.groups.audio.members = cfg.users;
     # Ensure pipewire with JACK is enabled (required for pro audio)
     services.pipewire = {
       enable = true;

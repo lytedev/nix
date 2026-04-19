@@ -121,11 +121,13 @@
         sopsFile = ../../secrets/workstations/secrets.yml;
         mode = "0400";
         owner = "daniel";
+        group = "users";
       };
       syncthingSecret = {
         sopsFile = ../../secrets/foxtrot/secrets.yml;
         mode = "0400";
         owner = "daniel";
+        group = "users";
       };
     in
     {

@@ -332,6 +332,7 @@
         kvm.members = u;
         input.members = u;
         users.members = u;
+        networkmanager.members = u;
       };
 
     # Grant kanidm's "administrators" group wheel-equivalent sudo. Kanidm

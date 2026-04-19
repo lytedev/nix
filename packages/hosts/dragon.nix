@@ -53,6 +53,7 @@
         danielSecret = {
           mode = "0400";
           owner = "daniel";
+          group = "users";
         };
         workstationSecret = danielSecret // {
           sopsFile = ../../secrets/workstations/secrets.yml;
@@ -73,6 +74,7 @@
       };
     templates."opencode-env" = {
       owner = "daniel";
+      group = "users";
       content = ''
         NOTION_TOKEN=${config.sops.placeholder.notion-token}
         OPENCODE_SERVER_PASSWORD=${config.sops.placeholder.opencode-server-password}

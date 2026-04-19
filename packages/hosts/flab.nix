@@ -51,26 +51,31 @@
       sopsFile = ../../secrets/workstations/secrets.yml;
       mode = "0400";
       owner = "daniel";
+      group = "users";
     };
     secrets.claude-matrix-webhook-hive = {
       sopsFile = ../../secrets/workstations/secrets.yml;
       mode = "0400";
       owner = "daniel";
+      group = "users";
     };
     secrets.claude-matrix-webhook-code-review = {
       sopsFile = ../../secrets/workstations/secrets.yml;
       mode = "0400";
       owner = "daniel";
+      group = "users";
     };
     secrets.syncthing-key = {
       sopsFile = ../../secrets/flab/secrets.yml;
       mode = "0400";
       owner = "daniel";
+      group = "users";
     };
     secrets.syncthing-cert = {
       sopsFile = ../../secrets/flab/secrets.yml;
       mode = "0400";
       owner = "daniel";
+      group = "users";
     };
   };
 
