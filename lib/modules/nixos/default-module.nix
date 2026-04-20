@@ -369,7 +369,7 @@
         coreutils # chown, dirname, install, ln, readlink, rmdir, touch
         findutils # find, xargs
         gawk
-        glibc.bin # getent
+        getent
         gnugrep
         rsync
         shadow # userdel, groupdel
