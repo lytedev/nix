@@ -149,7 +149,7 @@
     };
     syncthing.enable = true;
     opencode = {
-      enable = true;
+      enable = false;
       environmentFiles = [ config.sops.templates."opencode-env".path ];
     };
     claude = {
