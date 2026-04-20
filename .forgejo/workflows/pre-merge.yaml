@@ -44,7 +44,7 @@ jobs:
         build_dir="$XDG_CACHE_HOME/ci-builds"
         # keep main and the 5 most recent pr-* symlinks, remove the rest
         ls -dt "$build_dir"/pr-* 2>/dev/null | tail -n +6 | while read -r old; do
-          rm -f "$old" "$old"-*
+          rm -rf "$old" "$old"-*
         done
 
   # flake-check:
