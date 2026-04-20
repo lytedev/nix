@@ -25,5 +25,11 @@
     hostName = "beefcake";
     hostId = "541ede55";
   };
-  services.tailscale.useRoutingFeatures = "server";
+  services.tailscale = {
+    useRoutingFeatures = "server";
+    extraUpFlags = [
+      "--advertise-exit-node"
+      "--accept-routes"
+    ];
+  };
 }
