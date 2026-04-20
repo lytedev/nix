@@ -147,7 +147,7 @@
       enable = true;
       users = [ "daniel" ];
     };
-    syncthing.enable = true;
+    syncthing.enable = false; # TODO: re-enable?
     opencode = {
       enable = false;
       environmentFiles = [ config.sops.templates."opencode-env".path ];

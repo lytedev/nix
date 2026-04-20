@@ -143,9 +143,9 @@ in
       type = lib.types.str;
       default = "/home/${cfg.username}";
       description = ''
-        Home directory of the primary user. The user itself is provided by
-        kanidm (no local nix user declaration), so we cannot look it up via
-        `config.users.users.<name>.home` the way we used to.
+        Home directory of the primary user. Shared between NixOS and
+        nix-darwin modules so references don't have to go through
+        `config.users.users.<name>.home` (which doesn't exist on darwin).
       '';
     };
 
@@ -153,9 +153,9 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = ''
-        SSH public keys authorized for the primary user. Written to
-        `/etc/ssh/authorized_keys.d/<username>` so login works even when
-        kanidm is down.
+        SSH public keys authorized for the primary user. Also written to
+        `/etc/ssh/authorized_keys.d/<username>` as a break-glass path
+        independent of the user's home-dir state.
       '';
     };
 

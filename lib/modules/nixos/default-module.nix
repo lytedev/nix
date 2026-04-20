@@ -204,15 +204,23 @@
 
     # Ensure /nix is world-readable and /home/<user> exists with correct
     # ownership — btrfs subvolumes default to 700 root:root, and some
-    # services create .config before the user logs in. `daniel` is a
-    # kanidm-provided NSS entry; the tmpfiles rule resolves the name via
-    # NSS at activation time.
+    # services create .config before the user logs in.
     systemd.tmpfiles.rules = [
       "d /nix 0755 root root -"
       "d ${config.lyte.userHome} 0755 ${config.lyte.username} ${config.lyte.username} -"
       "d ${config.lyte.userHome}/.config 0755 ${config.lyte.username} ${config.lyte.username} -"
     ];
 
+    # Various systemd subsystems (accounts-daemon, logind, tmpfiles,
+    # sysusers) call `disable_nscd()` during early boot, which sends
+    # SIGTERM to nscd.service. Restart=always brings it back up, but on
+    # desktop hosts the kill/restart cycles are fast enough to trip
+    # systemd's default StartLimitBurst=5/10s and leave nscd in a failed
+    # state — which then breaks all kanidm NSS lookups for the rest of
+    # the boot. Relax the limit so bursty early-boot invalidations
+    # don't wedge it.
+    systemd.services.nscd.startLimitBurst = 30;
+    systemd.services.nscd.startLimitIntervalSec = 60;
     systemd.services.nix-daemon.environment.TMPDIR = lib.mkDefault "/var/tmp";
     boot.tmp.cleanOnBoot = lib.mkDefault true;
     programs.gnupg.agent.enable = lib.mkDefault true;
@@ -302,42 +310,38 @@
       };
     };
 
-    # Primary user (daniel) is now provided exclusively by kanidm — no
-    # local `users.users.<name>` declaration. Authentication, uid/gid,
-    # and group memberships come from kanidm via NSS/PAM.
+    # Primary user declared locally in NixOS. Kanidm (when configured)
+    # can still handle PAM auth and SSH keys at runtime, but identity
+    # (uid/gid/home) lives here so stage-2 activation, sops secret
+    # ownership, systemd-tmpfiles rules, and services with User=daniel
+    # all resolve without depending on kanidm-unixd being up.
+    users.groups.daniel = { };
+    users.users.${config.lyte.username} = {
+      isNormalUser = true;
+      uid = 1000;
+      description = "Daniel Flanagan";
+      home = config.lyte.userHome;
+      group = config.lyte.username;
+      shell = lib.mkIf config.lyte.shell.enable pkgs.fish;
+      openssh.authorizedKeys.keys = config.lyte.userSshKeys;
+      extraGroups = [
+        "wheel"
+        "video"
+        "dialout"
+        "uucp"
+        "power"
+        "kvm"
+        "input"
+        "users"
+        "networkmanager"
+      ];
+    };
 
     lyte.userSshKeys = [ self.outputs.pubkey ];
 
-    # Break-glass SSH keys on local filesystem. sshd's AuthorizedKeysFile
-    # includes /etc/ssh/authorized_keys.d/%u, so these authorize login
-    # even if kanidm-unixd is down.
-    environment.etc."ssh/authorized_keys.d/${config.lyte.username}" = {
-      mode = "0444";
-      text = lib.concatStringsSep "\n" config.lyte.userSshKeys + "\n";
-    };
-
-    # Local group memberships for the kanidm-provided user. The `members`
-    # field accepts bare name strings and doesn't require the user to be
-    # declared in `users.users` — it just writes the name into /etc/group.
-    users.groups =
-      let
-        u = [ config.lyte.username ];
-      in
-      {
-        wheel.members = u;
-        video.members = u;
-        dialout.members = u;
-        uucp.members = u;
-        power.members = u;
-        kvm.members = u;
-        input.members = u;
-        users.members = u;
-        networkmanager.members = u;
-      };
-
-    # Grant kanidm's "administrators" group wheel-equivalent sudo. Kanidm
-    # group memberships flow through NSS, so `%administrators` resolves
-    # to whatever kanidm currently reports.
+    # Grant kanidm's "administrators" group wheel-equivalent sudo when
+    # kanidm-unixd is providing group membership at runtime. No-op when
+    # kanidm isn't configured.
     security.sudo.extraRules = [
       {
         groups = [ "administrators" ];
@@ -349,117 +353,6 @@
         ];
       }
     ];
-
-    # Per-host one-shot migration: transition from the old local daniel
-    # (uid/gid 1000) + nested `/home/daniel/.home` layout to kanidm-only
-    # identity with flat `/home/daniel`. Runs once per host, marker-gated.
-    systemd.services.migrate-daniel-to-kanidm = {
-      description = "Chown /home/daniel to kanidm-provided uid + flatten .home + remove stale local passwd entries";
-      wantedBy = [ "multi-user.target" ];
-      after = [
-        "systemd-tmpfiles-setup.service"
-        "kanidm-unixd.service"
-      ];
-      before = [ "systemd-user-sessions.service" ];
-      # Declare every binary we touch. systemd starts services with an
-      # empty PATH by default; bare commands like `getent`, `grep`,
-      # `dirname` silently fail with "command not found" and (with
-      # `set -e`) make the whole unit exit-with-skip.
-      path = with pkgs; [
-        coreutils # chown, dirname, install, ln, readlink, rmdir, touch
-        findutils # find, xargs
-        gawk
-        getent
-        gnugrep
-        rsync
-        shadow # userdel, groupdel
-        systemd # loginctl
-      ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-      };
-      script =
-        let
-          u = config.lyte.username;
-          home = config.lyte.userHome;
-        in
-        ''
-          set -eu
-          marker=/var/lib/lyte/migrate-daniel-to-kanidm.done
-          if [ -e "$marker" ]; then exit 0; fi
-
-          # Must have a kanidm-provided entry for the migration target.
-          if ! getent passwd ${u} >/dev/null; then
-            echo "migrate-daniel-to-kanidm: ${u} not resolvable via NSS; skipping (will retry next boot)"
-            exit 0
-          fi
-
-          # Figure out the post-migration uid so we can tell "real"
-          # sessions (new kanidm identity, fine to coexist with the
-          # rsync/chown pass) from sessions at the pre-migration uid
-          # (1000 — we'd be chowning out from under them).
-          target_uid=$(getent passwd ${u} | awk -F: '{print $3}')
-
-          # Skip migration ONLY if there's an active session at a uid
-          # other than the current kanidm one for user name ${u}. A
-          # pre-migration user@1000.service lingering from the old
-          # generation looks like "daniel" via loginctl; we don't want
-          # to ship files out from under it.
-          if loginctl list-sessions --no-legend 2>/dev/null \
-            | awk -v u=${u} -v tu="$target_uid" '$3 == u && $2 != tu { found=1 } END { exit !found }'; then
-            echo "migrate-daniel-to-kanidm: pre-migration session at a stale uid for ${u} is active; skipping (kill it with 'loginctl kill-user <uid>' and re-run)"
-            exit 0
-          fi
-
-          # 1. Flatten nested home: move /home/<u>/.home/* up one level.
-          if [ -d ${home}/.home ]; then
-            echo "migrate-daniel-to-kanidm: flattening ${home}/.home -> ${home}"
-            rsync -aHAX --remove-source-files ${home}/.home/ ${home}/
-            find ${home}/.home -depth -type d -empty -exec rmdir {} + || true
-          fi
-
-          # 1b. Retarget symlinks whose target was inside the now-empty
-          #     .home/ tree. .nix-profile, Steam's proton prefix .dll
-          #     shims, etc. rewrite "/.home/" -> "/".
-          echo "migrate-daniel-to-kanidm: retargeting dangling ${home}/.home/* symlinks"
-          find ${home} -type l 2>/dev/null | while IFS= read -r link; do
-            tgt=$(readlink "$link" 2>/dev/null || true)
-            case "$tgt" in
-              ${home}/.home/*)
-                newtgt="${home}/''${tgt#${home}/.home/}"
-                if [ -e "$newtgt" ] || [ -L "$newtgt" ]; then
-                  ln -sfn "$newtgt" "$link"
-                fi
-                ;;
-            esac
-          done
-
-          # 2. chown everything under /home/<u> to the kanidm-provided
-          #    uid/gid (resolved via NSS — no hardcoded numeric values).
-          #    Symlinks chown'd in place (not dereferenced), and
-          #    read-only nix-store paths (.direnv etc.) are tolerated.
-          find ${home} -not -user ${u} -print0 2>/dev/null \
-            | xargs -0 -r chown -h --no-dereference ${u}:${u} 2>/dev/null || true
-          find ${home} -not -group ${u} -print0 2>/dev/null \
-            | xargs -0 -r chown -h --no-dereference :${u} 2>/dev/null || true
-
-          # 3. Remove the old local daniel user/group from /etc/{passwd,group}.
-          #    NixOS with mutableUsers=true leaves stale entries behind
-          #    when a user is removed from the nix declaration.
-          if awk -F: -v u=${u} '$1 == u { exit 0 } END { exit 1 }' /etc/passwd; then
-            local_uid=$(awk -F: -v u=${u} '$1 == u { print $3 }' /etc/passwd)
-            if [ "$local_uid" = 1000 ]; then
-              echo "migrate-daniel-to-kanidm: removing stale local ${u} (uid 1000) from /etc/passwd"
-              userdel ${u} 2>/dev/null || true
-              groupdel ${u} 2>/dev/null || true
-            fi
-          fi
-
-          install -d -m 0755 "$(dirname "$marker")"
-          touch "$marker"
-        '';
-    };
 
     # Daniel's face icon (for display managers)
     lyte.userSymlinks.".face" = toString (
