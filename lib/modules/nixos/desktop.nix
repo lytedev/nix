@@ -48,6 +48,7 @@ in
           default = "base.en";
           description = "Whisper model for voxtype (e.g. base.en, large-v3-turbo)";
         };
+        music.enable = lib.mkEnableOption "Enable music listening applications";
         easyeffects = {
           enable = lib.mkEnableOption "Enable EasyEffects audio processing";
           preset = lib.mkOption {
@@ -71,6 +72,8 @@ in
         efi.canTouchEfiVariables = lib.mkDefault true;
         systemd-boot.enable = lib.mkDefault true;
       };
+
+      lyte.desktop.music.enable = lib.mkDefault true;
 
       services.xserver = {
         autoRepeatDelay = lib.mkDefault 200;
@@ -238,6 +241,13 @@ in
         ".mozilla/firefox/primary/user.js" = "${dotfilesPath}/firefox/user.js";
         ".mozilla/firefox/primary/chrome/userChrome.css" = "${dotfilesPath}/firefox/userChrome.css";
       };
+    })
+
+    (lib.mkIf (cfg.enable && cfg.music.enable) {
+      environment.systemPackages = with pkgs; [
+        spotify-qt
+        librespot
+      ];
     })
 
     # Mobile Firefox profile override
