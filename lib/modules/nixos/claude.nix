@@ -148,6 +148,7 @@ let
       zellij
       util-linux # uuidgen
       coreutils
+      findutils
       gnugrep
       gawk
       fzf
