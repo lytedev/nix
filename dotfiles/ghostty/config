@@ -356,7 +356,7 @@ freetype-load-flags = hinting,autohint
 # 
 # If you select across cells with differing foregrounds and backgrounds, the
 # selection color will vary across the selection.
-selection-invert-fg-bg = false
+selection-invert-fg-bg = true
 
 # The minimum contrast ratio between the foreground and background colors.
 # The contrast ratio is a value between 1 and 21. A value of 1 allows for no
