@@ -167,15 +167,10 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
-    flake-utils = {
-      # used by: ghostty
-      url = "github:numtide/flake-utils";
-    };
 
     deploy-rs.inputs.flake-compat.follows = "flake-compat";
     ghostty.inputs.flake-compat.follows = "flake-compat";
     git-hooks.inputs.flake-compat.follows = "flake-compat";
-    ghostty.inputs.flake-utils.follows = "flake-utils";
   };
 
   nixConfig = {
