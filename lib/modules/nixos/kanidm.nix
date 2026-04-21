@@ -29,19 +29,11 @@ in
       unixSettings =
         if hasNewKanidmModule then
           {
-            # Kanidm 1.10+ unixd v2 defaults uid/gid resolution to SPN
-            # form (name@domain). Force shortname so `daniel` resolves
-            # to the kanidm user (no local fallback needed).
-            uid_attr_map = "name";
-            gid_attr_map = "name";
-            # Report pw_dir as /home/<name> so kanidm agrees with
-            # the flat home layout our tmpfiles rule creates.
-            home_attr = "name";
-            home_alias = "none";
-            # Kanidm doesn't set a per-user shell by default. Without
-            # a local users.users declaration, we need to tell unixd
-            # what shell to hand out for login sessions.
-            default_shell = "${pkgs.fish}/bin/fish";
+            # Identity is local (users.users.daniel); kanidm-unixd
+            # handles the administrators-group sudo check and nothing
+            # else. Leaving uid/gid/home/shell at their SPN-form
+            # defaults means shortname `daniel` isn't claimed by
+            # kanidm and falls through to /etc/passwd.
             kanidm.pam_allowed_login_groups = [ "administrators" ];
           }
         else
