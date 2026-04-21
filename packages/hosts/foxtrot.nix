@@ -64,6 +64,16 @@
     };
   };
 
+  # Temporarily disable kanidm-unixd on this host — the kanidm-posix
+  # daniel (uid 2001) conflicts with the local daniel (uid 1000) for
+  # login purposes: pam_kanidm accepts the shortname "daniel" at the
+  # greeter and authenticates against the kanidm user, starting the
+  # plasma session as uid 2001. OAuth2/SSO to web services is not
+  # affected — that's beefcake-side and doesn't touch this host.
+  # Re-enable once we've either removed daniel's posix extensions
+  # from kanidm or arranged non-conflicting uids between the two.
+  services.kanidm.client.enable = lib.mkForce false;
+
   programs.nix-ld.enable = true;
 
   # Let power-profiles-daemon manage the CPU governor via amd_pstate EPP
