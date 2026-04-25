@@ -2,7 +2,7 @@
   sops-nix,
   disko,
   slippi,
-  jovian,
+  # jovian,
   self,
   ...
 }:
@@ -10,6 +10,7 @@
   modulesPath,
   lib,
   config,
+  options,
   pkgs,
   ...
 }:
@@ -353,6 +354,20 @@
         ];
       }
     ];
+
+    # the kanidm PAM stuff currently interferes with my nix-provisioned users
+    # TODO: reconcile the config so it doesn't but still allows PAM auth?
+    # services.kanidm.client.enable was renamed from services.kanidm.enableClient
+    # in nixpkgs unstable. Use optionalAttrs (not mkIf) so the option PATH is
+    # absent entirely on hosts where it doesn't exist — mkIf still validates
+    # the path against the option tree even when the condition is false.
+    services.kanidm =
+      (lib.optionalAttrs (options.services ? kanidm && options.services.kanidm ? client) {
+        client.enable = lib.mkForce false;
+      })
+      // (lib.optionalAttrs (options.services ? kanidm && options.services.kanidm ? enableClient) {
+        enableClient = lib.mkForce false;
+      });
 
     # Daniel's face icon (for display managers)
     lyte.userSymlinks.".face" = toString (
