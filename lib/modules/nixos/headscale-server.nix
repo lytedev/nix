@@ -19,6 +19,7 @@ in
       extraUpFlags = [
         "--login-server=https://vpn.h.lyte.dev"
         "--reset"
+        "--accept-dns"
       ];
     };
   };
