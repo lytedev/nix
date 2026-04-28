@@ -18,6 +18,7 @@
     image = "localhost/hearth:latest";
     autoStart = true;
     ports = [ "127.0.0.1:8473:8473" ];
+    volumes = [ "/var/lib/hearth:/var/lib/hearth" ];
     # hearth.env is pushed to /var/lib/hearth/hearth.env by the deploy script
     environmentFiles = [ "/var/lib/hearth/hearth.env" ];
     environment = {
@@ -25,6 +26,7 @@
       LEPTOS_SITE_ADDR = "0.0.0.0:8473";
       LEPTOS_OUTPUT_NAME = "hearth";
       LEPTOS_SITE_PKG_DIR = "pkg";
+      DATABASE_URL = "sqlite:/var/lib/hearth/hearth.db";
     };
   };
 
