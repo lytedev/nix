@@ -73,6 +73,7 @@
       "webmail"
       "photos"
       "happy.h"
+      "hearth.h"
       "n8n.h"
       "openobserve.h"
       "syncthing.h"
@@ -158,6 +159,7 @@
     ./beefcake/roms.nix
     ./beefcake/n8n.nix
     ./beefcake/happy.nix
+    ./beefcake/hearth.nix
     ./beefcake/k3s.nix
 
     # Matrix bridges
