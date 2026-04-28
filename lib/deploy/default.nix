@@ -37,7 +37,10 @@ let
 in
 {
   nodes = {
-    beefcake = deployer "beefcake" { };
+    beefcake = deployer "beefcake" {
+      confirmTimeout = 21600;
+      activationTimeout = 21600;
+    };
     dragon = deployer "dragon" { };
     # htpc = deployer "htpc" { remoteBuild = false; }; # broken: rtl8812au marked broken upstream
     bigtower = deployer "bigtower" { hostname = "bigtower.lan"; };
