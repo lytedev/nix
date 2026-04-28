@@ -187,6 +187,7 @@ in
             "git.lyte.dev"
             "grafana.h.lyte.dev"
             "happy.h.lyte.dev"
+            "hearth.h.lyte.dev"
             "idm.h.lyte.dev"
             "mail.lyte.dev"
             "webmail.lyte.dev"
