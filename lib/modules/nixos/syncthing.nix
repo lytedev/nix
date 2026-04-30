@@ -62,7 +62,7 @@ in
       dataDir = "${danielHome}/Sync";
       configDir = "${danielHome}/.config/syncthing";
       openDefaultPorts = true;
-      overrideDevices = false;
+      overrideDevices = true;
       overrideFolders = true;
 
       settings = {
@@ -75,9 +75,15 @@ in
           urAccepted = -1;
         };
 
+        # Prefer Tailscale (MagicDNS FQDN) so client-isolated networks don't
+        # block sync; "dynamic" stays as a fallback for when DNS can't resolve.
         devices = lib.mapAttrs (name: id: {
           inherit id name;
           autoAcceptFolders = false;
+          addresses = [
+            "tcp://${name}.internal.vpn.h.lyte.dev:22000"
+            "dynamic"
+          ];
         }) cfg.devices;
 
         folders = lib.mapAttrs (label: path: {
