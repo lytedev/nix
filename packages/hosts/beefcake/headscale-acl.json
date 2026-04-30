@@ -4,7 +4,7 @@
     "beefcake": "100.64.0.2",
     "steamdeck": "100.64.0.3",
     "router": "100.64.0.4",
-    "dragon": "100.64.0.5",
+    "dragon": "100.64.0.1",
     "babyflip": "100.64.0.6",
     "pinephone": "100.64.0.7",
     "flab": "100.64.0.8",
@@ -34,7 +34,7 @@
   "acls": [
     {
       "action": "accept",
-      "src": ["group:admin", "tag:admindevice"],
+      "src": ["tag:admindevice"],
       "dst": ["*:*"]
     },
     {
@@ -87,7 +87,7 @@
   "ssh": [
     {
       "action": "accept",
-      "src": ["group:admin", "tag:admindevice"],
+      "src": ["tag:admindevice"],
       "dst": ["*"],
       "users": ["root", "autogroup:nonroot"]
     },
