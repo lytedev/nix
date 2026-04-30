@@ -45,6 +45,19 @@ in
     services.pipewire = {
       enable = true;
       jack.enable = true;
+
+      # Low-latency quantum defaults for live monitoring through an audio
+      # interface. quantum=128 @ 48kHz ≈ 2.7ms per direction. min-quantum
+      # lets DAWs request lower on demand; max-quantum caps power-saving
+      # buffering at ~21ms so video/playback stays efficient.
+      extraConfig.pipewire."92-low-latency" = {
+        "context.properties" = {
+          "default.clock.rate" = 48000;
+          "default.clock.quantum" = 128;
+          "default.clock.min-quantum" = 32;
+          "default.clock.max-quantum" = 1024;
+        };
+      };
     };
 
     # Low-latency audio configuration
