@@ -151,8 +151,7 @@ flakeInputs:
             "lock '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
             "timeout 600 '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
           ]
-          ++ lib.optional config.lyte.laptop.enable
-            "timeout 660 '${pkgs.systemd}/bin/systemctl suspend'"
+          ++ lib.optional config.lyte.laptop.enable "timeout 660 '${pkgs.systemd}/bin/systemctl suspend'"
           ++ [
             "timeout 900 '${pkgs.niri}/bin/niri msg action power-off-monitors'"
           ]
