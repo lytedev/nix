@@ -71,6 +71,12 @@ flakeInputs:
             "gtk"
             "kde"
           ];
+          # kde.portal advertises ScreenCast/Screenshot but its impl requires
+          # KWin to be running — under niri it never produces frames. Pin
+          # these to xdg-desktop-portal-wlr (uses wlr-screencopy-unstable-v1,
+          # which niri implements) so screen-share actually works.
+          "org.freedesktop.impl.portal.ScreenCast" = "wlr";
+          "org.freedesktop.impl.portal.Screenshot" = "wlr";
         };
       };
     };
