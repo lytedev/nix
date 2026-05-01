@@ -134,20 +134,29 @@ flakeInputs:
       };
     };
 
-    # Swayidle for automatic locking and power management
+    # Swayidle for automatic locking and power management.
+    # On laptops, also trigger suspend on idle — niri does not feed idle
+    # hint to logind, so logind's IdleAction won't fire on its own.
+    # HibernateDelaySec (set in laptop.nix) carries suspend -> hibernate.
     systemd.user.services.swayidle = {
       description = "Idle management daemon";
       wantedBy = [ "niri.service" ];
       after = [ "niri.service" ];
       partOf = [ "niri.service" ];
       serviceConfig = {
-        ExecStart = lib.concatStringsSep " " [
-          "${pkgs.swayidle}/bin/swayidle -w"
-          "before-sleep '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
-          "lock '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
-          "timeout 600 '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
-          "timeout 900 '${pkgs.niri}/bin/niri msg action power-off-monitors'"
-        ];
+        ExecStart = lib.concatStringsSep " " (
+          [
+            "${pkgs.swayidle}/bin/swayidle -w"
+            "before-sleep '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+            "lock '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+            "timeout 600 '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+          ]
+          ++ lib.optional config.lyte.laptop.enable
+            "timeout 660 '${pkgs.systemd}/bin/systemctl suspend'"
+          ++ [
+            "timeout 900 '${pkgs.niri}/bin/niri msg action power-off-monitors'"
+          ]
+        );
         Restart = "on-failure";
         RestartSec = 3;
       };
