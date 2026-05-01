@@ -99,7 +99,6 @@
     family-account.enable = true;
     syncthing.enable = true;
     desktop = {
-      # niri.enable = true; # temporarily disabled
       easyeffects = {
         enable = true;
         preset = "philonmetal";

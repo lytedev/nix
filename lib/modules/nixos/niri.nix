@@ -8,10 +8,6 @@ flakeInputs:
 }:
 
 {
-  imports = [
-    flakeInputs.niri.nixosModules.niri
-  ];
-
   config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.niri.enable)) {
     # Enable KDE Connect with firewall rules
     programs.kdeconnect.enable = true;
@@ -24,7 +20,6 @@ flakeInputs:
       ];
       allowedUDPPortRanges = allowedTCPPortRanges;
     };
-    nixpkgs.overlays = [ flakeInputs.niri.overlays.niri ];
     environment.systemPackages = with pkgs; [
       flakeInputs.noctalia.packages.${system}.default
       slurp
@@ -43,8 +38,9 @@ flakeInputs:
       vesktop
     ];
     programs.niri.enable = true;
-    programs.niri.package = pkgs.niri-unstable;
     programs.dconf.enable = true;
+
+    services.displayManager.defaultSession = lib.mkForce "niri";
     environment.etc."niri/laptop.kdl".text = lib.mkDefault "";
 
     # Enable display manager for login
@@ -71,7 +67,7 @@ flakeInputs:
           ];
         };
         niri = {
-          default = [
+          default = lib.mkForce [
             "gtk"
             "kde"
           ];
@@ -90,8 +86,20 @@ flakeInputs:
       after = [ "xdg-desktop-autostart.target" ];
       serviceConfig.Environment = lib.mkForce "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/daniel/bin";
     };
-    systemd.user.services.niri-flake-polkit = {
-      after = [ "xdg-desktop-autostart.target" ];
+    # Polkit auth agent under niri (reuses the KDE agent already in the closure via Plasma)
+    systemd.user.services.polkit-kde-agent = {
+      description = "Polkit KDE authentication agent";
+      wantedBy = [ "niri.service" ];
+      after = [
+        "niri.service"
+        "xdg-desktop-autostart.target"
+      ];
+      partOf = [ "niri.service" ];
+      serviceConfig = {
+        ExecStart = "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1";
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
     };
 
     systemd.user.extraConfig = ''
@@ -138,7 +146,7 @@ flakeInputs:
           "before-sleep '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
           "lock '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
           "timeout 600 '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
-          "timeout 900 '${pkgs.niri-unstable}/bin/niri msg action power-off-monitors'"
+          "timeout 900 '${pkgs.niri}/bin/niri msg action power-off-monitors'"
         ];
         Restart = "on-failure";
         RestartSec = 3;

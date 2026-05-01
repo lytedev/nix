@@ -92,11 +92,6 @@
     };
     git-hooks.inputs.flake-compat.follows = "flake-compat";
 
-    niri = {
-      url = "github:sodiboo/niri-flake";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-
     # ironbar = {
     #   url = "github:lytedev/ironbar";
     #   inputs.nixpkgs.follows = "nixpkgs-unstable";

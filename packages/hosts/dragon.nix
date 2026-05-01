@@ -153,7 +153,6 @@
     desktop.enable = true;
     desktop.voxtype.model = "large-v3-turbo";
     gpu = "amd";
-    # desktop.niri.enable = true; # temporarily disabled
     desktop.music-production = {
       enable = true;
       users = [ "daniel" ];

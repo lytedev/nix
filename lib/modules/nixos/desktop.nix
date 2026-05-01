@@ -30,7 +30,7 @@ in
           type = types.bool;
         };
         niri.enable = lib.mkOption {
-          default = false; # temporarily disabled in favor of Plasma
+          default = config.lyte.desktop.enable;
           description = "Enable niri configuration and applications";
           type = types.bool;
           example = true;
