@@ -128,17 +128,32 @@ in
       };
     };
 
-    systemd.user.services.wvkbd = lib.mkIf (cfg.osk == "wvkbd") {
-      description = "wvkbd on-screen keyboard (hidden, toggled via SIGRTMIN+8)";
-      wantedBy = [ "niri.service" ];
-      after = [ "niri.service" ];
-      partOf = [ "niri.service" ];
-      serviceConfig = {
-        ExecStart = "${pkgs.wvkbd}/bin/wvkbd-mobintl --hidden";
-        Restart = "on-failure";
-        RestartSec = 3;
+    systemd.user.services.wvkbd =
+      let
+        # wvkbd 0.19.4 (current nixpkgs) sends a keymap_size that doesn't
+        # include the trailing NUL byte, then strcpy's one byte past the
+        # mmap region → SIGBUS at startup. Upstream issue:
+        # https://github.com/jjsullivan5196/wvkbd/issues/119
+        wvkbdPatched = pkgs.wvkbd.overrideAttrs (old: {
+          postPatch = (old.postPatch or "") + ''
+            substituteInPlace keyboard.c \
+              --replace-fail \
+                'keymap_size = strlen(keymap_str);' \
+                'keymap_size = strlen(keymap_str) + 1;'
+          '';
+        });
+      in
+      lib.mkIf (cfg.osk == "wvkbd") {
+        description = "wvkbd on-screen keyboard (hidden, toggled via SIGRTMIN+8)";
+        wantedBy = [ "niri.service" ];
+        after = [ "niri.service" ];
+        partOf = [ "niri.service" ];
+        serviceConfig = {
+          ExecStart = "${wvkbdPatched}/bin/wvkbd-mobintl --hidden";
+          Restart = "on-failure";
+          RestartSec = 3;
+        };
       };
-    };
     programs.niri.enable = true;
     programs.dconf.enable = true;
 
