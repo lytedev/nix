@@ -1,0 +1,10 @@
+{
+  "id": "oskToggle",
+  "name": "On-Screen Keyboard Toggle",
+  "description": "Toggles squeekboard via osk-toggle (busctl on sm.puri.OSK0)",
+  "version": "0.1.0",
+  "author": "lytedev",
+  "icon": "keyboard",
+  "type": "widget",
+  "component": "./Widget.qml"
+}

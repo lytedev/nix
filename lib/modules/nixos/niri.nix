@@ -89,6 +89,12 @@ in
     programs.dank-material-shell = lib.mkIf (cfg.shell == "dms") {
       enable = true;
       systemd.enable = true;
+      plugins = lib.mkIf (cfg.osk != "none") {
+        oskToggle = {
+          enable = true;
+          src = "${dotfilesPath}/dms-osk-plugin";
+        };
+      };
     };
 
     # Shell-specific keybindings + spawn-at-startup, included from config.kdl.
