@@ -35,6 +35,15 @@ in
           type = types.bool;
           example = true;
         };
+        niri.shell = lib.mkOption {
+          default = "noctalia";
+          description = "Which Quickshell-based desktop shell to run under niri";
+          type = types.enum [
+            "noctalia"
+            "dms"
+            "none"
+          ];
+        };
         firefox = {
           enable = lib.mkOption {
             type = types.bool;

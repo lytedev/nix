@@ -1,0 +1,47 @@
+// Noctalia-specific niri bindings.
+// Included from config.kdl when lyte.desktop.niri.shell = "noctalia".
+// noctalia-shell itself is launched as a systemd user unit by
+// services.noctalia-shell from the upstream noctalia nixos module —
+// no spawn-at-startup needed here.
+
+binds {
+    Super+Shift+Control+L hotkey-overlay-title="Lock the Screen" { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+    Super+Ctrl+Escape { spawn "noctalia-shell" "ipc" "call" "settings" "toggle"; }
+    Ctrl+Shift+Mod+C { spawn "noctalia-shell" "ipc" "call" "launcher" "clipboard"; }
+
+    // Volume.
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
+    XF86AudioMute allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteInput"; }
+    Super+Shift+V allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteInput"; }
+
+    // Brightness.
+    XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "brightness" "increase"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
+
+    // Media.
+    XF86AudioPlay allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "playPause"; }
+    XF86AudioPause allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "playPause"; }
+    XF86AudioNext allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "previous"; }
+    XF86AudioStop allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "stop"; }
+
+    // Notifications.
+    Mod+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "dismiss"; }
+    Super+Shift+Ctrl+Alt+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "restore"; }
+    Mod+Shift+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "invoke"; }
+
+    // Session menu.
+    Ctrl+Alt+Delete { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
+}
+
+// Send the noctalia overview wallpaper to the backdrop layer.
+layer-rule {
+    match namespace="^noctalia-overview*"
+    place-within-backdrop true
+}
+
+switch-events {
+    lid-close { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+}

@@ -318,7 +318,6 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-spawn-at-startup "noctalia-shell"
 spawn-at-startup "kdeconnectd"
 spawn-at-startup "kdeconnect-indicator"
 spawn-at-startup "vicinae" "server"
@@ -419,9 +418,6 @@ binds {
     Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty" "+new-window"; }
     Mod+T hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
     Mod+Space hotkey-overlay-title="Run an Application: vicinae" { spawn "vicinae" "open"; }
-    Super+Shift+Control+L hotkey-overlay-title="Lock the Screen" { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
-    Super+Ctrl+Escape { spawn "noctalia-shell" "ipc" "call" "settings" "toggle"; }
-    Ctrl+Shift+Mod+C { spawn "noctalia-shell" "ipc" "call" "launcher" "clipboard"; }
 
     Super+E { spawn "nautilus"; }
 
@@ -430,27 +426,9 @@ binds {
     // For example, this is a standard bind to toggle the screen reader (orca).
     Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
-    // Example volume keys mappings for PipeWire & WirePlumber.
-    // The allow-when-locked=true property makes them work even when the session is locked.
-    // Using spawn-sh allows to pass multiple arguments together with the command.
-    XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
-    XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
-    XF86AudioMute allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
-    XF86AudioMicMute allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteInput"; }
-    Super+Shift+V allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteInput"; }
-
-    // Example brightness key mappings for brightnessctl.
-    // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
-    // but you need to manually put each argument in separate "" quotes.
-    XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "brightness" "increase"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
-
-    // Media control key mappings for noctalia-shell.
-    XF86AudioPlay allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "playPause"; }
-    XF86AudioPause allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "playPause"; }
-    XF86AudioNext allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "next"; }
-    XF86AudioPrev allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "previous"; }
-    XF86AudioStop allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "stop"; }
+    // Volume / brightness / media key bindings live in the shell-specific
+    // include below — they shell out to whatever desktop shell is enabled
+    // (noctalia, dms, ...). See /etc/niri/shell-bindings.kdl.
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
@@ -670,9 +648,7 @@ binds {
     Alt+Print { screenshot-window; }
     Super+Shift+S hotkey-overlay-title="Screenshot: clipshot + Gradia" { spawn "bash" "-c" "f=$(clipshot) && gradia \"$f\""; }
 
-    Mod+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "dismiss"; }
-    Super+Shift+Ctrl+Alt+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "restore"; }
-    Mod+Shift+Ctrl+Space repeat=false { spawn "noctalia-shell" "ipc" "call" "notifications" "invoke"; }
+    // Notification keybindings live in the shell-specific include.
 
     // Applications such as remote-desktop clients and software KVM switches may
     // request that niri stops processing the keyboard shortcuts defined here
@@ -686,7 +662,7 @@ binds {
 
     // The quit action will show a confirmation dialog to avoid accidental exits.
     Mod+Shift+E { quit; }
-    Ctrl+Alt+Delete { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle" ; }
+    // Ctrl+Alt+Delete (session menu) is shell-specific — see shell-bindings.kdl.
 
     // Powers off the monitors. To turn them back on, do any input like
     // moving the mouse or pressing any other key.
@@ -703,16 +679,10 @@ debug {
   honor-xdg-activation-with-invalid-serial
 }
 
-// set the overview wallpaper on the backdrop.
-layer-rule {
-  match namespace="^noctalia-overview*"
-  place-within-backdrop true
-}
-
-switch-events {
-  lid-close { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
-  // lid-open { spawn "systemd-inhibit" "--what=sleep" "--who=niri-lid-open" "--why=Preventing immediate re-suspend" "--mode=block" "sleep" "5"; }
-}
+// Shell-specific layer-rule, spawn-at-startup, switch-events, and bindings
+// live in this include. The file is generated per-host based on
+// `lyte.desktop.niri.shell` (noctalia | dms | none).
+include "/etc/niri/shell-bindings.kdl"
 
 include "./noctalia.kdl"
 include "/etc/niri/laptop.kdl"

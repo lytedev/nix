@@ -7,7 +7,31 @@ flakeInputs:
   ...
 }:
 
+let
+  cfg = config.lyte.desktop.niri;
+  dotfilesPath = config.lyte.dotfilesPath;
+  shellBindings =
+    if cfg.shell == "noctalia" then
+      "${dotfilesPath}/niri/noctalia-bindings.kdl"
+    else if cfg.shell == "dms" then
+      "${dotfilesPath}/niri/dms-bindings.kdl"
+    else
+      pkgs.writeText "niri-shell-bindings-empty.kdl" "";
+
+  lockCmd =
+    if cfg.shell == "noctalia" then
+      "noctalia-shell ipc call lockScreen lock"
+    else if cfg.shell == "dms" then
+      "dms ipc call lock lock"
+    else
+      "${pkgs.swaylock}/bin/swaylock -f";
+in
 {
+  imports = [
+    flakeInputs.noctalia.nixosModules.default
+    flakeInputs.dankMaterialShell.nixosModules.default
+  ];
+
   config = lib.mkIf (config.lyte.desktop.enable && (config.lyte.desktop.niri.enable)) {
     # Enable KDE Connect with firewall rules
     programs.kdeconnect.enable = true;
@@ -21,10 +45,8 @@ flakeInputs:
       allowedUDPPortRanges = allowedTCPPortRanges;
     };
     environment.systemPackages = with pkgs; [
-      flakeInputs.noctalia.packages.${system}.default
       slurp
       grim
-      quickshell
       kdePackages.kdeconnect-kde
       vicinae
 
@@ -37,6 +59,20 @@ flakeInputs:
       xwayland-satellite
       vesktop
     ];
+
+    # Pick a Quickshell-based desktop shell. Both upstream modules launch the
+    # shell as a systemd user unit; spawn-at-startup is no longer needed.
+    services.noctalia-shell = lib.mkIf (cfg.shell == "noctalia") {
+      enable = true;
+      package = flakeInputs.noctalia.packages.${pkgs.system}.default;
+    };
+    programs.dank-material-shell = lib.mkIf (cfg.shell == "dms") {
+      enable = true;
+      systemd.enable = true;
+    };
+
+    # Shell-specific keybindings + spawn-at-startup, included from config.kdl.
+    environment.etc."niri/shell-bindings.kdl".source = shellBindings;
     programs.niri.enable = true;
     programs.dconf.enable = true;
 
@@ -127,19 +163,6 @@ flakeInputs:
       };
     };
 
-    # Noctalia shell service
-    systemd.user.services.noctalia-shell = {
-      description = "Noctalia Shell for niri";
-      wantedBy = [ "niri.service" ];
-      after = [ "niri.service" ];
-      partOf = [ "niri.service" ];
-      serviceConfig = {
-        ExecStart = "${flakeInputs.noctalia.packages.${pkgs.system}.default}/bin/noctalia-shell";
-        Restart = "on-failure";
-        RestartSec = 3;
-      };
-    };
-
     # Swayidle for automatic locking and power management.
     # On laptops, also trigger suspend on idle — niri does not feed idle
     # hint to logind, so logind's IdleAction won't fire on its own.
@@ -153,9 +176,9 @@ flakeInputs:
         ExecStart = lib.concatStringsSep " " (
           [
             "${pkgs.swayidle}/bin/swayidle -w"
-            "before-sleep '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
-            "lock '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
-            "timeout 600 '${pkgs.bash}/bin/bash -c \"noctalia-shell ipc call lockScreen lock\"'"
+            "before-sleep '${pkgs.bash}/bin/bash -c \"${lockCmd}\"'"
+            "lock '${pkgs.bash}/bin/bash -c \"${lockCmd}\"'"
+            "timeout 600 '${pkgs.bash}/bin/bash -c \"${lockCmd}\"'"
           ]
           ++ lib.optional config.lyte.laptop.enable "timeout 660 '${pkgs.systemd}/bin/systemctl suspend'"
           ++ [

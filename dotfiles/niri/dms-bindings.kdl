@@ -1,0 +1,37 @@
+// DankMaterialShell-specific niri bindings.
+// Included from config.kdl when lyte.desktop.niri.shell = "dms".
+// dms is launched as a systemd user unit by programs.dank-material-shell
+// (with systemd.enable = true) — no spawn-at-startup needed here.
+
+binds {
+    Super+Shift+Control+L hotkey-overlay-title="Lock the Screen" { spawn "dms" "ipc" "call" "lock" "lock"; }
+    Super+Ctrl+Escape { spawn "dms" "ipc" "call" "settings" "focusOrToggle"; }
+    Ctrl+Shift+Mod+C { spawn "dms" "ipc" "call" "clipboard" "toggle"; }
+
+    // Volume.
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "dms" "ipc" "call" "audio" "increment" "3"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "dms" "ipc" "call" "audio" "decrement" "3"; }
+    XF86AudioMute allow-when-locked=true { spawn "dms" "ipc" "call" "audio" "mute"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "dms" "ipc" "call" "audio" "micmute"; }
+    Super+Shift+V allow-when-locked=true { spawn "dms" "ipc" "call" "audio" "micmute"; }
+
+    // Brightness.
+    XF86MonBrightnessUp allow-when-locked=true { spawn "dms" "ipc" "call" "brightness" "increment" "5" ""; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "dms" "ipc" "call" "brightness" "decrement" "5" ""; }
+
+    // Media (mpris).
+    XF86AudioPlay allow-when-locked=true { spawn "dms" "ipc" "call" "mpris" "playPause"; }
+    XF86AudioPause allow-when-locked=true { spawn "dms" "ipc" "call" "mpris" "playPause"; }
+    XF86AudioNext allow-when-locked=true { spawn "dms" "ipc" "call" "mpris" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "dms" "ipc" "call" "mpris" "previous"; }
+
+    // Notifications (DMS uses a single toggle for the notification center).
+    Mod+Ctrl+Space repeat=false { spawn "dms" "ipc" "call" "notifications" "toggle"; }
+
+    // Session menu / power menu.
+    Ctrl+Alt+Delete { spawn "dms" "ipc" "call" "powermenu" "toggle"; }
+}
+
+switch-events {
+    lid-close { spawn "dms" "ipc" "call" "lock" "lock"; }
+}
