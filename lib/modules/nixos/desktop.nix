@@ -36,7 +36,7 @@ in
           example = true;
         };
         niri.shell = lib.mkOption {
-          default = "noctalia";
+          default = "dms";
           description = "Which Quickshell-based desktop shell to run under niri";
           type = types.enum [
             "noctalia"
