@@ -26,23 +26,36 @@ let
     else
       "${pkgs.swaylock}/bin/swaylock -f";
 
-  oskToggle = pkgs.writeShellScriptBin "osk-toggle" ''
-    set -eu
-    if ! ${pkgs.systemd}/bin/systemctl --user -q is-active squeekboard.service; then
-      ${pkgs.systemd}/bin/systemctl --user start squeekboard.service
-      exit 0
-    fi
-    visible=$(${pkgs.systemd}/bin/busctl --user get-property \
-      sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 Visible 2>/dev/null \
-      | ${pkgs.gawk}/bin/awk '{print $2}')
-    if [ "$visible" = "true" ]; then
-      ${pkgs.systemd}/bin/busctl --user call \
-        sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b false
+  oskToggle =
+    if cfg.osk == "wvkbd" then
+      pkgs.writeShellScriptBin "osk-toggle" ''
+        set -eu
+        # wvkbd-mobintl listens for SIGRTMIN+8 to toggle visibility when
+        # started with --hidden. Make sure the service is up first.
+        ${pkgs.systemd}/bin/systemctl --user -q is-active wvkbd.service \
+          || ${pkgs.systemd}/bin/systemctl --user start wvkbd.service
+        ${pkgs.procps}/bin/pkill -SIGRTMIN+8 wvkbd-mobintl
+      ''
+    else if cfg.osk == "squeekboard" then
+      pkgs.writeShellScriptBin "osk-toggle" ''
+        set -eu
+        if ! ${pkgs.systemd}/bin/systemctl --user -q is-active squeekboard.service; then
+          ${pkgs.systemd}/bin/systemctl --user start squeekboard.service
+          exit 0
+        fi
+        visible=$(${pkgs.systemd}/bin/busctl --user get-property \
+          sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 Visible 2>/dev/null \
+          | ${pkgs.gawk}/bin/awk '{print $2}')
+        if [ "$visible" = "true" ]; then
+          ${pkgs.systemd}/bin/busctl --user call \
+            sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b false
+        else
+          ${pkgs.systemd}/bin/busctl --user call \
+            sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b true
+        fi
+      ''
     else
-      ${pkgs.systemd}/bin/busctl --user call \
-        sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b true
-    fi
-  '';
+      pkgs.writeShellScriptBin "osk-toggle" "exit 0";
 in
 {
   imports = [
@@ -110,6 +123,18 @@ in
       partOf = [ "niri.service" ];
       serviceConfig = {
         ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
+    };
+
+    systemd.user.services.wvkbd = lib.mkIf (cfg.osk == "wvkbd") {
+      description = "wvkbd on-screen keyboard (hidden, toggled via SIGRTMIN+8)";
+      wantedBy = [ "niri.service" ];
+      after = [ "niri.service" ];
+      partOf = [ "niri.service" ];
+      serviceConfig = {
+        ExecStart = "${pkgs.wvkbd}/bin/wvkbd-mobintl --hidden";
         Restart = "on-failure";
         RestartSec = 3;
       };

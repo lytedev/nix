@@ -48,12 +48,21 @@ in
           default = "none";
           description = ''
             On-screen keyboard to run alongside niri (for touchscreens / 2-in-1s).
-            squeekboard speaks input-method-v2 and tries to auto-show on text
-            entry. niri's text-input-v3 plumbing is reportedly flaky, so we also
-            install a busctl-based manual toggle (`osk-toggle`) wired to a
-            niri keybind as a fallback.
+
+            - "wvkbd": uses wlr-virtual-keyboard-v1 only (no input-method
+              dependency). Reliably renders on niri. Toggle via SIGRTMIN+8.
+              No auto-show on text entry.
+            - "squeekboard": speaks input-method-v2 and *tries* to auto-show
+              on text-input-v3 focus. niri's text-input plumbing is reportedly
+              flaky, and SetVisible without an active input-method client
+              often commits a 0-height surface. Pick this if you specifically
+              want auto-show and are willing to debug.
+
+            `osk-toggle` is installed in either case to give you a manual
+            toggle command (used by the niri keybind and the DMS bar plugin).
           '';
           type = types.enum [
+            "wvkbd"
             "squeekboard"
             "none"
           ];
