@@ -44,6 +44,20 @@ in
             "none"
           ];
         };
+        niri.osk = lib.mkOption {
+          default = "none";
+          description = ''
+            On-screen keyboard to run alongside niri (for touchscreens / 2-in-1s).
+            squeekboard speaks input-method-v2 and tries to auto-show on text
+            entry. niri's text-input-v3 plumbing is reportedly flaky, so we also
+            install a busctl-based manual toggle (`osk-toggle`) wired to a
+            niri keybind as a fallback.
+          '';
+          type = types.enum [
+            "squeekboard"
+            "none"
+          ];
+        };
         firefox = {
           enable = lib.mkOption {
             type = types.bool;

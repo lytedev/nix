@@ -31,5 +31,6 @@
     two-in-one.enable = true;
     gpu = "intel";
     family-account.enable = true;
+    desktop.niri.osk = "squeekboard";
   };
 }

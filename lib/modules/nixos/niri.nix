@@ -25,6 +25,24 @@ let
       "dms ipc call lock lock"
     else
       "${pkgs.swaylock}/bin/swaylock -f";
+
+  oskToggle = pkgs.writeShellScriptBin "osk-toggle" ''
+    set -eu
+    if ! ${pkgs.systemd}/bin/systemctl --user -q is-active squeekboard.service; then
+      ${pkgs.systemd}/bin/systemctl --user start squeekboard.service
+      exit 0
+    fi
+    visible=$(${pkgs.systemd}/bin/busctl --user get-property \
+      sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 Visible 2>/dev/null \
+      | ${pkgs.gawk}/bin/awk '{print $2}')
+    if [ "$visible" = "true" ]; then
+      ${pkgs.systemd}/bin/busctl --user call \
+        sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b false
+    else
+      ${pkgs.systemd}/bin/busctl --user call \
+        sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b true
+    fi
+  '';
 in
 {
   imports = [
@@ -44,21 +62,23 @@ in
       ];
       allowedUDPPortRanges = allowedTCPPortRanges;
     };
-    environment.systemPackages = with pkgs; [
-      slurp
-      grim
-      kdePackages.kdeconnect-kde
-      vicinae
+    environment.systemPackages =
+      (with pkgs; [
+        slurp
+        grim
+        kdePackages.kdeconnect-kde
+        vicinae
 
-      # Niri user packages (absorbed from HM)
-      swayosd
-      swaylock
-      swayidle
-      fuzzel
-      brightnessctl
-      xwayland-satellite
-      vesktop
-    ];
+        # Niri user packages (absorbed from HM)
+        swayosd
+        swaylock
+        swayidle
+        fuzzel
+        brightnessctl
+        xwayland-satellite
+        vesktop
+      ])
+      ++ lib.optional (cfg.osk != "none") oskToggle;
 
     # Pick a Quickshell-based desktop shell. Both upstream modules launch the
     # shell as a systemd user unit; spawn-at-startup is no longer needed.
@@ -73,6 +93,21 @@ in
 
     # Shell-specific keybindings + spawn-at-startup, included from config.kdl.
     environment.etc."niri/shell-bindings.kdl".source = shellBindings;
+
+    # On-screen keyboard for touchscreen hosts.
+    services.dbus.packages = lib.mkIf (cfg.osk == "squeekboard") [ pkgs.squeekboard ];
+
+    systemd.user.services.squeekboard = lib.mkIf (cfg.osk == "squeekboard") {
+      description = "Squeekboard on-screen keyboard";
+      wantedBy = [ "niri.service" ];
+      after = [ "niri.service" ];
+      partOf = [ "niri.service" ];
+      serviceConfig = {
+        ExecStart = "${pkgs.squeekboard}/bin/squeekboard";
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
+    };
     programs.niri.enable = true;
     programs.dconf.enable = true;
 

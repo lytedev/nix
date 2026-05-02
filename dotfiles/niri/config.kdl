@@ -421,6 +421,9 @@ binds {
 
     Super+E { spawn "nautilus"; }
 
+    // On-screen keyboard toggle (for touchscreens). No-op when osk = "none".
+    Mod+B allow-when-locked=true hotkey-overlay-title="Toggle on-screen keyboard" { spawn "osk-toggle"; }
+
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
     // For example, this is a standard bind to toggle the screen reader (orca).
