@@ -30,11 +30,12 @@ let
     if cfg.osk == "wvkbd" then
       pkgs.writeShellScriptBin "osk-toggle" ''
         set -eu
-        # wvkbd-mobintl listens for SIGRTMIN+8 to toggle visibility when
-        # started with --hidden. Make sure the service is up first.
+        # wvkbd-mobintl signal vocabulary (from main.c): SIGUSR1 hide,
+        # SIGUSR2 show, SIGRTMIN toggle. SIGRTMIN+N has no handler → default
+        # action terminates the process, so use plain SIGRTMIN here.
         ${pkgs.systemd}/bin/systemctl --user -q is-active wvkbd.service \
           || ${pkgs.systemd}/bin/systemctl --user start wvkbd.service
-        ${pkgs.procps}/bin/pkill -SIGRTMIN+8 wvkbd-mobintl
+        ${pkgs.procps}/bin/pkill --signal SIGRTMIN wvkbd-mobintl
       ''
     else if cfg.osk == "squeekboard" then
       pkgs.writeShellScriptBin "osk-toggle" ''
