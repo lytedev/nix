@@ -244,6 +244,41 @@ in
       };
     };
 
+    # Quickshell does not clean up its $XDG_RUNTIME_DIR/quickshell/by-id/<id>
+    # directories on abnormal exit. Crash-loops (e.g. broken QML imports)
+    # can fill the 784M tmpfs with thousands of stale instance dirs, after
+    # which posix_fallocate() in any Wayland client returns ENOSPC and
+    # mmap-backed clients (wvkbd, squeekboard, etc.) SIGBUS on access.
+    # Sweep dead entries before each niri session.
+    systemd.user.services.quickshell-runtime-cleanup = {
+      description = "Reap stale Quickshell instance dirs in XDG_RUNTIME_DIR";
+      wantedBy = [ "niri.service" ];
+      before = [ "niri.service" ];
+      partOf = [ "niri.service" ];
+      path = [
+        pkgs.coreutils
+        pkgs.psmisc
+      ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = pkgs.writeShellScript "quickshell-runtime-cleanup" ''
+          set -eu
+          dir="$XDG_RUNTIME_DIR/quickshell/by-id"
+          [ -d "$dir" ] || exit 0
+          for d in "$dir"/*/; do
+            [ -d "$d" ] || continue
+            if [ -f "$d/instance.lock" ]; then
+              if fuser "$d/instance.lock" >/dev/null 2>&1; then
+                continue
+              fi
+            fi
+            rm -rf "$d"
+          done
+        '';
+      };
+    };
+
     # Swayidle for automatic locking and power management.
     # On laptops, also trigger suspend on idle — niri does not feed idle
     # hint to logind, so logind's IdleAction won't fire on its own.
