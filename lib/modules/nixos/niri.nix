@@ -96,13 +96,18 @@ in
 
     # Pick a Quickshell-based desktop shell. Both upstream modules launch the
     # shell as a systemd user unit; spawn-at-startup is no longer needed.
+    # Both modules default their target to graphical-session.target, which
+    # fires under *any* wayland session (including plasma). Bind to
+    # niri.service so the shell only runs when niri is the live session.
     services.noctalia-shell = lib.mkIf (cfg.shell == "noctalia") {
       enable = true;
       package = flakeInputs.noctalia.packages.${pkgs.system}.default;
+      target = "niri.service";
     };
     programs.dank-material-shell = lib.mkIf (cfg.shell == "dms") {
       enable = true;
       systemd.enable = true;
+      systemd.target = "niri.service";
       plugins = lib.mkIf (cfg.osk != "none") {
         oskToggle = {
           enable = true;
