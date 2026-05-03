@@ -30,6 +30,13 @@ PluginComponent {
         }
     }
 
+    // DMS plugin click hooks: the bar framework intercepts touch/click events
+    // upstream and invokes these callbacks. A MouseArea inside the pill itself
+    // doesn't see left-clicks because the framework consumes them first.
+    pillClickAction: function () {
+        root.fire();
+    }
+
     horizontalBarPill: Component {
         Item {
             implicitWidth: icon.implicitWidth + Theme.spacingS * 2
@@ -41,12 +48,6 @@ PluginComponent {
                 name: "keyboard"
                 size: Theme.iconSize
                 color: Theme.primary
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.fire()
             }
         }
     }
@@ -62,12 +63,6 @@ PluginComponent {
                 name: "keyboard"
                 size: Theme.iconSize
                 color: Theme.primary
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.fire()
             }
         }
     }
