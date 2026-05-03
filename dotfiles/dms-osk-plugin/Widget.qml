@@ -1,11 +1,34 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
 
 PluginComponent {
     id: root
+
+    function fire() {
+        toggleProcess.running = true;
+    }
+
+    Process {
+        id: toggleProcess
+        command: ["osk-toggle"]
+        running: false
+    }
+
+    // Register a quickshell IPC method so the toggle can be invoked from
+    // outside the bar — useful for remote testing (ssh) and for any other
+    // automation that wants to fire the OSK without faking a touch event.
+    //   quickshell ipc call oskToggle trigger
+    IpcHandler {
+        target: "oskToggle"
+        function trigger(): string {
+            root.fire();
+            return "ok";
+        }
+    }
 
     horizontalBarPill: Component {
         Item {
@@ -23,7 +46,7 @@ PluginComponent {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Quickshell.execDetached(["osk-toggle"])
+                onClicked: root.fire()
             }
         }
     }
@@ -44,7 +67,7 @@ PluginComponent {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Quickshell.execDetached(["osk-toggle"])
+                onClicked: root.fire()
             }
         }
     }
