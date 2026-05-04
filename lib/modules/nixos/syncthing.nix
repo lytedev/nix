@@ -21,7 +21,11 @@ let
     foxtrot = "YMA4L72-CTVKNBM-IKNI77T-ERA2AJ2-HMA5PDU-WYM6ROR-7O7HVLC-54NRWA4";
     babyflip = "B2CSTI7-3JAPJF3-6LYPNUP-KKSNIAR-NUA2ZBX-R3LPB77-BYHEKGF-3BQI5QY";
     beefcake = "CLIA25Z-SODKDAJ-TOXKZKF-D3SXEHI-NWCXONN-77FE67Y-C6KGU7I-P43JVQ3";
+    phone = "MPNOYAO-NRKQWTY-TE5JTYN-BY7OUX6-MF5RFD3-BCIIBH7-5Q7V6FZ-YI2TQQF";
   };
+
+  # Mobile-only devices: included only in the notes folder, not wallpapers/shared
+  mobileDevices = [ "phone" ];
 
   # All device names except this host
   otherDevices = lib.filter (d: d != config.networking.hostName) (lib.attrNames cfg.devices);
@@ -88,7 +92,11 @@ in
 
         folders = lib.mapAttrs (label: path: {
           inherit path;
-          devices = otherDevices;
+          devices =
+            if label == "notes" then
+              otherDevices
+            else
+              lib.filter (d: !(builtins.elem d mobileDevices)) otherDevices;
           versioning = {
             type = "simple";
             params.keep = "5";
