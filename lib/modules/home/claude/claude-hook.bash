@@ -10,7 +10,8 @@ fi
 
 STATE_DIR="$HOME/.local/state/claude"
 SESSIONS_DIR="$STATE_DIR/sessions"
-mkdir -p "$SESSIONS_DIR"
+PETNAMES_DIR="$STATE_DIR/petnames"
+mkdir -p "$SESSIONS_DIR" "$PETNAMES_DIR"
 
 # Read hook data from stdin (with timeout to avoid hanging on empty stdin)
 if [ -t 0 ]; then
@@ -23,8 +24,34 @@ fi
 SESSION_ID="$(echo "$HOOK_DATA" | jq -r '.session_id // empty')"
 : "${SESSION_ID:=unnamed}"
 
-# Use CLAUDE_SESSION_NAME if set (multi-session), otherwise derive from session_id
-SESSION_NAME="${CLAUDE_SESSION_NAME:-${SESSION_ID}}"
+# Resolve a human-readable session name. Priority:
+#   1. CLAUDE_SESSION_NAME env (claude-ws workspaces set this)
+#   2. .session_name from the hook payload
+#   3. A petname persisted per-session-id (stable across hook invocations)
+resolve_session_name() {
+  if [ -n "${CLAUDE_SESSION_NAME:-}" ]; then
+    printf '%s' "$CLAUDE_SESSION_NAME"
+    return
+  fi
+  local from_payload
+  from_payload="$(echo "$HOOK_DATA" | jq -r '.session_name // empty')"
+  if [ -n "$from_payload" ]; then
+    printf '%s' "$from_payload"
+    return
+  fi
+  local pn_file="$PETNAMES_DIR/$SESSION_ID"
+  if [ -s "$pn_file" ]; then
+    cat "$pn_file"
+    return
+  fi
+  local pn
+  pn="$(petname 2>/dev/null || true)"
+  : "${pn:=$SESSION_ID}"
+  printf '%s' "$pn" >"$pn_file"
+  printf '%s' "$pn"
+}
+
+SESSION_NAME="$(resolve_session_name)"
 
 # Build from-URI: user@host:/cwd?pid=N&zellij=session.tab.pane
 HOOK_CWD="$(echo "$HOOK_DATA" | jq -r '.cwd // empty')"
@@ -117,12 +144,7 @@ case "$SUBCOMMAND" in
   session-start)
     write_status "working" "Session started"
     if [ -n "${ZELLIJ:-}" ]; then
-      TAB_NAME="${CLAUDE_SESSION_NAME:-}"
-      if [ -z "$TAB_NAME" ]; then
-        TAB_NAME="$(echo "$HOOK_DATA" | jq -r '.session_name // empty')"
-      fi
-      : "${TAB_NAME:=$SESSION_ID}"
-      zellij action rename-tab "$TAB_NAME" 2>/dev/null || true
+      zellij action rename-tab "$SESSION_NAME" 2>/dev/null || true
     fi
     ;;
   notification)
@@ -160,7 +182,7 @@ case "$SUBCOMMAND" in
     touch_ws_activity "$(echo "$HOOK_DATA" | jq -r '.prompt // empty')"
     ;;
   session-end)
-    rm -f "$SESSION_FILE"
+    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID"
     ;;
   *)
     echo "Unknown subcommand: $SUBCOMMAND" >&2

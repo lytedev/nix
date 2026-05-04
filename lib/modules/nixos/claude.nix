@@ -103,6 +103,7 @@ let
       jq
       coreutils
       zellij
+      rust-petname
     ];
   };
 
