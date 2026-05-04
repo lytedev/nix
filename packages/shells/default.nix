@@ -61,7 +61,6 @@ in
       claude-code
       happy-coder
       codex
-      pkgs.opencode
       # zed-editor  # broken: livekit-libwebrtc fails against new pipewire/spa API
     ];
     shellHook = ''

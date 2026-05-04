@@ -69,18 +69,9 @@
         claude-matrix-webhook-code-review = workstationSecret;
         slack-user-token = danielSecret;
         notion-token = danielSecret;
-        opencode-server-password = danielSecret;
         syncthing-key = syncthingSecret;
         syncthing-cert = syncthingSecret;
       };
-    templates."opencode-env" = {
-      owner = "daniel";
-      group = "users";
-      content = ''
-        NOTION_TOKEN=${config.sops.placeholder.notion-token}
-        OPENCODE_SERVER_PASSWORD=${config.sops.placeholder.opencode-server-password}
-      '';
-    };
   };
 
   services.syncthing = {
@@ -158,10 +149,6 @@
       users = [ "daniel" ];
     };
     syncthing.enable = true;
-    opencode = {
-      enable = false;
-      environmentFiles = [ config.sops.templates."opencode-env".path ];
-    };
     claude = {
       enable = true;
       sfxPath = "${config.lyte.userHome}/Documents/wc3sfx/peon/sounds";
@@ -175,10 +162,7 @@
 
   # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
-    opencode
-    oc
     playwright-mcp
-    mcpm-aider
     godot_4
   ];
 }

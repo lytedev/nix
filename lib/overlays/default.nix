@@ -249,28 +249,6 @@ let
             { }
         );
 
-      opencode =
-        let
-          opencode-src = prev.fetchFromGitHub {
-            owner = "lytedev";
-            repo = "opencode";
-            rev = "54a5ba7084ebf9e6cc255afbd00a984dc89261f9";
-            hash = "sha256-qYEHiz6sQ56CJyYJglqSflu2SY2abLdgEqQ5NkUml24=";
-          };
-        in
-        (final.callPackage "${opencode-src}/nix/opencode.nix" {
-          node_modules = final.callPackage "${opencode-src}/nix/node_modules.nix" {
-            rev = "54a5ba7";
-          };
-        }).overrideAttrs
-          {
-            postPatch = ''
-              substituteInPlace packages/script/src/index.ts \
-                --replace-fail 'throw new Error(`This script requires bun@''${expectedBunVersionRange}' \
-                               'console.warn(`Warning: This script expects bun@''${expectedBunVersionRange}'
-            '';
-          };
-
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}
