@@ -26,15 +26,16 @@ SESSION_ID="$(echo "$HOOK_DATA" | jq -r '.session_id // empty')"
 
 # Resolve a human-readable session name. Priority:
 #   1. CLAUDE_SESSION_NAME env (claude-ws workspaces set this)
-#   2. .session_name from the hook payload
-#   3. A petname persisted per-session-id (stable across hook invocations)
+#   2. .session_title from the hook payload (set by Claude's /rename)
+#   3. .session_name from the hook payload
+#   4. A petname persisted per-session-id (stable across hook invocations)
 resolve_session_name() {
   if [ -n "${CLAUDE_SESSION_NAME:-}" ]; then
     printf '%s' "$CLAUDE_SESSION_NAME"
     return
   fi
   local from_payload
-  from_payload="$(echo "$HOOK_DATA" | jq -r '.session_name // empty')"
+  from_payload="$(echo "$HOOK_DATA" | jq -r '.session_title // .session_name // empty')"
   if [ -n "$from_payload" ]; then
     printf '%s' "$from_payload"
     return
@@ -49,6 +50,20 @@ resolve_session_name() {
   : "${pn:=$SESSION_ID}"
   printf '%s' "$pn" >"$pn_file"
   printf '%s' "$pn"
+}
+
+# Rename the current zellij tab to $SESSION_NAME, but only if the name has
+# changed since the last invocation for this session. Lets /rename (and any
+# other later-arriving name source) propagate to the tab on the next hook event.
+sync_zellij_tab_name() {
+  [ -n "${ZELLIJ:-}" ] || return 0
+  local applied_file="$PETNAMES_DIR/$SESSION_ID.tab-applied"
+  local last_applied=""
+  [ -s "$applied_file" ] && last_applied="$(cat "$applied_file")"
+  if [ "$last_applied" != "$SESSION_NAME" ]; then
+    zellij action rename-tab "$SESSION_NAME" 2>/dev/null || true
+    printf '%s' "$SESSION_NAME" >"$applied_file"
+  fi
 }
 
 SESSION_NAME="$(resolve_session_name)"
@@ -140,12 +155,13 @@ touch_ws_activity() {
   fi
 }
 
+# Keep the zellij tab name in sync on every event, so a later /rename reflects
+# on the next hook firing.
+sync_zellij_tab_name
+
 case "$SUBCOMMAND" in
   session-start)
     write_status "working" "Session started"
-    if [ -n "${ZELLIJ:-}" ]; then
-      zellij action rename-tab "$SESSION_NAME" 2>/dev/null || true
-    fi
     ;;
   notification)
     NOTIFICATION_TYPE="$(echo "$HOOK_DATA" | jq -r '.type // empty')"
@@ -182,7 +198,7 @@ case "$SUBCOMMAND" in
     touch_ws_activity "$(echo "$HOOK_DATA" | jq -r '.prompt // empty')"
     ;;
   session-end)
-    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID"
+    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID" "$PETNAMES_DIR/$SESSION_ID.tab-applied"
     ;;
   *)
     echo "Unknown subcommand: $SUBCOMMAND" >&2
