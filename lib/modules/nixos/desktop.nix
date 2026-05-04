@@ -81,6 +81,22 @@ in
           description = "Whisper model for voxtype (e.g. base.en, large-v3-turbo)";
         };
         music.enable = lib.mkEnableOption "Enable music listening applications";
+        displaylink.enable = lib.mkEnableOption ''
+          DisplayLink USB graphics support (evdi DKMS module + the proprietary
+          DisplayLinkManager service). Needed for USB-attached DisplayLink
+          monitors, USB-C docks with embedded DL chips, and Logitech Tap
+          (which presents its 10.1" panel as 17e9:ff13 over DisplayLink).
+
+          The displaylink package is unfree and EULA-gated: the source zip is
+          not on cache.nixos.org and must be prefetched once per host before
+          first build:
+
+            nix-prefetch-url --name displaylink-620.zip \
+              https://www.synaptics.com/sites/default/files/exe_files/2025-09/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu6.2-EXE.zip
+
+          (URL/version updates over time; the build error message will print
+          the current correct one.)
+        '';
         easyeffects = {
           enable = lib.mkEnableOption "Enable EasyEffects audio processing";
           preset = lib.mkOption {
@@ -332,6 +348,11 @@ in
         enable32Bit = true;
       };
       hardware.amdgpu.initrd.enable = lib.mkDefault true;
+    })
+
+    # DisplayLink USB graphics (opt-in; see option description for prefetch).
+    (lib.mkIf cfg.displaylink.enable {
+      services.xserver.videoDrivers = [ "displaylink" ];
     })
   ];
 }
