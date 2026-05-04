@@ -11,3 +11,7 @@ mise.local.toml
 
 # Miyoo sync: private key and cross-compiled binaries (not for git)
 packages/miyoo-sync/bin/
+
+# DankMaterialShell: app-managed config and generated theme files
+dotfiles/niri/dms/
+dotfiles/ghostty/themes/dankcolors
