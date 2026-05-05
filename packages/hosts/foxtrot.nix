@@ -90,7 +90,10 @@
     serviceConfig.Type = "simple";
   };
 
-  programs.steam.enable = true;
+  # Steam: install via flatpak (com.valvesoftware.Steam) — see
+  # lib/doc/steam-flatpak-migration.md for the move from the old
+  # nix-managed Steam library at ~/.local/share/Steam.
+
   lyte = {
     editableConfigFiles = true;
     flakePath = "/etc/nix/flake";

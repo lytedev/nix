@@ -74,12 +74,6 @@
     environment = {
       systemPackages = with pkgs; [
         dualsensectl # for interfacing with dualsense controllers programmatically
-        wineWowPackages.waylandFull
-        lutris
-        winetricks
-        ludusavi
-        # ludusavi uses rclone
-        rclone
       ];
     };
     # remote play ports - should be unnecessary due to programs.steam.remotePlay.openFirewall = true;

@@ -50,7 +50,7 @@
     };
   };
 
-  programs.steam.enable = true;
+  # Steam: install via flatpak (com.valvesoftware.Steam).
 
   lyte = {
     two-in-one.enable = true;

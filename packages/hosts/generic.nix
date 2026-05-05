@@ -28,7 +28,7 @@
 
   hardware.bluetooth.enable = true;
 
-  programs.steam.enable = true;
+  # Steam: install via flatpak (com.valvesoftware.Steam).
   lyte.shell.enable = true;
   lyte.desktop.enable = true;
 }

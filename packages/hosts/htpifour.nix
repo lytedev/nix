@@ -42,8 +42,10 @@
       raspberrypi-eeprom
     ];
 
-  programs.steam.enable = true;
-  programs.steam.remotePlay.openFirewall = true;
+  # Steam: install via flatpak (com.valvesoftware.Steam). Remote Play
+  # firewall ports were previously opened via programs.steam.remotePlay; if
+  # this host needs them again, open them explicitly under
+  # networking.firewall.allowedTCPPortRanges/allowedUDPPortRanges.
 
   services.xserver = {
     displayManager = {

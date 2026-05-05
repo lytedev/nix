@@ -64,9 +64,7 @@
   };
   powerManagement.cpuFreqGovernor = "performance";
 
-  environment.systemPackages = with pkgs; [
-    lutris
-  ];
+  environment.systemPackages = with pkgs; [ ];
 
   sops = {
     defaultSopsFile = ../../secrets/bigtower/secrets.yml;
@@ -94,7 +92,8 @@
   # TODO: temporary: https://github.com/nix-community/home-manager/issues/3113#issuecomment-3368651274
   programs.dconf.enable = true;
 
-  programs.steam.enable = true;
+  # Steam is now installed via flatpak (com.valvesoftware.Steam) — see
+  # lib/doc/steam-flatpak-migration.md.
 
   # --- Forgejo runners for agent tasks ---
   services.gitea-actions-runner = {
