@@ -78,6 +78,17 @@
     serviceConfig.Type = "simple";
   };
 
+  # Use password (not fingerprint) for initial login so pam_gnome_keyring
+  # can capture it and auto-unlock the login keyring. Without this, NM's
+  # agent-owned wifi PSKs (and anything else in the keyring) prompt every
+  # session and again on resume from suspend. Fingerprint stays on for
+  # sudo / polkit / screen unlock, which only need re-auth, not the
+  # password text.
+  security.pam.services = {
+    login.fprintAuth = false;
+    plasmalogin.fprintAuth = false;
+  };
+
   # Steam: install via flatpak (com.valvesoftware.Steam) — see
   # lib/doc/steam-flatpak-migration.md for the move from the old
   # nix-managed Steam library at ~/.local/share/Steam.
