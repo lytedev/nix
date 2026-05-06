@@ -94,7 +94,9 @@
   # Steam: install via flatpak (com.valvesoftware.Steam) — see
   # lib/doc/steam-flatpak-migration.md for the move from the old
   # nix-managed Steam library at ~/.local/share/Steam.
-
+  # Keep the steam-hardware udev rules so Flatpak Steam still sees
+  # Steam Controllers / Steam Deck dock correctly.
+  hardware.steam-hardware.enable = true;
   lyte = {
     editableConfigFiles = true;
     flakePath = "/etc/nix/flake";
