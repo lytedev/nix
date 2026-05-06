@@ -252,8 +252,6 @@ in
     (lib.mkIf (cfg.enable && cfg.firefox.enable) {
       environment.systemPackages = with pkgs; [
         firefox
-        firefox-nightly
-        firefox-devedition-bin
         pywal
         pywalfox-native
       ];

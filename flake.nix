@@ -113,11 +113,6 @@
     hardware.url = "github:NixOS/nixos-hardware";
     # nnf.url = "github:thelegy/nixos-nftables-firewall";
 
-    firefox-nightly = {
-      url = "github:nix-community/flake-firefox-nightly";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-
     helix.url = "github:helix-editor/helix/master";
     helix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 

@@ -12,7 +12,6 @@ let
         helix
         ghostty
         tuwunel
-        firefox-nightly
         ;
       unstable-packages = import nixpkgs-unstable {
         system = final.system;
@@ -166,10 +165,6 @@ let
             };
           })
         ) { };
-
-      # bleeding-edge Firefox variants
-      firefox-nightly = firefox-nightly.packages.${prev.system}.firefox-nightly-bin;
-      inherit (unstable-packages) firefox-devedition-bin;
 
       # nixpkgs-unstable split zig's setup-hook into zig.hook, but that hook
       # unconditionally prepends default flags that conflict with ghostty's own.
