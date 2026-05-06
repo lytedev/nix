@@ -65,7 +65,6 @@
   programs.nix-ld.enable = true;
 
   # Let power-profiles-daemon manage the CPU governor via amd_pstate EPP
-  powerManagement.powertop.enable = true;
   services = {
     fwupd.extraRemotes = [ "lvfs-testing" ];
     power-profiles-daemon.enable = true;
