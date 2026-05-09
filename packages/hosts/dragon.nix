@@ -124,6 +124,13 @@
   programs.nix-ld.enable = true;
   # programs.steam.enable = true;
 
+  # Steam: install via flatpak (com.valvesoftware.Steam). Keep the
+  # steam-hardware udev rules so Flatpak Steam can access Steam
+  # Controllers (incl. the 2026 controller / Puck dongle, 28de:1304)
+  # and the Steam Deck dock — without these, the hidraw nodes are
+  # root:root 600 and Flatpak Steam can't open them.
+  hardware.steam-hardware.enable = true;
+
   # Temporarily disable kanidm-unixd on this host — the kanidm-posix
   # daniel (uid 2001) conflicts with the local daniel (uid 1000) for
   # login purposes: pam_kanidm accepts the shortname "daniel" at the
