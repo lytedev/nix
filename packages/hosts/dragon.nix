@@ -171,5 +171,6 @@
   environment.systemPackages = with pkgs; [
     playwright-mcp
     godot_4
+    hidapi
   ];
 }

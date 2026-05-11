@@ -31,6 +31,7 @@
           steamdeck-firmware
           steam-rom-manager
           shipwright # Ship of Harkinian — OoT PC port
+          hidapi
         ];
 
         # flatpak is already enabled by lyte.desktop, but the repo service is steamdeck-specific
