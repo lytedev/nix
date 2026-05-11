@@ -140,9 +140,9 @@
             "HandleHibernateKey" = "hibernate";
             "HandleHibernateKeyLongPress" = "hibernate";
 
-            "HandleLidSwitch" = "suspend";
-            "HandleLidSwitchExternalPower" = "suspend";
-            "HandleLidSwitchDocked" = "suspend";
+            "HandleLidSwitch" = "suspend-then-hibernate";
+            "HandleLidSwitchExternalPower" = "suspend-then-hibernate";
+            "HandleLidSwitchDocked" = "suspend-then-hibernate";
 
             # Respect sleep inhibitors for lid switch events (default is yes/ignore)
             # "LidSwitchIgnoreInhibited" = false; # this must be disastrous; if I close the laptop in any situation, I definitely want it to sleep and not melt itself
