@@ -64,8 +64,12 @@ in
     };
   };
 
-  # Expose web UI via Caddy
-  services.caddy.virtualHosts."syncthing.h.lyte.dev" = {
+  # Web UI is intentionally NOT exposed on the public internet. The GUI binds
+  # to 127.0.0.1:8384 (see guiAddress above), so access is available via:
+  #   1. SSH local forward: `ssh -L 8384:127.0.0.1:8384 root@beefcake...`
+  #   2. Tailscale, through the vhost below (Caddy auto-provisions a cert via
+  #      the tailnet).
+  services.caddy.virtualHosts."syncthing.beefcake.hare-cod.ts.net" = {
     extraConfig = ''
       reverse_proxy :8384 {
         header_up Host 127.0.0.1:8384
