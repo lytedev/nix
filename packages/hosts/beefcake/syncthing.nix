@@ -66,7 +66,8 @@ in
 
   # Web UI is intentionally NOT exposed on the public internet and not reverse-
   # proxied. The GUI binds to 127.0.0.1:8384 (see guiAddress above); reach it
-  # over the tailnet via SSH local-forward, e.g.
-  #   ssh -L 8384:127.0.0.1:8384 root@beefcake.internal.vpn.h.lyte.dev
-  # then browse to http://127.0.0.1:8384.
+  # over the tailnet via SSH local-forward, picking a free local port (clients
+  # usually already have their own Syncthing on 8384), e.g.
+  #   ssh -L 18384:127.0.0.1:8384 root@beefcake.internal.vpn.h.lyte.dev
+  # then browse to http://127.0.0.1:18384.
 }
