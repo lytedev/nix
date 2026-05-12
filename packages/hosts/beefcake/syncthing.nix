@@ -64,16 +64,9 @@ in
     };
   };
 
-  # Web UI is intentionally NOT exposed on the public internet. The GUI binds
-  # to 127.0.0.1:8384 (see guiAddress above), so access is available via:
-  #   1. SSH local forward: `ssh -L 8384:127.0.0.1:8384 root@beefcake...`
-  #   2. Tailscale, through the vhost below (Caddy auto-provisions a cert via
-  #      the tailnet).
-  services.caddy.virtualHosts."syncthing.beefcake.hare-cod.ts.net" = {
-    extraConfig = ''
-      reverse_proxy :8384 {
-        header_up Host 127.0.0.1:8384
-      }
-    '';
-  };
+  # Web UI is intentionally NOT exposed on the public internet and not reverse-
+  # proxied. The GUI binds to 127.0.0.1:8384 (see guiAddress above); reach it
+  # over the tailnet via SSH local-forward, e.g.
+  #   ssh -L 8384:127.0.0.1:8384 root@beefcake.internal.vpn.h.lyte.dev
+  # then browse to http://127.0.0.1:8384.
 }
