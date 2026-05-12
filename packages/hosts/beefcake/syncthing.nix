@@ -18,10 +18,10 @@ in
     };
   };
 
-  # Add syncthing data to backup paths
-  services.restic.commonPaths = [
-    "/storage/syncthing"
-  ];
+  # Intentionally NOT backed up via restic. Syncthing is its own backup layer:
+  # data is replicated across peer devices, and versioning is configured per
+  # folder below. Including it in restic would double-store large, churn-heavy
+  # data and risk capturing the live index DB mid-write.
 
   # Enable syncthing service
   services.syncthing = {
