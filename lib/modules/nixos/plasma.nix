@@ -421,6 +421,13 @@ in
       if hasPlasmaLoginManager then
         lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
           services.displayManager.plasma-login-manager.enable = true;
+          # plasma-login-manager only consumes services.displayManager.defaultSession
+          # for autologin, not for the greeter's preselected session (stock SDDM
+          # does both). Forward it via Users.DefaultSession so the greeter
+          # respects defaultSession too.
+          services.displayManager.plasma-login-manager.settings.Users.DefaultSession = lib.mkIf (
+            config.services.displayManager.defaultSession != null
+          ) "${config.services.displayManager.defaultSession}.desktop";
           # Auto-unlock KDE Wallet on login via plasmalogin PAM
           security.pam.services.plasmalogin.kwallet.enable = true;
           # NOTE: kanidm-provided users don't appear as avatars in
