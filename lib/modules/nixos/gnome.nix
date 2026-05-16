@@ -145,9 +145,9 @@
         ];
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-        name = "Gradia Screenshot";
+        name = "Clipshot Screenshot";
         binding = "<Shift><Super>s";
-        command = "gradia --screenshot";
+        command = "clipshot";
       };
       "org/gnome/desktop/default-applications/terminal" = {
         exec = "ghostty";

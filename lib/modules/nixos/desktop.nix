@@ -155,7 +155,6 @@ in
             (nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
         )
         iosevkaLyteTerm
-        gradia
         spicetify-cli
         bibata-cursors
 

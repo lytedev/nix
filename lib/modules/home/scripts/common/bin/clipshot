@@ -1,29 +1,17 @@
 #!/usr/bin/env bash
 
-set -x
+set -e
 
 umask 077
 d="$(date +"%Y-%m-%d_%H-%M-%S")"
 fn="$SCROTS_PATH/clipshot_$d.png"
 mkdir -p "$SCROTS_PATH"
 
-dim="$(slurp -d -b \#00000066 -c \#ffffffff)"
-if [ "$?" -eq 0 ]; then
-	grim -g "$dim" - | wl-copy -t image/png
-	wl-paste -n > "$fn"
-	echo "$fn"
-else
-	exit 1
-fi
+dim="$(slurp -d -b \#00000066 -c \#ffffffff)" || exit 1
 
-# TODO: implement for X and other OSs?
+grim -g "$dim" - | wl-copy -t image/png
+wl-paste -n > "$fn"
 
-# pkill unclutter
-# sleep 0.1
-# import "$fn"
-# < "$fn" xclip -t image/png -i -selection clipboard
-# < "$fn" xclip -t image/png -i -selection primary
-# < "$fn" xclip -t image/png -i -selection secondary
-# < "$fn" xclip -t image/png -i -selection buffer-cut
-# unclutter &
-# echo "$fn"
+notify-send -a clipshot -i "$fn" "Screenshot copied" "$fn" || true
+
+echo "$fn"

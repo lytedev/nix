@@ -649,7 +649,7 @@ binds {
     Print { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
-    Super+Shift+S hotkey-overlay-title="Screenshot: clipshot + Gradia" { spawn "bash" "-c" "f=$(clipshot) && gradia \"$f\""; }
+    Super+Shift+S hotkey-overlay-title="Screenshot to clipboard + file" { spawn "clipshot"; }
 
     // Notification keybindings live in the shell-specific include.
 
