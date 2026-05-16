@@ -164,6 +164,11 @@ in
     programs.dconf.enable = true;
 
     services.displayManager.defaultSession = lib.mkForce "niri";
+    # plasma-login-manager (KDE's SDDM fork) ignores
+    # services.displayManager.defaultSession for the greeter's preselected
+    # session — it only reads it for autologin. Write the equivalent
+    # Users.DefaultSession ini key directly so the greeter defaults to niri.
+    services.displayManager.plasma-login-manager.settings.Users.DefaultSession = "niri.desktop";
     environment.etc."niri/laptop.kdl".text = lib.mkDefault "";
 
     # Enable display manager for login
