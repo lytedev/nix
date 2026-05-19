@@ -72,9 +72,6 @@
     postgresql.enable = true;
   };
 
-  # DisplayLink for the Logitech Tap LCD (vendor-rebadged 17e9:ff13).
-  lyte.desktop.displaylink.enable = true;
-
   systemd.services.fprintd = {
     wantedBy = [ "multi-user.target" ];
     serviceConfig.Type = "simple";
@@ -105,6 +102,7 @@
     family-account.enable = true;
     syncthing.enable = true;
     desktop = {
+      displaylink.enable = true;
       easyeffects = {
         enable = true;
         preset = "philonmetal";
