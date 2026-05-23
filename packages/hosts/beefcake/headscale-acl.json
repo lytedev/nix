@@ -54,11 +54,6 @@
     },
     {
       "action": "accept",
-      "src": ["zenfoneten"],
-      "dst": ["dragon:22"]
-    },
-    {
-      "action": "accept",
       "src": ["tag:exitnode"],
       "dst": ["autogroup:internet:*"]
     },
