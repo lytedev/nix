@@ -70,6 +70,9 @@ This host uses jj (jujutsu) for version control. Prefer jj commands over git.
 1. **No staging area** - all changes in working copy are automatically included
 2. **Working copy is a commit** - `@` always points to a real (mutable) commit
 3. **Describe vs commit** - use `jj describe` to set message, `jj new` to start next change
+   - Prefer putting details in commit messages, which are durable and
+     distributed with the repository, not PR descriptions, which are only
+     available if there's a forge to store them
 4. **Bookmarks not branches** - bookmarks are just pointers, not tied to commits
 5. **Change IDs** - immutable IDs that survive rebases (the `k-z` letter sequences)
 6. **Conflict markers are commits** - conflicts are stored in commits, not working copy state
