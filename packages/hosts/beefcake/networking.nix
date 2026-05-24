@@ -8,7 +8,10 @@
       # internalInterfaces, exit-node clients' packets egress eno1 with
       # their tailnet source IP and replies have no return path)
       enable = true;
-      internalInterfaces = [ "ve-+" "tailscale0" ];
+      internalInterfaces = [
+        "ve-+"
+        "tailscale0"
+      ];
       externalInterface = "eno1";
     };
     # bridges.br0.interfaces = [ "eno1" ]; # Adjust interface accordingly
