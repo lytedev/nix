@@ -2,9 +2,13 @@
   networking = {
     # TODO: why was I working on nixos-containers? ad-hoc "baby nix modules/vms"?
     nat = {
-      # for NAT'ing to nixos-containers
+      # for NAT'ing to nixos-containers + tailscale exit-node traffic
+      # (the tailscale daemon is configured with NetfilterMode=0 so it
+      # doesn't install its own masquerade rule; without tailscale0 in
+      # internalInterfaces, exit-node clients' packets egress eno1 with
+      # their tailnet source IP and replies have no return path)
       enable = true;
-      internalInterfaces = [ "ve-+" ];
+      internalInterfaces = [ "ve-+" "tailscale0" ];
       externalInterface = "eno1";
     };
     # bridges.br0.interfaces = [ "eno1" ]; # Adjust interface accordingly
