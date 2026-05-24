@@ -64,6 +64,17 @@ in
     };
   };
 
+  # syncthing-init is a oneshot that pushes the declarative settings into the
+  # running syncthing instance. If syncthing.service restarts mid-run (e.g.
+  # during a NixOS rebuild), the init is SIGTERM'd and, with no Restart=,
+  # stays failed until someone resets it — leaving the OpenObserve
+  # systemd_unit_failed alert ringing indefinitely. Retry on failure so a
+  # transient restart self-heals.
+  systemd.services.syncthing-init.serviceConfig = {
+    Restart = "on-failure";
+    RestartSec = "30s";
+  };
+
   # Web UI is intentionally NOT exposed on the public internet and not reverse-
   # proxied. The GUI binds to 127.0.0.1:8384 (see guiAddress above); reach it
   # over the tailnet via SSH local-forward, picking a free local port (clients
