@@ -152,4 +152,9 @@
       syncthing-key = syncthingSecret;
       syncthing-cert = syncthingSecret;
     };
+
+  # these are just scripts and so do not cause bloated nixos installations
+  environment.systemPackages = with pkgs; [
+    hidapi
+  ];
 }
