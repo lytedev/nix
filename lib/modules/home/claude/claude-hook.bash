@@ -52,17 +52,38 @@ resolve_session_name() {
   printf '%s' "$pn"
 }
 
-# Rename the current zellij tab to $SESSION_NAME, but only if the name has
-# changed since the last invocation for this session. Lets /rename (and any
-# other later-arriving name source) propagate to the tab on the next hook event.
+# Resolve the zellij tab_id of the tab containing the current pane.
+# Uses $ZELLIJ_PANE_ID (stable pane ID set by zellij) and queries list-panes.
+# Echoes the tab_id on success, nothing on failure.
+zellij_tab_id_for_current_pane() {
+  [ -n "${ZELLIJ_PANE_ID:-}" ] || return 0
+  zellij action list-panes --json 2>/dev/null \
+    | jq -r --arg pid "$ZELLIJ_PANE_ID" \
+        '.[] | select(.id == ($pid|tonumber)) | .tab_id' \
+    | head -1
+}
+
+# Rename the zellij tab CONTAINING THIS PANE to $SESSION_NAME, but only if
+# the name has changed since the last invocation for this session. Lets
+# /rename (and any other later-arriving name source) propagate to the tab on
+# the next hook event.
+#
+# Plain `zellij action rename-tab <name>` operates on the *currently focused*
+# tab in the session — which may be a completely different tab if the user
+# has switched away. Use rename-tab-by-id with the tab id resolved from our
+# own pane id so we always target our own tab.
 sync_zellij_tab_name() {
   [ -n "${ZELLIJ:-}" ] || return 0
   local applied_file="$PETNAMES_DIR/$SESSION_ID.tab-applied"
   local last_applied=""
   [ -s "$applied_file" ] && last_applied="$(cat "$applied_file")"
   if [ "$last_applied" != "$SESSION_NAME" ]; then
-    zellij action rename-tab "$SESSION_NAME" 2>/dev/null || true
-    printf '%s' "$SESSION_NAME" >"$applied_file"
+    local tab_id
+    tab_id="$(zellij_tab_id_for_current_pane)"
+    if [ -n "$tab_id" ]; then
+      zellij action rename-tab-by-id "$tab_id" "$SESSION_NAME" 2>/dev/null || true
+      printf '%s' "$SESSION_NAME" >"$applied_file"
+    fi
   fi
 }
 
@@ -81,7 +102,13 @@ QUERY_PARTS+=("session=$(urlencode "$SESSION_ID")")
 QUERY_PARTS+=("pid=$$")
 if [ -n "${ZELLIJ:-}" ]; then
   ZJ_SESSION="${ZELLIJ_SESSION_NAME:-}"
-  ZJ_TAB="$(zellij action query-tab-names 2>/dev/null | head -1 || true)"
+  # Resolve OUR tab's name via list-panes — query-tab-names returns every tab
+  # name in arbitrary order, so | head -1 yields whatever tab happens to be
+  # first, not the one this pane lives in.
+  ZJ_TAB="$(zellij action list-panes --json 2>/dev/null \
+    | jq -r --arg pid "${ZELLIJ_PANE_ID:-}" \
+        '.[] | select(.id == ($pid|tonumber)) | .tab_name' \
+    | head -1 || true)"
   ZJ_PANE="${ZELLIJ_PANE_ID:-}"
   ZJ="${ZJ_SESSION}${ZJ_TAB:+.$ZJ_TAB}${ZJ_PANE:+.$ZJ_PANE}"
   [ -n "$ZJ" ] && QUERY_PARTS+=("zellij=$(urlencode "$ZJ")")
