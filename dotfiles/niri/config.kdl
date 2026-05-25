@@ -492,7 +492,10 @@ binds {
     Mod+Shift+Ctrl+H     { move-column-to-monitor-left; }
     Mod+Shift+Ctrl+J     { move-column-to-monitor-down; }
     Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
-    Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
+    // Mod+Shift+Ctrl+L is intentionally NOT bound here — it collides with
+    // the DMS lock binding in dms-bindings.kdl (Super+Shift+Control+L →
+    // dms ipc call lock lock). Use Mod+Shift+Ctrl+Right to move a column
+    // to the right monitor.
 
     // Alternatively, there are commands to move just a single window:
     // Mod+Shift+Ctrl+Left  { move-window-to-monitor-left; }
