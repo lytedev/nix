@@ -423,9 +423,13 @@ in
           services.displayManager.plasma-login-manager.enable = true;
           # plasma-login-manager only consumes services.displayManager.defaultSession
           # for autologin, not for the greeter's preselected session (stock SDDM
-          # does both). Forward it via Users.DefaultSession so the greeter
-          # respects defaultSession too.
-          services.displayManager.plasma-login-manager.settings.Users.DefaultSession = lib.mkIf (
+          # does both). The canonical knob is [Greeter] PreselectedSession (see
+          # src/frontend/settings/plasmaloginsettingsbase.kcfg upstream;
+          # GreeterState.qml resolves sessionIndex as
+          #   Settings.preselectedSession → StateConfig.lastLoggedInSession → 0).
+          # An earlier attempt set Users.DefaultSession which is silently
+          # ignored — no such key exists in plasma-login-manager's schema.
+          services.displayManager.plasma-login-manager.settings.Greeter.PreselectedSession = lib.mkIf (
             config.services.displayManager.defaultSession != null
           ) "${config.services.displayManager.defaultSession}.desktop";
           # Auto-unlock KDE Wallet on login via plasmalogin PAM
