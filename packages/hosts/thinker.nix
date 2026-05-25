@@ -39,6 +39,7 @@
     laptop.enable = true;
     claude = {
       enable = true;
+      sfxPath = "${config.lyte.userHome}/Documents/wc3sfx/peon/sounds";
       matrixWebhooks = {
         notify = config.sops.secrets.claude-matrix-webhook.path;
         hive = config.sops.secrets.claude-matrix-webhook-hive.path;
