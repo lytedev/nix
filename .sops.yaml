@@ -80,6 +80,7 @@ creation_rules:
       - *sshd-at-dragon
       - *ssh-foxtrot
       - *sshd-at-flab
+      - *sshd-at-thinker
   - path_regex: secrets/flab/[^/]+\.(ya?ml|json|env|ini)$
     key_groups:
     - age:
