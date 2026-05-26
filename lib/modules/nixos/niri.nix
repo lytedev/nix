@@ -195,10 +195,21 @@ in
             "kde"
           ];
           # kde.portal advertises ScreenCast/Screenshot but its impl requires
-          # KWin to be running — under niri it never produces frames. Pin
-          # these to xdg-desktop-portal-wlr (uses wlr-screencopy-unstable-v1,
-          # which niri implements) so screen-share actually works.
-          "org.freedesktop.impl.portal.ScreenCast" = "wlr";
+          # KWin to be running — under niri it never produces frames.
+          #
+          # ScreenCast goes to xdg-desktop-portal-gnome: niri drives its own
+          # window picker (niri msg pick-window / dynamic cast target) and
+          # feeds frames through the gnome portal, which is the only backend
+          # that exposes per-window capture under niri. xdg-desktop-portal-wlr
+          # can only capture whole outputs (its window path needs
+          # ext-image-copy-capture-v1, which niri doesn't implement yet).
+          #
+          # Screenshot stays on wlr (wlr-screencopy-unstable-v1, which niri
+          # implements); we use grim/clipshot anyway.
+          #
+          # This is scoped to the `niri` desktop block on purpose — Plasma
+          # sessions use the kde portal config and are unaffected.
+          "org.freedesktop.impl.portal.ScreenCast" = "gnome";
           "org.freedesktop.impl.portal.Screenshot" = "wlr";
         };
       };
@@ -206,6 +217,9 @@ in
     xdg.portal.extraPortals = [
       pkgs.xdg-desktop-portal-wlr
       pkgs.xdg-desktop-portal-gtk
+      # Provides per-window ScreenCast capture under niri (see portal config
+      # above). Only invoked in niri sessions; Plasma uses the kde portal.
+      pkgs.xdg-desktop-portal-gnome
     ];
     systemd.user.services.xdg-desktop-portal = {
       after = [ "xdg-desktop-autostart.target" ];
