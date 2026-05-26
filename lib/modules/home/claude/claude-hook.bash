@@ -24,22 +24,35 @@ fi
 SESSION_ID="$(echo "$HOOK_DATA" | jq -r '.session_id // empty')"
 : "${SESSION_ID:=unnamed}"
 
-# Resolve a human-readable session name. Priority:
-#   1. CLAUDE_SESSION_NAME env (claude-ws workspaces set this)
-#   2. .session_title from the hook payload (set by Claude's /rename)
-#   3. .session_name from the hook payload
-#   4. A petname persisted per-session-id (stable across hook invocations)
-resolve_session_name() {
-  if [ -n "${CLAUDE_SESSION_NAME:-}" ]; then
-    printf '%s' "$CLAUDE_SESSION_NAME"
-    return
-  fi
-  local from_payload
-  from_payload="$(echo "$HOOK_DATA" | jq -r '.session_title // .session_name // empty')"
-  if [ -n "$from_payload" ]; then
-    printf '%s' "$from_payload"
-    return
-  fi
+# cwd this hook event ran in (from payload, else the process cwd). Defined
+# early because resolve_session_name needs it to derive the project name.
+HOOK_CWD="$(echo "$HOOK_DATA" | jq -r '.cwd // empty')"
+: "${HOOK_CWD:=$(pwd)}"
+
+# True if the argument looks like a Claude session UUID (8-4-4-4-12 hex).
+# Claude's .session_name often carries the raw session id, which makes a
+# useless tab name — treat it as "unnamed" and fall back to the default.
+is_uuid() {
+  [[ "$1" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]
+}
+
+# Name of the project containing $HOOK_CWD: walk up to the first dir holding a
+# .git or .jj entry and use its basename; fall back to the cwd basename. Pure
+# bash + coreutils so we don't need git/jj in runtimeInputs.
+project_name() {
+  local dir="$HOOK_CWD"
+  while [ "$dir" != "/" ] && [ -n "$dir" ]; do
+    if [ -e "$dir/.git" ] || [ -e "$dir/.jj" ]; then
+      basename "$dir"
+      return
+    fi
+    dir="$(dirname "$dir")"
+  done
+  basename "$HOOK_CWD"
+}
+
+# A stable petname persisted per-session-id (survives across hook invocations).
+session_petname() {
   local pn_file="$PETNAMES_DIR/$SESSION_ID"
   if [ -s "$pn_file" ]; then
     cat "$pn_file"
@@ -50,6 +63,27 @@ resolve_session_name() {
   : "${pn:=$SESSION_ID}"
   printf '%s' "$pn" >"$pn_file"
   printf '%s' "$pn"
+}
+
+# Resolve a human-readable session name. Priority:
+#   1. CLAUDE_SESSION_NAME env (claude-ws workspaces set this)
+#   2. .session_title / .session_name from the payload, IF it's a real name
+#      (set by Claude's /rename) — a bare session UUID doesn't count
+#   3. Default "$PROJECT:$PETNAME" (e.g. nix:optimal-surfbird), so a freshly
+#      started session gets a meaningful, project-scoped tab name instead of a
+#      context-free petname.
+resolve_session_name() {
+  if [ -n "${CLAUDE_SESSION_NAME:-}" ]; then
+    printf '%s' "$CLAUDE_SESSION_NAME"
+    return
+  fi
+  local from_payload
+  from_payload="$(echo "$HOOK_DATA" | jq -r '.session_title // .session_name // empty')"
+  if [ -n "$from_payload" ] && ! is_uuid "$from_payload"; then
+    printf '%s' "$from_payload"
+    return
+  fi
+  printf '%s:%s' "$(project_name)" "$(session_petname)"
 }
 
 # Resolve the zellij tab_id of the tab containing the current pane.
@@ -90,9 +124,6 @@ sync_zellij_tab_name() {
 SESSION_NAME="$(resolve_session_name)"
 
 # Build from-URI: user@host:/cwd?pid=N&zellij=session.tab.pane
-HOOK_CWD="$(echo "$HOOK_DATA" | jq -r '.cwd // empty')"
-: "${HOOK_CWD:=$(pwd)}"
-
 FROM_URI="$(whoami 2>/dev/null || echo unknown)@$(hostname -s 2>/dev/null || echo unknown):${HOOK_CWD}"
 
 urlencode() { jq -rn --arg v "$1" '$v|@uri'; }
