@@ -67,9 +67,13 @@ session_petname() {
 
 # Resolve a human-readable session name. Priority:
 #   1. CLAUDE_SESSION_NAME env (claude-ws workspaces set this)
-#   2. .session_title / .session_name from the payload, IF it's a real name
-#      (set by Claude's /rename) — a bare session UUID doesn't count
-#   3. Default "$PROJECT:$PETNAME" (e.g. nix:optimal-surfbird), so a freshly
+#   2. An explicit title from the payload (.session_title / .session_name),
+#      IF it's a real name (a bare session UUID doesn't count). Set by
+#      Claude's /rename. This is persisted (see below) because Claude only
+#      includes the title in *some* hook event payloads — without persistence
+#      the name would flap back to the default on every event that omits it.
+#   3. A previously-persisted explicit title for this session id.
+#   4. Default "$PROJECT:$PETNAME" (e.g. nix:optimal-surfbird), so a freshly
 #      started session gets a meaningful, project-scoped tab name instead of a
 #      context-free petname.
 resolve_session_name() {
@@ -77,10 +81,16 @@ resolve_session_name() {
     printf '%s' "$CLAUDE_SESSION_NAME"
     return
   fi
+  local title_file="$PETNAMES_DIR/$SESSION_ID.title"
   local from_payload
   from_payload="$(echo "$HOOK_DATA" | jq -r '.session_title // .session_name // empty')"
   if [ -n "$from_payload" ] && ! is_uuid "$from_payload"; then
+    printf '%s' "$from_payload" >"$title_file"
     printf '%s' "$from_payload"
+    return
+  fi
+  if [ -s "$title_file" ]; then
+    cat "$title_file"
     return
   fi
   printf '%s:%s' "$(project_name)" "$(session_petname)"
