@@ -421,17 +421,37 @@ in
       if hasPlasmaLoginManager then
         lib.mkIf (config.lyte.desktop.enable && config.lyte.desktop.plasma.enable) {
           services.displayManager.plasma-login-manager.enable = true;
-          # plasma-login-manager only consumes services.displayManager.defaultSession
-          # for autologin, not for the greeter's preselected session (stock SDDM
-          # does both). The canonical knob is [Greeter] PreselectedSession (see
-          # src/frontend/settings/plasmaloginsettingsbase.kcfg upstream;
+          # Preselect the greeter session (niri) the hard way.
+          #
+          # The greeter reads its preselected session ([Greeter]
+          # PreselectedSession) from a frontend KConfig baked into the
+          # package at $out/lib/plasmalogin/defaults.conf — NOT from
+          # /etc/plasmalogin.conf.d (the daemon config that .settings writes).
           # GreeterState.qml resolves sessionIndex as
-          #   Settings.preselectedSession → StateConfig.lastLoggedInSession → 0).
-          # An earlier attempt set Users.DefaultSession which is silently
-          # ignored — no such key exists in plasma-login-manager's schema.
-          services.displayManager.plasma-login-manager.settings.Greeter.PreselectedSession = lib.mkIf (
-            config.services.displayManager.defaultSession != null
-          ) "${config.services.displayManager.defaultSession}.desktop";
+          #   Settings.preselectedSession → StateConfig.lastLoggedInSession → 0,
+          # and PreselectedSession *wins* when it matches a session's
+          # ".desktop" filename. nixpkgs ships that file hardcoded to
+          # `PreselectedSession=plasma.desktop`, which is why the greeter kept
+          # defaulting to Plasma regardless of .settings or defaultSession.
+          # (Earlier attempts — Users.DefaultSession, then Greeter.PreselectedSession
+          # via .settings — both wrote the wrong file and had no effect.)
+          #
+          # So override the package to regenerate defaults.conf pointing at our
+          # defaultSession. Requires a rebuild of plasma-login-manager since the
+          # greeter reads an absolute store path baked in at build time.
+          services.displayManager.plasma-login-manager.package =
+            lib.mkIf (config.services.displayManager.defaultSession != null)
+              (
+                pkgs.kdePackages.plasma-login-manager.overrideAttrs (old: {
+                  postInstall = (old.postInstall or "") + ''
+                    rm -f $out/lib/plasmalogin/defaults.conf
+                    install -Dm444 ${pkgs.writeText "plasmalogin-defaults.conf" ''
+                      [Greeter]
+                      PreselectedSession=${config.services.displayManager.defaultSession}.desktop
+                    ''} $out/lib/plasmalogin/defaults.conf
+                  '';
+                })
+              );
           # Auto-unlock KDE Wallet on login via plasmalogin PAM
           security.pam.services.plasmalogin.kwallet.enable = true;
           # NOTE: kanidm-provided users don't appear as avatars in
