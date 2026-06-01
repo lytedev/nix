@@ -5,7 +5,7 @@ let
   clientId = "bulwark-webmail";
   stalwartUrl = "https://mail.lyte.dev";
   stalwartLocal = "http://[::1]:38181";
-  adminCredsDir = "/run/credentials/stalwart-mail.service";
+  adminCredsDir = "/run/credentials/stalwart.service";
 in
 {
   sops.secrets."bulwark.env" = {
@@ -15,8 +15,8 @@ in
   # Ensure the Bulwark OAuth client principal exists in Stalwart
   systemd.services.stalwart-ensure-bulwark-oauth = {
     description = "Ensure Bulwark OAuth client exists in Stalwart";
-    after = [ "stalwart-mail.service" ];
-    wants = [ "stalwart-mail.service" ];
+    after = [ "stalwart.service" ];
+    wants = [ "stalwart.service" ];
     path = with pkgs; [
       curl
       jq

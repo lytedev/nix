@@ -9,7 +9,10 @@ let
   host = "mail.${domain}";
   dataDir = "/storage/stalwart";
   certDir = "${dataDir}/certs";
-  credsDir = "/run/credentials/stalwart-mail.service";
+  # In 26.05 the module names the systemd unit "stalwart.service" (the User/Group
+  # stay "stalwart-mail" via stateVersion=25.11, but the unit itself is renamed),
+  # so LoadCredential exposes secrets under /run/credentials/stalwart.service.
+  credsDir = "/run/credentials/stalwart.service";
   httpPort = 38181;
 in
 {
@@ -85,8 +88,9 @@ in
   services.stalwart-mail = {
     enable = true;
     # First enabled during the 25.11 cycle (2026-03-19). Pin to 25.11 so the
-    # 26.05 module keeps the legacy "stalwart-mail" service/user/group identifier
-    # and existing storage layout rather than migrating to the new "stalwart" one.
+    # 26.05 module keeps the legacy "stalwart-mail" user/group and storage layout
+    # (StateDirectory, data ownership) rather than switching to "stalwart". NOTE:
+    # the systemd *unit* is still renamed to "stalwart.service" regardless of this.
     stateVersion = "25.11";
     openFirewall = false;
     dataDir = dataDir;
@@ -154,6 +158,14 @@ in
         compression = "lz4";
       };
 
+      # All logical stores live in the single embedded RocksDB store, which holds
+      # the ~15GB of mail today. This is the recommended single-node layout.
+      #
+      # Possible future optimization if folder/search performance ever needs more:
+      # split `fts` out to a dedicated full-text backend (Meilisearch / Elastic /
+      # PostgreSQL) so search load doesn't compete with mail data in RocksDB. That
+      # would be a data migration (reindex), so it's deliberately deferred — the
+      # cache tuning below is the cheaper, no-migration win to try first.
       storage = {
         data = "rocksdb";
         fts = "rocksdb";
@@ -161,6 +173,17 @@ in
         lookup = "rocksdb";
         directory = "internal";
       };
+
+      # Performance tuning. The message-metadata cache (per-account UIDs, flags,
+      # mailbox state) is the single biggest lever for IMAP folder-load latency:
+      # it's consulted on every folder listing, sync, new-mail check, and flag
+      # update. Stalwart's default is only 50mb, which thrashes on large/bloated
+      # folders. beefcake has ~250GB RAM, so size it generously to keep all
+      # connected users' metadata resident and avoid round-trips to the store.
+      # See https://stalw.art/docs/server/cache/ and /docs/install/performance/.
+      cache.messages = "1gb";
+      cache.accounts = "128mb";
+      cache.emailAddresses = "32mb";
 
       lookup.default = {
         hostname = host;
@@ -217,7 +240,10 @@ in
     };
   };
 
-  systemd.services.stalwart-mail = {
+  # The 26.05 module defines the unit as "stalwart.service" (not "stalwart-mail").
+  # Attach the cert-copy ordering to the real unit; targeting "stalwart-mail" here
+  # would create a phantom ExecStart-less unit and leave mail down.
+  systemd.services.stalwart = {
     after = [
       "copy-stalwart-certificates-from-caddy.service"
     ];
