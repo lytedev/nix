@@ -45,8 +45,8 @@ in
     enable = true;
     inherit port;
     mediaLocation = "/storage/immich";
-    database.enableVectors = false; # pgvecto.rs doesn't support PG17
-    database.enableVectorChord = true; # VectorChord does — keeps smart search + face clustering
+    # As of 26.05, pgvecto.rs is gone and VectorChord is always used; the
+    # database.enableVectors / enableVectorChord options were removed.
 
     # Immich manages its own database inside the system-wide PostgreSQL instance.
 

@@ -84,6 +84,10 @@ in
 
   services.stalwart-mail = {
     enable = true;
+    # First enabled during the 25.11 cycle (2026-03-19). Pin to 25.11 so the
+    # 26.05 module keeps the legacy "stalwart-mail" service/user/group identifier
+    # and existing storage layout rather than migrating to the new "stalwart" one.
+    stateVersion = "25.11";
     openFirewall = false;
     dataDir = dataDir;
     credentials = {
