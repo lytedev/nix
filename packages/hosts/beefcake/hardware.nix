@@ -13,6 +13,10 @@
     kernelModules = [ "kvm-intel" ];
     kernelParams = [ "nohibernate" ];
     loader.systemd-boot.enable = true;
+    # The ESP is only 512MB. Without a limit systemd-boot keeps every generation's
+    # kernel+initrd until /boot fills and bootloader installs fail (which is exactly
+    # what blocked the 26.05 upgrade). Cap retained generations to keep headroom.
+    loader.systemd-boot.configurationLimit = 20;
     loader.efi.canTouchEfiVariables = true;
   };
 
