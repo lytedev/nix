@@ -40,7 +40,7 @@ in
         })
       ];
     }
-  ) ./generic.nix;
+  ) ./generic.nix { };
 
   vmTestbed =
     let
