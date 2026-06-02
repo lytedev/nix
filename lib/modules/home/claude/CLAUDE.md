@@ -14,6 +14,25 @@ This system uses Nix for package management. Always consider if a tool can be ru
 Follow standard coding practices and use appropriate tools for the language/framework being used.
 Format code using the configured formatter _before_ pushing.
 
+# Citing Documentation
+
+When you claim something is "documented", described in the docs, or part of an
+official API/spec — **make every effort to provide a permanent URL** to that
+documentation, not just an assertion that it exists. A bare "this is documented"
+(or worse, a half-remembered claim that it's documented) is not useful and is
+easy to get wrong from memory.
+
+- **Prefer stable, permanent links:** versioned doc URLs, commit/tag-pinned
+  source links (e.g. GitHub `/blob/<sha>/…` permalinks, not `/blob/main/…`),
+  anchored sections. Avoid URLs that drift or rot (`latest`, mutable branches,
+  search results).
+- **Verify before asserting.** If you're recalling from training rather than a
+  source you can point to, say so plainly, and prefer to look it up (WebFetch /
+  WebSearch / read the actual file) and link what you find rather than stating it
+  as settled fact.
+- If you genuinely can't find a URL, say that explicitly ("I believe X but
+  couldn't find a citation") instead of implying documentation backs you up.
+
 # Pull Request Scope
 
 **One PR does one thing.** Push back hard when a change starts to do more than
