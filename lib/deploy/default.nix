@@ -46,7 +46,12 @@ in
     bigtower = deployer "bigtower" { hostname = "bigtower.lan"; };
     sanctuary = deployer "sanctuary" { hostname = "sanctuary-av.lan"; };
     rascal = deployer "rascal" { };
-    pebble = deployer "pebble" { hostname = "204.168.181.230"; };
+    pebble = deployer "pebble" {
+      hostname = "204.168.181.230";
+      # 2-core box: build the closure on the (beefy, fully-cached) deployer and
+      # copy it over, rather than compiling from source on pebble itself.
+      remoteBuild = false;
+    };
     foxtrot = deployer "foxtrot" { };
     thinker = deployer "thinker" { };
     steamdeck = deployer "steamdeck" { remoteBuild = false; };

@@ -10,6 +10,34 @@ let
   domain = "lyte.dev";
 in
 {
+  # This is a small (2-core) box. Without the lyte/upstream binary caches its
+  # nix-daemon falls back to building overlay/custom packages from source, which
+  # is painfully slow. Mirror the flake's nixConfig substituters so it can pull
+  # prebuilt closures (esp. from nix.h.lyte.dev) instead of compiling. Deploys
+  # also build off-box (remoteBuild = false in lib/deploy) for the same reason.
+  nix.settings = {
+    substituters = [
+      "https://cache.nixos.org/"
+      "https://nix-community.cachix.org"
+      "https://nix.h.lyte.dev"
+      "https://iosevka-lyte.cachix.org"
+      "https://helix.cachix.org"
+      "https://ghostty.cachix.org"
+      "https://jovian-nixos.cachix.org"
+      "https://install.determinate.systems"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "h.lyte.dev-2:te9xK/GcWPA/5aXav8+e5RHImKYMug8hIIbhHsKPN0M="
+      "iosevka-lyte.cachix.org-1:5pX+LwVdlfWJtmubPErASJecnm1q3a/RoZmah1GU+FM="
+      "helix.cachix.org-1:ejp9KQpR1FBI2onstMQ34yogDm4OgU2ru6lIwPvuCVs="
+      "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+      "jovian-nixos.cachix.org-1:mAWLjAxLNlfxAnozUjOqGj4AxQwCl7MXwOfu7msVlAo="
+      "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
+    ];
+  };
+
   sops = {
     defaultSopsFile = ../../secrets/pebble/secrets.yml;
     secrets = {
