@@ -14,6 +14,41 @@ This system uses Nix for package management. Always consider if a tool can be ru
 Follow standard coding practices and use appropriate tools for the language/framework being used.
 Format code using the configured formatter _before_ pushing.
 
+# Pull Request Scope
+
+**One PR does one thing.** Push back hard when a change starts to do more than
+one thing at once — the canonical trap is introducing a new feature/service
+_and_ overhauling shared primitives (auth, config, common utilities) in the same
+PR. If you notice this happening (or I start steering you into it), stop and call
+it out before continuing.
+
+The most common form is the urge to deduplicate. When the new work resembles
+existing code, **do not refactor the shared/common code in the same PR** as the
+feature. Resist the instinct to kill copypasta inline. The refactor is always its
+_own_ PR, sequenced one of two ways:
+
+1. **Extract-first (strongly preferred):** land the shared abstraction as a
+   standalone PR first, then build the new feature on top of it. Do this when the
+   extraction is small and well-understood.
+2. **Duplicate-now, dedupe-later:** copy/paste the similar code to ship the
+   feature, then deduplicate in a **fast-follow PR**. Fall back to this only when
+   extracting first would be larger or riskier than the feature itself — better
+   to live with temporary copypasta than to entangle a big refactor with new
+   behavior.
+
+In both cases the dedup/extraction is a separate, linked PR — never folded into
+the feature.
+
+**Why:** mixing a new feature with a refactor of shared code couples unrelated
+risk, makes the diff hard to review (reviewers can't tell behavior changes from
+mechanical moves), and balloons scope. Splitting keeps each PR small, reviewable,
+and independently revertable.
+
+When you spot a refactor that should be split out, **link it to the upcoming
+work** — note the follow-up explicitly (an issue, a TODO, or a PR description
+line referencing the feature it supports) so the dedup actually happens and
+isn't lost.
+
 # Jujutsu (jj) - Use instead of git
 
 This host uses jj (jujutsu) for version control. Prefer jj commands over git.
