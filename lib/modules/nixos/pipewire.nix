@@ -1,5 +1,17 @@
 { config, lib, ... }:
 {
+  # Note on microphone automatic gain control (AGC):
+  # This config does NOT load libpipewire-module-echo-cancel or any AGC/WebRTC
+  # processing module, so AGC is never applied at the system/PipeWire level. If a
+  # mic sounds like its gain is being auto-adjusted, the culprit is the consuming
+  # application: browsers and Electron apps (Firefox, Chromium, Slack, Discord,
+  # video-call sites) request `autoGainControl: true` via getUserMedia by default
+  # and run the WebRTC Audio Processing Module in software on the captured stream.
+  # Disable per-app:
+  #   - Firefox: about:config -> media.getusermedia.agc_enabled = false
+  #     (also noise_enabled / aec_enabled for noise suppression / echo cancel)
+  #   - Chromium/Slack/Electron: chrome://flags WebRTC audio processing, or launch
+  #     with --disable-features=WebRtcAllowInputVolumeAdjustment
   config = lib.mkIf config.services.pipewire.enable {
     services.pipewire = {
       # enable = true;
