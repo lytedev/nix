@@ -89,12 +89,82 @@ in
         };
       };
     };
+
+    # An isolated, internet-only guest network delivered over a tagged VLAN.
+    # Wireless APs tag a guest SSID with `vlanId`; the router routes it to WAN
+    # but the nftables `policy drop` blocks any guest -> LAN / guest -> router
+    # access (DHCP is the only thing explicitly allowed back to the router).
+    guest = {
+      enable = mkEnableOption "an isolated, internet-only guest VLAN";
+      vlanId = mkOption {
+        default = 199;
+        type = types.int;
+        description = "802.1Q VLAN ID the guest SSID is tagged with.";
+      };
+      interfaceName = mkOption {
+        default = "guest";
+        type = types.str;
+        description = "Name of the guest VLAN interface on the router.";
+      };
+      ipv4 = {
+        cidr = mkOption {
+          default = "192.168.199.1/24";
+          type = types.str;
+          description = "The router's address + prefix on the guest VLAN.";
+        };
+        netmask = mkOption {
+          default = "255.255.255.0";
+          type = types.str;
+        };
+        dhcp-lease-space = {
+          min = mkOption {
+            default = "192.168.199.50";
+            type = types.str;
+          };
+          max = mkOption {
+            default = "192.168.199.250";
+            type = types.str;
+          };
+        };
+      };
+      dns = mkOption {
+        default = [
+          "1.1.1.1"
+          "9.9.9.9"
+        ];
+        type = types.listOf types.str;
+        description = "Upstream DNS handed to guests (keeps them off the router's internal resolver).";
+      };
+    };
   };
   config = mkIf cfg.enable (
     let
       cidr = defaultTo "${cfg.ipv4.address}/16" cfg.ipv4.cidr;
       wan = cfg.interfaces.wan.name;
       lan = cfg.interfaces.lan.name;
+      guest = cfg.guest;
+      guestIf = guest.interfaceName;
+      guestRules = {
+        # Guest may ONLY reach the router for DHCP. This block is interpolated
+        # BEFORE the interface-agnostic service accepts (acceptPorts) so the
+        # explicit drop wins over them — the chain `policy drop` is NOT enough
+        # on its own, because rules like `tcp dport 2201 accept` (router SSH)
+        # and `dport 53 accept` (DNS) carry no iifname and would otherwise match
+        # guest traffic to the router's own guest-VLAN address.
+        input = lib.optionalString guest.enable ''
+          iifname "${guestIf}" udp dport 67 accept comment "Allow DHCP from guest VLAN"
+          iifname "${guestIf}" counter drop comment "Guest VLAN may only reach the router for DHCP (no SSH/DNS/mgmt)"
+        '';
+        # Guest may reach the internet and nothing else. The explicit drop (not
+        # just the chain's `policy drop`) guarantees guest -> LAN is dead for
+        # IPv6 too — it beats the interface-agnostic `icmpv6 ... accept` below
+        # and does not depend on the guest ever lacking an IPv6 route, so it
+        # stays correct if the IPv6-parity TODO on the guest network is enabled.
+        forward = lib.optionalString guest.enable ''
+          iifname "${guestIf}" oifname "${wan}" accept comment "Allow guest VLAN to WAN (internet-only)"
+          iifname "${guestIf}" counter drop comment "Guest VLAN is internet-only: block guest -> LAN/router"
+        '';
+      };
     in
     {
       boot.kernel.sysctl = {
@@ -279,6 +349,11 @@ in
                   udp dport mdns ip6 daddr ff02::fb accept comment "Accept mDNS"
                   udp dport mdns ip daddr 224.0.0.251 accept comment "Accept mDNS"
 
+                  # Guest VLAN: allow DHCP, then drop everything else from guest
+                  # to the router. MUST precede acceptPorts (whose SSH/DNS/NAT
+                  # accepts carry no iifname and would otherwise match guests).
+                  ${guestRules.input}
+
                   ${concatStringsSep "\n    " acceptPorts}
 
                   iifname "${lan}" udp dport 67 accept comment "Allow DHCP from LAN"
@@ -303,6 +378,8 @@ in
                   ct state invalid drop comment "Drop invalid packets"
 
                   iifname "${lan}" oifname "${wan}" accept comment "Allow LAN to WAN"
+
+                  ${guestRules.forward}
 
                   iifname "${wan}" oifname "${lan}" ct status dnat accept comment "Allow NAT port forwards"
                   iifname "${lan}" oifname "${lan}" ct status dnat accept comment "Allow hairpin NAT"
@@ -347,6 +424,17 @@ in
         enable = true;
         wait-online.anyInterface = true;
 
+        # the guest VLAN netdev, tagged onto the LAN interface
+        netdevs = lib.optionalAttrs guest.enable {
+          "25-${guestIf}" = {
+            netdevConfig = {
+              Name = guestIf;
+              Kind = "vlan";
+            };
+            vlanConfig.Id = guest.vlanId;
+          };
+        };
+
         # configure known names for the network interfaces by their mac addresses
         links = {
           "20-${wan}" = {
@@ -374,6 +462,8 @@ in
           # LAN configuration - serves as gateway for local network
           "50-${lan}" = {
             matchConfig.Name = "${lan}";
+            # attach the guest VLAN netdev to the LAN trunk
+            vlan = lib.optionals guest.enable [ guestIf ];
             linkConfig = {
               RequiredForOnline = "enslaved";
             };
@@ -433,6 +523,35 @@ in
               UseDNS = false;
             };
           };
+        }
+        // lib.optionalAttrs guest.enable {
+          # Isolated guest VLAN: IPv4-only, routed to WAN, walled off from LAN
+          # by the nftables policy. DHCP/DNS served by dnsmasq below.
+          #
+          # To add IPv6 parity in the future, mirror what the LAN ("50-${lan}")
+          # network does — the firewall already covers v6 (the rules live in the
+          # `inet` table and `policy drop` blocks guest -> LAN over v6 too), so
+          # only the addressing/RA side is needed:
+          #   1. Here: delegate a second /64 from the ISP prefix and announce it:
+          #        networkConfig.IPv6SendRA = true;
+          #        networkConfig.DHCPPrefixDelegation = true;
+          #        dhcpPrefixDelegationConfig = {
+          #          UplinkInterface = "${wan}";
+          #          SubnetId = 2;          # 1 is the LAN; pick an unused id
+          #          Announce = true;
+          #        };
+          #      (and bump the WAN PrefixDelegationHint to ::/60 or larger so
+          #       there's a spare /64 — it already requests ::/60.)
+          #   2. In dnsmasq below: add a stateless constructor range for guests,
+          #        "::,constructor:${guestIf},ra-stateless,ra-names,4h"
+          #      Consider whether guests should still get upstream-only DNS; the
+          #      IPv4 dhcp-option only covers v4, so v6 DNS would come via RA.
+          "55-${guestIf}" = {
+            matchConfig.Name = guestIf;
+            linkConfig.RequiredForOnline = "no";
+            address = [ guest.ipv4.cidr ];
+            networkConfig.ConfigureWithoutCarrier = true;
+          };
         };
       };
 
@@ -462,12 +581,28 @@ in
 
           cache-size = "10000";
 
-          dhcp-range = with cfg.ipv4.dhcp-lease-space; [
-            "${lan},${min},${max},${cfg.ipv4.netmask},24h"
-            "::,constructor:${lan},ra-stateless,ra-names,4h"
+          dhcp-range =
+            (with cfg.ipv4.dhcp-lease-space; [
+              "${lan},${min},${max},${cfg.ipv4.netmask},24h"
+              "::,constructor:${lan},ra-stateless,ra-names,4h"
+            ])
+            # guest scope: matched by the auto-set interface tag (see man dnsmasq)
+            ++ lib.optionals guest.enable (
+              with guest.ipv4.dhcp-lease-space; [ "${guestIf},${min},${max},${guest.ipv4.netmask},24h" ]
+            );
+
+          # Hand guests upstream DNS directly. NOTE: dnsmasq still binds DNS on
+          # the guest interface (it's in `interface` below, needed for DHCP), so
+          # what actually keeps guests off the router's internal/split-horizon
+          # resolver is the nftables guest drop on the input chain (guest may
+          # only reach the router for DHCP) — this option just steers
+          # well-behaved clients to public DNS.
+          dhcp-option = lib.optionals guest.enable [
+            "tag:${guestIf},option:dns-server,${concatStringsSep "," guest.dns}"
           ];
+
           except-interface = wan;
-          interface = lan;
+          interface = [ lan ] ++ lib.optional guest.enable guestIf;
           dhcp-host = [
           ]
           ++ (mapAttrsToList (

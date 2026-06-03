@@ -120,6 +120,19 @@ in
         lan.mac = "00:01:2e:82:73:5a";
       };
 
+      # /23 LAN (192.168.0.0 - 192.168.1.255, 512 addresses). DHCP already
+      # hands out a /24 today, so widening the mask doesn't disturb existing
+      # clients; it just replaces the over-broad /16 default and frees up
+      # 192.168.199.0/24 for the isolated guest VLAN below.
+      ipv4 = {
+        cidr = "192.168.0.1/23";
+        netmask = "255.255.254.0";
+      };
+
+      # Isolated, internet-only guest network for the home exchange.
+      # APs broadcast a guest SSID tagged with VLAN 199.
+      guest.enable = true;
+
       openPorts = {
         tcp = {
           "Accept SSH to router" = 2201;
