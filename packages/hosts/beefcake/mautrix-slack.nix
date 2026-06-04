@@ -38,6 +38,13 @@ let
     bridge = {
       command_prefix = "!slack";
       personal_filtering_spaces = true;
+      # Run per-portal event handlers in a goroutine instead of inline. Without
+      # this, one slow Slack API call (e.g. conversations.mark on a high-traffic
+      # channel under tier-3 rate limiting) fills the portal's 64-slot queue,
+      # which then blocks the workspace's single RTM consumer goroutine, which
+      # stalls *every* portal in that workspace. Upstream warns that events may
+      # arrive out of order with this on — fine for idempotent read receipts.
+      async_events = true;
       permissions = {
         "@daniel:lyte.dev" = "admin";
         "@hookshot:lyte.dev" = "relay";
