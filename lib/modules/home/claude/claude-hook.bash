@@ -235,13 +235,11 @@ case "$SUBCOMMAND" in
     NOTIFICATION_TYPE="$(echo "$HOOK_DATA" | jq -r '.type // empty')"
     MESSAGE="$(echo "$HOOK_DATA" | jq -r '.message // "Needs attention"')"
 
-    # Build a session label: prefer session_title, fall back to cwd basename
-    SESSION_LABEL=""
-    if [ -n "$CLAUDE_TITLE" ]; then
-      SESSION_LABEL="$CLAUDE_TITLE"
-    else
-      SESSION_LABEL="$(basename "$HOOK_CWD")"
-    fi
+    # Label the notification with the resolved session name (the same name used
+    # for the zellij tab and the session state file). resolve_session_name()
+    # already prefers an explicit /rename title or workspace name and only falls
+    # back to "$PROJECT:$PETNAME" — never a bare cwd basename.
+    SESSION_LABEL="$SESSION_NAME"
 
     # Truncate message for desktop notification body (keep first 200 chars)
     NOTIFY_BODY="$MESSAGE"
