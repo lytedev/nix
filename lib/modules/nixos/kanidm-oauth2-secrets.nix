@@ -31,12 +31,17 @@ let
   curl = lib.getExe pkgs.curl;
   jq = lib.getExe pkgs.jq;
 
-  # Kanidm URL from client config, or fall back to server URL if local
+  # Kanidm URL from client config, or fall back to the server's configured
+  # origin when this host runs the server locally. NOTE: do NOT use
+  # https://localhost:8443 — kanidm's TLS cert is for the public domain, so
+  # `curl -sf` against localhost fails cert verification (exit 60) and every
+  # fetch fails. The server origin (e.g. https://idm.h.lyte.dev) is the
+  # cert-valid URL and resolves locally on the server host.
   kanidmUrl =
     if config.services.kanidm.enableClient or false then
       config.services.kanidm.clientSettings.uri
     else
-      "https://localhost:8443";
+      config.services.kanidm.serverSettings.origin;
 
   # Generate a fetch stanza for one secret
   mkFetchStanza =
