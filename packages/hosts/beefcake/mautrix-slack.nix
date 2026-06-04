@@ -29,7 +29,7 @@ let
       as_token = "";
       hs_token = "";
       ephemeral_events = true;
-      async_transactions = false;
+      async_transactions = true;
     };
     database = {
       type = "sqlite3-fk-wal";
