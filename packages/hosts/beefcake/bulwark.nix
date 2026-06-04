@@ -81,7 +81,7 @@ in
   };
 
   virtualisation.oci-containers.containers.bulwark = {
-    image = "ghcr.io/bulwarkmail/webmail:1.4.7";
+    image = "ghcr.io/bulwarkmail/webmail:1.7.2";
     autoStart = true;
     ports = [ "127.0.0.1:${toString port}:${toString port}" ];
     environmentFiles = [
