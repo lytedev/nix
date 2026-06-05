@@ -28,7 +28,15 @@ let
       };
       as_token = "";
       hs_token = "";
-      ephemeral_events = true;
+      # No read/typing/presence sync between Matrix and Slack -- the user treats
+      # them as separate environments. Disabling here stops the HS from sending
+      # m.receipt (and friends) to the bridge entirely, which also eliminates
+      # the high-volume backpressure that caused the per-portal queue saturation.
+      # (Slack -> Matrix read receipts come through Slack's RTM, not via this
+      # flag; there's no clean knob for that direction without disabling double
+      # puppeting or patching the fork, and that direction is low-volume so we
+      # accept it for now.)
+      ephemeral_events = false;
       async_transactions = true;
     };
     database = {
