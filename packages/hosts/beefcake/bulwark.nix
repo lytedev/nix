@@ -94,6 +94,15 @@ in
       OAUTH_ENABLED = "true";
       OAUTH_CLIENT_ID = clientId;
       OAUTH_ISSUER_URL = stalwartUrl;
+      # Bulwark's SSRF guard rejects OAuth discovery endpoints whose hostname
+      # resolves to an RFC1918 address. With LAN split-horizon DNS,
+      # mail.lyte.dev resolves to 192.168.0.9 inside the container, so the
+      # discovered token_endpoint gets rejected as "non-public", logins fall
+      # through to slow fallback paths, and webmail feels broken. This flag
+      # short-circuits the guard for the configured OAuth issuer only (custom
+      # JMAP endpoints supplied by users still get the check).
+      # https://github.com/bulwarkmail/webmail/blob/00b40fc48a7fcd43fa65f21b94b42bda70102546/lib/oauth/token-exchange.ts#L9-L17
+      OAUTH_ALLOW_PRIVATE_ENDPOINTS = "true";
     };
   };
 
