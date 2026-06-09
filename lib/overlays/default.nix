@@ -28,6 +28,59 @@ let
       # force certain packages to always be unstable
       inherit (unstable-packages) jujutsu;
 
+      # Bump stalwart to 0.16 before the nixpkgs PR (#512341) lands.
+      # The 0.16 config model is completely different (no TOML; minimal
+      # config.json + database-managed settings via stalwart-cli apply).
+      # Our custom module in lib/modules/nixos/stalwart.nix handles this.
+      #
+      # To update to a newer 0.16.x: change `version` and run
+      #   nix-update stalwart --version <new>
+      # or update the hashes manually from the build error output.
+      stalwart = prev.stalwart.overrideAttrs (old: rec {
+        version = "0.16.8";
+        src = final.fetchFromGitHub {
+          owner = "stalwartlabs";
+          repo = "stalwart";
+          tag = "v0.16.8";
+          hash = "sha256-4097zzxUyHYB4TLFgsF6tKNVUiEX0T8Me+D5Efwv2FE=";
+        };
+        # overrideAttrs { cargoHash } doesn't recompute cargoDeps — set it explicitly.
+        cargoDeps = final.rustPlatform.fetchCargoVendor {
+          inherit src;
+          hash = "sha256-zo7w+sBG3XTsn2mailsrQWqnwsITBqUITKES/HtnpdM=";
+        };
+        # Tests require running external services (MySQL, PostgreSQL, DNS, IMAP…)
+        # and the skip list from the 0.15.x package doesn't cover 0.16.8's new tests.
+        doCheck = false;
+        patches = [ ];
+        # NOTE: passthru.webadmin and passthru.spam-filter are kept — the
+        # upstream 26.05 module references them, and they're independent
+        # fetches that don't depend on the server version. The 0.16 module
+        # (lib/modules/nixos/stalwart.nix) simply doesn't use them.
+      });
+
+      # stalwart-cli moved to its own repo (stalwartlabs/cli) in 0.16.
+      # The 26.05 package inherits from the mono-repo stalwart src — we need
+      # to replace it with a fresh fetch from the separate CLI repo.
+      stalwart-cli = prev.stalwart-cli.overrideAttrs (_old: rec {
+        version = "1.0.0";
+        src = final.fetchFromGitHub {
+          owner = "stalwartlabs";
+          repo = "cli";
+          tag = "v1.0.0";
+          hash = "sha256-xTxOYbPZ7zkweuuTJx3Alqig74KiD67i+TRzh1BZXa4=";
+        };
+        # The CLI moved to a separate repo in 0.16 — its cargoDeps must be
+        # computed from the new src, not inherited from the server package.
+        cargoDeps = final.rustPlatform.fetchCargoVendor {
+          inherit src;
+          hash = "sha256-Z5MDM5nJvjQJ9PpS07LbUc9FjVuwhRguchakjwypSDo=";
+        };
+        cargoBuildFlags = [ ];
+        cargoTestFlags = [ ];
+        inherit (prev.stalwart-cli.meta) description mainProgram;
+      });
+
       # Re-wrap voxtype with doCheck=false on the unwrapped build.
       # Tests require AVX2+ which beefcake's CI runner (Xeon E5-2680 v2) lacks.
       voxtype =
