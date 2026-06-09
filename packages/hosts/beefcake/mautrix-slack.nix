@@ -46,13 +46,17 @@ let
     bridge = {
       command_prefix = "!slack";
       personal_filtering_spaces = true;
-      # Run per-portal event handlers in a goroutine instead of inline. Without
-      # this, one slow Slack API call (e.g. conversations.mark on a high-traffic
-      # channel under tier-3 rate limiting) fills the portal's 64-slot queue,
-      # which then blocks the workspace's single RTM consumer goroutine, which
-      # stalls *every* portal in that workspace. Upstream warns that events may
-      # arrive out of order with this on — fine for idempotent read receipts.
-      async_events = true;
+      # Per-portal async event handling. Upstream's "not yet safe to use"
+      # warning is real: with this on, the bridge processes the same event
+      # in concurrent goroutines and double-delivers (observed as duplicate
+      # outgoing Slack messages + a "UNIQUE constraint failed: message.id"
+      # DB error from the loser). We needed it earlier to break the
+      # workspace-wide RTM stall caused by a backlog of slow conversations.mark
+      # calls for queued read receipts — but with ephemeral_events: false
+      # the receipt flood no longer exists, regular message handling
+      # completes in milliseconds, and the deadlock condition can't recur.
+      # Leave off.
+      async_events = false;
       permissions = {
         "@daniel:lyte.dev" = "admin";
         "@hookshot:lyte.dev" = "relay";
