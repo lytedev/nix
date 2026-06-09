@@ -12,6 +12,73 @@
 
   config = lib.mkIf config.lyte.steamdeck.enable (
     lib.mkMerge [
+      (
+        let
+          # Steam's OOBE calls /usr/bin/steamos-polkit-helpers/steamos-update at a
+          # hardcoded path, and calls jupiter-initial-firmware-update check via polkit.
+          # On Jovian NixOS neither of these works out of the box:
+          #   1. The sentinel /etc/jupiter-ran-initial-firmware-update doesn't exist,
+          #      so jupiter-initial-firmware-update tries pkexec (no agent → exit 127)
+          #      and Steam shows a "Day one firmware update" OOBE screen that can't
+          #      complete.
+          #   2. /usr/bin/steamos-polkit-helpers/ doesn't exist; the path was renamed
+          #      to holo-polkit-helpers in newer Jovian but Steam still uses the old
+          #      name.  Missing path → exit 127 → update checks always fail.
+          #
+          # Fix: persist the sentinel (firmware updates are handled by Nix derivations,
+          # not by the SteamOS day-1 flow), and provide a compat helper directory that
+          # calls the jovian stubs directly, bypassing pkexec.
+          steamosPolkitHelpersCompat = pkgs.runCommand "steamos-polkit-helpers-compat" { } ''
+            mkdir -p $out
+            for stub in steamos-update steamos-select-branch; do
+              echo '#!/bin/sh' > $out/$stub
+              echo "exec ${pkgs.jovian-stubs}/bin/$stub \"\$@\"" >> $out/$stub
+              chmod +x $out/$stub
+            done
+          '';
+
+          # jupiter-initial-firmware-update normally calls pkexec to become root
+          # before checking the sentinel.  On Jovian NixOS there is no polkit
+          # agent in the gamescope session, so pkexec returns 127 and Steam's
+          # OOBE shows a "Day one firmware update" screen that cannot complete.
+          # This wrapper checks the sentinel first (no root needed for a file
+          # existence check) and short-circuits before touching pkexec.
+          jupiterInitialFirmwareUpdateCompat = lib.hiPrio (
+            pkgs.writeShellScriptBin "jupiter-initial-firmware-update" ''
+              SENTINEL=/etc/jupiter-ran-initial-firmware-update
+              case "$1" in
+                check)
+                  if [ -e "$SENTINEL" ]; then
+                    exit 0
+                  fi
+                  ;;
+              esac
+              exec ${pkgs.steamdeck-firmware}/bin/jupiter-initial-firmware-update "$@"
+            ''
+          );
+        in
+        {
+          # Prevent the Steam "Day one firmware update" OOBE from blocking setup.
+          # On Jovian NixOS firmware is managed via Nix, not the SteamOS update flow.
+          environment.etc."jupiter-ran-initial-firmware-update".text = "";
+
+          # High-priority wrapper that short-circuits the sentinel check before pkexec.
+          environment.systemPackages = [ jupiterInitialFirmwareUpdateCompat ];
+
+          # Expose steamos-polkit-helpers at the hardcoded path Steam expects.
+          # Scripts call jovian stubs directly (no pkexec needed — stubs don't require
+          # root and just check the current kernel symlink to report update status).
+          #
+          # Also put the jupiter-initial-firmware-update wrapper in /usr/bin/ so it
+          # is reachable from inside the steam-runtime container, where
+          # /run/current-system/sw/bin/ is not accessible but /usr/bin/ is.
+          systemd.tmpfiles.rules = [
+            "L+ /usr/bin/steamos-polkit-helpers - - - - ${steamosPolkitHelpersCompat}"
+            "L+ /usr/bin/jupiter-initial-firmware-update - - - - ${jupiterInitialFirmwareUpdateCompat}/bin/jupiter-initial-firmware-update"
+          ];
+        }
+      )
+
       {
         hardware.bluetooth.enable = true;
         networking.wifi.enable = lib.mkDefault true;
