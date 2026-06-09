@@ -54,6 +54,55 @@ What changes:
    and (b) export a `stalwart-cli snapshot` we can replay alongside the
    migration. Worth setting up before the production cut.
 
+## Current status (2026-06-10)
+
+Custom NixOS module + beefcake plan **written, eval-tested, and validated
+end-to-end against a live 0.16.8 sandbox** (fresh RocksDB, recovery mode,
+real `stalwart-cli apply` — the exact nix-generated plan). PRs: #570
+(overlay, real hashes, builds clean), #571 (module + config, stacked).
+Both build; 0.16.8 compiles without the Duration patch (tests disabled —
+they need external services).
+
+**Verified against the sandbox (binding findings):**
+
+- Plan file is a **JSON array**, not NDJSON (docs are wrong/ambiguous)
+- JMAP `set<>` fields (`bind`, `headers`, `redirectUris`) are
+  `{"value": true}` maps, **not arrays**
+- `OAuthClient` key field is `clientId`, not `name`
+- `MtaRoute.Relay.authUsername` is a plain string (no File ref) — module
+  substitutes it from credentials at apply time; `authSecret` accepts
+  `{"@type":"File","filePath":...}`
+- JMAP `#ref` syntax is **broken for Certificate ids** (0.16.8 server-side
+  parse bug), and on re-apply a duplicate `create Domain`
+  (primaryKeyViolation) cascades into ref-resolution failures for every
+  dependent op — DKIM would silently vanish. Module therefore queries
+  literal ids at apply time and substitutes @DOMAIN_ID@ / @CERT_ID@.
+- Default outbound routing is `mx` — plan updates `MtaOutboundStrategy`
+  (Expression JSON `{"match":{"0":{"if":..,"then":..}},"else":..}`) to
+  send non-local mail to the `relay` route
+- Health probe: `/healthz/live` (root `/` 404s — the old wait loop hung)
+- **Listener changes do not rebind live** — apply updates the DB; sockets
+  change on service restart only. Boot-from-DB verified: all 5 listeners
+  bind, healthz 200.
+- **Lockout hazard:** destroy-all-listeners without successful recreate
+  leaves no HTTP listener; only `STALWART_RECOVERY_MODE=1` (opens :8080)
+  gets you back in
+- Re-apply idempotency verified: two consecutive applies → zero failures
+- Migration script: `resources/scripts/migrate_v016.py` upstream
+  (copy fetched to `/tmp/stalwart-migration/`)
+
+**Remaining before deploy (in order):**
+1. Merge #570 + #571
+2. ZFS snapshot of the stalwart dataset + verify latest restic run
+3. `migrate_v016.py dump` against live 0.15.5 (no downtime); review output
+4. `migrate_v016.py convert` → `export.json` + `config.json`; review
+   (export.json carries the accounts — the nix plan does NOT manage them)
+5. Downtime window: stop stalwart → start 0.16 in recovery mode →
+   `stalwart-cli apply export.json` → stop → switch to new generation
+   (stalwart-apply oneshot reconciles everything else declaratively)
+6. Post: re-index emails (fixes sort bug), test send/receive end-to-end,
+   verify bulwark OAuth login
+
 ## What I'd want in place before doing this
 
 - [ ] **Fresh full backup** of `/storage/stalwart` (15 GB, embedded

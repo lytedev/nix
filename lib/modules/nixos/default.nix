@@ -41,6 +41,7 @@ inputs: {
   syncthing = import ./syncthing.nix;
   server = import ./server.nix;
   roms = import ./roms.nix;
+  stalwart = import ./stalwart.nix;
 
   remote-disk-key-entry-on-boot =
     {

@@ -4,81 +4,15 @@ let
   port = 3000;
   clientId = "bulwark-webmail";
   stalwartUrl = "https://mail.lyte.dev";
-  stalwartLocal = "http://[::1]:38181";
-  adminCredsDir = "/run/credentials/stalwart.service";
 in
 {
   sops.secrets."bulwark.env" = {
     mode = "0400";
   };
 
-  # Ensure the Bulwark OAuth client principal exists in Stalwart
-  systemd.services.stalwart-ensure-bulwark-oauth = {
-    description = "Ensure Bulwark OAuth client exists in Stalwart";
-    after = [ "stalwart.service" ];
-    wants = [ "stalwart.service" ];
-    path = with pkgs; [
-      curl
-      jq
-    ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-    script = ''
-      admin_pass="$(cat ${adminCredsDir}/admin_password)"
-
-      # Wait for Stalwart to be ready (up to 60s)
-      ready=false
-      for i in $(seq 1 30); do
-        if curl -sf "${stalwartLocal}/.well-known/openid-configuration" >/dev/null 2>&1; then
-          ready=true
-          break
-        fi
-        echo "Waiting for Stalwart to be ready... ($i/30)"
-        sleep 2
-      done
-
-      if [ "$ready" != "true" ]; then
-        echo "Stalwart not ready after 60s, will retry next boot"
-        exit 0
-      fi
-
-      # Check if the OAuth client already exists
-      existing=$(curl -sf -u "admin:$admin_pass" \
-        "${stalwartLocal}/api/principal/${clientId}" 2>/dev/null || true)
-
-      if [ -n "$existing" ] && echo "$existing" | jq -e '.data.name' >/dev/null 2>&1; then
-        echo "OAuth client '${clientId}' already exists, skipping"
-        exit 0
-      fi
-
-      echo "Creating OAuth client '${clientId}'..."
-      curl -sf -u "admin:$admin_pass" \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -d '${
-          builtins.toJSON {
-            type = "oauthClient";
-            name = clientId;
-            description = "Bulwark webmail OAuth client";
-            urls = [ "https://${domain}/api/auth/callback" ];
-          }
-        }' \
-        "${stalwartLocal}/api/principal" || echo "Failed to create OAuth client, will retry next boot"
-
-      exit 0
-    '';
-  };
-
-  # Run the OAuth provisioning 2 minutes after boot, not during activation
-  systemd.timers.stalwart-ensure-bulwark-oauth = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "2m";
-      Unit = "stalwart-ensure-bulwark-oauth.service";
-    };
-  };
+  # OAuth client provisioning is now handled declaratively in the stalwart
+  # plan (beefcake/stalwart.nix) via stalwart-cli apply.  The old
+  # stalwart-ensure-bulwark-oauth curl service is removed.
 
   virtualisation.oci-containers.containers.bulwark = {
     image = "ghcr.io/bulwarkmail/webmail:1.7.2";
