@@ -28,6 +28,9 @@
           # Fix: persist the sentinel (firmware updates are handled by Nix derivations,
           # not by the SteamOS day-1 flow), and provide a compat helper directory that
           # calls the jovian stubs directly, bypassing pkexec.
+          # Stubs for the host /usr/bin/steamos-polkit-helpers/ tmpfiles symlink.
+          # Files are directly in $out/ (no bin/ subdir) because the tmpfiles
+          # rule points /usr/bin/steamos-polkit-helpers → $out directly.
           steamosPolkitHelpersCompat = pkgs.runCommand "steamos-polkit-helpers-compat" { } ''
             mkdir -p $out
             for stub in steamos-update steamos-select-branch; do
@@ -35,10 +38,23 @@
               echo "exec ${pkgs.jovian-stubs}/bin/$stub \"\$@\"" >> $out/$stub
               chmod +x $out/$stub
             done
-            # jupiter-biosupdate: no BIOS update path on Jovian NixOS; exit 0
-            # (no update needed) to silence the periodic BIOS check error.
             printf '#!/bin/sh\nexit 0\n' > $out/jupiter-biosupdate
             chmod +x $out/jupiter-biosupdate
+          '';
+
+          # Package for the Steam FHS environment.  buildFHSEnv maps $out/bin/*
+          # → /usr/bin/* inside the container, so files here appear at
+          # /usr/bin/steamos-polkit-helpers/steamos-update inside the FHS rootfs
+          # (which pressure-vessel then uses as the container's /usr/bin/).
+          steamosPolkitHelpersFHS = pkgs.runCommand "steamos-polkit-helpers-fhs" { } ''
+            mkdir -p $out/bin/steamos-polkit-helpers
+            for stub in steamos-update steamos-select-branch; do
+              echo '#!/bin/sh' > $out/bin/steamos-polkit-helpers/$stub
+              echo "exec ${pkgs.jovian-stubs}/bin/$stub \"\$@\"" >> $out/bin/steamos-polkit-helpers/$stub
+              chmod +x $out/bin/steamos-polkit-helpers/$stub
+            done
+            printf '#!/bin/sh\nexit 0\n' > $out/bin/steamos-polkit-helpers/jupiter-biosupdate
+            chmod +x $out/bin/steamos-polkit-helpers/jupiter-biosupdate
           '';
 
           # jupiter-initial-firmware-update normally calls pkexec to become root
@@ -103,7 +119,28 @@
             # /bin/sh, so every #!/bin/sh script (jovian stubs, polkit helpers) fails
             # with exit 127.  Add /usr/bin/sh so the container gets a working shell.
             "L+ /usr/bin/sh - - - - ${pkgs.bash}/bin/sh"
+            # Drop-in to redirect the steam-launcher service at the current system's
+            # steam binary (which includes our FHS steamos-polkit-helpers/ additions).
+            # The Jovian gamescope-session hardcodes the steam path at build time;
+            # this drop-in overrides ExecStart to use the up-to-date wrapper.
+            # /etc/systemd/user/ is read-only on NixOS; use the user's home dir instead.
+            # NixOS may create ~/.config/systemd/ as root — fix ownership so tmpfiles
+            # does not reject the unsafe path transition daniel→root.
+            "z /home/daniel/.config/systemd 0755 daniel daniel -"
+            "z /home/daniel/.config/systemd/user 0755 daniel daniel -"
+            "d /home/daniel/.config/systemd/user/steam-launcher.service.d 0755 daniel daniel -"
+            "L+ /home/daniel/.config/systemd/user/steam-launcher.service.d/99-fhs-override.conf - - - - ${pkgs.writeText "steam-launcher-fhs-override.conf" ''
+              [Service]
+              ExecStart=
+              ExecStart=${config.programs.steam.package}/bin/steam -steamdeck -steamos3 -gamepadui
+            ''}"
           ];
+
+          # Inject steamos-polkit-helpers into the Steam FHS environment.
+          # buildFHSEnv maps $out/bin/* → /usr/bin/* inside the container, so
+          # steamosPolkitHelpersFHS's $out/bin/steamos-polkit-helpers/ appears as
+          # /usr/bin/steamos-polkit-helpers/ in the pressure-vessel container.
+          programs.steam.extraPackages = [ steamosPolkitHelpersFHS ];
         }
       )
 
