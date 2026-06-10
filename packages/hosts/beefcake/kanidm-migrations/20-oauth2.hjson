@@ -139,7 +139,12 @@
       "oauth2_rs_origin_landing": "https://webmail.lyte.dev/",
       // Public client (browser SPA doing authorization-code flow) — PKCE is
       // mandatory for public clients in kanidm, which is what we want.
-      "oauth2_rs_origin": "https://webmail.lyte.dev/api/auth/callback",
+      // Bulwark 1.7.x sends its locale-prefixed page route as redirect_uri
+      // (/en/auth/callback); kanidm's strict redirect matching rejects
+      // unregistered URIs (same failure mode as stalwart's OAuth).
+      // NOTE: an array value here fails migration apply with AccessDenied —
+      // single string only (observed live 2026-06-10).
+      "oauth2_rs_origin": "https://webmail.lyte.dev/en/auth/callback",
       "oauth2_strict_redirect_uri": true,
       // Stalwart's Oidc directory maps preferred_username + usernameDomain
       // (lyte.dev) onto existing mail accounts ("daniel" → daniel@lyte.dev),

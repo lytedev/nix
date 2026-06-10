@@ -323,36 +323,34 @@ in
       # "daniel" → daniel@lyte.dev → existing internal account "daniel"
       # (same account id and mailbox; JIT-creates only when nothing matches).
       #
-      # Destroy-all is safe for internal auth: in 0.16.8 the registry
-      # Directory type is Ldap|Sql|Oidc only — the internal directory is
-      # not a Directory object.
-      #
-      # CAUTION (source-verified against v0.16.8, sandbox confirmation
-      # pending): this directory is INERT until Authentication.directoryId
-      # points at it, and setting directoryId routes Basic (password) auth
-      # exclusively to it — breaking IMAP/SMTP AUTH PLAIN. Do NOT set
-      # directoryId without reading issues/open/stalwart-kanidm-oidc.md
-      # ("Authentication arbitration").
+      # Setting directoryId routes Basic (password) auth exclusively to the
+      # OIDC directory — breaking IMAP/SMTP AUTH PLAIN. This is INTENTIONAL:
+      # we are retiring password clients entirely (bulwark PWA everywhere).
+      # Sandbox-verified 2026-06-10: STALWART_RECOVERY_ADMIN basic auth
+      # still works with directoryId set, so stalwart-apply survives.
+      # The directory itself is managed by the module (oidcDirectory option)
+      # so its runtime id is stable and substitutable here.
       {
-        "@type" = "destroy";
-        object = "Directory";
-        value = { };
-      }
-      {
-        "@type" = "create";
-        object = "Directory";
-        value.kanidm = {
-          "@type" = "Oidc";
-          description = "Kanidm OIDC (bulwark webmail SSO)";
-          issuerUrl = "https://idm.h.lyte.dev/oauth2/openid/bulwark-webmail";
-          claimUsername = "preferred_username";
-          claimName = "name";
-          usernameDomain = domain;
-          # Reject tokens minted for other Kanidm clients.
-          requireAudience = "bulwark-webmail";
-        };
+        "@type" = "update";
+        object = "Authentication";
+        value.directoryId = "@OIDC_DIRECTORY_ID@";
       }
     ];
+
+    # The Oidc directory is ensured by the apply script (create-or-update by
+    # description match) rather than destroy+create in the plan — the
+    # Authentication singleton must reference its id, which has to stay
+    # stable across applies. Exposes @OIDC_DIRECTORY_ID@ to the plan.
+    oidcDirectory = {
+      "@type" = "Oidc";
+      description = "Kanidm OIDC (bulwark webmail SSO)";
+      issuerUrl = "https://idm.h.lyte.dev/oauth2/openid/bulwark-webmail";
+      claimUsername = "preferred_username";
+      claimName = "name";
+      usernameDomain = domain;
+      # Reject tokens minted for other Kanidm clients.
+      requireAudience = "bulwark-webmail";
+    };
   };
 
   # Attach cert-copy ordering to stalwart (not stalwart-mail — renamed in 26.05).

@@ -168,6 +168,19 @@ in
       };
     };
 
+    oidcDirectory = lib.mkOption {
+      type = lib.types.nullOr lib.types.attrs;
+      default = null;
+      description = ''
+        If set, the apply service ensures a Directory object with this
+        content exists (matched by `description` — create if missing,
+        update-by-id otherwise so the id stays stable across applies) and
+        substitutes its id for @OIDC_DIRECTORY_ID@ in the plan.  Use with
+        an `Authentication.directoryId` update op to enable it.  Must
+        include `"@type"` (e.g. "Oidc") and a unique `description`.
+      '';
+    };
+
     plan = lib.mkOption {
       type = lib.types.listOf lib.types.attrs;
       default = [ ];
@@ -407,9 +420,47 @@ in
             fi
         ''}
 
+        ${lib.optionalString (cfg.oidcDirectory != null) ''
+            echo "[3.5/5] ensuring OIDC directory..."
+            # The query LIST view omits most fields (description comes back
+            # null — same trap as Account.name); match via per-id `get`.
+            dir_desc=${lib.escapeShellArg cfg.oidcDirectory.description}
+            find_dir_id() {
+              $cli query Directory --json --no-color | jq -r '.[].id' | while read -r did; do
+                desc=$($cli get Directory "$did" --json --no-color | jq -r '.description // empty')
+                if [ "$desc" = "$dir_desc" ]; then echo "$did"; fi
+              done
+            }
+            all_matching=$(find_dir_id)
+            dir_id=$(head -1 <<<"$all_matching" || true)
+            if [ -z "$dir_id" ]; then
+              cat > "$rundir/dir.json" <<'DIREOF'
+          [{"@type":"create","object":"Directory","value":{"dir":${builtins.toJSON cfg.oidcDirectory}}}]
+          DIREOF
+              $cli apply --file "$rundir/dir.json" --no-color
+              dir_id=$(find_dir_id | head -1)
+            else
+              cat > "$rundir/dir-update.json" <<DIREOF
+          [{"@type":"update","object":"Directory","id":"$dir_id","value":${builtins.toJSON cfg.oidcDirectory}}]
+          DIREOF
+              $cli apply --file "$rundir/dir-update.json" --no-color
+              extra_dirs=$(grep -vx "$dir_id" <<<"$all_matching" | paste -sd, - || true)
+              if [ -n "$extra_dirs" ]; then
+                echo "  pruning duplicate directories: $extra_dirs"
+                $cli delete Directory --ids "$extra_dirs" --no-color
+              fi
+            fi
+            if [ -z "$dir_id" ]; then
+              echo "ERROR: OIDC directory id could not be determined; refusing to substitute an empty id" >&2
+              exit 1
+            fi
+            echo "  oidc directory id: $dir_id"
+        ''}
+
         echo "[4/5] resolving plan template..."
         sed -e "s/@DOMAIN_ID@/$domain_id/g" \
           ${lib.optionalString (cfg.certificateFiles != null) ''-e "s/@CERT_ID@/$cert_id/g" \''}
+          ${lib.optionalString (cfg.oidcDirectory != null) ''-e "s/@OIDC_DIRECTORY_ID@/$dir_id/g" \''}
           ${
             lib.concatStringsSep " \\\n  " (
               lib.mapAttrsToList (
