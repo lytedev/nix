@@ -252,3 +252,45 @@ sandbox), pointed at the real (or a test) Kanidm:
 - Add other webmail users to `bulwark-webmail_users` as needed (pre-create
   their stalwart accounts first — see identity overlap notes)
 - File the upstream issue if the arbitration blocker is confirmed
+
+## Decision (2026-06-10): full SSO, retire password clients
+
+Daniel decided to go all-in on SSO and drop Thunderbird/IMAP clients
+entirely (no calendar/contacts use either):
+
+- daniel: bulwark webmail (desktop + Android PWA) via Kanidm SSO. Bulwark
+  ships **web push notifications for inbox mail** in its PWA
+  (<https://github.com/bulwarkmail/webmail/blob/main/FEATURES.md>; impl
+  #233, multi-account fix #298), replacing phone IMAP notifications.
+- valerie: must move to bulwark + a Kanidm account (her password IMAP
+  breaks under OIDC-primary) — confirm what she actually uses first.
+- postmaster: alias target only; no client.
+
+This makes the CE arbitration limitation mostly moot for this deployment —
+EXCEPT the recovery admin:
+
+**NEW HARD CHECKLIST ITEM (go/no-go):** with `Authentication.directoryId`
+set to the Oidc directory, verify `STALWART_RECOVERY_ADMIN` basic auth
+still works — `stalwart-apply` (and all our declarative tooling)
+authenticates that way. If recovery-admin is also routed to the OIDC
+directory, the whole plan-apply machinery breaks and this is a no-go
+until upstream changes.
+
+## Upstream tracking (searched 2026-06-10)
+
+No open upstream issue tracks internal-fallback / per-mechanism directory
+arbitration. Adjacent closed issues:
+
+- stalwartlabs/stalwart#3032 — the exact 0.16+Kanidm directory question,
+  **closed as not planned**; app-password guidance for external
+  directories ("store the secret in the external directory") has no OIDC
+  equivalent
+- stalwartlabs/stalwart#2980 — app passwords fail under OIDC-primary
+  (0.15.5), empirically confirming the no-basic-fallback behavior
+- stalwartlabs/stalwart#2319 — OIDC login used to *delete* local app
+  passwords (fixed), showing coexistence was at least once intended
+
+If the recovery-admin test fails (or password fallback is ever wanted
+again), file an upstream feature request for per-mechanism directory
+arbitration (bearer → external directory, basic → internal) — a common
+self-hosted family-server topology CE currently can't express.
