@@ -71,7 +71,23 @@
           # its own /etc/ but shares /run/ with the host, so /etc/ is not visible
           # inside the container but /run/ is.
           # High-priority wrapper that short-circuits the sentinel check before pkexec.
-          environment.systemPackages = [ jupiterInitialFirmwareUpdateCompat ];
+          # Also add steamos-update and steamos-update-rauc stubs to system packages
+          # so they land in /run/current-system/sw/bin/, which is bind-mounted into
+          # the steam-runtime container and will be found even when SYSTEM_PATH is
+          # not explicitly passed to subprocesses.
+          environment.systemPackages = [
+            jupiterInitialFirmwareUpdateCompat
+            (lib.lowPrio (
+              pkgs.runCommand "steamos-update-stubs" { } ''
+                mkdir -p $out/bin
+                # steamos-update: stub exits 7 (no update) or 8 (reboot needed)
+                cp ${pkgs.jovian-stubs}/bin/steamos-update $out/bin/steamos-update
+                # steamos-update-rauc: RAUC-based update check — always no entries on Jovian NixOS
+                printf '#!/bin/sh\necho "-- No entries --"\nexit 0\n' > $out/bin/steamos-update-rauc
+                chmod +x $out/bin/steamos-update-rauc
+              ''
+            ))
+          ];
 
           # Expose steamos-polkit-helpers at the hardcoded path Steam expects.
           # Scripts call jovian stubs directly (no pkexec needed — stubs don't require
