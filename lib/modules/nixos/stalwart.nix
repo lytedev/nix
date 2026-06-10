@@ -423,28 +423,23 @@ in
         $cli apply --file "$rundir/plan.json" --no-color
 
         ${lib.optionalString (cfg.adminAccounts != [ ]) ''
-          echo "[post] granting System Administrator role to: ${lib.concatStringsSep ", " cfg.adminAccounts}"
-          role_id=$($cli query Role --json --no-color | jq -r '.[].id' | while read -r rid; do
-            desc=$($cli get Role "$rid" --json --no-color | jq -r '.description // empty')
-            if [ "$desc" = "System Administrator" ]; then echo "$rid"; break; fi
-          done)
-          if [ -z "$role_id" ]; then
-            echo "  WARNING: System Administrator role not found; skipping grants"
-          else
-            for want in ${lib.concatStringsSep " " cfg.adminAccounts}; do
-              acct_id=$($cli query Account --json --no-color | jq -r '.[].id' | while read -r aid; do
-                name=$($cli get Account "$aid" --json --no-color | jq -r '.name // empty')
-                if [ "$name" = "$want" ]; then echo "$aid"; break; fi
-              done)
-              if [ -z "$acct_id" ]; then
-                echo "  WARNING: account '$want' not found; skipping"
-                continue
-              fi
-              printf '[{"@type":"update","object":"Account","id":"%s","value":{"roleIds":{"%s":true}}}]' "$acct_id" "$role_id" > "$rundir/role.json"
-              $cli apply --file "$rundir/role.json" --no-color
-              echo "  granted to $want ($acct_id)"
-            done
-          fi
+          # Account.roles is a tagged variant; {"@type":"Admin"} grants full
+          # admin. (The CLI schema's roleIds field is rejected by the server
+          # on update — sandbox-verified 2026-06-10.)
+          echo "[post] granting Admin role to: ${lib.concatStringsSep ", " cfg.adminAccounts}"
+          for want in ${lib.concatStringsSep " " cfg.adminAccounts}; do
+            acct_id=$($cli query Account --json --no-color | jq -r '.[].id' | while read -r aid; do
+              name=$($cli get Account "$aid" --json --no-color | jq -r '.name // empty')
+              if [ "$name" = "$want" ]; then echo "$aid"; break; fi
+            done)
+            if [ -z "$acct_id" ]; then
+              echo "  WARNING: account '$want' not found; skipping"
+              continue
+            fi
+            printf '[{"@type":"update","object":"Account","id":"%s","value":{"roles":{"@type":"Admin"}}}]' "$acct_id" > "$rundir/role.json"
+            $cli apply --file "$rundir/role.json" --no-color
+            echo "  granted to $want ($acct_id)"
+          done
         ''}
         echo "stalwart-apply complete"
       '';
