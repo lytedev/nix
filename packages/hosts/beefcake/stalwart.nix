@@ -286,6 +286,9 @@ in
 
       # ---- OAuth client for Bulwark webmail ----
       # Replaces the old curl-based stalwart-ensure-bulwark-oauth.service.
+      # NOTE: bulwark now authenticates against Kanidm (see the Oidc
+      # Directory below); this internal OAuth client is kept for now as a
+      # fallback until the Kanidm path is verified, then can be removed.
       {
         "@type" = "destroy";
         object = "OAuthClient";
@@ -306,6 +309,38 @@ in
             "https://webmail.${domain}/en/auth/callback" = true;
             "https://webmail.${domain}/auth/callback" = true;
           };
+        };
+      }
+
+      # ---- OIDC directory: validate Kanidm-issued tokens ----
+      # Additive: the internal directory (accounts + passwords for IMAP/SMTP
+      # AUTH PLAIN) is untouched. This directory lets stalwart accept bearer
+      # tokens / XOAUTH2 minted by Kanidm for the bulwark-webmail client.
+      # Stalwart validates tokens by calling the issuer's userinfo endpoint
+      # (discovered from issuerUrl) and maps preferred_username (+
+      # usernameDomain when the claim lacks an @) onto existing accounts:
+      # "daniel" → daniel@lyte.dev → internal account "daniel".
+      #
+      # NOTE: destroy-all assumes the internal directory is implicit (not a
+      # Directory plan object) — verified assumption pending sandbox test,
+      # see issues/open/stalwart-kanidm-oidc.md.
+      {
+        "@type" = "destroy";
+        object = "Directory";
+        value = { };
+      }
+      {
+        "@type" = "create";
+        object = "Directory";
+        value.kanidm = {
+          "@type" = "Oidc";
+          description = "Kanidm OIDC (bulwark webmail SSO)";
+          issuerUrl = "https://idm.h.lyte.dev/oauth2/openid/bulwark-webmail";
+          claimUsername = "preferred_username";
+          claimName = "name";
+          usernameDomain = domain;
+          # Reject tokens minted for other Kanidm clients.
+          requireAudience = "bulwark-webmail";
         };
       }
     ];

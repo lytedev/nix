@@ -125,6 +125,37 @@
           ]
         }
       ]
+    },
+    {
+      "state": "present",
+      "id": "6b4a9155-d7e0-4ef6-ba4a-de0b37f855cd",
+      "class": [
+        "account",
+        "oauth2_resource_server",
+        "oauth2_resource_server_public"
+      ],
+      "name": "bulwark-webmail",
+      "displayname": "Bulwark Webmail",
+      "oauth2_rs_origin_landing": "https://webmail.lyte.dev/",
+      // Public client (browser SPA doing authorization-code flow) — PKCE is
+      // mandatory for public clients in kanidm, which is what we want.
+      "oauth2_rs_origin": "https://webmail.lyte.dev/api/auth/callback",
+      "oauth2_strict_redirect_uri": true,
+      // Stalwart's Oidc directory maps preferred_username + usernameDomain
+      // (lyte.dev) onto existing mail accounts ("daniel" → daniel@lyte.dev),
+      // so the claim must be the short username, not the SPN
+      // (daniel@idm.h.lyte.dev).
+      "oauth2_prefer_short_username": true,
+      "oauth2_rs_scope_map": [
+        {
+          "group": "bulwark-webmail_users",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ]
+        }
+      ]
     }
   ]
 }

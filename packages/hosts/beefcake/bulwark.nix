@@ -4,6 +4,10 @@ let
   port = 3000;
   clientId = "bulwark-webmail";
   stalwartUrl = "https://mail.lyte.dev";
+  # Kanidm OIDC issuer for the bulwark-webmail public client (PKCE code
+  # flow). Stalwart accepts the resulting tokens via its "kanidm" Oidc
+  # directory (see ./stalwart.nix) — JMAP still goes to stalwart.
+  kanidmIssuerUrl = "https://idm.h.lyte.dev/oauth2/openid/${clientId}";
 in
 {
   sops.secrets."bulwark.env" = {
@@ -27,11 +31,12 @@ in
       PORT = toString port;
       OAUTH_ENABLED = "true";
       OAUTH_CLIENT_ID = clientId;
-      OAUTH_ISSUER_URL = stalwartUrl;
+      OAUTH_ISSUER_URL = kanidmIssuerUrl;
       # Bulwark's SSRF guard rejects OAuth discovery endpoints whose hostname
       # resolves to an RFC1918 address. With LAN split-horizon DNS,
-      # mail.lyte.dev resolves to 192.168.0.9 inside the container, so the
-      # discovered token_endpoint gets rejected as "non-public", logins fall
+      # idm.h.lyte.dev (like mail.lyte.dev before it) resolves to a private
+      # address inside the container, so the discovered token_endpoint gets
+      # rejected as "non-public", logins fall
       # through to slow fallback paths, and webmail feels broken. This flag
       # short-circuits the guard for the configured OAuth issuer only (custom
       # JMAP endpoints supplied by users still get the check).
