@@ -35,6 +35,10 @@
               echo "exec ${pkgs.jovian-stubs}/bin/$stub \"\$@\"" >> $out/$stub
               chmod +x $out/$stub
             done
+            # jupiter-biosupdate: no BIOS update path on Jovian NixOS; exit 0
+            # (no update needed) to silence the periodic BIOS check error.
+            printf '#!/bin/sh\nexit 0\n' > $out/jupiter-biosupdate
+            chmod +x $out/jupiter-biosupdate
           '';
 
           # jupiter-initial-firmware-update normally calls pkexec to become root
@@ -45,7 +49,10 @@
           # existence check) and short-circuits before touching pkexec.
           jupiterInitialFirmwareUpdateCompat = lib.hiPrio (
             pkgs.writeShellScriptBin "jupiter-initial-firmware-update" ''
-              SENTINEL=/etc/jupiter-ran-initial-firmware-update
+              # The sentinel is in /run/ (not /etc/) so it is visible inside the
+              # steam-runtime pressure-vessel container, which mounts its own /etc/
+              # but shares /run/ with the host.
+              SENTINEL=/run/jovian/jupiter-ran-initial-firmware-update
               case "$1" in
                 check)
                   if [ -e "$SENTINEL" ]; then
@@ -60,21 +67,21 @@
         {
           # Prevent the Steam "Day one firmware update" OOBE from blocking setup.
           # On Jovian NixOS firmware is managed via Nix, not the SteamOS update flow.
-          environment.etc."jupiter-ran-initial-firmware-update".text = "";
-
+          # Put the sentinel under /run/jovian/ — the steam-runtime container mounts
+          # its own /etc/ but shares /run/ with the host, so /etc/ is not visible
+          # inside the container but /run/ is.
           # High-priority wrapper that short-circuits the sentinel check before pkexec.
           environment.systemPackages = [ jupiterInitialFirmwareUpdateCompat ];
 
           # Expose steamos-polkit-helpers at the hardcoded path Steam expects.
           # Scripts call jovian stubs directly (no pkexec needed — stubs don't require
           # root and just check the current kernel symlink to report update status).
-          #
-          # Also put the jupiter-initial-firmware-update wrapper in /usr/bin/ so it
-          # is reachable from inside the steam-runtime container, where
-          # /run/current-system/sw/bin/ is not accessible but /usr/bin/ is.
           systemd.tmpfiles.rules = [
+            # Sentinel visible inside steam-runtime container (/run/ is shared, /etc/ is not)
+            "d /run/jovian 0755 root root -"
+            "f /run/jovian/jupiter-ran-initial-firmware-update 0444 root root -"
+            # Compat polkit helpers dir at the hardcoded path Steam expects
             "L+ /usr/bin/steamos-polkit-helpers - - - - ${steamosPolkitHelpersCompat}"
-            "L+ /usr/bin/jupiter-initial-firmware-update - - - - ${jupiterInitialFirmwareUpdateCompat}/bin/jupiter-initial-firmware-update"
           ];
         }
       )
