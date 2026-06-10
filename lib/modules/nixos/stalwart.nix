@@ -184,6 +184,17 @@ in
       '';
     };
 
+    adminAccounts = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        Account names (as stored, e.g. "daniel") to grant the
+        System Administrator role after each plan apply.  Accounts are
+        looked up by name at apply time; missing accounts are skipped with
+        a warning (accounts themselves are user data, not plan-managed).
+      '';
+    };
+
     applyUrl = lib.mkOption {
       type = lib.types.str;
       description = "URL stalwart-cli uses to reach the running server (e.g. http://[::1]:8080).";
@@ -410,6 +421,31 @@ in
 
         echo "[5/5] applying plan..."
         $cli apply --file "$rundir/plan.json" --no-color
+
+        ${lib.optionalString (cfg.adminAccounts != [ ]) ''
+          echo "[post] granting System Administrator role to: ${lib.concatStringsSep ", " cfg.adminAccounts}"
+          role_id=$($cli query Role --json --no-color | jq -r '.[].id' | while read -r rid; do
+            desc=$($cli get Role "$rid" --json --no-color | jq -r '.description // empty')
+            if [ "$desc" = "System Administrator" ]; then echo "$rid"; break; fi
+          done)
+          if [ -z "$role_id" ]; then
+            echo "  WARNING: System Administrator role not found; skipping grants"
+          else
+            for want in ${lib.concatStringsSep " " cfg.adminAccounts}; do
+              acct_id=$($cli query Account --json --no-color | jq -r '.[].id' | while read -r aid; do
+                name=$($cli get Account "$aid" --json --no-color | jq -r '.name // empty')
+                if [ "$name" = "$want" ]; then echo "$aid"; break; fi
+              done)
+              if [ -z "$acct_id" ]; then
+                echo "  WARNING: account '$want' not found; skipping"
+                continue
+              fi
+              printf '[{"@type":"update","object":"Account","id":"%s","value":{"roleIds":{"%s":true}}}]' "$acct_id" "$role_id" > "$rundir/role.json"
+              $cli apply --file "$rundir/role.json" --no-color
+              echo "  granted to $want ($acct_id)"
+            done
+          fi
+        ''}
         echo "stalwart-apply complete"
       '';
     };

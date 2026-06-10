@@ -104,6 +104,10 @@ in
     # authUsername (plain string field), so it's substituted at apply time.
     planSubstitutions."@SMTP_RELAY_USERNAME@" = "smtp_relay_username";
 
+    # Dashboard access for daniel@lyte.dev (accounts are user data, so the
+    # role is granted by name lookup at apply time, not as a plan op).
+    adminAccounts = [ "daniel" ];
+
     # --- Declarative plan ---
     #
     # Re-applied idempotently on every switch.  Owned types (listeners,
@@ -120,6 +124,25 @@ in
           defaultHostname = host;
           defaultDomainId = "@DOMAIN_ID@";
           defaultCertificateId = "@CERT_ID@";
+        };
+      }
+
+      # ---- Logging to journald ----
+      # 0.16 stores tracer config in the DB; without this the server logs
+      # nothing (the 0.15 stdout tracer was in the wiped TOML settings).
+      {
+        "@type" = "destroy";
+        object = "Tracer";
+        value = { };
+      }
+      {
+        "@type" = "create";
+        object = "Tracer";
+        value.stdout = {
+          "@type" = "Stdout";
+          enable = true;
+          ansi = false;
+          level = "info";
         };
       }
 
@@ -317,8 +340,17 @@ in
         exit 0
       fi
       cd /var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/${host}
+      changed=0
+      cmp -s ${host}.crt ${certDir}/fullchain.pem || changed=1
       install -m 0600 -o stalwart -g stalwart ${host}.crt ${certDir}/fullchain.pem
       install -m 0600 -o stalwart -g stalwart ${host}.key ${certDir}/privkey.pem
+      # Stalwart 0.16 stores the cert *content* in its DB — it only re-reads
+      # these files when stalwart-apply runs. Re-apply on renewal so the
+      # served certificate doesn't go stale (Caddy renews ~every 60 days).
+      if [ "$changed" = 1 ] && systemctl is-active --quiet stalwart.service; then
+        echo "certificate changed; re-running stalwart-apply to refresh DB copy"
+        systemctl restart stalwart-apply.service || true
+      fi
     '';
   };
 
@@ -329,20 +361,11 @@ in
     993
   ];
 
+  # No Caddy-side CORS: stalwart 0.16 emits its own Access-Control-* headers,
+  # and duplicating Access-Control-Allow-Origin makes browsers reject the
+  # response outright (this silently broke bulwark's OIDC discovery).
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
-      @cors_preflight method OPTIONS
-      @cors_webmail header Origin https://webmail.${domain}
-
-      handle @cors_preflight {
-        header Access-Control-Allow-Origin "https://webmail.${domain}"
-        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header Access-Control-Allow-Headers "Content-Type, Authorization"
-        header Access-Control-Allow-Credentials "true"
-        header Access-Control-Max-Age "86400"
-        respond "" 204
-      }
-
       reverse_proxy [::1]:${toString httpPort} {
         header_up Host {host}
         header_up X-Real-Ip {remote_host}
@@ -350,9 +373,6 @@ in
         header_up -X-Forwarded-Host
         header_up -X-Forwarded-Proto
       }
-
-      header @cors_webmail Access-Control-Allow-Origin "https://webmail.${domain}"
-      header @cors_webmail Access-Control-Allow-Credentials "true"
     '';
   };
 }
