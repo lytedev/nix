@@ -98,6 +98,11 @@
             "f /run/jovian/jupiter-ran-initial-firmware-update 0444 root root -"
             # Compat polkit helpers dir at the hardcoded path Steam expects
             "L+ /usr/bin/steamos-polkit-helpers - - - - ${steamosPolkitHelpersCompat}"
+            # The steam-runtime container maps the host's /usr/bin/ to /bin/ inside
+            # the container.  Without /usr/bin/sh on the host, the container has no
+            # /bin/sh, so every #!/bin/sh script (jovian stubs, polkit helpers) fails
+            # with exit 127.  Add /usr/bin/sh so the container gets a working shell.
+            "L+ /usr/bin/sh - - - - ${pkgs.bash}/bin/sh"
           ];
         }
       )
