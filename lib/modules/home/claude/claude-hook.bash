@@ -68,12 +68,16 @@ session_petname() {
 # Resolve a human-readable session name. Priority:
 #   1. CLAUDE_SESSION_NAME env (claude-ws workspaces set this)
 #   2. An explicit title from the payload (.session_title / .session_name),
-#      IF it's a real name (a bare session UUID doesn't count). Set by
-#      Claude's /rename. This is persisted (see below) because Claude only
-#      includes the title in *some* hook event payloads — without persistence
-#      the name would flap back to the default on every event that omits it.
-#   3. A previously-persisted explicit title for this session id.
-#   4. Default "$PROJECT:$PETNAME" (e.g. nix:optimal-surfbird), so a freshly
+#      IF it's a real name (a bare session UUID doesn't count). Claude only
+#      includes session_title in SessionStart payloads, so this alone misses
+#      any title set mid-session.
+#   3. The most recent custom-title entry in the transcript. Auto-naming and
+#      /rename both append one, so a mid-session rename propagates on the
+#      very next hook event instead of waiting for the next --resume.
+#   4. A previously-persisted explicit title for this session id (2 and 3 are
+#      persisted because most events carry neither — without persistence the
+#      name would flap back to the default whenever both sources are absent).
+#   5. Default "$PROJECT:$PETNAME" (e.g. nix:optimal-surfbird), so a freshly
 #      started session gets a meaningful, project-scoped tab name instead of a
 #      context-free petname.
 resolve_session_name() {
@@ -88,6 +92,17 @@ resolve_session_name() {
     printf '%s' "$from_payload" >"$title_file"
     printf '%s' "$from_payload"
     return
+  fi
+  local transcript from_transcript
+  transcript="$(echo "$HOOK_DATA" | jq -r '.transcript_path // empty')"
+  if [ -n "$transcript" ] && [ -r "$transcript" ]; then
+    from_transcript="$(grep -F '"type":"custom-title"' "$transcript" \
+      | tail -1 | jq -r '.customTitle // empty' 2>/dev/null || true)"
+    if [ -n "$from_transcript" ] && ! is_uuid "$from_transcript"; then
+      printf '%s' "$from_transcript" >"$title_file"
+      printf '%s' "$from_transcript"
+      return
+    fi
   fi
   if [ -s "$title_file" ]; then
     cat "$title_file"
@@ -132,6 +147,18 @@ sync_zellij_tab_name() {
 }
 
 SESSION_NAME="$(resolve_session_name)"
+
+# Session state files are keyed by name, so when the name changes mid-session
+# (auto-name or /rename) the file written under the old name would linger as a
+# phantom session. Track the last name used and clean up on change.
+LAST_NAME_FILE="$PETNAMES_DIR/$SESSION_ID.last-name"
+if [ -s "$LAST_NAME_FILE" ]; then
+  LAST_NAME="$(cat "$LAST_NAME_FILE")"
+  if [ "$LAST_NAME" != "$SESSION_NAME" ]; then
+    rm -f "$SESSIONS_DIR/${LAST_NAME}.json"
+  fi
+fi
+printf '%s' "$SESSION_NAME" >"$LAST_NAME_FILE"
 
 # Build from-URI: user@host:/cwd?pid=N&zellij=session.tab.pane
 FROM_URI="$(whoami 2>/dev/null || echo unknown)@$(hostname -s 2>/dev/null || echo unknown):${HOOK_CWD}"
@@ -264,7 +291,7 @@ case "$SUBCOMMAND" in
     touch_ws_activity "$(echo "$HOOK_DATA" | jq -r '.prompt // empty')"
     ;;
   session-end)
-    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID" "$PETNAMES_DIR/$SESSION_ID.tab-applied"
+    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID" "$PETNAMES_DIR/$SESSION_ID.tab-applied" "$LAST_NAME_FILE"
     ;;
   *)
     echo "Unknown subcommand: $SUBCOMMAND" >&2
