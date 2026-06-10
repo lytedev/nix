@@ -297,7 +297,15 @@ in
         value."bulwark-webmail" = {
           clientId = "bulwark-webmail";
           description = "Bulwark webmail OAuth client";
-          redirectUris."https://webmail.${domain}/api/auth/callback" = true;
+          # Bulwark 1.7.x sends its locale-prefixed page route as the
+          # redirect_uri (e.g. /en/auth/callback). Stalwart's authorize step
+          # is lenient but the token exchange strictly matches against this
+          # set — a missing entry fails the exchange with access_denied.
+          redirectUris = {
+            "https://webmail.${domain}/api/auth/callback" = true;
+            "https://webmail.${domain}/en/auth/callback" = true;
+            "https://webmail.${domain}/auth/callback" = true;
+          };
         };
       }
     ];
@@ -361,11 +369,16 @@ in
     993
   ];
 
-  # No Caddy-side CORS: stalwart 0.16 emits its own Access-Control-* headers,
-  # and duplicating Access-Control-Allow-Origin makes browsers reject the
-  # response outright (this silently broke bulwark's OIDC discovery).
+  # CORS: stalwart 0.16 emits its own Access-Control-* headers on normal
+  # responses but NOT on its 307 redirects (e.g. /.well-known/jmap), and
+  # browsers block those for cross-origin callers like bulwark. The `?`
+  # header modifier sets a default only when the field is absent, so we
+  # never duplicate Access-Control-Allow-Origin (duplicates are rejected
+  # by browsers outright — that broke OIDC discovery before).
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
+      header ?Access-Control-Allow-Origin "*"
+
       reverse_proxy [::1]:${toString httpPort} {
         header_up Host {host}
         header_up X-Real-Ip {remote_host}
