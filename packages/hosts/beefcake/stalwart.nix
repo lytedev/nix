@@ -316,14 +316,23 @@ in
       # Additive: the internal directory (accounts + passwords for IMAP/SMTP
       # AUTH PLAIN) is untouched. This directory lets stalwart accept bearer
       # tokens / XOAUTH2 minted by Kanidm for the bulwark-webmail client.
-      # Stalwart validates tokens by calling the issuer's userinfo endpoint
-      # (discovered from issuerUrl) and maps preferred_username (+
-      # usernameDomain when the claim lacks an @) onto existing accounts:
-      # "daniel" → daniel@lyte.dev → internal account "daniel".
+      # Stalwart validates JWTs locally against the issuer's JWKS (userinfo
+      # is only called for opaque tokens / missing claims) and maps
+      # preferred_username (+ usernameDomain when the claim lacks an @) onto
+      # existing accounts via name-in-domain lookup:
+      # "daniel" → daniel@lyte.dev → existing internal account "daniel"
+      # (same account id and mailbox; JIT-creates only when nothing matches).
       #
-      # NOTE: destroy-all assumes the internal directory is implicit (not a
-      # Directory plan object) — verified assumption pending sandbox test,
-      # see issues/open/stalwart-kanidm-oidc.md.
+      # Destroy-all is safe for internal auth: in 0.16.8 the registry
+      # Directory type is Ldap|Sql|Oidc only — the internal directory is
+      # not a Directory object.
+      #
+      # CAUTION (source-verified against v0.16.8, sandbox confirmation
+      # pending): this directory is INERT until Authentication.directoryId
+      # points at it, and setting directoryId routes Basic (password) auth
+      # exclusively to it — breaking IMAP/SMTP AUTH PLAIN. Do NOT set
+      # directoryId without reading issues/open/stalwart-kanidm-oidc.md
+      # ("Authentication arbitration").
       {
         "@type" = "destroy";
         object = "Directory";
