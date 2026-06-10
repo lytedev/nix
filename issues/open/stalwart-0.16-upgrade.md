@@ -93,15 +93,55 @@ they need external services).
 
 **Remaining before deploy (in order):**
 1. Merge #570 + #571
-2. ZFS snapshot of the stalwart dataset + verify latest restic run
-3. `migrate_v016.py dump` against live 0.15.5 (no downtime); review output
-4. `migrate_v016.py convert` → `export.json` + `config.json`; review
-   (export.json carries the accounts — the nix plan does NOT manage them)
-5. Downtime window: stop stalwart → start 0.16 in recovery mode →
-   `stalwart-cli apply export.json` → stop → switch to new generation
-   (stalwart-apply oneshot reconciles everything else declaratively)
-6. Post: re-index emails (fixes sort bug), test send/receive end-to-end,
-   verify bulwark OAuth login
+
+**Pre-cutover prep — DONE 2026-06-10:**
+2. ~~ZFS snapshot~~ → `zstorage/storage@pre-stalwart-0_16-20260610-101733`
+3. ~~Verify restic~~ → all three targets (local/rascal/benland) completed
+   successfully 2026-06-10 01:05
+4. ~~Migration dump + convert~~ → ran against live 0.15.5; outputs in
+   `/root/stalwart-migration/` on beefcake (mode 600 — export.json holds
+   password hashes, DKIM + cert private keys):
+   - `config.json` → `{"@type":"RocksDb","path":"/storage/stalwart/rocksdb"}`
+     (matches our nix storeConfig exactly)
+   - `export.json` → 8 ops: domain, 4 accounts (daniel w/ sha512crypt hash,
+     postmaster w/ abuse alias, valerie, admin), DKIM, cert, settings
+   - `unmigrated.txt` → 3675 keys, ~3300 are bundled 0.15 spam-filter
+     rules/lists (0.16 ships its own in-DB); rest covered by the nix plan
+5. ~~Export replay test~~ → **validated against a fresh 0.16.8 sandbox**,
+   then ran the nix plan on top (cutover simulation): zero failures,
+   accounts intact, DKIM/listeners/routes/OAuth all reconciled.
+
+**Export replay gotchas (verified):**
+- The script emits NDJSON but stalwart-cli 1.0.0 wants a JSON array:
+  `jq -s '.' export.json > export-array.json`
+- The script's DkimSignature op carries 0.15 expression-quoted values
+  (`"'relaxed/relaxed'"` fails enum validation; `"'stalwart'"` selector
+  would get literal quotes → broken DKIM DNS). **Delete the DkimSignature
+  op from the export before replay** — the nix plan owns DKIM and creates
+  it correctly: `jq -s '[.[] | select(.object != "DkimSignature")]'`
+- The Certificate/SystemSettings ops in the export are harmless but also
+  owned by the nix plan afterward.
+
+**Cutover (downtime window):**
+6. Stop stalwart.service
+7. `chown -R stalwart:stalwart /storage/stalwart` — data is currently
+   owned by `stalwart-mail` (25.11 stateVersion pin); the new module uses
+   user `stalwart` (the chown is metadata-only on ZFS, fast)
+8. Start 0.16 in recovery mode as user stalwart:
+   `STALWART_RECOVERY_MODE=1 STALWART_RECOVERY_ADMIN=admin:<pw> stalwart --config=<config.json>`
+9. `stalwart-cli apply --file export-array-filtered.json` (port 8080)
+10. Stop recovery binary; deploy the new generation (boot+reboot per the
+    beefcake deploy constraint, or careful switch) — stalwart-apply
+    reconciles listeners/DKIM/routes/OAuth declaratively
+11. Post: re-index emails (WebUI → Tasks; fixes sort bug), recalculate
+    quotas, test send/receive end-to-end, verify bulwark OAuth login
+
+**Post-migration follow-ups (non-blocking):**
+- `email.folders.archive` (auto-create Archive for bulwark) was 0.15-only;
+  verify 0.16 default folders include Archive, else find the 0.16 setting
+- `cache.messages = 1gb` tuning didn't migrate; find the 0.16 Cache
+  equivalent if IMAP folder loads regress
+- `server.blocked-ip` (157 entries) reset — they re-accumulate
 
 ## What I'd want in place before doing this
 
