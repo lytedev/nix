@@ -55,7 +55,12 @@ in
           wantedBy = [ "kanidm.service" ];
           before = [ "kanidm.service" ];
           after = [ "systemd-tmpfiles-setup.service" ];
+          # RemainAfterExit keeps the oneshot "active" so a nixos switch
+          # restarts (re-runs) it when the migration content changes —
+          # without it the unit is dead after boot and deploys silently
+          # leave stale files in /run until the next kanidm restart.
           serviceConfig.Type = "oneshot";
+          serviceConfig.RemainAfterExit = true;
           script =
             let
               links = lib.concatMapStringsSep "\n" (e: "ln -sf ${e.path} $dir/${e.name}") fileEntries;
