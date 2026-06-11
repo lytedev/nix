@@ -162,11 +162,26 @@ in
           useTls = false;
           # pebble's HAProxy fronts the public MX and forwards with PROXY
           # protocol v2, so SPF/DNSBL/greylisting evaluate the true sender
-          # IP instead of the relay's. Trust the tailnet (own devices only;
-          # robust to headscale IP churn). NOTE: trusting a network means
-          # stalwart *requires* a PROXY header from it — plain SMTP from the
-          # tailnet to :25 deadlocks waiting for the header. The fallback
-          # queue therefore uses the separate plain listener below.
+          # IP instead of the relay's.
+          #
+          # SECURITY: trusting a network here means stalwart accepts a
+          # PROXY header (which CLAIMS an arbitrary client IP) from any
+          # source in it — i.e. that source can forge the sender IP and
+          # defeat SPF/DNSBL/reputation. 100.64.0.0/10 is the WHOLE tailnet
+          # CGNAT range, which is broader than the one legitimate proxy
+          # (pebble). We deliberately rely on the headscale ACL as the
+          # access-narrowing control: only `pebble` is permitted to reach
+          # beefcake:25 (headscale-acl.json — `src: [pebble], dst:
+          # [beefcake:25,2526]`), so in practice only pebble can present a
+          # header here. The broad CIDR is chosen so this keeps working
+          # across headscale IP reassignment; tightening to pebble's /32
+          # would add defense-in-depth at the cost of breaking silently if
+          # its tailnet IP churns. If the ACL is ever loosened, revisit this.
+          #
+          # NOTE: trusting a network also means stalwart *requires* a PROXY
+          # header from it — plain SMTP from the tailnet to :25 deadlocks
+          # waiting for the header. The fallback queue uses the separate
+          # plain listener below (:2526) instead.
           overrideProxyTrustedNetworks."100.64.0.0/10" = true;
         };
       }
