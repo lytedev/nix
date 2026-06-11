@@ -307,6 +307,20 @@ in
         };
       }
 
+      # Require SMTP AUTH on submission ports but NOT the inbound MX ports.
+      # Stalwart's default is `local_port != 25`; our outage-fallback
+      # listener on 2526 (plain SMTP from pebble's queue) is also an inbound
+      # MX path, so exempt it — otherwise stalwart demands auth at MAIL FROM
+      # (503 "You must authenticate first") and the fallback can't deliver.
+      {
+        "@type" = "update";
+        object = "MtaStageAuth";
+        value.require = {
+          match = { };
+          "else" = "local_port != 25 && local_port != 2526";
+        };
+      }
+
       # ---- OAuth client for Bulwark webmail ----
       # Replaces the old curl-based stalwart-ensure-bulwark-oauth.service.
       # NOTE: bulwark now authenticates against Kanidm (see the Oidc

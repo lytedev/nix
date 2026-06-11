@@ -269,6 +269,17 @@ in
       minimal_backoff_time = "300s";
       maximal_backoff_time = "4000s";
 
+      # NEVER bounce on our own server's rejection. This postfix is a dumb
+      # forwarder to our stalwart — it makes no real accept/reject decisions
+      # about external mail (HAProxy already accepted it at the edge). If
+      # stalwart returns a hard 5xx (e.g. a config error on our side), treat
+      # it as temporary and keep retrying instead of generating backscatter
+      # to the original sender. A genuinely bad recipient defers ≤5d then
+      # bounces — acceptable for an outage-only fallback queue. (A misconfig
+      # once 5xx-bounced a real message during a failover drill; this makes
+      # that class of mistake recoverable, not destructive.)
+      soft_bounce = "yes";
+
       # MX semantics: relay only for our domains, never an open relay.
       # No permit_mynetworks — even loopback clients (HAProxy-forwarded
       # external senders!) may only deliver to relay_domains.
