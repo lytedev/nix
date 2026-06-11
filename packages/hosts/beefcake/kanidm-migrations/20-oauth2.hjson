@@ -154,6 +154,10 @@
         "https://webmail.lyte.dev/auth/callback"
       ],
       "oauth2_strict_redirect_uri": true,
+      // CLI tooling (mailctl JMAP bulk ops) does the auth-code+PKCE flow
+      // with a loopback listener; kanidm allows http://localhost redirects
+      // for public clients only with this flag.
+      "oauth2_allow_localhost_redirect": true,
       // Stalwart's Oidc directory maps preferred_username + usernameDomain
       // (lyte.dev) onto existing mail accounts ("daniel" → daniel@lyte.dev),
       // so the claim must be the short username, not the SPN
