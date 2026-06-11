@@ -190,19 +190,60 @@ in
   services.avahi.enable = false;
   services.smartd.enable = false;
 
-  # --- Postfix: relay-only MTA ---
-  # Accepts inbound mail on port 25, relays everything to beefcake's
-  # Stalwart over Tailscale. No local delivery, no mailboxes.
+  # --- Inbound mail: HAProxy passthrough with queueing fallback ---
+  #
+  # HAProxy owns the public :25 and forwards raw TCP to beefcake's Stalwart
+  # with PROXY protocol v2, so Stalwart sees the TRUE sender IP — full
+  # SPF / DNSBL / greylisting fidelity, SMTP-time rejection to the real
+  # client (no backscatter). This is the vendor-documented topology
+  # (stalw.art/docs/server/reverse-proxy/haproxy/).
+  #
+  # When beefcake is unreachable (health check: 3 failures × 15s), HAProxy
+  # fails over to a loopback-only Postfix that accepts-and-queues for up to
+  # 5 days and drains to beefcake on recovery — mail is never bounced or
+  # left to sender retry behavior. Fallback-path mail arrives at Stalwart
+  # without PROXY headers (degraded SPF fidelity), which only affects mail
+  # received during an outage window.
+  services.haproxy = {
+    enable = true;
+    config = ''
+      global
+        log stdout format raw daemon notice
+        maxconn 256
+
+      defaults
+        mode tcp
+        log global
+        option tcplog
+        timeout connect 10s
+        # generous: SMTP sessions are slow and chunked
+        timeout client 10m
+        timeout server 10m
+
+      frontend smtp_in
+        bind :25
+        bind [::]:25
+        default_backend stalwart
+
+      backend stalwart
+        option tcp-check
+        tcp-check expect rstring ^220
+        # ~45s of failures before failing over; queue absorbs the gap
+        server beefcake ${beefcakeSmtp}:25 send-proxy-v2 check inter 15s fall 3 rise 2
+        # loopback postfix accepts-and-queues; no PROXY support needed
+        server fallback-queue 127.0.0.1:2525 backup
+    '';
+  };
+
+  # --- Postfix: loopback-only fallback queue ---
+  # Only receives mail when HAProxy has failed over (beefcake down).
+  # Queues up to 5 days, drains to Stalwart on recovery.
   services.postfix = {
     enable = true;
     hostname = "relay.${domain}";
     domain = domain;
     origin = domain;
     destination = [ ]; # no local delivery
-    networks = [
-      "127.0.0.0/8"
-      "[::1]/128"
-    ];
 
     relayDomains = [ domain ];
 
@@ -213,6 +254,11 @@ in
     '';
 
     config = {
+      # Loopback only — HAProxy is the only client (its fallback backend).
+      # (The listener itself is moved to 127.0.0.1:2525 via masterConfig.)
+      inet_interfaces = "127.0.0.1";
+      inet_protocols = "ipv4";
+
       # Queue config: retry for up to 5 days if beefcake is down
       maximal_queue_lifetime = "5d";
       bounce_queue_lifetime = "5d";
@@ -220,9 +266,10 @@ in
       minimal_backoff_time = "300s";
       maximal_backoff_time = "4000s";
 
-      # Security: only accept mail, don't allow open relay
+      # MX semantics: relay only for our domains, never an open relay.
+      # No permit_mynetworks — even loopback clients (HAProxy-forwarded
+      # external senders!) may only deliver to relay_domains.
       smtpd_relay_restrictions = [
-        "permit_mynetworks"
         "reject_unauth_destination"
       ];
 
@@ -236,10 +283,15 @@ in
 
       # Don't rewrite headers
       smtp_header_checks = "";
-
-      # Inet interfaces — listen on all for inbound
-      inet_interfaces = "all";
-      inet_protocols = "all";
     };
+  };
+
+  # postfix's NixOS module derives the smtp listener from master.cf; move it
+  # off :25 (HAProxy owns that) onto loopback:2525.
+  services.postfix.masterConfig.smtp_inet = {
+    name = lib.mkForce "127.0.0.1:2525";
+    type = "inet";
+    private = false;
+    command = "smtpd";
   };
 }

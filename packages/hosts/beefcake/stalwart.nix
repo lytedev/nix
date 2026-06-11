@@ -160,6 +160,12 @@ in
           protocol = "smtp";
           bind."[::]:25" = true;
           useTls = false;
+          # pebble's HAProxy fronts the public MX and forwards with PROXY
+          # protocol v2, so SPF/DNSBL/greylisting evaluate the true sender
+          # IP instead of the relay's. Trust the tailnet (own devices only;
+          # robust to headscale IP churn). Plain connections (no PROXY
+          # header) still work — the fallback postfix queue path uses them.
+          overrideProxyTrustedNetworks."100.64.0.0/10" = true;
         };
       }
       {
