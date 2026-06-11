@@ -372,128 +372,142 @@ in
         );
       };
 
-      script = ''
-        set -euo pipefail
-        cli=${lib.getExe cfg.cliPackage}
-        export STALWART_PASSWORD="$(cat "${applyCreds}/${cfg.applyAdminPasswordCredential}")"
-        rundir=$(mktemp -d)
-        trap 'rm -rf "$rundir"' EXIT
+      script =
+        let
+          totalSteps =
+            4
+            + (if cfg.certificateFiles != null then 1 else 0)
+            + (if cfg.oidcDirectory != null then 1 else 0)
+            + (if cfg.adminAccounts != [ ] then 1 else 0);
+        in
+        ''
+            set -euo pipefail
+            cli=${lib.getExe cfg.cliPackage}
+            export STALWART_PASSWORD="$(cat "${applyCreds}/${cfg.applyAdminPasswordCredential}")"
+            rundir=$(mktemp -d)
+            trap 'rm -rf "$rundir"' EXIT
 
-        echo "[1/5] waiting for stalwart at ${cfg.applyUrl}..."
-        until curl -sf --max-time 5 "${cfg.applyUrl}/healthz/live" >/dev/null 2>&1; do
-          sleep 2
-        done
-
-        echo "[2/5] ensuring domain ${cfg.domain}..."
-        domain_id=$($cli query Domain --json --no-color | jq -r '.[] | select(.name=="${cfg.domain}").id' | head -1)
-        if [ -z "$domain_id" ]; then
-          echo '[{"@type":"create","object":"Domain","value":{"dom":{"name":"${cfg.domain}"}}}]' > "$rundir/domain.json"
-          $cli apply --file "$rundir/domain.json" --no-color
-          domain_id=$($cli query Domain --json --no-color | jq -r '.[] | select(.name=="${cfg.domain}").id' | head -1)
-        fi
-        echo "  domain id: $domain_id"
-
-        ${lib.optionalString (cfg.certificateFiles != null) ''
-            echo "[3/5] ensuring certificate..."
-            cert_id=$($cli get SystemSettings singleton --json --no-color | jq -r '.defaultCertificateId // empty')
-            all_certs=$($cli query Certificate --json --no-color | jq -r '.[].id')
-            if [ -z "$cert_id" ] || ! grep -qx "$cert_id" <<<"$all_certs"; then
-              cert_id=$(head -1 <<<"$all_certs" || true)
-            fi
-            if [ -z "$cert_id" ]; then
-              cat > "$rundir/cert.json" <<'CERTEOF'
-          [{"@type":"create","object":"Certificate","value":{"cert":{"certificate":{"@type":"File","filePath":"${cfg.certificateFiles.certificate}"},"privateKey":{"@type":"File","filePath":"${cfg.certificateFiles.privateKey}"}}}}]
-          CERTEOF
-              $cli apply --file "$rundir/cert.json" --no-color
-              cert_id=$($cli query Certificate --json --no-color | jq -r '.[0].id')
-            else
-              cat > "$rundir/cert-update.json" <<CERTEOF
-          [{"@type":"update","object":"Certificate","id":"$cert_id","value":{"certificate":{"@type":"File","filePath":"${cfg.certificateFiles.certificate}"},"privateKey":{"@type":"File","filePath":"${cfg.certificateFiles.privateKey}"}}}]
-          CERTEOF
-              $cli apply --file "$rundir/cert-update.json" --no-color
-            fi
-            echo "  cert id: $cert_id"
-            extra=$(grep -vx "$cert_id" <<<"$all_certs" | paste -sd, - || true)
-            if [ -n "$extra" ]; then
-              echo "  pruning duplicate certificates: $extra"
-              $cli delete Certificate --ids "$extra" --no-color
-            fi
-        ''}
-
-        ${lib.optionalString (cfg.oidcDirectory != null) ''
-            echo "[3.5/5] ensuring OIDC directory..."
-            # The query LIST view omits most fields (description comes back
-            # null — same trap as Account.name); match via per-id `get`.
-            dir_desc=${lib.escapeShellArg cfg.oidcDirectory.description}
-            find_dir_id() {
-              $cli query Directory --json --no-color | jq -r '.[].id' | while read -r did; do
-                desc=$($cli get Directory "$did" --json --no-color | jq -r '.description // empty')
-                if [ "$desc" = "$dir_desc" ]; then echo "$did"; fi
-              done
+            _step=0
+            step() {
+              _step=$((_step + 1))
+              echo "[$_step/${toString totalSteps}] $1"
             }
-            all_matching=$(find_dir_id)
-            dir_id=$(head -1 <<<"$all_matching" || true)
-            if [ -z "$dir_id" ]; then
-              cat > "$rundir/dir.json" <<'DIREOF'
-          [{"@type":"create","object":"Directory","value":{"dir":${builtins.toJSON cfg.oidcDirectory}}}]
-          DIREOF
-              $cli apply --file "$rundir/dir.json" --no-color
-              dir_id=$(find_dir_id | head -1)
-            else
-              cat > "$rundir/dir-update.json" <<DIREOF
-          [{"@type":"update","object":"Directory","id":"$dir_id","value":${builtins.toJSON cfg.oidcDirectory}}]
-          DIREOF
-              $cli apply --file "$rundir/dir-update.json" --no-color
-              extra_dirs=$(grep -vx "$dir_id" <<<"$all_matching" | paste -sd, - || true)
-              if [ -n "$extra_dirs" ]; then
-                echo "  pruning duplicate directories: $extra_dirs"
-                $cli delete Directory --ids "$extra_dirs" --no-color
-              fi
-            fi
-            if [ -z "$dir_id" ]; then
-              echo "ERROR: OIDC directory id could not be determined; refusing to substitute an empty id" >&2
-              exit 1
-            fi
-            echo "  oidc directory id: $dir_id"
-        ''}
 
-        echo "[4/5] resolving plan template..."
-        sed -e "s/@DOMAIN_ID@/$domain_id/g" \
-          ${lib.optionalString (cfg.certificateFiles != null) ''-e "s/@CERT_ID@/$cert_id/g" \''}
-          ${lib.optionalString (cfg.oidcDirectory != null) ''-e "s/@OIDC_DIRECTORY_ID@/$dir_id/g" \''}
-          ${
-            lib.concatStringsSep " \\\n  " (
-              lib.mapAttrsToList (
-                placeholder: credName: ''-e "s|${placeholder}|$(head -n1 "${applyCreds}/${credName}")|g"''
-              ) cfg.planSubstitutions
-            )
-          } \
-          ${planTemplate} > "$rundir/plan.json"
-
-        echo "[5/5] applying plan..."
-        $cli apply --file "$rundir/plan.json" --no-color
-
-        ${lib.optionalString (cfg.adminAccounts != [ ]) ''
-          # Account.roles is a tagged variant; {"@type":"Admin"} grants full
-          # admin. (The CLI schema's roleIds field is rejected by the server
-          # on update — sandbox-verified 2026-06-10.)
-          echo "[post] granting Admin role to: ${lib.concatStringsSep ", " cfg.adminAccounts}"
-          for want in ${lib.concatStringsSep " " cfg.adminAccounts}; do
-            acct_id=$($cli query Account --json --no-color | jq -r '.[].id' | while read -r aid; do
-              name=$($cli get Account "$aid" --json --no-color | jq -r '.name // empty')
-              if [ "$name" = "$want" ]; then echo "$aid"; break; fi
-            done)
-            if [ -z "$acct_id" ]; then
-              echo "  WARNING: account '$want' not found; skipping"
-              continue
-            fi
-            printf '[{"@type":"update","object":"Account","id":"%s","value":{"roles":{"@type":"Admin"}}}]' "$acct_id" > "$rundir/role.json"
-            $cli apply --file "$rundir/role.json" --no-color
-            echo "  granted to $want ($acct_id)"
+            step "waiting for stalwart at ${cfg.applyUrl}..."
+          until curl -sf --max-time 5 "${cfg.applyUrl}/healthz/live" >/dev/null 2>&1; do
+            sleep 2
           done
-        ''}
-        echo "stalwart-apply complete"
-      '';
+
+          step "ensuring domain ${cfg.domain}..."
+          domain_id=$($cli query Domain --json --no-color | jq -r '.[] | select(.name=="${cfg.domain}").id' | head -1)
+          if [ -z "$domain_id" ]; then
+            echo '[{"@type":"create","object":"Domain","value":{"dom":{"name":"${cfg.domain}"}}}]' > "$rundir/domain.json"
+            $cli apply --file "$rundir/domain.json" --no-color
+            domain_id=$($cli query Domain --json --no-color | jq -r '.[] | select(.name=="${cfg.domain}").id' | head -1)
+          fi
+          echo "  domain id: $domain_id"
+
+          ${lib.optionalString (cfg.certificateFiles != null) ''
+              step "ensuring certificate..."
+              cert_id=$($cli get SystemSettings singleton --json --no-color | jq -r '.defaultCertificateId // empty')
+              all_certs=$($cli query Certificate --json --no-color | jq -r '.[].id')
+              if [ -z "$cert_id" ] || ! grep -qx "$cert_id" <<<"$all_certs"; then
+                cert_id=$(head -1 <<<"$all_certs" || true)
+              fi
+              if [ -z "$cert_id" ]; then
+                cat > "$rundir/cert.json" <<'CERTEOF'
+            [{"@type":"create","object":"Certificate","value":{"cert":{"certificate":{"@type":"File","filePath":"${cfg.certificateFiles.certificate}"},"privateKey":{"@type":"File","filePath":"${cfg.certificateFiles.privateKey}"}}}}]
+            CERTEOF
+                $cli apply --file "$rundir/cert.json" --no-color
+                cert_id=$($cli query Certificate --json --no-color | jq -r '.[0].id')
+              else
+                cat > "$rundir/cert-update.json" <<CERTEOF
+            [{"@type":"update","object":"Certificate","id":"$cert_id","value":{"certificate":{"@type":"File","filePath":"${cfg.certificateFiles.certificate}"},"privateKey":{"@type":"File","filePath":"${cfg.certificateFiles.privateKey}"}}}]
+            CERTEOF
+                $cli apply --file "$rundir/cert-update.json" --no-color
+              fi
+              echo "  cert id: $cert_id"
+              extra=$(grep -vx "$cert_id" <<<"$all_certs" | paste -sd, - || true)
+              if [ -n "$extra" ]; then
+                echo "  pruning duplicate certificates: $extra"
+                $cli delete Certificate --ids "$extra" --no-color
+              fi
+          ''}
+
+          ${lib.optionalString (cfg.oidcDirectory != null) ''
+              step "ensuring OIDC directory..."
+              # The query LIST view omits most fields (description comes back
+              # null — same trap as Account.name); match via per-id `get`.
+              dir_desc=${lib.escapeShellArg cfg.oidcDirectory.description}
+              find_dir_id() {
+                $cli query Directory --json --no-color | jq -r '.[].id' | while read -r did; do
+                  desc=$($cli get Directory "$did" --json --no-color | jq -r '.description // empty')
+                  if [ "$desc" = "$dir_desc" ]; then echo "$did"; fi
+                done
+              }
+              all_matching=$(find_dir_id)
+              dir_id=$(head -1 <<<"$all_matching" || true)
+              if [ -z "$dir_id" ]; then
+                cat > "$rundir/dir.json" <<'DIREOF'
+            [{"@type":"create","object":"Directory","value":{"dir":${builtins.toJSON cfg.oidcDirectory}}}]
+            DIREOF
+                $cli apply --file "$rundir/dir.json" --no-color
+                dir_id=$(find_dir_id | head -1)
+              else
+                cat > "$rundir/dir-update.json" <<DIREOF
+            [{"@type":"update","object":"Directory","id":"$dir_id","value":${builtins.toJSON cfg.oidcDirectory}}]
+            DIREOF
+                $cli apply --file "$rundir/dir-update.json" --no-color
+                extra_dirs=$(grep -vx "$dir_id" <<<"$all_matching" | paste -sd, - || true)
+                if [ -n "$extra_dirs" ]; then
+                  echo "  pruning duplicate directories: $extra_dirs"
+                  $cli delete Directory --ids "$extra_dirs" --no-color
+                fi
+              fi
+              if [ -z "$dir_id" ]; then
+                echo "ERROR: OIDC directory id could not be determined; refusing to substitute an empty id" >&2
+                exit 1
+              fi
+              echo "  oidc directory id: $dir_id"
+          ''}
+
+          step "resolving plan template..."
+          sed -e "s/@DOMAIN_ID@/$domain_id/g" \
+            ${lib.optionalString (cfg.certificateFiles != null) ''-e "s/@CERT_ID@/$cert_id/g" \''}
+            ${lib.optionalString (cfg.oidcDirectory != null) ''-e "s/@OIDC_DIRECTORY_ID@/$dir_id/g" \''}
+            ${
+              lib.concatStringsSep " \\\n  " (
+                lib.mapAttrsToList (
+                  placeholder: credName: ''-e "s|${placeholder}|$(head -n1 "${applyCreds}/${credName}")|g"''
+                ) cfg.planSubstitutions
+              )
+            } \
+            ${planTemplate} > "$rundir/plan.json"
+
+          step "applying plan..."
+          $cli apply --file "$rundir/plan.json" --no-color
+
+          ${lib.optionalString (cfg.adminAccounts != [ ]) ''
+            # Account.roles is a tagged variant; {"@type":"Admin"} grants full
+            # admin. (The CLI schema's roleIds field is rejected by the server
+            # on update — sandbox-verified 2026-06-10.)
+            step "granting Admin role to: ${lib.concatStringsSep ", " cfg.adminAccounts}"
+            for want in ${lib.concatStringsSep " " cfg.adminAccounts}; do
+              acct_id=$($cli query Account --json --no-color | jq -r '.[].id' | while read -r aid; do
+                name=$($cli get Account "$aid" --json --no-color | jq -r '.name // empty')
+                if [ "$name" = "$want" ]; then echo "$aid"; break; fi
+              done)
+              if [ -z "$acct_id" ]; then
+                echo "  WARNING: account '$want' not found; skipping"
+                continue
+              fi
+              printf '[{"@type":"update","object":"Account","id":"%s","value":{"roles":{"@type":"Admin"}}}]' "$acct_id" > "$rundir/role.json"
+              $cli apply --file "$rundir/role.json" --no-color
+              echo "  granted to $want ($acct_id)"
+            done
+          ''}
+          echo "stalwart-apply complete"
+        '';
     };
 
     environment.systemPackages = [

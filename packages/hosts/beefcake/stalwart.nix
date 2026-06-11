@@ -420,6 +420,8 @@ in
   services.caddy.virtualHosts.${host} = {
     extraConfig = ''
       header ?Access-Control-Allow-Origin "*"
+      header ?Access-Control-Allow-Headers "Authorization, Content-Type, Accept, X-Requested-With"
+      header ?Access-Control-Allow-Methods "POST, GET, PATCH, PUT, DELETE, HEAD, OPTIONS"
 
       reverse_proxy [::1]:${toString httpPort} {
         header_up Host {host}

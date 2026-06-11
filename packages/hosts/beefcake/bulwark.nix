@@ -22,6 +22,14 @@ in
     image = "ghcr.io/bulwarkmail/webmail:1.7.2";
     autoStart = true;
     ports = [ "127.0.0.1:${toString port}:${toString port}" ];
+    # The host maps idm.h.lyte.dev -> ::1 (kanidm.nix extraHosts, for
+    # host-local clients). Podman copies host /etc/hosts entries into the
+    # container, where ::1 is the container's own loopback — bulwark's
+    # server-side OIDC discovery/token exchange against Kanidm got
+    # Connection refused (--add-host can't fix it: the ::1 entry still wins
+    # resolution). LAN DNS already answers correctly for idm/mail/webmail,
+    # so drop the inherited hosts file and resolve via DNS only.
+    extraOptions = [ "--no-hosts" ];
     environmentFiles = [
       config.sops.secrets."bulwark.env".path
     ];
