@@ -85,17 +85,6 @@
       "member": [
         "daniel"
       ]
-    },
-    {
-      "state": "present",
-      "id": "cc230b30-babc-418b-b4ac-b1bb7dc50e35",
-      "class": [
-        "group"
-      ],
-      "name": "bulwark-webmail_users",
-      "member": [
-        "daniel"
-      ]
     }
   ]
 }

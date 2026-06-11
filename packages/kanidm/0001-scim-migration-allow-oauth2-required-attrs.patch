@@ -1,0 +1,32 @@
+From: Daniel Flanagan <daniel@lyte.dev>
+Subject: [PATCH] scim migrations: allow required + common oauth2 attrs in create whitelist
+
+The migration attr whitelist for OAuth2ResourceServer entries omits
+oauth2_rs_origin_landing, which the schema declares as a MUST attribute --
+making oauth2 client creation via SCIM migrations impossible
+(AccessDenied when supplied, SchemaViolation(MissingMustAttribute) when
+omitted). Also admits displayname and the common policy toggles
+(strict redirect, localhost redirect, insecure-PKCE) so declarative
+migrations reach parity with CLI-created clients.
+
+--- a/server/lib/src/server/access/migration.rs
++++ b/server/lib/src/server/access/migration.rs
+@@ -120,12 +120,17 @@
+         ]);
+         allow_attrs.extend([
+             Attribute::Name,
++            Attribute::DisplayName,
+             Attribute::Description,
+             Attribute::OAuth2RsScopeMap,
+             Attribute::OAuth2RsSupScopeMap,
++            Attribute::OAuth2RsOriginLanding,
++            Attribute::OAuth2StrictRedirectUri,
++            Attribute::OAuth2AllowLocalhostRedirect,
++            Attribute::OAuth2AllowInsecureClientDisablePkce,
+             Attribute::OAuth2JwtLegacyCryptoEnable,
+             Attribute::OAuth2PreferShortUsername,
+             Attribute::OAuth2RsClaimMap,
+             Attribute::OAuth2RsOrigin,
+             Attribute::OAuth2ConsentPromptEnable,
+         ])
+     }

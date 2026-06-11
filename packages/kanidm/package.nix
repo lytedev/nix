@@ -36,6 +36,12 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   cargoHash = "sha256-91IQPo3s4pbM+yotN0DFZVbCCzs6Pc4jZwcsetGBMf4=";
 
+  # Upstream catch-22 at this rev: the SCIM-migration create whitelist for
+  # oauth2 entries omits oauth2_rs_origin_landing, which the schema declares
+  # MUST — so migrations can never create an oauth2 client (AccessDenied if
+  # supplied, MissingMustAttribute if omitted). Worth upstreaming.
+  patches = [ ./0001-scim-migration-allow-oauth2-required-attrs.patch ];
+
   env.KANIDM_BUILD_PROFILE = "release_nixpkgs_${arch}";
 
   postPatch =

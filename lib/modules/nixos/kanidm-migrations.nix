@@ -71,6 +71,17 @@ in
               install -d -m 0750 -o ${user} -g ${group} "$dir"
               ${links}
               ${copies}
+
+              # Migrations only apply at kanidmd startup or via an explicit
+              # admin-socket reload. When this unit re-runs on a nixos switch
+              # (migration content changed) and kanidm is already up, trigger
+              # a live re-apply so changes don't silently wait for the next
+              # restart/reboot.
+              if systemctl is-active --quiet kanidm.service; then
+                echo "kanidm running; triggering live migration reload"
+                ${cfg.package}/bin/kanidmd scripting reload || \
+                  echo "WARNING: live reload failed; migrations will apply on next kanidm restart" >&2
+              fi
             '';
         };
       })

@@ -1,0 +1,22 @@
+{
+  // Own migration file (fresh id) rather than an addition to 00-groups:
+  // changing 00-groups triggers a replay of its recorded assertions, which
+  // currently fails with SchemaViolation(AttributeNotValidForClass(gidnumber))
+  // — a pre-existing drift between those old assertions and live server
+  // state (tracked separately). New assertions under a fresh file id apply
+  // cleanly (verified live via `kanidmd scripting reload`, 2026-06-10).
+  "id": "a1b2c3d4-9999-4000-8000-000000000099",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "cc230b30-babc-418b-b4ac-b1bb7dc50e35",
+      "class": [
+        "group"
+      ],
+      "name": "bulwark-webmail_users",
+      "member": [
+        "daniel"
+      ]
+    }
+  ]
+}

@@ -129,8 +129,12 @@
     {
       "state": "present",
       "id": "6b4a9155-d7e0-4ef6-ba4a-de0b37f855cd",
+      // No "account" class: the SCIM-migration create whitelist clears the
+      // class set to exactly the oauth2_resource_server* classes — including
+      // "account" (as the grandfathered entries above do) fails creation
+      // with AccessDenied. Source-verified at the pinned rev
+      // (server/lib/src/server/access/migration.rs, allow_cls.clear()).
       "class": [
-        "account",
         "oauth2_resource_server",
         "oauth2_resource_server_public"
       ],
@@ -142,9 +146,11 @@
       // Bulwark 1.7.x sends its locale-prefixed page route as redirect_uri
       // (/en/auth/callback); kanidm's strict redirect matching rejects
       // unregistered URIs (same failure mode as stalwart's OAuth).
-      // NOTE: an array value here fails migration apply with AccessDenied —
-      // single string only (observed live 2026-06-10).
-      "oauth2_rs_origin": "https://webmail.lyte.dev/en/auth/callback",
+      "oauth2_rs_origin": [
+        "https://webmail.lyte.dev/api/auth/callback",
+        "https://webmail.lyte.dev/en/auth/callback",
+        "https://webmail.lyte.dev/auth/callback"
+      ],
       "oauth2_strict_redirect_uri": true,
       // Stalwart's Oidc directory maps preferred_username + usernameDomain
       // (lyte.dev) onto existing mail accounts ("daniel" → daniel@lyte.dev),
