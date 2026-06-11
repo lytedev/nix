@@ -1,17 +1,34 @@
 From: Daniel Flanagan <daniel@lyte.dev>
-Subject: [PATCH] scim migrations: allow required + common oauth2 attrs in create whitelist
+Subject: [PATCH] scim migrations: allow canonical oauth2 client creation
 
-The migration attr whitelist for OAuth2ResourceServer entries omits
-oauth2_rs_origin_landing, which the schema declares as a MUST attribute --
-making oauth2 client creation via SCIM migrations impossible
-(AccessDenied when supplied, SchemaViolation(MissingMustAttribute) when
-omitted). Also admits displayname and the common policy toggles
-(strict redirect, localhost redirect, insecure-PKCE) so declarative
-migrations reach parity with CLI-created clients.
+The migration create whitelist for OAuth2ResourceServer entries makes
+creating an oauth2 client via SCIM migrations impossible:
+
+- it omits oauth2_rs_origin_landing, which the schema declares MUST
+  (AccessDenied when supplied, MissingMustAttribute when omitted)
+- it clears the class set to the three oauth2 classes, excluding
+  "account" — but the canonical entry shape (what the HTTP API creates,
+  server/core/src/https/v1_oauth2.rs) includes EntryClass::Account, whose
+  MUST displayname is read back by the commit-time oauth2 config reload
+  (idm/oauth2.rs Oauth2ResourceServersWriteTransaction::reload) — a
+  whitelist-shaped entry that passes schema then aborts the whole
+  transaction with InvalidValueState at commit.
+
+Admit the Account class plus displayname, origin_landing, and the common
+policy toggles so migrations can create entries in the same shape the
+HTTP API does. Account is not in PROTECTED_MOD_PRES_ENTRY_CLASSES, so
+this does not bypass protected-class handling.
 
 --- a/server/lib/src/server/access/migration.rs
 +++ b/server/lib/src/server/access/migration.rs
-@@ -120,12 +120,17 @@
+@@ -113,19 +113,25 @@
+     if classes.contains(EntryClass::OAuth2ResourceServer.into()) {
+         allow_cls.clear();
+         allow_cls.extend([
+             EntryClass::OAuth2ResourceServer.as_ref(),
+             EntryClass::OAuth2ResourceServerBasic.as_ref(),
+             EntryClass::OAuth2ResourceServerPublic.as_ref(),
++            EntryClass::Account.as_ref(),
          ]);
          allow_attrs.extend([
              Attribute::Name,
