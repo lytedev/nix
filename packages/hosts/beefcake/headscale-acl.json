@@ -45,7 +45,7 @@
     {
       "action": "accept",
       "src": ["pebble"],
-      "dst": ["beefcake:25"]
+      "dst": ["beefcake:25,2526"]
     },
     {
       "action": "accept",
