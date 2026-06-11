@@ -294,3 +294,31 @@ If the recovery-admin test fails (or password fallback is ever wanted
 again), file an upstream feature request for per-mechanism directory
 arbitration (bearer → external directory, basic → internal) — a common
 self-hosted family-server topology CE currently can't express.
+
+## Upstream filing: must be human-authored (2026-06-11)
+
+kanidm's repo explicitly prohibits AI/LLM involvement (`AGENTS.md`:
+"Kanidm DOES NOT condone the use of LLMs/AI whatsoever"; PR template
+requires "This PR contains no AI generated code"). No agent may file the
+issue or prepare the fix branch. If upstreaming is desired, Daniel writes
+and submits it personally — the verified analysis is in
+`packages/kanidm/0001-scim-migration-allow-oauth2-required-attrs.patch`
+(patch header) and the commit messages on this branch. Until/unless
+upstreamed, the nix overlay patch carries the fix.
+
+## Upstream resolution: already in flight (2026-06-11)
+
+No filing needed. The migration-whitelist bug family is reported upstream
+(kanidm/kanidm#4384 — identical DisplayName catch-22 for person entries;
+kanidm/kanidm#4366 — service accounts), and the lead maintainer's open
+PR kanidm/kanidm#4387 fixes the OAuth2ResourceServer branch exactly as
+our patch does (adds Account class, DisplayName, OAuth2RsOriginLanding)
+plus GidNumber on the Group branch — which also explains our 00-groups
+gidnumber replay failure.
+
+**Follow-up:** when #4387 merges, bump `trunkRev` in
+`packages/kanidm/package.nix` past it and drop
+`0001-scim-migration-allow-oauth2-required-attrs.patch` (first verify
+the merged whitelist also covers oauth2_strict_redirect_uri /
+allow_localhost_redirect / allow_insecure_client_disable_pkce, which our
+patch adds and our migration entry uses — keep a slimmed patch if not).
