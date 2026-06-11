@@ -146,6 +146,8 @@
     ./beefcake/immich.nix
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
+    ./beefcake/jmap-matrix-notify
+
     # ./beefcake/actual.nix
     ./beefcake/factorio-servers.nix
     # ./beefcake/conduwuit.nix
