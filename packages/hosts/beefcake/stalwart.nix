@@ -163,9 +163,26 @@ in
           # pebble's HAProxy fronts the public MX and forwards with PROXY
           # protocol v2, so SPF/DNSBL/greylisting evaluate the true sender
           # IP instead of the relay's. Trust the tailnet (own devices only;
-          # robust to headscale IP churn). Plain connections (no PROXY
-          # header) still work — the fallback postfix queue path uses them.
+          # robust to headscale IP churn). NOTE: trusting a network means
+          # stalwart *requires* a PROXY header from it — plain SMTP from the
+          # tailnet to :25 deadlocks waiting for the header. The fallback
+          # queue therefore uses the separate plain listener below.
           overrideProxyTrustedNetworks."100.64.0.0/10" = true;
+        };
+      }
+      {
+        "@type" = "create";
+        object = "NetworkListener";
+        value.smtp-fallback = {
+          name = "smtp-fallback";
+          protocol = "smtp";
+          # Plain SMTP for pebble's outage fallback queue (postfix can't
+          # speak PROXY protocol outbound). Tailnet-firewalled (see
+          # firewall.interfaces.tailscale0 below) — not publicly reachable.
+          # Mail here arrives without the real sender IP (degraded SPF
+          # fidelity), which only affects outage-window traffic.
+          bind."[::]:2526" = true;
+          useTls = false;
         };
       }
       {
@@ -416,6 +433,11 @@ in
     587
     993
   ];
+
+  # Fallback SMTP listener (2526) is reachable only over the tailnet, never
+  # the public internet — it's the plain-SMTP target for pebble's outage
+  # queue (which can't speak PROXY protocol).
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 2526 ];
 
   # CORS: stalwart 0.16 emits its own Access-Control-* headers on normal
   # responses but NOT on its 307 redirects (e.g. /.well-known/jmap), and

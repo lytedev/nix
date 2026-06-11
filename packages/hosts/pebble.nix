@@ -247,10 +247,13 @@ in
 
     relayDomains = [ domain ];
 
-    # Transport map: route lyte.dev mail to beefcake's Stalwart over VPN
+    # Transport map: route lyte.dev mail to beefcake's Stalwart over VPN.
+    # Port 2526 is stalwart's plain-SMTP fallback listener — :25 there
+    # requires a PROXY-protocol header from tailnet sources (HAProxy's job),
+    # which postfix can't send, so the queue uses the dedicated plain port.
     transport = ''
-      ${domain}    smtp:[${beefcakeSmtp}]:25
-      .${domain}   smtp:[${beefcakeSmtp}]:25
+      ${domain}    smtp:[${beefcakeSmtp}]:2526
+      .${domain}   smtp:[${beefcakeSmtp}]:2526
     '';
 
     config = {
