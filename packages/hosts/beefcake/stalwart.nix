@@ -336,6 +336,93 @@ in
         };
       }
 
+      # ---- Spam allowlist: trusted lyte.dev senders ----
+      # DMARC-verified mail from lyte.dev / *.lyte.dev gets the built-in
+      # TRUSTED_DOMAIN tag (score -7), guaranteeing inbox delivery. The
+      # DMARC guard prevents spoofed From:lyte.dev from bypassing the filter
+      # (our own mail signs DKIM, so legit mail passes).
+      #
+      # Scoped destroy-by-name (NOT destroy-all): a filter value matches
+      # only that rule, leaving stalwart's ~66 built-in SpamRules intact
+      # (verified: a destroy with a non-matching name reports "0 destroyed").
+      # This is how custom SpamRules stay declarative without a bespoke
+      # ensure-by-name mechanism.
+      {
+        "@type" = "destroy";
+        object = "SpamRule";
+        value.name = "LYTEDEV_TRUSTED_DOMAIN";
+      }
+      {
+        "@type" = "create";
+        object = "SpamRule";
+        value.lytedev-trusted = {
+          "@type" = "Any";
+          name = "LYTEDEV_TRUSTED_DOMAIN";
+          description = "lyte.dev and subdomains are trusted (requires DMARC pass)";
+          enable = true;
+          priority = 100;
+          condition = {
+            match."0" = {
+              "if" = "$DMARC_POLICY_ALLOW && (from.domain == 'lyte.dev' || ends_with(from.domain, '.lyte.dev'))";
+              "then" = "'TRUSTED_DOMAIN'";
+            };
+            "else" = "false";
+          };
+        };
+      }
+
+      # ---- Spam allowlist: daniel's own Gmail forward ----
+      # daniel's personal Gmail (wraithx2@gmail.com) forwards to
+      # daniel@lyte.dev. Gmail's forwarder rewrites the SMTP envelope sender
+      # with SRS (e.g. wraithx2+caf_=daniel=lyte.dev@gmail.com), and the
+      # forward strips daniel@lyte.dev from the visible To/Cc headers. That
+      # combination trips Stalwart's forwarding-artifact heuristics
+      # (FORGED_RECIPIENTS +2.0, FORGED_RCVD_TRAIL +1.0, FORGED_SENDER +0.3,
+      # FAKE_REPLY +1.0, …), pushing otherwise-legitimate forwarded mail over
+      # the junk threshold even though it authenticates cleanly
+      # (spf=pass / dkim=pass from Google's IPs).
+      #
+      # These are false positives caused purely by the forward, so we grant
+      # the built-in TRUSTED_DOMAIN tag (score -7) to mail whose *envelope*
+      # sender is daniel's Gmail SRS forward, gated on SPF pass so a spoofer
+      # can't forge the envelope address (Google's IPs are the only ones that
+      # pass SPF for gmail.com). We deliberately match the envelope (env_from),
+      # not the From: header, because the From: still shows the original
+      # third-party sender — it's the SRS envelope that uniquely identifies
+      # daniel's own forwarder.
+      #
+      # Scoped destroy-by-name (NOT destroy-all): a filter value matches
+      # only that rule, leaving stalwart's ~66 built-in SpamRules intact
+      # (verified: a destroy with a non-matching name reports "0 destroyed").
+      {
+        "@type" = "destroy";
+        object = "SpamRule";
+        value.name = "DANIEL_GMAIL_FORWARD";
+      }
+      {
+        "@type" = "create";
+        object = "SpamRule";
+        value.daniel-gmail-forward = {
+          "@type" = "Any";
+          name = "DANIEL_GMAIL_FORWARD";
+          description = "daniel's own Gmail forward (SRS envelope) is trusted (requires SPF pass)";
+          enable = true;
+          priority = 100;
+          condition = {
+            match."0" = {
+              # env_from is the full SMTP MAIL FROM address; Gmail's forward
+              # SRS form embeds "+caf_=daniel=lyte.dev" in the local part and
+              # always lives under @gmail.com. Gate on SPF pass so the
+              # envelope can't be spoofed.
+              "if" =
+                "$SPF_ALLOW && env_from.domain == 'gmail.com' && contains(env_from, '+caf_=daniel=lyte.dev')";
+              "then" = "'TRUSTED_DOMAIN'";
+            };
+            "else" = "false";
+          };
+        };
+      }
+
       # ---- OAuth client for Bulwark webmail ----
       # Replaces the old curl-based stalwart-ensure-bulwark-oauth.service.
       # NOTE: bulwark now authenticates against Kanidm (see the Oidc
