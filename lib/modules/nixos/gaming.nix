@@ -14,7 +14,14 @@
     };
 
     programs.steam = {
-      extest.enable = true;
+      # extest (XTest->Wayland LD_PRELOAD shim for Steam Input) panics with
+      # `NoCompositor` at wayland.rs:27 when Steam Input injects emulated mouse
+      # motion (XTestFakeRelativeMotionEvent) for an app with a desktop-style
+      # controller layout — e.g. the Prism Launcher non-Steam shortcut. The
+      # panic crosses the C FFI boundary (nounwind) and aborts the whole Steam
+      # process. gamescope handles controller input natively, so we don't need
+      # the shim. See issues/closed/steam-extest-crash.md.
+      extest.enable = false;
       gamescopeSession.enable = true;
 
       extraPackages = with pkgs; [
