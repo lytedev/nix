@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Notify a Matrix room (via a hookshot generic webhook) about new Inbox mail.
 
-Auth model: Kanidm rolling refresh token for the bulwark-webmail public
-client. STATE_DIR/refresh_token is seeded once interactively (get-token.sh
---save-refresh) and rolled forward on every refresh; losing it requires
-re-seeding. Access tokens live in memory only.
+Auth model: a Stalwart API key (credential on daniel@lyte.dev), scoped via a
+Replace allowlist to exactly the methods this daemon uses — authenticate,
+Mailbox/get, Email/get, Email/query, Email/changes — and non-expiring
+(expiresAt: null). The key string is read directly as a Bearer token; there
+is no OIDC refresh, no rolling state, and nothing to re-seed. The secret
+lives in sops (jmap-matrix-notify-api-key); rotating it is a sops edit +
+restart. See get-token.sh / the README for how the key was minted.
 
 Flow: JMAP EventSource (RFC 8620 §7.3) -> on Email StateChange, query
 Inbox messages newer than the last seen receivedAt -> POST a line per
@@ -16,15 +19,12 @@ import os
 import sys
 import time
 import urllib.request
-import urllib.parse
 
-ISSUER = os.environ["KANIDM_ISSUER"]
-CLIENT_ID = os.environ["OAUTH_CLIENT_ID"]
 JMAP_BASE = os.environ["JMAP_BASE"]  # e.g. https://mail.lyte.dev
 WEBHOOK_URL_FILE = os.environ["WEBHOOK_URL_FILE"]
+API_KEY_FILE = os.environ["API_KEY_FILE"]
 STATE_DIR = os.environ["STATE_DIRECTORY"]
 
-REFRESH_FILE = os.path.join(STATE_DIR, "refresh_token")
 LASTSEEN_FILE = os.path.join(STATE_DIR, "last_seen")
 
 access_token = None
@@ -42,34 +42,12 @@ def http(url, data=None, headers=None, timeout=30):
         return r.read()
 
 
-def refresh_access_token():
-    """Exchange the stored refresh token; persist the rolled replacement."""
+def load_api_key():
+    """(Re-)read the scoped API key from disk so rotation is picked up on
+    reconnect. The key is used verbatim as a Bearer token."""
     global access_token
-    with open(REFRESH_FILE) as f:
-        refresh = f.read().strip()
-    disco = json.loads(http(f"{ISSUER}/.well-known/openid-configuration"))
-    body = urllib.parse.urlencode(
-        {
-            "grant_type": "refresh_token",
-            "client_id": CLIENT_ID,
-            "refresh_token": refresh,
-        }
-    ).encode()
-    tok = json.loads(
-        http(
-            disco["token_endpoint"],
-            data=body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-    )
-    access_token = tok["access_token"]
-    new_refresh = tok.get("refresh_token")
-    if new_refresh:
-        tmp = REFRESH_FILE + ".tmp"
-        with open(tmp, "w") as f:
-            f.write(new_refresh)
-        os.replace(tmp, REFRESH_FILE)
-    log("token: refreshed")
+    with open(API_KEY_FILE) as f:
+        access_token = f.read().strip()
 
 
 def jmap(method_calls):
@@ -193,7 +171,7 @@ def main():
     backoff = 5
     while True:
         try:
-            refresh_access_token()
+            load_api_key()
             sess = init_session()
             notify_new_mail()  # catch up anything missed while down
             backoff = 5

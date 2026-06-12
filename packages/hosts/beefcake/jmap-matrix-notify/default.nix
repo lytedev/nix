@@ -1,21 +1,24 @@
 # New-Inbox-mail → Matrix notifications.
 #
-# A small daemon holds daniel's Kanidm session (rolling refresh token for
-# the bulwark-webmail public client), listens on stalwart's JMAP
-# EventSource, and posts one line per new Inbox message to a
+# A small daemon authenticates to stalwart's JMAP with a scoped, non-expiring
+# API key (a credential on daniel@lyte.dev, restricted via a Replace allowlist
+# to exactly authenticate + Mailbox/get + Email/get,query,changes), listens on
+# the JMAP EventSource, and posts one line per new Inbox message to a
 # matrix-hookshot generic webhook (no dedicated Matrix bot/appservice —
 # hookshot is already registered with tuwunel).
 #
-# One-time bootstrap after deploy:
-#   1. On a workstation: get-token.sh --save-refresh > refresh_token
-#      (interactive Kanidm login; see /tmp/mailctl/get-token.sh history)
-#   2. install -m 0600 -o jmap-matrix-notify refresh_token \
-#        /var/lib/jmap-matrix-notify/refresh_token
-#   3. In Matrix: invite hookshot to the target room,
-#      `!hookshot webhook mail-inbox`, put the URL in sops
-#      (jmap-matrix-notify-webhook-url).
-# The refresh token rolls forward on every renewal; if the service is down
-# past kanidm's refresh window the bootstrap must be repeated.
+# Both secrets are declarative via sops, so there is no interactive bootstrap
+# and nothing to re-seed — the API key never expires and does not roll:
+#   - jmap-matrix-notify-api-key      (the Stalwart API key string)
+#   - jmap-matrix-notify-webhook-url  (the hookshot webhook URL)
+#
+# Minting/rotating the API key: mint via the JMAP management method
+# `x:ApiKey/set` (create with permissions {"@type":"Replace","permissions":
+# {authenticate,jmapMailboxGet,jmapEmailGet,jmapEmailQuery,jmapEmailChanges}},
+# expiresAt null) using an admin/daniel bearer token; the response `secret`
+# (an `API_…` string) goes into sops. get-token.sh obtains the bearer token.
+# Webhook setup (one-time, in Matrix): invite hookshot to the room,
+# `!hookshot webhook mail-inbox`, put the URL in sops.
 {
   config,
   pkgs,
@@ -23,6 +26,11 @@
 }:
 {
   sops.secrets.jmap-matrix-notify-webhook-url = {
+    mode = "0400";
+    owner = "jmap-matrix-notify";
+  };
+
+  sops.secrets.jmap-matrix-notify-api-key = {
     mode = "0400";
     owner = "jmap-matrix-notify";
   };
@@ -43,10 +51,9 @@
     wants = [ "network-online.target" ];
 
     environment = {
-      KANIDM_ISSUER = "https://idm.h.lyte.dev/oauth2/openid/bulwark-webmail";
-      OAUTH_CLIENT_ID = "bulwark-webmail";
       JMAP_BASE = "https://mail.lyte.dev";
       WEBHOOK_URL_FILE = config.sops.secrets.jmap-matrix-notify-webhook-url.path;
+      API_KEY_FILE = config.sops.secrets.jmap-matrix-notify-api-key.path;
     };
 
     serviceConfig = {
