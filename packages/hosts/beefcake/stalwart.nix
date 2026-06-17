@@ -410,12 +410,23 @@ in
           priority = 100;
           condition = {
             match."0" = {
-              # env_from is the full SMTP MAIL FROM address; Gmail's forward
-              # SRS form embeds "+caf_=daniel=lyte.dev" in the local part and
-              # always lives under @gmail.com. Gate on SPF pass so the
-              # envelope can't be spoofed.
+              # env_from is the full SMTP MAIL FROM address. Gmail's forwarder
+              # rewrites it to a fixed SRS form for the wraithx2@gmail.com ->
+              # daniel@lyte.dev pair, so an exact match uniquely identifies
+              # daniel's own forwarder.
+              #
+              # SPF gate (anti-spoof): we do NOT use $SPF_ALLOW — unlike its
+              # siblings $SPF_FAIL / $SPF_SOFTFAIL / $SPF_NA (which are
+              # referenced throughout the upstream spam-filter rules),
+              # $SPF_ALLOW is never exposed as an expression variable (it
+              # exists only as a score), so it evaluates false and silently
+              # killed the original rule. Gating on "SPF did not fail / is not
+              # absent" is equivalent for our purpose: a spoofer forging this
+              # gmail.com envelope from a non-Google IP gets SPF softfail
+              # (gmail publishes ~all) and is excluded; the real Google
+              # forward passes SPF and matches.
               "if" =
-                "$SPF_ALLOW && env_from.domain == 'gmail.com' && contains(env_from, '+caf_=daniel=lyte.dev')";
+                "env_from == 'wraithx2+caf_=daniel=lyte.dev@gmail.com' && !$SPF_FAIL && !$SPF_SOFTFAIL && !$SPF_NA";
               "then" = "'TRUSTED_DOMAIN'";
             };
             "else" = "false";
