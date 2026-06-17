@@ -144,6 +144,7 @@
     ./beefcake/openobserve.nix
     ./beefcake/paperless.nix
     ./beefcake/mosquitto.nix
+    ./beefcake/meshtasticd.nix
     ./beefcake/immich.nix
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
