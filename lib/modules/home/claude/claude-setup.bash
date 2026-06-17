@@ -47,9 +47,11 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
     }
   ')"
 
-  # Write to tmpfile, validate, then move
+  # Write to tmpfile, validate, then move.
+  # Also force cleanupPeriodDays so existing settings.json files pick it up
+  # (the merge above only carries over hooks, not other top-level keys).
   TMPFILE="$(mktemp "$HOME/.claude/.settings.XXXXXX")"
-  echo "$MERGED" | jq . >"$TMPFILE"
+  echo "$MERGED" | jq --argjson cpd "$CLEANUP_PERIOD_DAYS" '.cleanupPeriodDays = $cpd' >"$TMPFILE"
 
   # Validate: must be valid JSON and non-empty
   if ! jq empty "$TMPFILE" 2>/dev/null || [ ! -s "$TMPFILE" ]; then
@@ -60,9 +62,9 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
 
   mv "$TMPFILE" "$CLAUDE_SETTINGS"
 else
-  # No existing settings, write hooks config directly
+  # No existing settings, write hooks config directly (with cleanupPeriodDays)
   TMPFILE="$(mktemp "$HOME/.claude/.settings.XXXXXX")"
-  echo "$HOOKS_CONFIG" | jq . >"$TMPFILE"
+  echo "$HOOKS_CONFIG" | jq --argjson cpd "$CLEANUP_PERIOD_DAYS" '.cleanupPeriodDays = $cpd' >"$TMPFILE"
 
   if ! jq empty "$TMPFILE" 2>/dev/null || [ ! -s "$TMPFILE" ]; then
     echo "Error: Generated settings are invalid. Aborting." >&2

@@ -162,7 +162,10 @@ let
       jq
       coreutils
     ];
-    preamble = "HOOKS_CONFIG='${hooksConfig}'";
+    preamble = ''
+      HOOKS_CONFIG='${hooksConfig}'
+      CLEANUP_PERIOD_DAYS='${toString cfg.cleanupPeriodDays}'
+    '';
   };
 
   danielHome = config.lyte.userHome;
@@ -200,6 +203,17 @@ in
       type = lib.types.int;
       default = 19199;
       description = "Port for reverse-tunnel notification forwarding";
+    };
+    cleanupPeriodDays = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 36500;
+      description = ''
+        Value written to Claude Code's `cleanupPeriodDays` setting. Claude Code
+        deletes session transcripts (chat history) older than this many days at
+        startup. The default of 36500 (~100 years) effectively retains them
+        indefinitely. Cannot be 0 — Claude Code rejects that — so a large value
+        is used to disable cleanup. See https://code.claude.com/docs/en/settings.
+      '';
     };
   };
 
