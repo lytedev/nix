@@ -143,6 +143,7 @@
     # ./beefcake/grafana.nix  # Disabled - replaced by OpenObserve
     ./beefcake/openobserve.nix
     ./beefcake/paperless.nix
+    ./beefcake/mosquitto.nix
     ./beefcake/immich.nix
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
