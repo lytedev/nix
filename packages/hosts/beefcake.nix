@@ -153,6 +153,7 @@
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
     ./beefcake/jmap-matrix-notify
+    ./beefcake/lan-lockdown.nix
 
     # ./beefcake/actual.nix
     ./beefcake/factorio-servers.nix
