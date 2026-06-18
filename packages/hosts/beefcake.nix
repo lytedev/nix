@@ -144,8 +144,11 @@
     ./beefcake/openobserve.nix
     ./beefcake/paperless.nix
     ./beefcake/mosquitto.nix
-    ./beefcake/meshtasticd.nix
-    ./beefcake/mmrelay.nix
+    # Disabled until real secrets are set (placeholder channel URL / Matrix
+    # creds would fail-loop). Re-enable once meshtastic-channel-url +
+    # mmrelay-credentials are filled in sops.
+    # ./beefcake/meshtasticd.nix
+    # ./beefcake/mmrelay.nix
     ./beefcake/immich.nix
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
