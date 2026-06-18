@@ -1,48 +1,73 @@
-# Interim LAN hardening: lock beefcake's sensitive services to the dragon
-# bastion over the wired/wireless LAN.
+# Interim LAN hardening: default-deny everything from the LAN to beefcake,
+# except dragon (the admin/bastion box) and an explicit allowlist of ports
+# that are either internet-public (DNAT-forwarded by the router) or required
+# by LAN infrastructure (UniFi APs, mDNS).
 #
 # WHY: WiFi clients currently share the untagged LAN with wired gear (the
-# proper isolated guest VLAN is staged on the router but needs a UniFi SSID
-# tag, pending controller creds). beefcake opens several sensitive services
-# on ALL interfaces — Samba shares, the *arr stack, and the k3s API. Until
-# the VLAN lands, a guest on the main WiFi could reach those. This restricts
-# them, *on the LAN interface only*, to dragon (the LAN admin/bastion box).
+# isolated guest VLAN is staged on the router but needs a UniFi SSID tag,
+# pending controller creds). Rather than chase a denylist of sensitive ports,
+# we flip to default-deny so that *every* service — current and future — is
+# closed to non-dragon LAN clients unless explicitly opened. This protects
+# Samba, MQTT, and anything added later without having to remember to lock it.
 #
-# DESIGN (per Daniel): tailnet (headscale) is the primary admin path and is
-# left fully open — these rules only touch the `${lan}` interface, never
-# tailscale0 — so this does not affect tailnet access at all. dragon
-# (192.168.0.10, MAC-reserved) is the single LAN *fallback* path: you hop
-# through dragon for direct LAN admin when the tailnet is down. Public web
-# (80/443, SSO-gated), mail, SSH, and game-server ports stay open on the LAN.
+# DESIGN (per Daniel): the tailnet (headscale) is the primary admin path and
+# is left fully open — these rules only match the `${lan}` interface, never
+# tailscale0. dragon (192.168.0.10, MAC-reserved) is the single LAN *fallback*
+# and gets unrestricted access. "Only tailnet stuff" for everyone else: other
+# LAN devices reach beefcake's services over the tailnet, not direct LAN ports.
 #
-# IPv4 ONLY: dragon's LAN IPv4 is pinned but its IPv6 is SLAAC (unstable), so
-# locking v6 risks breaking dragon via happy-eyeballs. We leave v6 open here;
-# the residual gap (a guest reaching a service over IPv6) is closed properly
-# by the guest VLAN, which isolates at L2 for both protocols. Samba discovery
-# is v4/mDNS, so the casual-guest hole is closed by the v4 lock.
+# WHAT STAYS OPEN to the whole LAN (and why it's safe / necessary):
+#   - 22/25/80/443/465/587/993 + game ports: DNAT-forwarded from the WAN, so
+#     they're already internet-public; a LAN guest is no worse than any
+#     internet host (web is SSO-gated, mail/SSH need creds). Blocking them on
+#     eno1 would break the router's port-forwards.
+#   - 8080 + udp/10001: UniFi AP inform/discovery — APs live on the LAN.
+#   - udp/5353 mDNS, udp/3478 STUN: discovery / NAT traversal.
+# WHAT GETS LOCKED to dragon-only: everything else — notably Samba
+#   (445/139/137/138 + WS-Discovery 5357/3702) and MQTT 1883 (mosquitto;
+#   auth-gated and meshtasticd is currently disabled — when it's re-enabled,
+#   add the gateway's IP here or put it on the trusted VLAN).
 #
-# Reversible: pure firewall extraCommands; remove this import + redeploy (or
-# `iptables -F nixos-fw` / reboot) to revert.
+# IPv4 ONLY: dragon's LAN IPv6 is SLAAC (unstable) so we can't reliably
+# allowlist it; locking v6 risks breaking dragon via happy-eyeballs. v6 is
+# left open here — the guest VLAN is the real fix and isolates both protocols
+# at L2. (Samba/MQTT discovery from casual clients is v4, so the practical
+# hole is closed.)
+#
+# IMPORTANT: this is a hand-maintained allowlist. If you add a new
+# internet-forwarded service on the router, add its port here too or LAN
+# clients (and the forward) will be blocked from it.
+#
+# Reversible: pure firewall extraCommands; remove the import + redeploy.
 { ... }:
 let
   lan = "eno1"; # beefcake's wired LAN interface (see unifi.nix)
-  dragon = "192.168.0.10"; # bastion; MAC-reserved on the router
-  # samba (445/139), *arr (9876/9877), k3s api+kubelet (6443/10250)
-  tcpPorts = "445,139,9876,9877,6443,10250";
-  # netbios (137/138), *arr udp (9876/9877)
-  udpPorts = "137,138,9876,9877";
-  rules = proto: ports: ''
-    iptables -I nixos-fw -i ${lan} ! -s ${dragon} -p ${proto} -m multiport --dports ${ports} -j DROP
-  '';
-  delRules = proto: ports: ''
-    iptables -D nixos-fw -i ${lan} ! -s ${dragon} -p ${proto} -m multiport --dports ${ports} -j DROP 2>/dev/null || true
-  '';
+  dragon = "192.168.0.10"; # admin/bastion; MAC-reserved on the router
+  # Internet-public (router DNAT-forwarded) + LAN-infra ports — open to all.
+  # Keep in sync with the router's beefcake `nat` block (packages/hosts/router.nix).
+  publicTcp = "22,25,80,443,465,587,993,8080,24454,26968,26969,26974,26989";
+  publicUdp = "3478,5353,10001,24454,26974,26989,34197";
 in
 {
-  # Inserted at the top of nixos-fw, but each rule is narrowly scoped (LAN
-  # iface + specific dports + not-from-dragon), so non-matching traffic
-  # (other ports, dragon, established connections on other ports) falls
-  # straight through to normal firewall processing.
-  networking.firewall.extraCommands = (rules "tcp" tcpPorts) + (rules "udp" udpPorts);
-  networking.firewall.extraStopCommands = (delRules "tcp" tcpPorts) + (delRules "udp" udpPorts);
+  networking.firewall.extraCommands = ''
+    # beefcake LAN default-deny (see lan-lockdown.nix). Dedicated chain so the
+    # policy is self-contained and easy to reason about.
+    iptables -N nixos-lan-lockdown 2>/dev/null || iptables -F nixos-lan-lockdown
+    iptables -A nixos-lan-lockdown -s ${dragon} -j RETURN
+    iptables -A nixos-lan-lockdown -p icmp -j RETURN
+    iptables -A nixos-lan-lockdown -p tcp -m multiport --dports ${publicTcp} -j RETURN
+    iptables -A nixos-lan-lockdown -p udp -m multiport --dports ${publicUdp} -j RETURN
+    iptables -A nixos-lan-lockdown -j DROP
+    # Hook NEW inbound connections arriving on the LAN into the lockdown chain.
+    # Matching ctstate NEW means it sits harmlessly above the firewall's
+    # established/related accept (established traffic never enters the chain),
+    # and RETURN lets allowed packets fall through to normal accept rules.
+    iptables -D nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown 2>/dev/null || true
+    iptables -I nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown
+  '';
+  networking.firewall.extraStopCommands = ''
+    iptables -D nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown 2>/dev/null || true
+    iptables -F nixos-lan-lockdown 2>/dev/null || true
+    iptables -X nixos-lan-lockdown 2>/dev/null || true
+  '';
 }
