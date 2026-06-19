@@ -208,6 +208,43 @@ in
       '';
     };
 
+    accountAliases = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+      default = { };
+      example = {
+        daniel = [
+          "dax@lyte.dev"
+          "oliver@lyte.dev"
+        ];
+      };
+      description = ''
+        Extra email addresses (aliases) to ensure on existing accounts after
+        each plan apply, keyed by account name (as stored, e.g. "daniel").
+        Mail to an alias is delivered to that account's mailbox.  Each address
+        must be in the configured `domain`.  Use "@${"\${domain}"}" (empty local
+        part) for a domain CATCH-ALL (delivers any otherwise-unmatched address
+        to that account).  The account's `aliases` (a list<EmailAlias>) is
+        replaced from this list on each apply (declarative source of truth);
+        the primary `emailAddress` is never touched; missing accounts are
+        skipped with a warning.  Like adminAccounts, this exists because
+        accounts are user data, not plan-managed — codifying the aliases here
+        means they survive a DB rebuild instead of silently vanishing.
+      '';
+    };
+
+    catchAllAddress = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "daniel@lyte.dev";
+      description = ''
+        If set, configures the domain catch-all: any address in `domain` that
+        does not match a real mailbox or alias is delivered to this address.
+        Set on the Domain object (`catchAllAddress`) at apply time. NOTE: a
+        catch-all accepts mail to every possible address (a spam magnet) and
+        removes the "mailbox does not exist" rejection of bogus addresses.
+      '';
+    };
+
     applyUrl = lib.mkOption {
       type = lib.types.str;
       description = "URL stalwart-cli uses to reach the running server (e.g. http://[::1]:8080).";
@@ -378,7 +415,8 @@ in
             4
             + (if cfg.certificateFiles != null then 1 else 0)
             + (if cfg.oidcDirectory != null then 1 else 0)
-            + (if cfg.adminAccounts != [ ] then 1 else 0);
+            + (if cfg.adminAccounts != [ ] then 1 else 0)
+            + (if cfg.accountAliases != { } then 1 else 0);
         in
         ''
             set -euo pipefail
@@ -406,6 +444,13 @@ in
             domain_id=$($cli query Domain --json --no-color | jq -r '.[] | select(.name=="${cfg.domain}").id' | head -1)
           fi
           echo "  domain id: $domain_id"
+          ${lib.optionalString (cfg.catchAllAddress != null) ''
+            # Domain catch-all: unmatched addresses -> this address. Simple
+            # Option<String> field on the Domain object.
+            printf '[{"@type":"update","object":"Domain","id":"%s","value":{"catchAllAddress":"${cfg.catchAllAddress}"}}]' "$domain_id" > "$rundir/catchall.json"
+            $cli apply --file "$rundir/catchall.json" --no-color
+            echo "  catch-all -> ${cfg.catchAllAddress}"
+          ''}
 
           ${lib.optionalString (cfg.certificateFiles != null) ''
               step "ensuring certificate..."
@@ -506,6 +551,43 @@ in
               echo "  granted to $want ($acct_id)"
             done
           ''}
+
+          ${lib.optionalString (cfg.accountAliases != { }) (
+            ''
+              step "ensuring account email aliases"
+            ''
+            + lib.concatStrings (
+              lib.mapAttrsToList (acct: aliases: ''
+                want=${lib.escapeShellArg acct}
+                acct_id=$($cli query Account --json --no-color | jq -r '.[].id' | while read -r aid; do
+                  name=$($cli get Account "$aid" --json --no-color | jq -r '.name // empty')
+                  if [ "$name" = "$want" ]; then echo "$aid"; break; fi
+                done)
+                if [ -z "$acct_id" ]; then
+                  echo "  WARNING: account '$want' not found; skipping aliases"
+                else
+                  # Account aliases are a `list<EmailAlias>` where each entry is
+                  # {enabled, name, domainId, description}: `name` is the LOCAL
+                  # part and `name`+`domainId` form the address (an empty name is
+                  # the domain catch-all). The primary (`emailAddress`) is
+                  # server-set and untouched. We replace the whole list from the
+                  # config (declarative source of truth) — idempotent. Aliases
+                  # must be in ${cfg.domain} (the resolved domain_id).
+                  # A List<EmailAlias> is patched as an index-keyed map
+                  # ({"0":{...},"1":{...}}), not a JSON array (that's what the
+                  # "invalid key"->"invalid value" error progression revealed).
+                  aliases_obj=$(jq -cn \
+                    --arg domain '${cfg.domain}' --arg did "$domain_id" \
+                    --argjson add '${builtins.toJSON aliases}' '
+                    [ $add[] | { enabled: true, name: (sub("@" + $domain + "$"; "")), domainId: $did } ]
+                    | to_entries | map({ (.key | tostring): .value }) | add // {}')
+                  printf '[{"@type":"update","object":"Account","id":"%s","value":{"aliases":%s}}]' "$acct_id" "$aliases_obj" > "$rundir/alias.json"
+                  $cli apply --file "$rundir/alias.json" --no-color
+                  echo "  ensured aliases on $want ($acct_id): ${lib.concatStringsSep ", " aliases}"
+                fi
+              '') cfg.accountAliases
+            )
+          )}
           echo "stalwart-apply complete"
         '';
     };

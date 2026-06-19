@@ -108,6 +108,19 @@ in
     # role is granted by name lookup at apply time, not as a plan op).
     adminAccounts = [ "daniel" ];
 
+    # Explicit aliases that deliver to daniel's mailbox (documented intent for
+    # the kids' addresses). Ensured on every apply so they survive a DB rebuild.
+    accountAliases.daniel = [
+      "dax@lyte.dev"
+      "oliver@lyte.dev"
+    ];
+
+    # Domain catch-all: ANY otherwise-unmatched lyte.dev address is delivered
+    # to daniel (so new addresses Just Work, e.g. signups). Subsumes the
+    # explicit aliases above; tradeoff is accepting spam to bogus addresses
+    # (spam filter still routes most to Junk). (per Daniel, 2026-06-18)
+    catchAllAddress = "daniel@lyte.dev";
+
     # --- Declarative plan ---
     #
     # Re-applied idempotently on every switch.  Owned types (listeners,
