@@ -282,6 +282,26 @@
         systemd.services.display-manager.preStart = lib.mkForce "";
         systemd.services.display-manager.serviceConfig.ExecStartPre = lib.mkForce [ ];
       }
+
+      {
+        # Status/charger LED ("status:white"). Effective brightness is
+        #   brightness * led_brightness_multiplier   (both 0-100)
+        # and the firmware defaults the *multiplier* to 0 — so the LED stays
+        # dark regardless of `brightness`. Both attrs are also root-only by
+        # default, so they can't be changed without sudo.
+        #
+        # On device-add we seed a lit default (multiplier=100, brightness=100)
+        # so the LED comes up on after reboot, and hand both files to the
+        # `wheel` group so it can be adjusted live without sudo:
+        #   echo <0-100> > /sys/class/leds/status:white/led_brightness_multiplier
+        # (lower to dim; 0 = off). Applies to both Steam Decks (LCD + OLED) via
+        # the shared leds_steamdeck driver; the KERNEL match no-ops if the LED
+        # isn't present. NOTE: SteamOS "Settings -> Display -> Status LED
+        # Brightness" drives this same multiplier and may reassert it.
+        services.udev.extraRules = ''
+          SUBSYSTEM=="leds", KERNEL=="status:white", ACTION=="add", ATTR{led_brightness_multiplier}="100", ATTR{brightness}="100", RUN+="${pkgs.coreutils}/bin/chgrp wheel /sys/class/leds/%k/brightness /sys/class/leds/%k/led_brightness_multiplier", RUN+="${pkgs.coreutils}/bin/chmod 0664 /sys/class/leds/%k/brightness /sys/class/leds/%k/led_brightness_multiplier"
+        '';
+      }
     ]
   );
 }
