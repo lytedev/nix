@@ -34,8 +34,14 @@
         allowed_domains = [ "lyte.dev" ];
         # Or use allowed_groups once Kanidm groups are configured
         # allowed_groups = [ "family" "administrators" "trusted-friends" ];
-        # Key expiry for OIDC-authenticated devices
-        expiry = "90d";
+        # Key expiry for OIDC-authenticated devices. "0" = never auto-expire:
+        # devices persist in the tailnet until *manually* removed
+        # (`headscale nodes expire|delete <id>`), instead of silently dropping
+        # out every 90d. Occasionally-used devices (e.g. the Steam Deck) kept
+        # falling out and re-registering under temp names. Manual kick-out and
+        # ACLs (tag:admindevice -> *:* already allows admin SSH everywhere) are
+        # unaffected. Applies to nodes on their next (re)authentication.
+        expiry = "0";
       };
 
       derp.server = {
