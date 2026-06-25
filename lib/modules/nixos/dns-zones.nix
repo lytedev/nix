@@ -11,6 +11,11 @@ let
 
   # --- lyte.dev zone ---
   lyteDev = {
+    # Default record cache duration ($TTL). Short (5m) so changes — especially to
+    # the dynamic home WAN IP records — propagate to resolvers quickly instead of
+    # lingering for a day. (dns.nix default is 24h.)
+    TTL = 300;
+
     SOA = {
       nameServer = "ns0.1984.is.";
       adminEmail = "dns@lyte.dev";
