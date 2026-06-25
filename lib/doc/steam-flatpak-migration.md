@@ -141,3 +141,39 @@ Once the host is on flatpak Steam and verified working:
   PR; nothing to do on the nix side.
 - `nix-collect-garbage -d` on next rebuild will prune the old wine/lutris/
   proton store paths.
+
+## Controllers + gaming on flatpak Steam (foxtrot)
+
+foxtrot runs niri (Wayland) with a Bluetooth 2026 Steam Controller. Two modes:
+
+### Runtime / Steam-side (NOT in nix — do once on the host)
+
+- **Bluetooth controller detection** — the flatpak is sandboxed from BlueZ
+  (system bus). Grant it once:
+  ```
+  flatpak override --user com.valvesoftware.Steam --system-talk-name=org.bluez
+  ```
+  Then fully quit + relaunch Steam. (Without this, BT controllers stay in
+  "lizard mode" — mouse/keyboard HID — and Steam never claims them.) New
+  hardware like the 2026 controller may also need the **Steam Beta** client.
+
+- **Gaming mode** — run `foxtrot-gamemode` (a nix-provided launcher): one nested
+  gamescope window hosting Steam in gamepad-UI. Every game launched from it
+  inherits gamescope (clean cursor/focus, native controller), no per-game launch
+  options. It's a single niri window, so niri/overview stay underneath. If the
+  flatpak can't reach gamescope's nested Wayland socket, add
+  `flatpak override --user com.valvesoftware.Steam --socket=wayland`.
+
+### Controlling niri with the controller (Steam Input desktop layout)
+
+`boot.kernelModules += "uinput"` (set on foxtrot) lets Steam Input emit a virtual
+mouse/keyboard into niri. In Steam's Desktop layout, map: a button → `Super+O`
+(niri overview, already bound); Steam+X → keyboard; right stick → mouse.
+
+**Verify-first caveat:** Steam Input's *keyboard* emulation uses uinput (works on
+niri), but its *mouse* historically used XTest, which on Wayland needs the
+`extest` shim — the thing that crashed native Steam (see
+`issues/closed/steam-extest-crash.md`). Test stick-as-mouse on the bare niri
+desktop first; recent/Beta Steam may do uinput mouse and Just Work. If not, fall
+back to the touchpad + controller-for-nav, or a dedicated remapper
+(sc-controller / input-remapper).

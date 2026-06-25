@@ -30,7 +30,13 @@
       "nvme"
       "thunderbolt"
     ];
-    kernelModules = [ "kvm-amd" ];
+    # uinput: Steam Input emits its virtual mouse/keyboard/gamepad through
+    # /dev/uinput; the udev rule + input-group membership are already global
+    # (default-module.nix), this just ensures the module is loaded.
+    kernelModules = [
+      "kvm-amd"
+      "uinput"
+    ];
     binfmt.emulatedSystems = [
       "aarch64-linux"
       "riscv64-linux"
@@ -90,6 +96,11 @@
   # Keep the steam-hardware udev rules so Flatpak Steam still sees
   # Steam Controllers / Steam Deck dock correctly.
   hardware.steam-hardware.enable = true;
+
+  # Host gamescope (with its CAP_SYS_NICE setcap wrapper). NB: the gamescope in
+  # gaming.nix is gated on programs.steam.enable, which foxtrot doesn't set
+  # (Steam is the flatpak) — so enable the upstream module directly here.
+  programs.gamescope.enable = true;
   lyte = {
     editableConfigFiles = true;
     flakePath = "/etc/nix/flake";
@@ -150,5 +161,19 @@
   # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
     hidapi
+
+    # "Gaming mode": one nested gamescope window hosting Steam in gamepad-UI, so
+    # every game launched from it inherits gamescope isolation (clean cursor/
+    # focus, native controller input) with NO per-game launch options. It's a
+    # single niri toplevel — niri/overview stay underneath. Launch from the app
+    # launcher or bind a niri key to `foxtrot-gamemode`.
+    #
+    # NB: flags below are a first cut — tune -W/-H/-r for the FW13 panel and
+    # confirm the flatpak reaches gamescope's nested Wayland socket (may need a
+    # `flatpak override --socket=wayland`). See steam-flatpak-migration.md.
+    (writeShellScriptBin "foxtrot-gamemode" ''
+      exec ${pkgs.gamescope}/bin/gamescope -e -- \
+        ${pkgs.flatpak}/bin/flatpak run com.valvesoftware.Steam -gamepadui "$@"
+    '')
   ];
 }
