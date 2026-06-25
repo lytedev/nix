@@ -186,5 +186,23 @@
       exec gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
         flatpak run com.valvesoftware.Steam -gamepadui "$@"
     '')
+
+    # Desktop entry so "Gaming Mode" is launchable from the DMS launcher (or any
+    # XDG app launcher) — the writeShellScriptBin above is CLI-only otherwise.
+    (makeDesktopItem {
+      name = "foxtrot-gamemode";
+      desktopName = "Gaming Mode";
+      comment = "Steam Big Picture in a nested gamescope session (clean controller/cursor)";
+      exec = "foxtrot-gamemode";
+      icon = "input-gaming";
+      terminal = false;
+      categories = [ "Game" ];
+      keywords = [
+        "steam"
+        "gamescope"
+        "gaming"
+        "bigpicture"
+      ];
+    })
   ];
 }
