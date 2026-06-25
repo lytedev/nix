@@ -15,13 +15,15 @@
 #      user wake → stay awake. If the lid is closed, it stays awake only when
 #      the glasses are present AND the laptop is on AC; otherwise it goes back
 #      to sleep (so a spurious wake, or a plug-in while on battery, re-suspends).
-#   3. viture-keepawake holds a `sleep` block inhibitor while the glasses are
-#      connected AND we're on AC, so a lid-closed session survives both the lid
-#      handler and swayidle's idle `systemctl suspend` (timeout 660). logind
-#      here is suspend-then-hibernate on lid close in all cases and the
-#      compositor is niri+swayidle, so an inhibitor is required (dock detection
-#      won't help). The wake-gate uses `systemctl suspend -i` so it can still
-#      force-resuspend a battery/spurious wake past this inhibitor.
+#   3. viture-keepawake holds a `sleep` block inhibitor while an external
+#      display is connected AND we're on AC, so a docked session (glasses or any
+#      monitor) survives both the lid handler and swayidle's idle `systemctl
+#      suspend` (timeout 660). It blocks *suspend* only — swayidle's idle *lock*
+#      still fires, so stepping away locks. logind here is suspend-then-hibernate
+#      on lid close in all cases and the compositor is niri+swayidle, so an
+#      inhibitor is required (dock detection won't help). The wake-gate uses
+#      `systemctl suspend -i` so it can still force-resuspend a battery/spurious
+#      wake past this inhibitor.
 #
 # Known limitation: lid-close is suspend-then-hibernate, so wake-on-plug only
 # works while the machine is still in s2idle. Once it hibernates (after the
@@ -53,6 +55,20 @@ let
           && [ "$(cat "$d/idProduct" 2>/dev/null)" = "${product}" ]; then
           return 0
         fi
+      done
+      return 1
+    }
+
+    # Any external (non-eDP) display connected — the glasses' DP-alt-mode output
+    # or a regular monitor. Used to keep a docked session awake regardless of
+    # which external display it is.
+    external_display_present() {
+      local s
+      for s in /sys/class/drm/card*-*/status; do
+        case "$s" in
+          *eDP*) continue ;;
+        esac
+        [ "$(cat "$s" 2>/dev/null)" = "connected" ] && return 0
       done
       return 1
     }
@@ -114,24 +130,25 @@ let
     cleanup() { [ -n "$inhibit_pid" ] && kill "$inhibit_pid" 2>/dev/null || true; }
     trap cleanup EXIT INT TERM
 
-    # Hold the inhibitor while the glasses are present AND we're on AC. This
-    # keeps a lid-closed glasses session alive against BOTH the lid handler and
-    # swayidle's idle `systemctl suspend` (a `sleep` block inhibitor covers both;
-    # `handle-lid-switch` stops logind reacting to the lid at all). Requiring AC
-    # honours the on-AC requirement; a short debounce avoids dropping it on a
-    # transient battery-status flap (e.g. at 100%).
+    # Hold the inhibitor while an external display is connected AND we're on AC.
+    # This keeps a docked session (glasses or any monitor) alive against BOTH
+    # the lid handler and swayidle's idle `systemctl suspend` (a `sleep` block
+    # inhibitor covers both; `handle-lid-switch` also stops logind reacting to
+    # the lid at all). It deliberately blocks *suspend* only — swayidle's idle
+    # *lock* is not a sleep op, so stepping away still locks. A short debounce
+    # avoids dropping it on a transient battery-status flap (e.g. at 100%).
     held=0
     miss=0
-    log "keepawake watcher started (holds sleep inhibitor while glasses + AC present)"
+    log "keepawake watcher started (holds sleep inhibitor while external display + AC present)"
     while :; do
       keep=0
-      if glasses_present && on_ac; then keep=1; fi
+      if external_display_present && on_ac; then keep=1; fi
       if [ "$keep" = 1 ]; then
         miss=0
         if [ "$held" = 0 ] || ! kill -0 "$inhibit_pid" 2>/dev/null; then
-          log "glasses + AC present -> holding sleep inhibitor (lid close / idle won't suspend)"
+          log "external display + AC present -> holding sleep inhibitor (lid close / idle won't suspend; idle still locks)"
           systemd-inhibit --what=sleep:handle-lid-switch --who="viture-glasses" \
-            --why="VITURE glasses connected on AC; keep awake with lid closed" \
+            --why="external display connected on AC; keep awake (lid closed ok)" \
             --mode=block sleep infinity &
           inhibit_pid=$!
           held=1
@@ -141,7 +158,7 @@ let
           # debounce: only release after 3 consecutive misses (~9s)
           miss=$((miss + 1))
           if [ "$miss" -ge 3 ]; then
-            log "glasses/AC gone -> releasing sleep inhibitor (glasses=$(glasses_present && echo yes || echo no) ac=$(on_ac && echo yes || echo no))"
+            log "external display/AC gone -> releasing sleep inhibitor (extdisp=$(external_display_present && echo yes || echo no) ac=$(on_ac && echo yes || echo no))"
             kill "$inhibit_pid" 2>/dev/null || true
             inhibit_pid=""
             held=0
