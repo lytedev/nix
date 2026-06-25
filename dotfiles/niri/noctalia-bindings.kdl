@@ -43,5 +43,7 @@ layer-rule {
 }
 
 switch-events {
-    lid-close { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+    // Locks on lid-close, but skips locking when an external display is
+    // connected (docked / glasses) — see niri-lid-close-lock in niri.nix.
+    lid-close { spawn "niri-lid-close-lock"; }
 }

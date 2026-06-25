@@ -18,13 +18,37 @@ let
     else
       pkgs.writeText "niri-shell-bindings-empty.kdl" "";
 
+  # Absolute paths: these run from niri's spawn env and the swayidle systemd
+  # user service, neither of which has the shell binaries on PATH — a bare
+  # `dms`/`noctalia-shell` silently fails with "command not found", so locking
+  # (lid-close, idle, before-sleep) never actually happens.
   lockCmd =
     if cfg.shell == "noctalia" then
-      "noctalia-shell ipc call lockScreen lock"
+      "${
+        flakeInputs.noctalia.packages.${pkgs.system}.default
+      }/bin/noctalia-shell ipc call lockScreen lock"
     else if cfg.shell == "dms" then
-      "dms ipc call lock lock"
+      "${config.programs.dank-material-shell.package}/bin/dms ipc call lock lock"
     else
       "${pkgs.swaylock}/bin/swaylock -f";
+
+  # Lid-close lock helper. Locking on lid-close is the right default, EXCEPT
+  # when an external display is connected (docked, or driving glasses): there
+  # you keep using the external screen with the lid shut and don't want to be
+  # locked out — often with no keyboard reachable to unlock. So skip the lock
+  # whenever any non-eDP (external) DRM connector reports "connected".
+  lidCloseLock = pkgs.writeShellScriptBin "niri-lid-close-lock" ''
+    for s in /sys/class/drm/card*-*/status; do
+      case "$s" in
+        *eDP*) continue ;;
+      esac
+      if [ "$(cat "$s" 2>/dev/null)" = "connected" ]; then
+        # External display present — keep the session usable with the lid shut.
+        exit 0
+      fi
+    done
+    exec ${pkgs.bash}/bin/bash -c ${lib.escapeShellArg lockCmd}
+  '';
 
   oskToggle =
     if cfg.osk == "wvkbd" then
@@ -92,6 +116,7 @@ in
         xwayland-satellite
         vesktop
       ])
+      ++ [ lidCloseLock ]
       ++ lib.optional (cfg.osk != "none") oskToggle;
 
     # Pick a Quickshell-based desktop shell. Both upstream modules launch the
