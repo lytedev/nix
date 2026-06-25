@@ -155,7 +155,20 @@
       enable = true;
       users = [ "daniel" ];
     };
-    syncthing.enable = true;
+    syncthing = {
+      enable = true;
+      # Default folders (wallpapers/shared/notes) plus the RetroDECK ROM/save
+      # collection. dragon holds the fullest ROM set, so it participates in the
+      # hub-and-spoke sync with beefcake + steamdeck. Overriding `folders`
+      # replaces the module default, so the defaults are re-listed here.
+      folders = {
+        wallpapers = "${config.lyte.userHome}/Pictures/Wallpapers";
+        shared = "${config.lyte.userHome}/Sync/shared";
+        notes = "${config.lyte.userHome}/Documents/notes";
+        retrodeck-roms = "${config.lyte.userHome}/retrodeck/roms";
+        retrodeck-saves = "${config.lyte.userHome}/retrodeck/saves";
+      };
+    };
     claude = {
       enable = true;
       sfxPath = "${config.lyte.userHome}/Documents/wc3sfx/peon/sounds";

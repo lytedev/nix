@@ -22,6 +22,8 @@ let
     babyflip = "B2CSTI7-3JAPJF3-6LYPNUP-KKSNIAR-NUA2ZBX-R3LPB77-BYHEKGF-3BQI5QY";
     beefcake = "CLIA25Z-SODKDAJ-TOXKZKF-D3SXEHI-NWCXONN-77FE67Y-C6KGU7I-P43JVQ3";
     phone = "MPNOYAO-NRKQWTY-TE5JTYN-BY7OUX6-MF5RFD3-BCIIBH7-5Q7V6FZ-YI2TQQF";
+    steamdeck = "XXLQLKT-NJ5BZKA-JV6PC5P-LUKHZMA-54BS3N3-FJ2UWR2-KFY6C7I-MFCWAAX";
+    steamdeckoled = "PKQEPCI-3UB4NHA-7Z6RZ7L-VFGX7TF-KLT73MB-TTA6ZBO-R4UA5PP-MZTAVQF";
   };
 
   # Mobile-only devices: included only in the notes folder, not wallpapers/shared
@@ -33,6 +35,17 @@ in
 {
   options.lyte.syncthing = {
     enable = lib.mkEnableOption "Syncthing file sync for desktop hosts";
+
+    guiPasswordSopsFile = lib.mkOption {
+      type = lib.types.path;
+      default = ../../../secrets/workstations/syncthing.yml;
+      description = ''
+        sops file providing the `syncthing-gui-password` secret. Defaults to the
+        shared workstations secret; hosts that are not workstation-secret
+        recipients (e.g. the Steam Decks) override this with their own per-host
+        secret so they don't need access to unrelated workstation secrets.
+      '';
+    };
 
     devices = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
@@ -53,7 +66,7 @@ in
 
   config = lib.mkIf cfg.enable {
     sops.secrets.syncthing-gui-password = {
-      sopsFile = ../../../secrets/workstations/syncthing.yml;
+      sopsFile = cfg.guiPasswordSopsFile;
       mode = "0440";
       owner = "daniel";
       group = "users";

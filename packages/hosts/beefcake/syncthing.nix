@@ -60,6 +60,32 @@ in
             params.keep = "5";
           };
         };
+        # RetroDECK ROM/save hub. ROMs and saves are separate folders (saves are
+        # small/high-churn/irreplaceable and shouldn't wait behind a multi-GB ROM
+        # rescan). Shared only with the hosts that actually hold a RetroDECK tree.
+        # NOTE: replaces the old ad-hoc whole-dir "retrodeck" web-UI folder, which
+        # must be removed from the live config first (a folder can't be nested
+        # inside another syncthing folder).
+        "retrodeck-roms" = {
+          path = "/storage/syncthing/retrodeck/roms";
+          devices = [
+            "dragon"
+            "steamdeck"
+            "steamdeckoled"
+          ];
+        };
+        "retrodeck-saves" = {
+          path = "/storage/syncthing/retrodeck/saves";
+          devices = [
+            "dragon"
+            "steamdeck"
+            "steamdeckoled"
+          ];
+          versioning = {
+            type = "simple";
+            params.keep = "10";
+          };
+        };
       };
     };
   };

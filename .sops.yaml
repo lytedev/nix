@@ -91,6 +91,16 @@ creation_rules:
     - age:
       - *daniel
       - *ssh-foxtrot
+  - path_regex: secrets/steamdeck/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *sshd-at-steamdeck
+  - path_regex: secrets/steamdeckoled/[^/]+\.(ya?ml|json|env|ini)$
+    key_groups:
+    - age:
+      - *daniel
+      - *sshd-at-steamdeckoled
   # Deno Deploy services - only daniel's key (no host key needed)
   - path_regex: secrets/deno-deploy/.*\.(ya?ml|json|env|ini|cue)$
     key_groups:
