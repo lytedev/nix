@@ -38,22 +38,14 @@
   };
 
   hardware = {
-    bluetooth = {
-      enable = true;
-      package = pkgs.bluez.overrideAttrs (
-        finalAttrs: previousAttrs: rec {
-          version = "5.78";
-          src = pkgs.fetchurl {
-            url = "mirror://kernel/linux/bluetooth/bluez-${version}.tar.xz";
-            sha256 = "sha256-gw/tGRXF03W43g9eb0X83qDcxf9f+z0x227Q8A1zxeM=";
-          };
-          patches = [ ];
-          buildInputs = previousAttrs.buildInputs ++ [
-            pkgs.python3Packages.pygments
-          ];
-        }
-      );
-    };
+    # Use nixpkgs' default bluez (no version pin). The previous 5.78
+    # overrideAttrs was incidental cruft from a repo restructure, not a
+    # deliberate fix. See the 2026 Steam Controller BT investigation: the
+    # controller's ~70s cycling over Bluetooth is the bluez HID-over-GATT
+    # GET_REPORT regression (bluez/bluez#880); if it still cycles in the
+    # launch-then-connect flow on the default bluez, pin 5.73 (the only
+    # fully-working version). The USB puck path is unaffected either way.
+    bluetooth.enable = true;
   };
 
   # Temporarily disable kanidm-unixd on this host — the kanidm-posix
