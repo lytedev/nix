@@ -160,9 +160,15 @@ foxtrot runs niri (Wayland) with a Bluetooth 2026 Steam Controller. Two modes:
 - **Gaming mode** — run `foxtrot-gamemode` (a nix-provided launcher): one nested
   gamescope window hosting Steam in gamepad-UI. Every game launched from it
   inherits gamescope (clean cursor/focus, native controller), no per-game launch
-  options. It's a single niri window, so niri/overview stay underneath. If the
-  flatpak can't reach gamescope's nested Wayland socket, add
-  `flatpak override --user com.valvesoftware.Steam --socket=wayland`.
+  options. It's a single niri window, so niri/overview stay underneath. A
+  `window-rule { match app-id="gamescope"; }` opens it at full column width.
+  The launcher auto-detects the focused niri output's resolution + refresh from
+  `niri msg --json focused-output`, so it's correct on whatever display you start
+  it on. Caveat: gamescope's nested output size is fixed at launch — **move the
+  window to another display and niri scales it to fit (it resizes), but to
+  re-render at the new display's native res, relaunch** `foxtrot-gamemode` there.
+  (The flatpak reaches gamescope's nested Wayland socket fine — no
+  `--socket=wayland` override needed.)
 
 ### Controlling niri with the controller (Steam Input desktop layout)
 

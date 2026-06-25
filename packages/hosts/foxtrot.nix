@@ -168,12 +168,23 @@
     # single niri toplevel — niri/overview stay underneath. Launch from the app
     # launcher or bind a niri key to `foxtrot-gamemode`.
     #
-    # NB: flags below are a first cut — tune -W/-H/-r for the FW13 panel and
-    # confirm the flatpak reaches gamescope's nested Wayland socket (may need a
-    # `flatpak override --socket=wayland`). See steam-flatpak-migration.md.
+    # Auto-detects the focused niri output's current mode (resolution + refresh,
+    # niri reports refresh in mHz) and hands it to gamescope, falling back to
+    # 1080p60 if niri/jq aren't reachable. (The flatpak reaches gamescope's
+    # nested Wayland socket fine — no --socket=wayland override needed.)
     (writeShellScriptBin "foxtrot-gamemode" ''
-      exec ${pkgs.gamescope}/bin/gamescope -e -- \
-        ${pkgs.flatpak}/bin/flatpak run com.valvesoftware.Steam -gamepadui "$@"
+      set -u
+      export PATH=/run/current-system/sw/bin:$PATH
+      sock="''${NIRI_SOCKET:-$(ls "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/niri.wayland-*.sock 2>/dev/null | head -n1)}"
+      read -r W H R < <(
+        NIRI_SOCKET="$sock" niri msg --json focused-output 2>/dev/null \
+          | jq -r '.modes[.current_mode] | "\(.width) \(.height) \((.refresh_rate/1000)|round)"' 2>/dev/null
+      ) || true
+      : "''${W:=1920}" "''${H:=1080}" "''${R:=60}"
+      [ "$R" -ge 20 ] 2>/dev/null || R=60
+      echo "foxtrot-gamemode: gamescope output ''${W}x''${H}@''${R}Hz" >&2
+      exec gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
+        flatpak run com.valvesoftware.Steam -gamepadui "$@"
     '')
   ];
 }
