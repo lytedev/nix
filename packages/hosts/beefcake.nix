@@ -84,7 +84,6 @@
       "bw"
       "webmail"
       "photos"
-      "happy.h"
       "hearth.h"
       "n8n.h"
       "openobserve.h"
@@ -180,7 +179,7 @@
     ./beefcake/syncthing.nix
     ./beefcake/roms.nix
     ./beefcake/n8n.nix
-    ./beefcake/happy.nix
+    # ./beefcake/happy.nix # retired 2026-06: podman-happy.service kept failing on activation (per Daniel)
     ./beefcake/hearth.nix
     ./beefcake/k3s.nix
 

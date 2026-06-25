@@ -205,7 +205,6 @@ in
             # "finances.h.lyte.dev"
             "git.lyte.dev"
             "grafana.h.lyte.dev"
-            "happy.h.lyte.dev"
             "hearth.h.lyte.dev"
             "idm.h.lyte.dev"
             "mail.lyte.dev"
