@@ -58,6 +58,21 @@ in
       default = [ ];
       description = "IP addresses of secondary nameservers to NOTIFY.";
     };
+
+    listenAddresses = mkOption {
+      type = types.listOf types.str;
+      default = [
+        "0.0.0.0@53"
+        "::@53"
+      ];
+      description = ''
+        Knot `server.listen` entries. Defaults to the IPv4+IPv6 wildcards.
+        Set to specific addresses (e.g. [ "127.0.0.1@53" "192.168.0.9@53" ]) on
+        hosts where another service already binds an address on :53 — e.g.
+        podman's aardvark-dns on its bridge gateway — since the wildcard would
+        collide with that bind.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -146,6 +161,8 @@ in
             ) zoneFiles
           );
 
+          listenLines = concatStringsSep "\n" (map (a: "  listen: ${a}") cfg.listenAddresses);
+
           configScript = ''
             set -euo pipefail
             mkdir -p /var/lib/knot/zones
@@ -156,8 +173,7 @@ in
 
             cat > "$conf" <<'STATICEOF'
             server:
-              listen: 0.0.0.0@53
-              listen: ::@53
+            ${listenLines}
 
             log:
               - target: syslog

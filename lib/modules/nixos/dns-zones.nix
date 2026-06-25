@@ -14,7 +14,11 @@ let
     SOA = {
       nameServer = "ns0.1984.is.";
       adminEmail = "dns@lyte.dev";
-      serial = 2026041300;
+      # NOTE (temporary, 2026-06): while pebble (the normal hidden-primary) is
+      # offline, beefcake serves this zone as a temporary hidden primary. Serial
+      # must exceed the live serial the secondaries are frozen on (2025032567)
+      # or they will reject beefcake's zone as older. Bumped well past it.
+      serial = 2026062400;
       refresh = 7200;
       retry = 3600;
       expire = 1209600;
@@ -59,7 +63,12 @@ let
       email.CNAME = [ "mailgun.org." ];
 
       # --- Static records ---
-      pebble.A = [ "204.168.181.230" ];
+      # TEMPORARY (2026-06): pebble is offline (Hetzner billing lock). The MX
+      # (-> pebble.lyte.dev) and SPF (a:pebble.lyte.dev) both key off this A
+      # record, so pointing it at the home WAN IP routes inbound mail to
+      # beefcake directly with NO dependency on the dynamic `mail` record being
+      # populated yet. REVERT to 204.168.181.230 once pebble is back online.
+      pebble.A = [ "136.33.254.144" ];
 
       "login.alaeria".CNAME = [ "alias.deno.net." ];
       "_acme-challenge.login.alaeria".CNAME = [ "_acme.deno.net." ];
