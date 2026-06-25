@@ -5,6 +5,10 @@
   ...
 }:
 {
+  imports = [
+    ./foxtrot-viture-wake.nix
+  ];
+
   system.stateVersion = "24.11";
   networking.hostName = "foxtrot";
   hardwareModules = [ "framework-13-7040-amd" ];
