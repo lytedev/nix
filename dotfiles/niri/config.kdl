@@ -379,6 +379,14 @@ window-rule {
     open-floating true
 }
 
+// "Gaming mode": the nested gamescope window (Steam Big Picture / games via
+// `foxtrot-gamemode`) takes a full column instead of the default half. Swap to
+// `open-fullscreen true` if you want it bezel-free.
+window-rule {
+    match app-id="gamescope"
+    default-column-width { proportion 1.0; }
+}
+
 // Example: block out two password managers from screen capture.
 // (This example rule is commented out with a "/-" in front.)
 /-window-rule {
