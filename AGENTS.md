@@ -2,6 +2,25 @@
 
 Instructions for AI coding agents working in this repository.
 
+## Shell
+
+The interactive and login shell on this system — and on the remote hosts, for
+both the primary user and `root` — is **fish**, not bash. Shell snippets in this
+file, and any command you run over SSH or expect to run interactively, must be
+fish-compatible.
+
+Key differences from POSIX/bash to watch for:
+
+- **Variable assignment:** `set var value`, not `var=value`.
+- **No heredocs:** fish has no `<<EOF`. Write the file another way, or run the
+  block under bash.
+- **Logic/operators:** `and` / `or` / `not` are commands (not `&&`/`||`); `;`
+  separates statements. Command substitution is `(cmd)`, e.g.
+  `nix fmt -- (jj file list)`.
+- **Running bash on purpose:** for multi-statement scripts — especially over SSH,
+  where `ssh <host> '<cmd>'` lands in fish — wrap them: `bash -c '...'`, or pipe a
+  script in with `ssh <host> bash -s < script.sh`.
+
 ## Repository Structure
 
 - `lib/modules/nixos/` — active NixOS module configuration
