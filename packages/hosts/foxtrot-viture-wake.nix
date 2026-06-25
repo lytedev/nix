@@ -1,67 +1,67 @@
-# VITURE Pro XR glasses (USB 35ca:101d) — wake foxtrot from sleep when the
-# glasses are plugged in, gated on being on AC power, and keep the machine
-# running with the lid closed while the glasses are connected.
+# foxtrot suspend behaviour.
 #
-# Everything is logged under the `viture-wake` journal tag, so you can watch /
-# tune it with:  journalctl -t viture-wake -f
+# History: this began as a "wake foxtrot when the VITURE glasses are plugged in"
+# module — it armed USB wakeup on the XHC4 USB-C controller and ran a resume gate
+# to re-suspend spurious wakes. That wake-on-USB-plug was dropped (2026-06-25):
+# arming USB controllers for wakeup is a trigger for an AMD s2idle *resume hang*
+# on this Framework 13 — the machine would enter s2idle on lid-close and never
+# come back (no resume logged; not even the power button recovers a wedged
+# s2idle — hard reset only).
 #
-# Mechanism:
-#   1. udev arms USB wakeup on the XHC4 controller (PCI 0000:c3:00.4) — the
-#      USB-C port the glasses enumerate on — so plugging them in raises a wake
-#      from s2idle. Scoped to *only* this controller, so the always-present
-#      devices on XHC0/XHC1 (HDMI expansion card, fingerprint reader,
-#      Bluetooth) are left untouched and can't cause extra wakes.
-#   2. viture-wake-gate runs on every resume. If the lid is open it's a normal
-#      user wake → stay awake. If the lid is closed, it stays awake only when
-#      the glasses are present AND the laptop is on AC; otherwise it goes back
-#      to sleep (so a spurious wake, or a plug-in while on battery, re-suspends).
-#   3. viture-keepawake holds a `sleep` block inhibitor while an external
-#      display is connected AND we're on AC, so a docked session (glasses or any
-#      monitor) survives both the lid handler and swayidle's idle `systemctl
-#      suspend` (timeout 660). It blocks *suspend* only — swayidle's idle *lock*
-#      still fires, so stepping away locks. logind here is suspend-then-hibernate
-#      on lid close in all cases and the compositor is niri+swayidle, so an
-#      inhibitor is required (dock detection won't help). The wake-gate uses
-#      `systemctl suspend -i` so it can still force-resuspend a battery/spurious
-#      wake past this inhibitor.
+# What this module does now:
+#   1. disarm-usb-wakeup: a oneshot run *before every sleep* that disables wakeup
+#      on all USB controllers + devices. They are armed by the kernel default and
+#      the xHCI driver re-arms them on every resume with NO udev event to hook
+#      (verified: XHC0/1/3 have no udev rule yet come up armed; a `udevadm trigger
+#      --action=add` does not re-arm a disabled controller), so a one-shot or
+#      udev-rule disable can't hold. Re-running before each suspend guarantees
+#      wakeup is off at the moment we enter s2idle, which is what the hang depends
+#      on; the harmless re-arm on resume is cleaned up before the next sleep.
+#      Trade-off: no wake-on-USB-plug. The lid switch and power button still wake.
+#   2. viture-keepawake: holds a `sleep` inhibitor while an external display is
+#      connected AND we're on AC, so a docked session (glasses or any monitor)
+#      survives both the lid handler and swayidle's idle `systemctl suspend`. It
+#      blocks *suspend* only — swayidle's idle *lock* still fires, so stepping
+#      away still locks.
 #
-# Known limitation: lid-close is suspend-then-hibernate, so wake-on-plug only
-# works while the machine is still in s2idle. Once it hibernates (after the
-# HibernateDelaySec), a USB plug-in can't wake it — that needs the power button.
+# Watch both with:  journalctl -t s2idle-wakeup-fix -t viture-wake -f
 { pkgs, lib, ... }:
 let
-  vendor = "35ca";
-  product = "101d";
-  # XHC4 — the USB-C xHCI controller the glasses enumerate on. Matched by its
-  # stable PCI address so it doesn't depend on the (volatile) usb bus number.
-  controller = "0000:c3:00.4";
-
   binPath = lib.makeBinPath [
     pkgs.coreutils
     pkgs.systemd
     pkgs.util-linux
   ];
 
-  # Shared shell helpers prepended to each script.
-  helpers = ''
+  disarmUsbWakeup = pkgs.writeShellScript "disarm-usb-wakeup" ''
+    export PATH=${binPath}
+    log() { logger -t s2idle-wakeup-fix -- "$*"; }
+    n=0
+    # xHCI USB controllers (PCI class 0x0c0330) arm the PME that wakes the system
+    # from s2idle — arming them is what wedges resume on this board.
+    for d in /sys/bus/pci/devices/*; do
+      [ -r "$d/class" ] || continue
+      [ "$(cat "$d/class" 2>/dev/null)" = "0x0c0330" ] || continue
+      w="$d/power/wakeup"
+      if [ -w "$w" ] && [ "$(cat "$w" 2>/dev/null)" = "enabled" ]; then
+        echo disabled > "$w" 2>/dev/null && n=$((n + 1))
+      fi
+    done
+    # USB devices (root hubs + peripherals: glasses, controller puck, etc.).
+    for w in /sys/bus/usb/devices/*/power/wakeup; do
+      if [ -w "$w" ] && [ "$(cat "$w" 2>/dev/null)" = "enabled" ]; then
+        echo disabled > "$w" 2>/dev/null && n=$((n + 1))
+      fi
+    done
+    log "disarmed USB wakeup on $n controller(s)/device(s) before sleep"
+  '';
+
+  keepAwake = pkgs.writeShellScript "viture-keepawake" ''
     export PATH=${binPath}
     log() { logger -t viture-wake -- "$*"; }
 
-    glasses_present() {
-      local d
-      for d in /sys/bus/usb/devices/*; do
-        [ -r "$d/idVendor" ] || continue
-        if [ "$(cat "$d/idVendor" 2>/dev/null)" = "${vendor}" ] \
-          && [ "$(cat "$d/idProduct" 2>/dev/null)" = "${product}" ]; then
-          return 0
-        fi
-      done
-      return 1
-    }
-
     # Any external (non-eDP) display connected — the glasses' DP-alt-mode output
-    # or a regular monitor. Used to keep a docked session awake regardless of
-    # which external display it is.
+    # or a regular monitor.
     external_display_present() {
       local s
       for s in /sys/class/drm/card*-*/status; do
@@ -74,8 +74,8 @@ let
     }
 
     # On AC when the battery is not discharging (Charging / Not charging / Full)
-    # or any USB-C PD source is online. ACAD/online is deliberately NOT used —
-    # it reads 1 even on battery on this board.
+    # or any USB-C PD source is online. ACAD/online is deliberately NOT used — it
+    # reads 1 even on battery on this board.
     on_ac() {
       local s u
       s=$(cat /sys/class/power_supply/BAT1/status 2>/dev/null)
@@ -88,55 +88,12 @@ let
       return 1
     }
 
-    lid_state() {
-      local key st
-      read -r key st < /proc/acpi/button/lid/LID0/state 2>/dev/null
-      echo "$st"
-    }
-  '';
-
-  wakeGate = pkgs.writeShellScript "viture-wake-gate" ''
-    ${helpers}
-    lid=$(lid_state)
-    if [ "$lid" != "closed" ]; then
-      log "resume gate: lid=$lid -> normal/user wake, staying awake"
-      exit 0
-    fi
-
-    # Lid closed: give USB enumeration + USB-C PD negotiation a few seconds to
-    # settle, then require glasses AND AC, else go back to sleep.
-    g=no
-    a=no
-    for i in $(seq 1 6); do
-      g=no; a=no
-      glasses_present && g=yes
-      on_ac && a=yes
-      if [ "$g" = yes ] && [ "$a" = yes ]; then
-        log "resume gate: lid=closed glasses=yes ac=yes (after ''${i}s) -> staying awake (glasses session)"
-        exit 0
-      fi
-      sleep 1
-    done
-
-    log "resume gate: lid=closed glasses=$g ac=$a batt=$(cat /sys/class/power_supply/BAT1/status 2>/dev/null) -> conditions not met, re-suspending"
-    # -i so we win over the keepawake sleep inhibitor (which may already be held
-    # if the glasses are present but we're on battery).
-    systemctl suspend -i
-  '';
-
-  keepAwake = pkgs.writeShellScript "viture-keepawake" ''
-    ${helpers}
     inhibit_pid=""
     cleanup() { [ -n "$inhibit_pid" ] && kill "$inhibit_pid" 2>/dev/null || true; }
     trap cleanup EXIT INT TERM
 
     # Hold the inhibitor while an external display is connected AND we're on AC.
-    # This keeps a docked session (glasses or any monitor) alive against BOTH
-    # the lid handler and swayidle's idle `systemctl suspend` (a `sleep` block
-    # inhibitor covers both; `handle-lid-switch` also stops logind reacting to
-    # the lid at all). It deliberately blocks *suspend* only — swayidle's idle
-    # *lock* is not a sleep op, so stepping away still locks. A short debounce
-    # avoids dropping it on a transient battery-status flap (e.g. at 100%).
+    # A short debounce avoids dropping it on a transient battery-status flap.
     held=0
     miss=0
     log "keepawake watcher started (holds sleep inhibitor while external display + AC present)"
@@ -171,38 +128,34 @@ let
   '';
 in
 {
-  # 1. Arm USB wakeup on the XHC4 controller so a glasses plug-in wakes foxtrot
-  #    from s2idle. Scoped to this controller only.
-  services.udev.extraRules = ''
-    # VITURE glasses wake-on-plug: arm wakeup on XHC4 (PCI ${controller}) and its root hubs.
-    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="${controller}", ATTR{power/wakeup}="enabled"
-    ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="xhci_hcd", KERNELS=="${controller}", ATTR{power/wakeup}="enabled"
-  '';
-
-  # 2. On every resume, re-suspend unless this was a normal (lid-open) wake or
-  #    the glasses + AC are present (lid closed).
-  systemd.services.viture-wake-gate = {
-    description = "VITURE glasses: re-suspend on resume unless glasses + AC (lid closed)";
+  # Disarm USB wakeup before every sleep — works around the AMD s2idle resume
+  # hang. xHCI controllers re-arm wakeup on resume (kernel default, no udev
+  # event), so this oneshot re-runs before each suspend, ordered Before the sleep
+  # services so it completes while still awake.
+  systemd.services.disarm-usb-wakeup = {
+    description = "Disarm USB wakeup before sleep (AMD s2idle resume-hang workaround)";
+    before = [
+      "systemd-suspend.service"
+      "systemd-suspend-then-hibernate.service"
+      "systemd-hibernate.service"
+      "systemd-hybrid-sleep.service"
+    ];
     wantedBy = [
       "suspend.target"
       "suspend-then-hibernate.target"
+      "hibernate.target"
       "hybrid-sleep.target"
-    ];
-    after = [
-      "systemd-suspend.service"
-      "systemd-suspend-then-hibernate.service"
-      "systemd-hybrid-sleep.service"
     ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = wakeGate;
+      ExecStart = disarmUsbWakeup;
     };
   };
 
-  # 3. While the glasses are connected, block lid-switch suspend so the laptop
-  #    keeps driving them with the lid closed.
+  # Keep a docked session (glasses or any external monitor) alive with the lid
+  # closed while on AC. Blocks suspend only; idle lock still fires.
   systemd.services.viture-keepawake = {
-    description = "VITURE glasses: keep awake with lid closed while connected";
+    description = "VITURE/dock: keep awake (suspend inhibitor) while external display + AC connected";
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       ExecStart = keepAwake;
