@@ -82,10 +82,15 @@ let
     umask 0077
 
     # Fresh example config from the package, then deep-merge our overrides.
-    # Drop the example's default permissions first so the merge doesn't keep
+    # `mautrix-gmessages -e` REFUSES to overwrite an existing config, so remove
+    # any prior one first — this keeps the init idempotent across redeploys and
+    # restarts (the registration and its stable tokens are preserved separately
+    # below, so regenerating the config loses nothing).
+    rm -f '${configFile}'
+    ${lib.getExe pkg} -e -c '${configFile}' -n
+    # Drop the example's default permissions before the merge so it doesn't keep
     # them (the example grants "*": relay and an @admin:example.com entry);
     # we want only the permissions from our overrides.
-    ${lib.getExe pkg} -e -c '${configFile}' -n
     ${yq} -i 'del(.bridge.permissions)' '${configFile}'
     ${yq} -i '. *= load("${overridesYaml}")' '${configFile}'
 
