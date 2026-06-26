@@ -169,22 +169,39 @@
     # single niri toplevel — niri/overview stay underneath. Launch from the app
     # launcher or bind a niri key to `foxtrot-gamemode`.
     #
-    # Auto-detects the focused niri output's current mode (resolution + refresh,
-    # niri reports refresh in mHz) and hands it to gamescope, falling back to
-    # 1080p60 if niri/jq aren't reachable. (The flatpak reaches gamescope's
-    # nested Wayland socket fine — no --socket=wayland override needed.)
+    # Sizes gamescope from the VITURE glasses' current mode when connected (gaming
+    # mode is pinned there via niri open-on-output), falling back to the focused
+    # output otherwise — so launching with the lid open doesn't render at the
+    # laptop panel's resolution on the glasses. niri reports refresh in mHz;
+    # falls back to 1080p60 if niri/jq aren't reachable. (The flatpak reaches
+    # gamescope's nested Wayland socket fine — no --socket=wayland override.)
+    #
+    # Also inhibits DMS's screen-lock for the session: its lock timer is
+    # `enabled = acLockTimeout > 0` (and it ignores the `dms ipc inhibit` flag),
+    # so set the timeout to 0 while running and restore on exit via a trap.
     (writeShellScriptBin "foxtrot-gamemode" ''
       set -u
       export PATH=/run/current-system/sw/bin:$PATH
-      sock="''${NIRI_SOCKET:-$(ls "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/niri.wayland-*.sock 2>/dev/null | head -n1)}"
+      export NIRI_SOCKET="''${NIRI_SOCKET:-$(ls "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/niri.wayland-*.sock 2>/dev/null | head -n1)}"
+      # Prefer the glasses output (matched by model); else whatever's focused.
+      out=$(niri msg --json outputs 2>/dev/null | jq -r 'to_entries[] | select(.value.model=="VITURE") | .key' 2>/dev/null | head -n1)
+      [ -n "$out" ] || out=$(niri msg --json focused-output 2>/dev/null | jq -r '.name' 2>/dev/null)
       read -r W H R < <(
-        NIRI_SOCKET="$sock" niri msg --json focused-output 2>/dev/null \
-          | jq -r '.modes[.current_mode] | "\(.width) \(.height) \((.refresh_rate/1000)|round)"' 2>/dev/null
+        niri msg --json outputs 2>/dev/null \
+          | jq -r --arg o "$out" '.[$o] | .modes[.current_mode] | "\(.width) \(.height) \((.refresh_rate/1000)|round)"' 2>/dev/null
       ) || true
       : "''${W:=1920}" "''${H:=1080}" "''${R:=60}"
       [ "$R" -ge 20 ] 2>/dev/null || R=60
-      echo "foxtrot-gamemode: gamescope output ''${W}x''${H}@''${R}Hz" >&2
-      exec gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
+      echo "foxtrot-gamemode: gamescope output ''${W}x''${H}@''${R}Hz (output: ''${out:-?})" >&2
+
+      settings="$HOME/.config/DankMaterialShell/settings.json"
+      saved=$(jq -r '.acLockTimeout // 300' "$settings" 2>/dev/null)
+      case "$saved" in "" | 0) saved=300 ;; esac
+      restore() { dms ipc call settings set acLockTimeout "$saved" >/dev/null 2>&1 || true; }
+      trap restore EXIT INT TERM
+      dms ipc call settings set acLockTimeout 0 >/dev/null 2>&1 || true
+
+      gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
         flatpak run com.valvesoftware.Steam -gamepadui "$@"
     '')
 

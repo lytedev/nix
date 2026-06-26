@@ -390,6 +390,11 @@ window-rule {
 // `open-fullscreen true` if you want it bezel-free.
 window-rule {
     match app-id="gamescope"
+    // Always open gaming-mode (gamescope) on the VITURE glasses when connected,
+    // regardless of which output is focused / whether the lid is open. Without
+    // this, niri's per-output workspaces can land it on (or snap it back to) the
+    // built-in panel when eDP re-enables on lid-open.
+    open-on-output "PNP(CVT) VITURE 0x88888800"
     default-column-width { proportion 1.0; }
 }
 
