@@ -37,6 +37,21 @@
       device = "zstorage/nix";
       fsType = "zfs";
     };
+
+    # Relocated off the single non-redundant boot disk onto the pool (see
+    # issues/open/beefcake-relocate-state-to-pool.md). These datasets and their
+    # data MUST already exist before this is deployed — the runbook creates them
+    # (zfs create + rsync) first; otherwise an empty dataset mounts over live
+    # state. Both use mountpoint=legacy so NixOS owns the mount + boot ordering
+    # (local-fs.target, before podman / DynamicUser services), like /nix.
+    "/var/lib/containers" = {
+      device = "zstorage/containers";
+      fsType = "zfs";
+    };
+    "/var/lib/private" = {
+      device = "zstorage/varlib-private";
+      fsType = "zfs";
+    };
   };
 
   services = {
