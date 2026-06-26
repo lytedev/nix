@@ -76,7 +76,14 @@
       }
     ];
     systemd.settings.Manager.DefaultLimitNOFILE = 524288;
-    systemd.user.extraConfig = "DefaultLimitNOFILE=524288";
+    # nixpkgs-unstable (Jun 2026) removed systemd.user.extraConfig in favour of
+    # systemd.user.settings.Manager; 26.05 stable still only has extraConfig.
+    # Pick whichever the active channel provides so this evaluates on both.
+    systemd.user =
+      if options.systemd.user ? settings then
+        { settings.Manager.DefaultLimitNOFILE = 524288; }
+      else
+        { extraConfig = "DefaultLimitNOFILE=524288"; };
 
     environment = {
       systemPackages = with pkgs; [

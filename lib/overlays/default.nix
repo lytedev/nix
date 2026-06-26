@@ -297,19 +297,6 @@ let
             { }
         );
 
-      # Sunshine: vendored from open nixpkgs PR #521906 (Qubasa:update_sunshine)
-      # until it lands. Bumps 2025.924.154138 -> 2026.516.143833, which fixes
-      # critical CVE-2026-32253 (auth bypass via improper client-cert validation,
-      # GHSA-ph75-mgxh-mv57). All nixpkgs channels are ~9mo behind upstream
-      # because the new release changed its build (now vendors an npm
-      # package-lock.json), so a trivial version/src bump fails — we callPackage
-      # the PR's package.nix (+ its package-lock.json/updater.sh) verbatim.
-      #
-      # To refresh: re-fetch the three files in packages/sunshine/ from the PR
-      # head. Drop this whole block once #521906 merges and nixpkgs-unstable is
-      # updated past it.
-      sunshine = final.callPackage ../../packages/sunshine/package.nix { };
-
       bitwarden-desktop = prev.bitwarden-desktop.overrideAttrs (old: {
         preBuild = ''
           ${old.preBuild}
