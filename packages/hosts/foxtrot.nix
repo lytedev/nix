@@ -7,6 +7,7 @@
 {
   imports = [
     ./foxtrot-viture-wake.nix
+    ./foxtrot-steamos-manager-shim.nix
   ];
 
   system.stateVersion = "24.11";
