@@ -26,6 +26,7 @@
     flakePath = "/etc/nix/flake";
     podman.enable = true;
     two-in-one.enable = true;
+    desktop.niri.osk = "wvkbd";
     gpu = "intel";
     family-account.enable = true;
     syncthing.enable = true;

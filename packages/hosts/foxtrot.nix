@@ -110,6 +110,7 @@
     syncthing.enable = true;
     desktop = {
       displaylink.enable = true;
+      niri.osk = "wvkbd";
       easyeffects = {
         enable = true;
         preset = "philonmetal";
