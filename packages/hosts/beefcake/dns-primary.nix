@@ -33,6 +33,12 @@
 # MX path (pebble haproxy relay vs direct vs redundant MX) is its own change.
 { config, ... }:
 {
+  # knot starts before tailscale assigns 100.64.0.2, so its bind to that tailnet
+  # listen address would fail (and knot silently drops it — then pebble can't AXFR
+  # over the tailnet). Allow binding the not-yet-present address; knot's socket
+  # starts receiving once tailscale brings the IP up.
+  boot.kernel.sysctl."net.ipv4.ip_nonlocal_bind" = 1;
+
   # TSIG keys mirrored from pebble's sops into beefcake's (already staged). knot's
   # preStart (root) injects them into the generated config; group `knot` matches
   # pebble's convention.

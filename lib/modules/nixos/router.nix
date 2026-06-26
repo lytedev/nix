@@ -265,10 +265,21 @@ in
               protocol: ports: address: comment:
               "iifname ${wan} ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # ${comment}";
 
-            # Hairpin NAT: DNAT for LAN traffic to router's own IPs
+            # Hairpin NAT: DNAT for LAN traffic to router's own IPs.
+            # EXCLUDE :53 — dnsmasq serves the router's own :53 for all LAN/DHCP
+            # clients, so a LAN query to the router's IP must reach dnsmasq, not be
+            # hairpinned to a host's authoritative knot (which has no .lan /
+            # recursion / split-horizon). :53 stays in mkNatRule, so the WAN
+            # forward (e.g. 1984 -> beefcake AXFR) is unaffected.
             mkHairpinNatRule =
               protocol: ports: address: comment:
-              "iifname ${lan} fib daddr type local ${protocol} dport {${concatStringsSep ", " (map toString (flatten (toList ports)))}} dnat to ${address} # hairpin ${comment}";
+              let
+                hp = builtins.filter (p: p != 53) (flatten (toList ports));
+              in
+              if hp == [ ] then
+                ""
+              else
+                "iifname ${lan} fib daddr type local ${protocol} dport {${concatStringsSep ", " (map toString hp)}} dnat to ${address} # hairpin ${comment}";
 
             natPorts = flatten (
               mapAttrsToList (
