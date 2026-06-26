@@ -13,6 +13,16 @@ This system uses Nix for package management. Always consider if a tool can be ru
 
 Follow standard coding practices and use appropriate tools for the language/framework being used.
 Format code using the configured formatter _before_ pushing.
+Avoid lines of code that require comments to clarify what something _is_.
+Instead, bind the value to a name or put it in a constant or map with a good
+name or key that clearly indicates the purpose.
+```bash
+# bad
+IP="192.168.0.1" # beefcake
+# good
+BEEFCAKE_IP="192.168.0.1"
+IP="$BEEFCAKE_IP"
+```
 
 # Citing Documentation
 
