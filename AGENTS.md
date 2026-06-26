@@ -68,11 +68,28 @@ home-manager setup. The active configuration is in `lib/modules/nixos/`.
 This repo uses **jujutsu (jj)**, not git directly. Use `jj` commands for all
 VCS operations.
 
-If asked, setup jj workspaces for separate features somewhere in the following format:
+**Almost always do feature work in a dedicated jj workspace, not the `/etc/nixos`
+default working copy.** Daniel edits `/etc/nixos` live and concurrently, so doing
+your own work there churns his on-disk files out from under him, and any jj
+operation that moves `@` (e.g. `jj new`, `jj edit`) can disrupt his in-progress
+state. The repo is also operated by **multiple agents at once** — `jj undo`/`jj
+redo` act on the *global* op log and can silently clobber another workspace's
+operation (e.g. a push), so avoid them; prefer targeted `jj edit`/`jj abandon`/`jj
+restore` against specific change IDs. A separate workspace isolates all of this.
+
+Only skip the workspace for a *very, very* good reason — e.g. a tiny read-only
+inspection, or work that is intrinsically about the default working copy itself —
+and say why.
+
+Set up workspaces in this format:
 - $CODE/workspaces/$REPO_NAME/$WORKSPACE_NAME
   - $CODE is the related code directory, usually ~/../code (since $HOME is /home/daniel/.home for clutter reasons and the code directory is usually /home/daniel/code)
   - $REPO_NAME would be nix in this case, so going from code/nix to code/workspaces/nix should be obvious
   - $WORKSPACE_NAME should probably just be the branch or bookmark name
+- `jj workspace add --revision main $CODE/workspaces/nix/$WORKSPACE_NAME`
+- Note: `fj` needs the forgejo remote, which lives in the `/etc/nixos` checkout —
+  run `fj pr create ...` from `/etc/nixos` (it operates on the pushed bookmark, not
+  the cwd's working copy).
 
 ## Deploying (deploy-rs)
 
