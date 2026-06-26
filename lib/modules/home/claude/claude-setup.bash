@@ -21,13 +21,14 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
     rm -f "$f"
   done
 
-  # Two-step merge: first strip existing claude-hook entries, then merge with new hooks
-  # Step 1: Remove any existing claude-hook entries from hook arrays
+  # Two-step merge: first strip existing nix-managed entries, then merge with new hooks
+  # Step 1: Remove any existing nix-managed hook entries (claude-hook, block-git)
+  #         from hook arrays so re-merging doesn't accumulate duplicates.
   STRIPPED="$(jq '
     if .hooks then
       .hooks |= with_entries(
         .value |= [.[] |
-          . + {hooks: [(.hooks // [])[] | select(.command | test("claude-hook") | not)]}
+          . + {hooks: [(.hooks // [])[] | select(.command | test("claude-hook|block-git") | not)]}
         ] | [.[] | select((.hooks | length) > 0)]
       )
     else .

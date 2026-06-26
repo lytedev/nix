@@ -33,6 +33,17 @@ let
 
   hooksConfig = builtins.toJSON {
     hooks = {
+      PreToolUse = [
+        {
+          matcher = "Bash";
+          hooks = [
+            {
+              type = "command";
+              command = "block-git";
+            }
+          ];
+        }
+      ];
       SessionStart = [
         {
           matcher = "startup|resume";
@@ -104,6 +115,15 @@ let
       coreutils
       zellij
       rust-petname
+    ];
+  };
+
+  block-git = mkScript {
+    name = "block-git";
+    runtimeInputs = with pkgs; [
+      jq
+      gnugrep
+      coreutils
     ];
   };
 
@@ -220,6 +240,7 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
       claude-hook
+      block-git
       claude-notify
       claude-notify-listen
       claude-matrix-send
