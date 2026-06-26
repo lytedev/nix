@@ -34,8 +34,14 @@
           steamosPolkitHelpersCompat = pkgs.runCommand "steamos-polkit-helpers-compat" { } ''
             mkdir -p $out
             for stub in steamos-update steamos-select-branch; do
+              # Jovian (2026-06) renamed the top-level steamos-update stub to
+              # holo-update; keep the Steam-facing name but exec the new one.
+              case "$stub" in
+                steamos-update) src=holo-update ;;
+                *) src="$stub" ;;
+              esac
               echo '#!/bin/sh' > $out/$stub
-              echo "exec ${pkgs.jovian-stubs}/bin/$stub \"\$@\"" >> $out/$stub
+              echo "exec ${pkgs.jovian-stubs}/bin/$src \"\$@\"" >> $out/$stub
               chmod +x $out/$stub
             done
             printf '#!/bin/sh\nexit 0\n' > $out/jupiter-biosupdate
@@ -49,8 +55,13 @@
           steamosPolkitHelpersFHS = pkgs.runCommand "steamos-polkit-helpers-fhs" { } ''
             mkdir -p $out/bin/steamos-polkit-helpers
             for stub in steamos-update steamos-select-branch; do
+              # steamos-update was renamed to holo-update in Jovian (2026-06).
+              case "$stub" in
+                steamos-update) src=holo-update ;;
+                *) src="$stub" ;;
+              esac
               echo '#!/bin/sh' > $out/bin/steamos-polkit-helpers/$stub
-              echo "exec ${pkgs.jovian-stubs}/bin/$stub \"\$@\"" >> $out/bin/steamos-polkit-helpers/$stub
+              echo "exec ${pkgs.jovian-stubs}/bin/$src \"\$@\"" >> $out/bin/steamos-polkit-helpers/$stub
               chmod +x $out/bin/steamos-polkit-helpers/$stub
             done
             printf '#!/bin/sh\nexit 0\n' > $out/bin/steamos-polkit-helpers/jupiter-biosupdate
@@ -96,8 +107,10 @@
             (lib.lowPrio (
               pkgs.runCommand "steamos-update-stubs" { } ''
                 mkdir -p $out/bin
-                # steamos-update: stub exits 7 (no update) or 8 (reboot needed)
-                cp ${pkgs.jovian-stubs}/bin/steamos-update $out/bin/steamos-update
+                # steamos-update: stub exits 7 (no update) or 8 (reboot needed).
+                # Jovian (2026-06) renamed this top-level stub to holo-update;
+                # install it under the name Steam still invokes.
+                cp ${pkgs.jovian-stubs}/bin/holo-update $out/bin/steamos-update
                 # steamos-update-rauc: RAUC-based update check — always no entries on Jovian NixOS
                 printf '#!/bin/sh\necho "-- No entries --"\nexit 0\n' > $out/bin/steamos-update-rauc
                 chmod +x $out/bin/steamos-update-rauc
