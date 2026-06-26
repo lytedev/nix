@@ -41,6 +41,18 @@ fi
 echo "Connected!"
 echo ""
 
+# Correct the clock before syncing: the Mini's RTC can reset/drift, and save
+# sync uses rsync --update (newer-mtime-wins), so a wrong clock silently drops
+# save uploads. NTP by IP because this LAN's DNS doesn't resolve public names.
+# Best-effort — skipped silently if no NTP server is reachable.
+printf "${BLUE}[0/4] Syncing clock...${NC}\n"
+if ntpdate -b -u 162.159.200.123 216.239.35.0 >/dev/null 2>&1; then
+    echo "  clock set: $(date)"
+else
+    echo "  (skipped - no NTP reachable)"
+fi
+echo ""
+
 # Push new ROMs (miyoo -> server, add only, cannot delete)
 printf "${BLUE}[1/4] Pushing new ROMs...${NC}\n"
 rsync -avz --no-owner --no-group -e "$ROM_SSH" \
