@@ -20,6 +20,12 @@ jobs:
 
   build:
     runs-on: nixos-host
+    # Skip on main: the PR that introduced these changes already built every host
+    # (and warmed beefcake's nix cache). Rebuilding on the post-merge `main` push
+    # proves nothing new and just ties up the single serialized CI runner — badly
+    # on nixpkgs-bump merges (e.g. a ~30min stalwart Rust compile) while PR CI
+    # waits behind it. PRs still run the full build.
+    if: ${{ github.ref != 'refs/heads/main' }}
     steps:
     - uses: actions/checkout@v4
     - name: Build all hosts and devshells
