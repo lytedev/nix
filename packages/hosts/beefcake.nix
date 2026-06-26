@@ -177,6 +177,7 @@
     ./beefcake/samba.nix
     ./beefcake/syncthing.nix
     ./beefcake/roms.nix
+    ./beefcake/miyoo-retrodeck-mirror.nix
     # ./beefcake/n8n.nix # disabled 2026-06: unused (empty /var/lib/n8n, no workflows) and the uncached 2.25.7 npm build is a slow source compile on every rebuild
     # ./beefcake/happy.nix # retired 2026-06: podman-happy.service kept failing on activation (per Daniel)
     ./beefcake/hearth.nix
