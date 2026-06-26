@@ -122,6 +122,12 @@ output "BOE NE135A1M-NY1 Unknown" {
     variable-refresh-rate
 }
 
+// foxtrot / VITURE Pro XR glasses (1920x1080) — default scale was an unusable
+// 2.25 (853x480 logical); 1.5 gives a comfortable 1280x720.
+output "PNP(CVT) VITURE 0x88888800" {
+    scale 1.5
+}
+
 // portable sotsu monitor
 output "PNP(JMI) FlipAction16 P05162024" {
     scale 1.25
