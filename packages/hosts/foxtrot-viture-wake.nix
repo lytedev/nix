@@ -90,7 +90,12 @@ let
 
     inhibit_pid=""
     cleanup() { [ -n "$inhibit_pid" ] && kill "$inhibit_pid" 2>/dev/null || true; }
-    trap cleanup EXIT INT TERM
+    trap cleanup EXIT
+    # On stop/reboot, SIGTERM must actually *exit* the loop — not just run cleanup
+    # and resume the `while` — otherwise the service never stops and systemd waits
+    # the full TimeoutStopSec (~90s) before SIGKILL (a 90s shutdown delay). `exit`
+    # triggers the EXIT trap above, which releases the inhibitor.
+    trap 'exit 0' INT TERM
 
     # Hold the inhibitor while an external display is connected AND we're on AC.
     # A short debounce avoids dropping it on a transient battery-status flap.
