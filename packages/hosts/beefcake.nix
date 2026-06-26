@@ -190,6 +190,7 @@
     # ./beefcake/mautrix-meta-facebook.nix
     # ./beefcake/mautrix-meta-instagram.nix
     ./beefcake/mautrix-slack.nix
+    ./beefcake/mautrix-gmessages.nix
     ./beefcake/matrix-hookshot.nix
     ./beefcake/unifi.nix
   ]);
