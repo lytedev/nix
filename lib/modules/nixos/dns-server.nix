@@ -12,6 +12,7 @@ let
     mkIf
     mapAttrsToList
     concatStringsSep
+    filterAttrs
     ;
   cfg = config.lyte.dns-server;
 
@@ -73,6 +74,36 @@ in
         collide with that bind.
       '';
     };
+
+    remotes = mkOption {
+      type = types.attrsOf (
+        types.submodule {
+          options = {
+            address = mkOption {
+              type = types.str;
+              description = "Remote server address in knot `ip@port` form (e.g. 100.64.0.2@53).";
+            };
+            key = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Optional TSIG key id (must exist in tsigKeys) to authenticate to this remote.";
+            };
+          };
+        }
+      );
+      default = { };
+      description = "Knot `remote:` entries — masters this server pulls secondary zones from.";
+    };
+
+    secondaryOf = mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      description = ''
+        Map of zone name -> remote id. Listed zones are served as SECONDARY
+        (AXFR'd from that remote master, no local zone file, no local signing —
+        the zone is served exactly as received) instead of as a local primary.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -91,11 +122,23 @@ in
     systemd.services.knot = {
       preStart =
         let
+          # Zones we serve as a local primary = all generated zones MINUS any
+          # we're configured to be a secondary for (those are AXFR'd, no file).
+          primaryZoneFiles = filterAttrs (name: _: !(cfg.secondaryOf ? ${name})) zoneFiles;
+
           # Build zone file entries (copy from store to Knot's zone dir)
           zoneSetup = concatStringsSep "\n" (
             mapAttrsToList (name: file: ''
               cp --no-preserve=mode "${file}" "/var/lib/knot/zones/${name}.zone"
-            '') zoneFiles
+            '') primaryZoneFiles
+          );
+
+          # remote: entries (masters we pull secondary zones from)
+          remoteBlocks = concatStringsSep "\n" (
+            mapAttrsToList (
+              id: r:
+              "  - id: ${id}\n    address: ${r.address}${if r.key != null then "\n    key: ${r.key}" else ""}"
+            ) cfg.remotes
           );
 
           # Build TSIG key blocks for the config
@@ -143,22 +186,36 @@ in
             ) cfg.acl
           );
 
-          # Zone config blocks
+          # ACL ids apply to every zone this server hosts (transfer/update/notify).
+          aclIdsLine =
+            let
+              aclIds = map (a: a.id) cfg.acl;
+            in
+            if aclIds != [ ] then "\n    acl: [${concatStringsSep ", " aclIds}]" else "";
+
+          # Primary zone config blocks (served from a local, locally-signed file)
           zoneBlocks = concatStringsSep "\n" (
             mapAttrsToList (
               name: _file:
               let
-                zoneAcls = builtins.filter (a: true) cfg.acl;
-                aclIds = map (a: a.id) zoneAcls;
-                aclLine = if aclIds != [ ] then "\n    acl: [${concatStringsSep ", " aclIds}]" else "";
                 notifyLine =
                   if cfg.secondaryNotify != [ ] then
                     "\n    notify: [${concatStringsSep ", " cfg.secondaryNotify}]"
                   else
                     "";
               in
-              "  - domain: ${name}\n    file: /var/lib/knot/zones/${name}.zone\n    storage: /var/lib/knot/zones\n    zonefile-sync: -1\n    zonefile-load: difference-no-serial\n    journal-content: all\n    semantic-checks: true\n    dnssec-signing: true\n    dnssec-policy: default-dnssec${aclLine}${notifyLine}"
-            ) zoneFiles
+              "  - domain: ${name}\n    file: /var/lib/knot/zones/${name}.zone\n    storage: /var/lib/knot/zones\n    zonefile-sync: -1\n    zonefile-load: difference-no-serial\n    journal-content: all\n    semantic-checks: true\n    dnssec-signing: true\n    dnssec-policy: default-dnssec${aclIdsLine}${notifyLine}"
+            ) primaryZoneFiles
+          );
+
+          # Secondary zone config blocks: AXFR'd from a master, no local file, no
+          # local signing — the (already-signed) zone is served exactly as received.
+          # NOTIFY from the configured master is accepted automatically by knot.
+          secondaryZoneBlocks = concatStringsSep "\n" (
+            mapAttrsToList (
+              name: master:
+              "  - domain: ${name}\n    storage: /var/lib/knot/zones\n    master: ${master}\n    journal-content: all${aclIdsLine}"
+            ) cfg.secondaryOf
           );
 
           listenLines = concatStringsSep "\n" (map (a: "  listen: ${a}") cfg.listenAddresses);
@@ -192,18 +249,19 @@ in
             echo "key:" >> "$conf"
             ${tsigKeyBlocks}
 
-            # ACL section
+            # Remote (masters for secondary zones) + ACL sections
             cat >> "$conf" <<'ACLEOF'
-
+            ${lib.optionalString (cfg.remotes != { }) "\nremote:\n${remoteBlocks}\n"}
             acl:
             ${aclBlocks}
             ACLEOF
 
-            # Zone section
+            # Zone section (local primaries + AXFR'd secondaries)
             cat >> "$conf" <<'ZONEEOF'
 
             zone:
             ${zoneBlocks}
+            ${secondaryZoneBlocks}
             ZONEEOF
 
             chown knot:knot "$conf"

@@ -19,10 +19,10 @@ let
     SOA = {
       nameServer = "ns0.1984.is.";
       adminEmail = "dns@lyte.dev";
-      # NOTE (temporary, 2026-06): while pebble (the normal hidden-primary) is
-      # offline, beefcake serves this zone as a temporary hidden primary. Serial
-      # must exceed the live serial the secondaries are frozen on (2025032567)
-      # or they will reject beefcake's zone as older. Bumped well past it.
+      # beefcake is the active hidden primary that serves this zone (pebble is now
+      # a secondary). knot uses difference-no-serial and manages the running serial
+      # itself; this base just had to exceed the serial the secondaries were frozen
+      # on during the 2026-06 cutover (2025032567), so it was bumped well past it.
       serial = 2026062400;
       refresh = 7200;
       retry = 3600;

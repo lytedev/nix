@@ -1,24 +1,36 @@
-# TEMPORARY (2026-06): beefcake as a hidden DNS primary for lyte.dev.
+# beefcake = the ACTIVE hidden primary for lyte.dev (part of a redundant pair).
 #
-# WHY: pebble — the normal hidden-primary AND the mail host the MX points at —
-# is offline (Hetzner account billing-locked). With pebble down we cannot edit
-# the zone the 1984.is + he.net secondaries serve, so inbound mail (MX ->
-# pebble.lyte.dev) is dead and Daniel can't receive the mail he needs to unlock
-# Hetzner. This stands knot up on beefcake serving the same zone (from
-# dns-zones.nix, whose pebble.A is temporarily pointed at the home WAN IP so the
-# MX routes here), lets the existing secondaries AXFR from beefcake, and — via
-# the dns-updater retarget in beefcake.nix (server -> 127.0.0.1) — repopulates
-# the dynamic records on this local knot. The cutover is manual: Daniel repoints
-# each secondary's master IP 204.168.181.230 -> 136.33.254.144.
+# HISTORY/WHY: lyte.dev used to have pebble (a Hetzner VPS) as its sole hidden
+# primary. In 2026-06 a Hetzner billing lock killed pebble, and because it was
+# the *only* box that could edit the zone, we couldn't repoint the MX — inbound
+# mail died right when Daniel needed it to unlock Hetzner (a circular dependency).
+# We recovered by standing knot up here and repointing the 1984 secondaries at
+# beefcake. We then kept beefcake as the active primary and made pebble a
+# warm-standby SECONDARY (see packages/hosts/pebble.nix) that AXFRs this zone
+# over the tailnet and is also listed as a backup master at 1984. End state:
+# EITHER box can die and DNS keeps serving with no manual scramble.
+#
+#   dns-updater (beefcake, -> 127.0.0.1)  writes dynamic records here
+#   beefcake (primary, signs) ── AXFR ──> pebble (secondary)  and ──> 1984 ns0/1/2
+#   1984 master list = [ beefcake, pebble ]   (falls back automatically)
+#
+# Why beefcake active rather than pebble: making pebble the write-primary again
+# would need a fiddly knot serial re-sync (it was offline through the cutover, so
+# its serial is stale/below live); beefcake-active reaches the same redundancy
+# with far less risk. Trade-off — beefcake's home IP is dynamic, so if it rotates
+# pebble keeps serving the last zone and a monitor alerts to repoint; pebble's
+# static IP covers the converse. Inherent residual SPOF: *new* record writes need
+# one active primary, but those are rare (home IP) and failover is a scripted flip.
 #
 # DNSSEC: lyte.dev is signed but the parent (.dev) has NO DS record, so the zone
-# is insecure/unvalidated. beefcake's knot signs with its own freshly-generated
-# keys (dns-server module default) — harmless, since nothing validates the chain.
+# is insecure/unvalidated. beefcake signs with its own keys (harmless — nothing
+# validates the chain); pebble, as a secondary, serves beefcake's signed copy
+# verbatim (no re-signing), so the two stay byte-identical.
 #
-# TO REVERT once pebble is restored: Daniel repoints the secondaries' master back
-# to pebble; then remove this import, revert dns-zones.nix (pebble.A + serial) and
-# the dns-updater `server` in beefcake.nix, and drop the :53 carve-out in
-# lan-lockdown.nix and the DNS forward in router.nix.
+# KNOWN TEMP REMNANT (separate follow-up): dns-zones.nix `pebble.A` still points
+# at the home WAN IP (a recovery hack so MX->pebble.lyte.dev routed here). Mail
+# works direct to beefcake. Restoring pebble.A to 204.168.181.230 + deciding the
+# MX path (pebble haproxy relay vs direct vs redundant MX) is its own change.
 { config, ... }:
 {
   # TSIG keys mirrored from pebble's sops into beefcake's (already staged). knot's
@@ -57,12 +69,13 @@
 
     # beefcake's podman bridge runs aardvark-dns on 10.88.0.1:53, so knot cannot
     # use the 0.0.0.0 wildcard (it would collide). Bind specific addresses: the
-    # loopback for the local dns-updater, and the LAN IP for the secondaries'
-    # AXFR (which the router DNATs to 192.168.0.9). IPv4 only — the secondary
-    # sources are all IPv4.
+    # loopback for the local dns-updater, the LAN IP for the public secondaries'
+    # AXFR (which the router DNATs to 192.168.0.9), and the tailnet IP so pebble
+    # can pull the zone over the tailnet. IPv4 only — all transfer sources are v4.
     listenAddresses = [
       "127.0.0.1@53"
       "192.168.0.9@53"
+      "100.64.0.2@53" # tailnet — pebble (secondary) AXFRs from here
     ];
 
     tsigKeys = {
@@ -99,6 +112,13 @@
       {
         id = "acl-xfr-he";
         key = "secondary-he";
+        action = [ "transfer" ];
+      }
+      {
+        # pebble (warm-standby secondary) pulls the zone from beefcake over the
+        # tailnet, so it can re-serve to 1984 if beefcake is unreachable.
+        id = "acl-xfr-pebble";
+        address = [ "100.64.0.15" ]; # pebble tailnet IP
         action = [ "transfer" ];
       }
     ];

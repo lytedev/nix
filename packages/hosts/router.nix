@@ -172,11 +172,12 @@ in
               "IMAPS" = 993;
               "HTTP" = 80;
               "HTTPS" = 443;
-              # TEMPORARY (2026-06): beefcake is the hidden DNS primary for
-              # lyte.dev while pebble is offline; the 1984.is/he.net secondaries
-              # AXFR (tcp) + SOA-check (udp) over :53. Source-restricted at
-              # beefcake's lan-lockdown. Remove once pebble is restored.
-              "DNS (temp primary)" = 53;
+              # beefcake is the active hidden DNS primary for lyte.dev; the
+              # 1984.is/he.net secondaries AXFR (tcp) + SOA-check (udp) over :53.
+              # Source-restricted at beefcake's lan-lockdown. Permanent (pebble,
+              # the warm-standby secondary, pulls from beefcake over the tailnet,
+              # not this path).
+              "DNS (lyte.dev primary)" = 53;
               "Minecraft Flanilla Creative" = 26968;
               "Jonland Minecraft" = 26974;
               "Prominence 2" = 26989;
@@ -187,7 +188,7 @@ in
                 80
                 443
               ];
-              "DNS (temp primary)" = 53; # TEMPORARY: see tcp :53 note above
+              "DNS (lyte.dev primary)" = 53; # see tcp :53 note above
               "Headscale STUN" = 3478;
               "Factorio" = 34197;
               "Jonland Minecraft" = 26974;

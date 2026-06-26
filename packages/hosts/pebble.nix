@@ -74,44 +74,31 @@ in
     "tQIDAQAB"
   ];
 
-  # --- Knot DNS authoritative server ---
+  # --- Knot DNS: SECONDARY for lyte.dev ---
+  # pebble used to be the sole hidden primary, which made it a single point of
+  # failure: the 2026-06 Hetzner billing lock took out DNS *and* mail at once
+  # because the only box that could edit the zone was the dead one. Now beefcake
+  # is the active primary and pebble is a SECONDARY that AXFRs the zone from it
+  # over the tailnet and re-serves it to the 1984 nameservers. Either box can die
+  # without taking DNS down. Full redundancy rationale in beefcake/dns-primary.nix.
   lyte.dns-server = {
     enable = true;
 
+    # he.net authenticates its AXFR with this key; 1984 transfers by source IP.
+    # (The update/host keys are gone — pebble no longer takes dynamic updates;
+    # the dns-updater feeds beefcake, and pebble mirrors beefcake via AXFR.)
     tsigKeys = {
-      beefcake-h = {
-        secretFile = config.sops.secrets.tsig-beefcake-h.path;
-      };
-      router-h = {
-        secretFile = config.sops.secrets.tsig-router-h.path;
-      };
-      pebble = {
-        secretFile = config.sops.secrets.tsig-pebble.path;
-      };
-      secondary-1984 = {
-        secretFile = config.sops.secrets.tsig-secondary-1984.path;
-      };
-      secondary-he = {
-        secretFile = config.sops.secrets.tsig-secondary-he.path;
-      };
+      secondary-1984.secretFile = config.sops.secrets.tsig-secondary-1984.path;
+      secondary-he.secretFile = config.sops.secrets.tsig-secondary-he.path;
     };
 
+    # Pull lyte.dev from beefcake (active primary) over the tailnet.
+    remotes.primary-beefcake.address = "100.64.0.2@53"; # beefcake tailnet IP
+    secondaryOf."lyte.dev" = "primary-beefcake";
+
+    # Let the public secondaries AXFR the zone from pebble too, so 1984 can list
+    # pebble as a backup master alongside beefcake.
     acl = [
-      {
-        id = "acl-update-beefcake";
-        key = "beefcake-h";
-        action = [ "update" ];
-      }
-      {
-        id = "acl-update-router";
-        key = "router-h";
-        action = [ "update" ];
-      }
-      {
-        id = "acl-update-pebble";
-        key = "pebble";
-        action = [ "update" ];
-      }
       {
         id = "acl-xfr-1984";
         address = [

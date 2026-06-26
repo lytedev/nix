@@ -47,13 +47,13 @@ let
   # Keep in sync with the router's beefcake `nat` block (packages/hosts/router.nix).
   publicTcp = "22,25,80,443,465,587,993,8080,24454,26968,26969,26974,26989";
   publicUdp = "3478,5353,10001,24454,26974,26989,34197";
-  # TEMPORARY (2026-06): while beefcake is the hidden DNS primary for lyte.dev
-  # (see ./dns-primary.nix), the 1984.is + he.net secondaries pull the zone via
-  # AXFR. Those connections hit the home WAN IP, are DNAT'd by the router to
-  # beefcake:53, and so arrive on eno1 from these source IPs with ctstate NEW —
-  # they must bypass the default-deny. Source-restricted (the router forwards
-  # :53 broadly; this allowlist is the real gate). Remove with the rest of the
-  # temporary DNS-primary setup once pebble is restored.
+  # beefcake is the active hidden DNS primary for lyte.dev (see ./dns-primary.nix),
+  # so the 1984.is + he.net secondaries pull the zone via AXFR. Those connections
+  # hit the home WAN IP, are DNAT'd by the router to beefcake:53, and arrive on
+  # eno1 from these source IPs with ctstate NEW — they must bypass the default-deny.
+  # Source-restricted (the router forwards :53 broadly; this allowlist is the real
+  # gate). Permanent — pebble (the warm-standby secondary) pulls over the tailnet,
+  # which isn't subject to this LAN lockdown, so it's not in this list.
   dnsSecondaries = [
     "45.76.37.222" # ns0.1984.is
     "194.58.192.36" # ns1.1984.is
@@ -84,7 +84,7 @@ in
     iptables -A nixos-lan-lockdown -p icmp -j RETURN
     iptables -A nixos-lan-lockdown -p tcp -m multiport --dports ${publicTcp} -j RETURN
     iptables -A nixos-lan-lockdown -p udp -m multiport --dports ${publicUdp} -j RETURN
-    # TEMPORARY: DNS secondaries -> beefcake:53 (AXFR/SOA) while acting as primary.
+    # DNS secondaries (1984/he) -> beefcake:53 (AXFR/SOA); beefcake = lyte.dev primary.
     ${dnsCarveRules}
     iptables -A nixos-lan-lockdown -j DROP
     # Hook NEW inbound connections arriving on the LAN into the lockdown chain.

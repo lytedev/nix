@@ -18,8 +18,8 @@
     secrets = {
       netlify-ddns-password.mode = "0400";
       nix-cache-priv-key.mode = "0400";
-      # knot (running as the `knot` user) reads this key in its preStart while
-      # beefcake acts as the temporary DNS primary, so it must be group-readable
+      # knot (running as the `knot` user) reads this key in its preStart, as
+      # beefcake is the lyte.dev DNS primary, so it must be group-readable
       # by knot — matching the other tsig keys + pebble's convention. root (and
       # the dns-updater, which runs as root) still read it fine.
       tsig-beefcake-h = {
@@ -43,12 +43,11 @@
   # --- Knot DNS dynamic updater (replaces deno-netlify-ddns long-term) ---
   lyte.dns-updater = {
     enable = true;
-    # TEMPORARY (2026-06): pebble (the normal target) is offline; beefcake is
-    # acting as the hidden primary (see ./beefcake/dns-primary.nix). Point the
-    # updater at the local knot so the dynamic records repopulate on the zone
-    # the secondaries will pull from here. REVERT to 204.168.181.230 once pebble
-    # is restored.
-    server = "127.0.0.1"; # was 204.168.181.230 (pebble)
+    # beefcake is the active hidden primary (see ./beefcake/dns-primary.nix), so
+    # the updater writes dynamic records to the LOCAL knot; beefcake signs + serves
+    # them, and pebble (secondary) + the 1984 nameservers pull them via AXFR. This
+    # is the permanent topology, not a temporary retarget.
+    server = "127.0.0.1";
     zone = "lyte.dev";
     tsigKeyFile = config.sops.secrets.tsig-beefcake-h.path;
     tsigKeyName = "beefcake-h";
@@ -165,7 +164,7 @@
     ./beefcake/jmap-matrix-notify
     ./beefcake/disk-alerts.nix
     ./beefcake/lan-lockdown.nix
-    ./beefcake/dns-primary.nix # TEMPORARY: hidden DNS primary while pebble is offline
+    ./beefcake/dns-primary.nix # active hidden DNS primary for lyte.dev (pebble = secondary)
 
     # ./beefcake/actual.nix
     ./beefcake/factorio-servers.nix
