@@ -126,10 +126,11 @@ in
         # Both modules default their target to graphical-session.target, which
         # fires under *any* wayland session (including plasma). Bind to
         # niri.service so the shell only runs when niri is the live session.
-        services.noctalia-shell = lib.mkIf (cfg.shell == "noctalia") {
+        programs.noctalia = lib.mkIf (cfg.shell == "noctalia") {
           enable = true;
           package = flakeInputs.noctalia.packages.${pkgs.system}.default;
-          target = "niri.service";
+          systemd.enable = true;
+          systemd.target = "niri.service";
         };
         programs.dank-material-shell = lib.mkIf (cfg.shell == "dms") {
           enable = true;
