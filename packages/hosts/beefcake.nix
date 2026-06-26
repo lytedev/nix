@@ -163,6 +163,7 @@
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
     ./beefcake/jmap-matrix-notify
+    ./beefcake/disk-alerts.nix
     ./beefcake/lan-lockdown.nix
     ./beefcake/dns-primary.nix # TEMPORARY: hidden DNS primary while pebble is offline
 
