@@ -1,4 +1,13 @@
 on: [push]
+
+# Only the latest push per ref matters: cancel a ref's in-progress/queued run
+# when a newer commit is pushed. Without this, every superseded commit's run
+# stayed queued behind the single serialized CI runner, so the queue backed up
+# and a PR's newest commit waited behind its own stale runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-format:
     runs-on: nixos-host
