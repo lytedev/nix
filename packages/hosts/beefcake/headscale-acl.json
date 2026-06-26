@@ -81,6 +81,11 @@
       "action": "accept",
       "src": ["group:friends"],
       "dst": ["beefcake:26968,26974,26989,24454"]
+    },
+    {
+      "action": "accept",
+      "src": ["beefcake", "dragon", "steamdeck", "steamdeckoled", "flab", "foxtrot", "babyflip", "thinker", "zenfoneten"],
+      "dst": ["beefcake:22000", "dragon:22000", "steamdeck:22000", "steamdeckoled:22000", "flab:22000", "foxtrot:22000", "babyflip:22000", "thinker:22000", "zenfoneten:22000"]
     }
   ],
 
