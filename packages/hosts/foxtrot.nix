@@ -7,7 +7,6 @@
 {
   imports = [
     ./foxtrot-viture-wake.nix
-    ./foxtrot-steamos-manager-shim.nix
   ];
 
   system.stateVersion = "24.11";
@@ -177,9 +176,22 @@
     # falls back to 1080p60 if niri/jq aren't reachable. (The flatpak reaches
     # gamescope's nested Wayland socket fine — no --socket=wayland override.)
     #
-    # Also inhibits DMS's screen-lock for the session: its lock timer is
-    # `enabled = acLockTimeout > 0` (and it ignores the `dms ipc inhibit` flag),
-    # so set the timeout to 0 while running and restore on exit via a trap.
+    # Inhibits the screen lock AND idle suspend for the session: DMS's lock timer
+    # is `enabled = acLockTimeout > 0` (and ignores the `dms ipc inhibit` flag),
+    # but the actual idle daemon is swayidle — it runs the lock/suspend/dpms
+    # timers and does NOT honor systemd-inhibit, so it must be stopped too.
+    # Otherwise stepping away locks/suspends mid-session (controller input goes to
+    # gamescope, not niri, so niri's idle timer keeps counting). Both restored on
+    # exit.
+    #
+    # Controller-driven exit: gamescope's SteamOS "Switch to Desktop" is a no-op
+    # on the Flatpak (it's a SteamOS-only session action Valve never wires up —
+    # makes no D-Bus call, just hangs). Instead, a non-Steam "Exit Gaming Mode"
+    # shortcut in the Steam library runs `touch $exit_sentinel`; Steam's data dir
+    # is bind-shared into the Flatpak sandbox at the SAME absolute path, so the
+    # host sees the file and this watcher terminates gamescope -> back to niri (no
+    # session manager, no flatpak-spawn portal). See lib/doc for adding the
+    # shortcut (Target /usr/bin/touch, Launch Options = the sentinel path).
     (writeShellScriptBin "foxtrot-gamemode" ''
       set -u
       export PATH=/run/current-system/sw/bin:$PATH
@@ -198,12 +210,38 @@
       settings="$HOME/.config/DankMaterialShell/settings.json"
       saved=$(jq -r '.acLockTimeout // 300' "$settings" 2>/dev/null)
       case "$saved" in "" | 0) saved=300 ;; esac
-      restore() { dms ipc call settings set acLockTimeout "$saved" >/dev/null 2>&1 || true; }
+      idle_was=$(systemctl --user is-active swayidle 2>/dev/null || true)
+      restore() {
+        dms ipc call settings set acLockTimeout "$saved" >/dev/null 2>&1 || true
+        [ "$idle_was" = active ] && systemctl --user start swayidle >/dev/null 2>&1 || true
+      }
       trap restore EXIT INT TERM
       dms ipc call settings set acLockTimeout 0 >/dev/null 2>&1 || true
+      systemctl --user stop swayidle >/dev/null 2>&1 || true
+
+      exit_sentinel="/home/daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode"
+      rm -f "$exit_sentinel"
 
       gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
-        flatpak run com.valvesoftware.Steam -gamepadui "$@"
+        flatpak run com.valvesoftware.Steam -gamepadui "$@" &
+      gs_pid=$!
+
+      # Quit gamescope when the Exit-Gaming-Mode shortcut drops the sentinel.
+      (
+        while kill -0 "$gs_pid" 2>/dev/null; do
+          if [ -e "$exit_sentinel" ]; then
+            rm -f "$exit_sentinel"
+            kill -TERM "$gs_pid" 2>/dev/null || true
+            break
+          fi
+          sleep 1
+        done
+      ) &
+      watcher=$!
+
+      wait "$gs_pid"
+      kill "$watcher" 2>/dev/null || true
+      rm -f "$exit_sentinel"
     '')
 
     # Desktop entry so "Gaming Mode" is launchable from the DMS launcher (or any

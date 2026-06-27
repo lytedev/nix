@@ -1,0 +1,47 @@
+# foxtrot: exit gaming mode from the controller
+
+`foxtrot-gamemode` runs Steam inside a nested **gamescope** (so the controller,
+Steam overlay, and controller-as-mouse all work). The catch: gamescope makes
+Steam show the SteamOS **"Deck" power menu**, whose **"Switch to Desktop"** is a
+SteamOS-only session action that the **Flatpak** Steam never implements — it
+makes no D-Bus call and just hangs on "Switching to Desktop…" forever (verified
+live with `dbus-monitor` on both buses). It cannot be shimmed: Steam never emits
+the call. (An earlier `com.steampowered.SteamOSManager1` shim was tried and
+removed for exactly this reason.)
+
+## How exit works instead
+
+A **non-Steam shortcut** drops a sentinel file that the launcher watches:
+
+- The `foxtrot-gamemode` launcher watches for
+  `~daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode`.
+  When it appears, the launcher terminates gamescope → back to niri.
+- Steam's data dir is bind-shared into the Flatpak sandbox at the **same absolute
+  path**, so a `touch` from inside the sandbox is seen by the host launcher. No
+  SteamOS session manager and no `flatpak-spawn` portal are involved (the portal
+  is blocked on this Flatpak anyway).
+
+Once on niri, the controllers' own mouse mode drives the desktop.
+
+## One-time setup: add the "Exit Gaming Mode" library entry
+
+Do this once from **desktop** Steam (regular UI, easiest with keyboard/mouse);
+afterwards it's launchable from the controller in gaming mode forever.
+
+1. Steam → **Games → Add a Non-Steam Game to My Library → Browse**.
+2. Pick `/usr/bin/touch` (toggle "All Files" if needed).
+3. Right-click the new entry → **Properties**:
+   - **Name:** `Exit Gaming Mode`
+   - **Launch Options:**
+     `/home/daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode`
+   - (optional) set an icon.
+
+In gaming mode, navigate to **Exit Gaming Mode** in the library and launch it →
+gamescope quits and you're back on niri.
+
+## Idle note
+
+The launcher also stops **swayidle** for the session (and zeroes DMS
+`acLockTimeout`), restoring both on exit — swayidle is the real idle daemon and
+does not honor `systemd-inhibit`, so without this it would lock/suspend mid-game
+once niri sees no input (controller input goes to gamescope, not niri).
