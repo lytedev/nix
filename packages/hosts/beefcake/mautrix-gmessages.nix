@@ -54,9 +54,14 @@ let
     bridge.permissions = {
       "@daniel:lyte.dev" = "admin";
     };
+    # Match the working mautrix-discord bridge: allow E2EE but do NOT force it.
+    # With default=true the bridge force-encrypts the management room, but olm
+    # sessions to the user's devices fail on this tuwunel setup ("Didn't find
+    # olm session to encrypt group session"), so the bot's replies (incl. the
+    # login QR) never arrive. default=false keeps the management room plaintext.
     encryption = {
       allow = true;
-      default = true;
+      default = false;
       require = false;
       allow_key_sharing = true;
       pickle_key = "mautrix.bridge.e2ee";
