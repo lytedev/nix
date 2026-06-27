@@ -117,6 +117,16 @@ in
         key = "secondary-he";
         action = [ "transfer" ];
       }
+      {
+        # Accept NOTIFY from beefcake (the master) so pebble refreshes within
+        # seconds of a change instead of waiting out the SOA timer. Knot does NOT
+        # auto-accept NOTIFY from the master once a zone has explicit ACLs, so this
+        # must be listed (else the NOTIFY is rejected as NOTAUTH). Pairs with the
+        # headscale `beefcake -> pebble:53` rule that lets the NOTIFY reach here.
+        id = "acl-notify-beefcake";
+        address = [ "100.64.0.2" ]; # beefcake tailnet IP
+        action = [ "notify" ];
+      }
     ];
   };
 
