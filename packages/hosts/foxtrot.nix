@@ -4,6 +4,37 @@
   config,
   ...
 }:
+let
+  # Sentinel for controller-driven exit from gaming mode. Steam's data dir is
+  # bind-shared into the Flatpak sandbox at this same absolute path, so a
+  # non-Steam "Exit Gaming Mode" shortcut that `touch`es it is seen here on the
+  # host. A systemd .path unit watches it (event-driven — systemd's own inotify,
+  # no polling and no idle process) and triggers the kill below.
+  exitSentinel = "/home/daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode";
+
+  gamemodeExit = pkgs.writeShellScript "foxtrot-gamemode-exit" ''
+    export PATH=${
+      lib.makeBinPath [
+        pkgs.coreutils
+        pkgs.procps
+      ]
+    }:$PATH
+    rm -f "${exitSentinel}"
+    # Terminate the gaming-mode gamescope: argv[0] basename exactly "gamescope"
+    # (the live comm is "gamescope-wl", so match argv[0], not comm; this also
+    # excludes the "gamescopereaper" helper) AND argv carries the Steam gamepadui
+    # markers, so an unrelated gamescope is never killed.
+    for d in /proc/[0-9]*; do
+      [ -r "$d/cmdline" ] || continue
+      argv0=$(tr '\0' '\n' < "$d/cmdline" 2>/dev/null | head -n1)
+      [ "$(basename "$argv0" 2>/dev/null)" = gamescope ] || continue
+      cl=$(tr '\0' ' ' < "$d/cmdline" 2>/dev/null)
+      case "$cl" in
+        *com.valvesoftware.Steam*-gamepadui*) kill -TERM "''${d#/proc/}" 2>/dev/null || true ;;
+      esac
+    done
+  '';
+in
 {
   imports = [
     ./foxtrot-viture-wake.nix
@@ -77,6 +108,23 @@
   systemd.services.fprintd = {
     wantedBy = [ "multi-user.target" ];
     serviceConfig.Type = "simple";
+  };
+
+  # Event-driven controller exit from gaming mode: systemd watches the sentinel
+  # the "Exit Gaming Mode" Steam shortcut touches (its own inotify — no polling,
+  # no idle process) and runs the kill. The oneshot removes the sentinel, which
+  # re-arms the .path for next time.
+  systemd.user.paths.foxtrot-gamemode-exit = {
+    description = "Watch for the Exit-Gaming-Mode sentinel";
+    wantedBy = [ "graphical-session.target" ];
+    pathConfig.PathExists = exitSentinel;
+  };
+  systemd.user.services.foxtrot-gamemode-exit = {
+    description = "Quit gamescope gaming mode when the exit sentinel appears";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = gamemodeExit;
+    };
   };
 
   # Use password (not fingerprint) for initial login so pam_gnome_keyring
@@ -187,11 +235,10 @@
     # Controller-driven exit: gamescope's SteamOS "Switch to Desktop" is a no-op
     # on the Flatpak (it's a SteamOS-only session action Valve never wires up —
     # makes no D-Bus call, just hangs). Instead, a non-Steam "Exit Gaming Mode"
-    # shortcut in the Steam library runs `touch $exit_sentinel`; Steam's data dir
-    # is bind-shared into the Flatpak sandbox at the SAME absolute path, so the
-    # host sees the file and this watcher terminates gamescope -> back to niri (no
-    # session manager, no flatpak-spawn portal). See lib/doc for adding the
-    # shortcut (Target /usr/bin/touch, Launch Options = the sentinel path).
+    # shortcut in the Steam library touches the exit sentinel; the
+    # foxtrot-gamemode-exit.path unit watches it and quits gamescope, after which
+    # the foreground gamescope below returns and the trap restores idle/lock. See
+    # lib/doc/foxtrot-gaming-exit.md for the one-time shortcut setup.
     (writeShellScriptBin "foxtrot-gamemode" ''
       set -u
       export PATH=/run/current-system/sw/bin:$PATH
@@ -219,29 +266,13 @@
       dms ipc call settings set acLockTimeout 0 >/dev/null 2>&1 || true
       systemctl --user stop swayidle >/dev/null 2>&1 || true
 
-      exit_sentinel="/home/daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode"
-      rm -f "$exit_sentinel"
+      # Clear any stale exit sentinel; foxtrot-gamemode-exit.path watches it and
+      # kills this gamescope when the Exit Gaming Mode shortcut touches it, after
+      # which this foreground gamescope returns and the trap restores idle/lock.
+      rm -f "${exitSentinel}"
 
       gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
-        flatpak run com.valvesoftware.Steam -gamepadui "$@" &
-      gs_pid=$!
-
-      # Quit gamescope when the Exit-Gaming-Mode shortcut drops the sentinel.
-      (
-        while kill -0 "$gs_pid" 2>/dev/null; do
-          if [ -e "$exit_sentinel" ]; then
-            rm -f "$exit_sentinel"
-            kill -TERM "$gs_pid" 2>/dev/null || true
-            break
-          fi
-          sleep 1
-        done
-      ) &
-      watcher=$!
-
-      wait "$gs_pid"
-      kill "$watcher" 2>/dev/null || true
-      rm -f "$exit_sentinel"
+        flatpak run com.valvesoftware.Steam -gamepadui "$@"
     '')
 
     # Desktop entry so "Gaming Mode" is launchable from the DMS launcher (or any

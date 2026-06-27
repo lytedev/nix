@@ -11,15 +11,19 @@ removed for exactly this reason.)
 
 ## How exit works instead
 
-A **non-Steam shortcut** drops a sentinel file that the launcher watches:
+A **non-Steam shortcut** drops a sentinel file that a systemd `.path` unit
+watches (event-driven — systemd's own inotify, no polling and no idle process):
 
-- The `foxtrot-gamemode` launcher watches for
-  `~daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode`.
-  When it appears, the launcher terminates gamescope → back to niri.
+- `foxtrot-gamemode-exit.path` watches
+  `~daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode`
+  and triggers `foxtrot-gamemode-exit.service`, which terminates the gaming-mode
+  gamescope (matched by argv[0] + Steam gamepadui markers) and removes the
+  sentinel (re-arming the `.path`). The foreground `gamescope` in the launcher
+  then returns and its trap restores idle/lock.
 - Steam's data dir is bind-shared into the Flatpak sandbox at the **same absolute
-  path**, so a `touch` from inside the sandbox is seen by the host launcher. No
-  SteamOS session manager and no `flatpak-spawn` portal are involved (the portal
-  is blocked on this Flatpak anyway).
+  path**, so a `touch` from inside the sandbox is seen on the host. No SteamOS
+  session manager and no `flatpak-spawn` portal are involved (the portal is
+  blocked on this Flatpak anyway).
 
 Once on niri, the controllers' own mouse mode drives the desktop.
 
