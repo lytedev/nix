@@ -32,6 +32,21 @@
 # works direct to beefcake. Restoring pebble.A to 204.168.181.230 + deciding the
 # MX path (pebble haproxy relay vs direct vs redundant MX) is its own change.
 { config, ... }:
+let
+  # The 1984.is nameservers that AXFR lyte.dev. Used both for the transfer ACL
+  # and as NOTIFY targets — so they refresh within seconds of a zone change
+  # instead of waiting out the 2h SOA refresh.
+  nineteen84Nameservers = [
+    "45.76.37.222" # ns0.1984.is
+    "194.58.192.36" # ns1.1984.is
+    "45.32.180.186" # ns2.1984.is
+    "93.95.226.52" # ns2.1984.is (secondary)
+    "185.42.137.114" # ns1.1984hosting.com
+    "93.95.226.53" # ns2.1984hosting.com
+    "93.95.224.6" # 1984 transfer server
+  ];
+  pebbleTailnet = "100.64.0.15"; # pebble (warm-standby secondary) over the tailnet
+in
 {
   # knot starts before tailscale assigns 100.64.0.2, so its bind to that tailnet
   # listen address would fail (and knot silently drops it — then pebble can't AXFR
@@ -104,15 +119,7 @@
       }
       {
         id = "acl-xfr-1984";
-        address = [
-          "45.76.37.222" # ns0.1984.is
-          "194.58.192.36" # ns1.1984.is
-          "45.32.180.186" # ns2.1984.is
-          "93.95.226.52" # ns2.1984.is (secondary)
-          "185.42.137.114" # ns1.1984hosting.com
-          "93.95.226.53" # ns2.1984hosting.com
-          "93.95.224.6" # 1984 transfer server
-        ];
+        address = nineteen84Nameservers;
         action = [ "transfer" ];
       }
       {
@@ -124,15 +131,18 @@
         # pebble (warm-standby secondary) pulls the zone from beefcake over the
         # tailnet, so it can re-serve to 1984 if beefcake is unreachable.
         id = "acl-xfr-pebble";
-        address = [ "100.64.0.15" ]; # pebble tailnet IP
+        address = [ pebbleTailnet ];
         action = [ "transfer" ];
       }
     ];
 
-    # secondaryNotify intentionally unset: the dns-server module would emit
-    # `notify: [<ip>,...]`, but knot expects remote *names* (a `remote:` section
-    # the module doesn't generate), so setting it breaks the config. pebble
-    # likewise leaves it unset. After the cutover the secondaries pull on the
-    # SOA refresh (2h) or an immediate manual "retransfer" from their panels.
+    # NOTIFY every secondary on each zone change so they refresh in seconds rather
+    # than waiting out the 2h SOA refresh (there is no other push — knot manages
+    # the serial and we don't want to babysit propagation). Targets: the 1984
+    # nameservers (reachable via the router's WAN :53 DNAT; they accept NOTIFY
+    # because beefcake is one of their masters) and pebble over the tailnet (it
+    # accepts NOTIFY from its master, beefcake @ 100.64.0.2). The module turns each
+    # address into a knot `remote:` so `zone.notify` can reference it by name.
+    secondaryNotify = nineteen84Nameservers ++ [ pebbleTailnet ];
   };
 }

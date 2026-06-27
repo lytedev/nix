@@ -57,7 +57,18 @@ in
     secondaryNotify = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "IP addresses of secondary nameservers to NOTIFY.";
+      example = [
+        "45.76.37.222"
+        "100.64.0.15@53"
+      ];
+      description = ''
+        Addresses of secondary nameservers to send NOTIFY to on every zone change,
+        so they refresh immediately instead of waiting out the SOA refresh timer.
+        Each entry is an IP (port 53 assumed) or `ip@port`. The module synthesizes
+        a knot `remote:` per entry, since knot's `zone.notify` references remote
+        names, not bare IPs. Only meaningful on a primary (applies to locally-served
+        zones). Targets accept the NOTIFY because this server is one of their masters.
+      '';
     };
 
     listenAddresses = mkOption {
@@ -141,6 +152,28 @@ in
             ) cfg.remotes
           );
 
+          # NOTIFY targets must be knot `remote:` entries — knot's zone.notify
+          # references remote NAMES, not bare IPs (which is why feeding it raw IPs
+          # produced an invalid config). Synthesize one remote per secondaryNotify
+          # address, defaulting to port 53 when no @port is given.
+          notifyRemotes = lib.imap0 (i: addr: {
+            id = "notify-${toString i}";
+            address = if lib.hasInfix "@" addr then addr else "${addr}@53";
+          }) cfg.secondaryNotify;
+          notifyRemoteBlocks = concatStringsSep "\n" (
+            map (r: "  - id: ${r.id}\n    address: ${r.address}") notifyRemotes
+          );
+          notifyIds = map (r: r.id) notifyRemotes;
+
+          # Combined remote section: secondary-zone masters + NOTIFY targets.
+          allRemoteBlocks = concatStringsSep "\n" (
+            builtins.filter (s: s != "") [
+              remoteBlocks
+              notifyRemoteBlocks
+            ]
+          );
+          hasRemotes = cfg.remotes != { } || notifyRemotes != [ ];
+
           # Build TSIG key blocks for the config
           tsigKeyBlocks = concatStringsSep "\n" (
             mapAttrsToList (name: keyCfg: ''
@@ -198,11 +231,7 @@ in
             mapAttrsToList (
               name: _file:
               let
-                notifyLine =
-                  if cfg.secondaryNotify != [ ] then
-                    "\n    notify: [${concatStringsSep ", " cfg.secondaryNotify}]"
-                  else
-                    "";
+                notifyLine = if notifyIds != [ ] then "\n    notify: [${concatStringsSep ", " notifyIds}]" else "";
               in
               "  - domain: ${name}\n    file: /var/lib/knot/zones/${name}.zone\n    storage: /var/lib/knot/zones\n    zonefile-sync: -1\n    zonefile-load: difference-no-serial\n    journal-content: all\n    semantic-checks: true\n    dnssec-signing: true\n    dnssec-policy: default-dnssec${aclIdsLine}${notifyLine}"
             ) primaryZoneFiles
@@ -251,7 +280,7 @@ in
 
             # Remote (masters for secondary zones) + ACL sections
             cat >> "$conf" <<'ACLEOF'
-            ${lib.optionalString (cfg.remotes != { }) "\nremote:\n${remoteBlocks}\n"}
+            ${lib.optionalString hasRemotes "\nremote:\n${allRemoteBlocks}\n"}
             acl:
             ${aclBlocks}
             ACLEOF

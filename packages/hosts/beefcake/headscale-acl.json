@@ -50,7 +50,7 @@
     {
       "action": "accept",
       "src": ["beefcake"],
-      "dst": ["dragon:5000", "rascal:22"]
+      "dst": ["dragon:5000", "rascal:22", "pebble:53"]
     },
     {
       "action": "accept",
