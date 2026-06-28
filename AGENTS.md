@@ -122,6 +122,41 @@ nix develop -c deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#beefcak
 > can't auto-rollback. For major-release bumps prefer `nixos-rebuild boot` +
 > reboot.
 
+### NEVER deploy a rollback (downgrade) — check versions first
+
+**Before deploying any host, verify the branch you are deploying is not OLDER
+than what the host is currently running.** A downgrade silently rolls every
+package backwards and is dangerous, not neutral:
+
+- Data-format-forward services break: e.g. redis refuses to load a dump written
+  by a newer redis (`Can't handle RDB format version N`).
+- Services that only exist in the newer config get their users/groups removed
+  and vanish.
+- The toolchain change forces a full systemd re-exec mid-switch, which on
+  beefcake **wedges** (stops services, drops the SSH connection, deploy-rs does a
+  messy rollback). See the 2026-06-28 incident and `issues/open/blue-green.md`.
+
+**`main` can be BEHIND a host's deployed state.** A nixpkgs bump can be deployed
+to a host and then dropped/reverted from `main`, so `main`'s nixpkgs ends up
+older than what the host runs. Deploying `main` to that host is then a
+downgrade. Always deploy from an up-to-date workspace (`jj git fetch` first), not
+a stale `/etc/nixos` checkout.
+
+**How to check (do this every deploy):**
+
+```bash
+# What the host runs now (the 26.05.YYYYMMDD.<rev> string gives date + nixpkgs rev):
+ssh <host> readlink /run/current-system
+
+# What your branch will build (the primary input may be `nixpkgs_3`, not
+# `nixpkgs` — verify which feeds nixosSystem in flake.lock):
+nix run nixpkgs#jq -- -r '.nodes.nixpkgs_3.locked | "\(.rev[0:12]) \(.lastModified)"' < flake.lock
+```
+
+If the branch's nixpkgs date is older than the host's, **STOP** — bump the
+branch's nixpkgs to >= the host's first, and treat that bump as a version change
+(boot + reboot, never a live switch).
+
 ## Forgejo (fj CLI)
 Remote is hosted on Forgejo. Use `fj` (forgejo-cli, available via `nix develop`) for PRs:
 
