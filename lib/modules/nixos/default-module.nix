@@ -47,6 +47,7 @@
     mobile
     music-production
     squeezelite
+    tv-player
     earlyoom
     user-env
     claude

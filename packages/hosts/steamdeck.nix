@@ -18,6 +18,14 @@
     name = "Living Room";
   };
 
+  # Video on the TV: a small control service that launches mpv fullscreen into
+  # the desktop session when Home Assistant says "play X on the TV" (over the
+  # Firefox/Hearth kiosk; quitting mpv returns to it). YouTube via yt-dlp.
+  lyte.tv-player = {
+    enable = true;
+    tokenFile = config.sops.secrets.tv-control-token.path;
+  };
+
   # Syncthing: sync the RetroDECK ROM and save collection with the beefcake
   # hub (and dragon). ROMs and saves are kept as two separate folders so the
   # small, high-churn, irreplaceable saves propagate immediately instead of
@@ -51,5 +59,8 @@
     {
       syncthing-key = syncthingSecret;
       syncthing-cert = syncthingSecret;
+      # Bearer token for the tv-player control service (root-owned; the service
+      # runs as root to launch mpv into daniel's session).
+      tv-control-token.sopsFile = ../../secrets/steamdeck/secrets.yml;
     };
 }
