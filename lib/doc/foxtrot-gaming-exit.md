@@ -45,7 +45,10 @@ gamescope quits and you're back on niri.
 
 ## Idle note
 
-The launcher also stops **swayidle** for the session (and zeroes DMS
-`acLockTimeout`), restoring both on exit — swayidle is the real idle daemon and
-does not honor `systemd-inhibit`, so without this it would lock/suspend mid-game
-once niri sees no input (controller input goes to gamescope, not niri).
+The launcher disables all idle paths for the session and restores them on exit:
+stops **swayidle** (the real idle daemon — it runs lock/suspend/dpms and does not
+honor `systemd-inhibit`), and zeroes **both** DMS timers — `acLockTimeout` (screen
+lock) *and* `acMonitorTimeout` (DPMS display-off; `IdleService.qml`:
+`monitorOffMonitor.enabled = monitorTimeout > 0`, so `0` = disabled). Without
+disabling the monitor timer too, the display would still DPMS-off mid-game once
+niri sees no input (controller input goes to gamescope, not niri).
