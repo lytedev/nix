@@ -34,6 +34,7 @@ inputs: {
   steamdeck = import ./steamdeck.nix;
   mobile = import ./mobile.nix;
   music-production = import ./music-production.nix;
+  squeezelite = import ./squeezelite.nix;
   earlyoom = import ./earlyoom.nix;
   user-env = import ../shared/user-env.nix;
   claude = import ./claude.nix;

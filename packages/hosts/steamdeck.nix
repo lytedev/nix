@@ -10,6 +10,14 @@
 
   lyte.steamdeck.enable = true;
 
+  # Living-room TV audio: a squeezelite player that Music Assistant streams to
+  # (MA's squeezelite/SlimProto provider on bigtower). Shows up in MA as the
+  # "Living Room" player for "play X in the living room" + group playback.
+  lyte.squeezelite = {
+    enable = true;
+    name = "Living Room";
+  };
+
   # Syncthing: sync the RetroDECK ROM and save collection with the beefcake
   # hub (and dragon). ROMs and saves are kept as two separate folders so the
   # small, high-churn, irreplaceable saves propagate immediately instead of

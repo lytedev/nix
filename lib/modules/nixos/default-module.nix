@@ -46,6 +46,7 @@
     laptop
     mobile
     music-production
+    squeezelite
     earlyoom
     user-env
     claude
