@@ -254,16 +254,24 @@ in
       [ "$R" -ge 20 ] 2>/dev/null || R=60
       echo "foxtrot-gamemode: gamescope output ''${W}x''${H}@''${R}Hz (output: ''${out:-?})" >&2
 
+      # DMS drives two independent idle timers: acLockTimeout (screen lock) and
+      # acMonitorTimeout (DPMS display-off). BOTH must be zeroed or the display
+      # still sleeps mid-game. Plus swayidle (the lock/suspend/dpms daemon, which
+      # ignores systemd-inhibit). Save + restore all three on exit.
       settings="$HOME/.config/DankMaterialShell/settings.json"
-      saved=$(jq -r '.acLockTimeout // 300' "$settings" 2>/dev/null)
-      case "$saved" in "" | 0) saved=300 ;; esac
+      saved_lock=$(jq -r '.acLockTimeout // 300' "$settings" 2>/dev/null)
+      saved_mon=$(jq -r '.acMonitorTimeout // 180' "$settings" 2>/dev/null)
+      case "$saved_lock" in "" | 0) saved_lock=300 ;; esac
+      case "$saved_mon" in "" | 0) saved_mon=180 ;; esac
       idle_was=$(systemctl --user is-active swayidle 2>/dev/null || true)
       restore() {
-        dms ipc call settings set acLockTimeout "$saved" >/dev/null 2>&1 || true
+        dms ipc call settings set acLockTimeout "$saved_lock" >/dev/null 2>&1 || true
+        dms ipc call settings set acMonitorTimeout "$saved_mon" >/dev/null 2>&1 || true
         [ "$idle_was" = active ] && systemctl --user start swayidle >/dev/null 2>&1 || true
       }
       trap restore EXIT INT TERM
       dms ipc call settings set acLockTimeout 0 >/dev/null 2>&1 || true
+      dms ipc call settings set acMonitorTimeout 0 >/dev/null 2>&1 || true
       systemctl --user stop swayidle >/dev/null 2>&1 || true
 
       # Clear any stale exit sentinel; foxtrot-gamemode-exit.path watches it and
