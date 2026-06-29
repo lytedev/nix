@@ -7,8 +7,15 @@
 let
   repos = [
     "nix"
-    # Add more repo names here as needed
+    # Add more repo names here as needed. The GitHub repo's visibility is forced
+    # to match the forge repo's (private forge -> private GitHub) on every sync,
+    # so it is always safe to add a private repo. You DO have to create the empty
+    # GitHub repo once first — GitHub Apps can't create repos in a user account.
   ];
+
+  # Local Forgejo API, used to read each repo's visibility (see the sync loop).
+  forgejoSrv = config.services.forgejo.settings.server;
+  forgejoLocal = "http://${forgejoSrv.HTTP_ADDR}:${toString forgejoSrv.HTTP_PORT}";
 
   mirrorScript = pkgs.writeShellScript "forgejo-github-mirror" ''
     set -euo pipefail
@@ -47,14 +54,45 @@ let
 
     echo "Got GitHub installation token"
 
-    # --- Mirror each repo ---
+    # --- Mirror each repo, matching GitHub visibility to the forge ---
     failed=0
     synced=0
     for name in ${lib.concatStringsSep " " repos}; do
       echo "Syncing $name..."
+
+      # Read the forge repo's visibility. The UNAUTHENTICATED Forgejo API returns
+      # the repo (200) only for PUBLIC repos; private ones 404. Default to private
+      # whenever we cannot positively confirm public, so a private repo can never
+      # leak to a public GitHub repo.
+      fcode=$(${pkgs.curl}/bin/curl -s -o /dev/null -w '%{http_code}' \
+        "${forgejoLocal}/api/v1/repos/$GITHUB_USER/$name" || echo 000)
+      if [ "$fcode" = "200" ]; then want_private=false; else want_private=true; fi
+
+      # The GitHub repo must already exist (Apps can't create repos in a user acct).
+      resp=$(${pkgs.curl}/bin/curl -s -w $'\n%{http_code}' \
+        -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
+        "$GITHUB_API/repos/$GITHUB_USER/$name")
+      gcode=$(printf '%s' "$resp" | tail -n1)
+      if [ "$gcode" != "200" ]; then
+        echo "  SKIP: github.com/$GITHUB_USER/$name doesn't exist — create the empty repo first"
+        failed=$((failed + 1)); continue
+      fi
+      cur_private=$(printf '%s' "$resp" | sed '$d' | ${pkgs.jq}/bin/jq -r '.private')
+
+      # Force GitHub visibility to match the forge BEFORE pushing any content.
+      if [ "$cur_private" != "$want_private" ]; then
+        echo "  visibility: forge private=$want_private, GitHub was $cur_private — updating"
+        if ! ${pkgs.curl}/bin/curl -sf -X PATCH \
+          -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
+          "$GITHUB_API/repos/$GITHUB_USER/$name" -d "{\"private\": $want_private}" >/dev/null; then
+          echo "  FAILED to set visibility for $name — skipping push to avoid a leak"
+          failed=$((failed + 1)); continue
+        fi
+      fi
+
       if ${pkgs.gitMinimal}/bin/git -C "$REPO_BASE/$name.git" \
         push --mirror "https://x-access-token:''${GITHUB_TOKEN}@github.com/$GITHUB_USER/$name.git" 2>&1; then
-        echo "  Done: $name"
+        echo "  Done: $name (private=$want_private)"
         synced=$((synced + 1))
       else
         echo "  FAILED: $name"
