@@ -1,3 +1,5 @@
+> **COMPLETED 2026-06-29** — executed imperatively via `/root/migrate-state.sh` using **ZFS-native mountpoints** (mountpoint=/var/lib/..., like /storage), NOT the legacy fileSystems approach drafted below. /home trimmed 73G→1.9G (rescue at /storage/daniel/rescue); /var/lib/containers + /var/lib/private now on zstorage with auto-snapshots; originals shadowed under the mounts (reclaim pending). Kept for reference.
+
 # Relocate beefcake stateful data off the single-disk boot drive onto zstorage
 
 **Labels**: beefcake, storage, data-integrity
