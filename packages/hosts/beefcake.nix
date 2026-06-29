@@ -84,6 +84,8 @@
       "webmail"
       "photos"
       "hearth.h"
+      "music-assistant.h"
+      "home-assistant.h"
       "openobserve.h"
       "syncthing.h"
     ];
@@ -135,6 +137,7 @@
     ./beefcake/family-storage.nix
     ./beefcake/daniel.nix
     ./beefcake/jellyfin.nix
+    ./beefcake/music-assistant.nix
     ./beefcake/daniel.nix
     ./beefcake/postgres.nix
     ./beefcake/other-users.nix
