@@ -37,4 +37,5 @@
   kanidm = pkgs.callPackage ./kanidm/package.nix { };
   text-to-mic = pkgs.callPackage ./text-to-mic.nix { };
   wden = pkgs.callPackage ./wden.nix { };
+  deploy-esp32 = pkgs.callPackage ./esphome/esp32-s3-box-3/deploy.nix { };
 }
