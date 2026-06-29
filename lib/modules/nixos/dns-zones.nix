@@ -68,12 +68,15 @@ let
       email.CNAME = [ "mailgun.org." ];
 
       # --- Static records ---
-      # TEMPORARY (2026-06): pebble is offline (Hetzner billing lock). The MX
+      # pebble (a Hetzner VPS, static IP) is the lyte.dev mail front: the MX
       # (-> pebble.lyte.dev) and SPF (a:pebble.lyte.dev) both key off this A
-      # record, so pointing it at the home WAN IP routes inbound mail to
-      # beefcake directly with NO dependency on the dynamic `mail` record being
-      # populated yet. REVERT to 204.168.181.230 once pebble is back online.
-      pebble.A = [ "136.33.254.144" ];
+      # record. Inbound SMTP hits pebble's HAProxy :25, which PROXY-passes through
+      # to beefcake's Stalwart (:2526), with a loopback Postfix that queues for up
+      # to 5 days if beefcake is unreachable (see packages/hosts/pebble.nix). Using
+      # pebble's STATIC IP keeps the MX stable regardless of the dynamic home WAN
+      # IP. (During the 2026-06 Hetzner lock this was temporarily 136.33.254.144 —
+      # the home WAN — to route mail straight to beefcake while pebble was down.)
+      pebble.A = [ "204.168.181.230" ];
 
       "login.alaeria".CNAME = [ "alias.deno.net." ];
       "_acme-challenge.login.alaeria".CNAME = [ "_acme.deno.net." ];
