@@ -25,6 +25,27 @@
     mode = "0400";
   };
 
+  # Dedicated account for the local meshtasticd virtual node (./meshtasticd.nix).
+  #
+  # WHY A SEPARATE USER: Meshtastic firmware stores mqtt.password in a fixed
+  # protobuf field with nanopb `max_size:32` — at most 31 usable bytes plus the
+  # NUL terminator. A 32+ char password is silently rejected on the node: the
+  # whole set_module_config admin message fails to decode, the MQTT module keeps
+  # its default public-server creds (meshdev/large4cats), and the broker rejects
+  # it "not authorised" — with no error surfaced to the meshtastic CLI. See
+  # https://github.com/meshtastic/protobufs/blob/master/meshtastic/module_config.options
+  # (MQTTConfig.password max_size:32). A dedicated account lets the shared
+  # `meshtastic` user (web dashboards, other clients) keep a strong password
+  # while this credential stays within the firmware's limit.
+  #
+  # INVARIANT: mosquitto-meshtasticd-password MUST be <= 31 characters. The
+  # provisioning oneshot in ./meshtasticd.nix asserts this at deploy time.
+  sops.secrets."mosquitto-meshtasticd-password" = {
+    owner = "mosquitto";
+    group = "mosquitto";
+    mode = "0400";
+  };
+
   services.mosquitto = {
     enable = true;
     # Retain messages and queued state across restarts.
@@ -37,6 +58,11 @@
         users.meshtastic = {
           passwordFile = config.sops.secrets."mosquitto-meshtastic-password".path;
           # Single home broker: allow this account full pub/sub on all topics.
+          acl = [ "readwrite #" ];
+        };
+        # Local meshtasticd virtual node — own account, password <= 31 chars (see above).
+        users.meshtasticd = {
+          passwordFile = config.sops.secrets."mosquitto-meshtasticd-password".path;
           acl = [ "readwrite #" ];
         };
       }

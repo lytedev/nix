@@ -11,7 +11,12 @@ let
 
   # Local broker (Mosquitto runs on this same host — see ./mosquitto.nix).
   mqttHost = "127.0.0.1";
-  mqttUser = "meshtastic";
+  # Dedicated broker account for this node. Meshtastic firmware caps mqtt.password
+  # at 31 usable chars (protobuf max_size:32, incl. NUL); a longer password is
+  # silently dropped on the node and it falls back to the public-server default
+  # creds, so the broker rejects it. Its password (mosquitto-meshtasticd-password)
+  # is kept <= 31 chars; see ./mosquitto.nix for the full rationale.
+  mqttUser = "meshtasticd";
 
   # Family channel name (not secret — it appears in the MQTT topic). The PSK is
   # the secret, stored in sops as meshtastic-channel-psk (raw base64).
@@ -34,7 +39,8 @@ in
   #
   # The channel name (above) + PSK identify the family channel. The PSK is the
   # AES key, kept in sops as meshtastic-channel-psk (raw base64, no prefix). The
-  # mqtt password reuses the mosquitto-meshtastic-password secret.
+  # mqtt password is mosquitto-meshtasticd-password (must be <= 31 chars; see
+  # mqttUser note above and ./mosquitto.nix).
 
   sops.secrets."meshtastic-channel-psk" = {
     mode = "0400";
@@ -74,7 +80,7 @@ in
       MQTT_HOST = mqttHost;
       MQTT_USER = mqttUser;
       PSK_FILE = config.sops.secrets."meshtastic-channel-psk".path;
-      MQTT_PW_FILE = config.sops.secrets."mosquitto-meshtastic-password".path;
+      MQTT_PW_FILE = config.sops.secrets."mosquitto-meshtasticd-password".path;
     };
     serviceConfig = {
       Type = "oneshot";
@@ -108,12 +114,22 @@ in
         --ch-set uplink_enabled true \
         --ch-set downlink_enabled true
 
+      # Meshtastic firmware silently rejects a set_module_config carrying an
+      # mqtt.password longer than the protobuf field (max_size:32 => 31 usable
+      # chars + NUL): the whole MQTT config fails to persist and the node falls
+      # back to default public-server creds. Fail the deploy loudly instead.
+      MQTT_PW="$(cat "$MQTT_PW_FILE")"
+      if [ "''${#MQTT_PW}" -gt 31 ]; then
+        echo "mosquitto-meshtasticd-password is ''${#MQTT_PW} chars; Meshtastic mqtt.password max is 31 — shorten it in sops" >&2
+        exit 1
+      fi
+
       echo "Configuring MQTT module -> local Mosquitto"
       meshtastic --host 127.0.0.1 \
         --set mqtt.enabled true \
         --set mqtt.address "$MQTT_HOST" \
         --set mqtt.username "$MQTT_USER" \
-        --set mqtt.password "$(cat "$MQTT_PW_FILE")" \
+        --set mqtt.password "$MQTT_PW" \
         --set mqtt.encryption_enabled true \
         --set mqtt.json_enabled false \
         --set mqtt.proxy_to_client_enabled false
