@@ -163,6 +163,7 @@
     ./beefcake/bulwark.nix
     ./beefcake/jmap-matrix-notify
     ./beefcake/disk-alerts.nix
+    ./beefcake/disk-identification.nix
     ./beefcake/lan-lockdown.nix
     ./beefcake/dns-primary.nix # active hidden DNS primary for lyte.dev (pebble = secondary)
 
