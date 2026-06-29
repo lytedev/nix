@@ -25,7 +25,10 @@
   # the firewall (only Caddy reaches it over loopback). :8097 (audio stream) +
   # :3483 (SlimProto) stay LAN-open so Cast players and the steamdeck's
   # squeezelite can pull/connect.
-  networking.firewall.allowedTCPPorts = [ 8097 3483 ];
+  networking.firewall.allowedTCPPorts = [
+    8097
+    3483
+  ];
 
   services.caddy.virtualHosts."music-assistant.h.lyte.dev".extraConfig = ''
     reverse_proxy :8095
