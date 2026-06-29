@@ -6,6 +6,13 @@
 let
   dataDir = "/var/lib/mmrelay";
 
+  # Dedicated system user the container runs as. Pinned uid/gid so the host data
+  # dir + the sops credentials secret can be owned by it. podman --user needs a
+  # numeric uid here because names resolve in the container's passwd, not the
+  # host's (the image's own "mmrelay" is uid 1000 = daniel on beefcake).
+  mmrelayUid = 945;
+  mmrelayGid = 945;
+
   # Non-secret config. Matrix homeserver/user/token come from credentials.json
   # (sops) instead, so nothing secret lands in the nix store.
   # EDIT the room id + meshnet name before deploy.
@@ -48,28 +55,41 @@ in
   #       #    "access_token":"<token>","device_id":"<device>"}
   #  3. The bridge room must be unencrypted (E2EE disabled in v1).
 
-  sops.secrets."mmrelay-credentials".mode = "0400";
+  users.users.mmrelay = {
+    isSystemUser = true;
+    group = "mmrelay";
+    uid = mmrelayUid;
+  };
+  users.groups.mmrelay.gid = mmrelayGid;
+
+  # credentials.json — owned by mmrelay so the container (running as that uid)
+  # can read it.
+  sops.secrets."mmrelay-credentials" = {
+    owner = "mmrelay";
+    group = "mmrelay";
+    mode = "0400";
+  };
 
   systemd.tmpfiles.settings."10-mmrelay" = {
     "${dataDir}" = {
       "d" = {
         mode = "0700";
-        user = "root";
-        group = "root";
+        user = "mmrelay";
+        group = "mmrelay";
       };
     };
     "${dataDir}/matrix" = {
       "d" = {
         mode = "0700";
-        user = "root";
-        group = "root";
+        user = "mmrelay";
+        group = "mmrelay";
       };
     };
     "${dataDir}/database" = {
       "d" = {
         mode = "0700";
-        user = "root";
-        group = "root";
+        user = "mmrelay";
+        group = "mmrelay";
       };
     };
   };
@@ -78,6 +98,10 @@ in
     # TODO: pin to a released tag/digest instead of :latest.
     image = "ghcr.io/jeremiah-k/mmrelay:latest";
     autoStart = true;
+    # Run as the dedicated mmrelay user (numeric — podman resolves names in the
+    # container, not on the host) so it reads the mmrelay-owned credentials
+    # secret and writes the mmrelay-owned data dir.
+    user = "${toString mmrelayUid}:${toString mmrelayGid}";
     environment.MMRELAY_HOME = "/data";
     volumes = [
       "${dataDir}:/data"
