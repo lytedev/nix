@@ -38,12 +38,21 @@ let
       exec npx -y @openai/codex "$@"
     '';
   };
+
+  # `deploy` in the devshell is our pre-flight wrapper, not the raw deploy-rs
+  # binary. It refuses deploys that would move a host backward (downgrade /
+  # rollback) and otherwise exec's the real deploy-rs. See ./../../lib/deploy/
+  # guard-wrapper.nix for the decision logic and the --allow-downgrade override.
+  deploy-guard = import ../../lib/deploy/guard-wrapper.nix {
+    inherit pkgs;
+    realDeploy = deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  };
 in
 {
   default = pkgs.mkShell {
     inherit (self.outputs.checks.${pkgs.stdenv.hostPlatform.system}.git-hooks) shellHook;
     packages = with pkgs; [
-      deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
+      deploy-guard
       sops
       nil
       nixd
