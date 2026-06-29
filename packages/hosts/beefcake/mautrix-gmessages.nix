@@ -110,6 +110,26 @@ let
     AS_TOKEN="$(${yq} -r '.as_token' '${registrationFile}')" \
     HS_TOKEN="$(${yq} -r '.hs_token' '${registrationFile}')" \
       ${yq} -i '.appservice.as_token = strenv(AS_TOKEN) | .appservice.hs_token = strenv(HS_TOKEN)' '${configFile}'
+
+    # --- Double-puppeting ---
+    # So @daniel's own sent messages (RCS/SMS from his phone) appear as
+    # @daniel:lyte.dev with his name, not a nameless ghost. `mautrix-gmessages -g`
+    # only generates the bot/ghost namespaces, so widen the registration's user
+    # namespace to also cover @daniel (non-exclusive — he stays a real user; this
+    # only lets the appservice mint a login token for him via
+    # m.login.application_service, which tuwunel honours — verified). Idempotent.
+    ${yq} -i '
+      .namespaces.users = (
+        (.namespaces.users // []) | map(select(.regex != "^@daniel:lyte\\.dev$"))
+        + [{"regex": "^@daniel:lyte\\.dev$", "exclusive": false}]
+      )
+    ' '${registrationFile}'
+
+    # Point double-puppeting at the appservice's own as_token for our domain. With
+    # this set, bridgev2 auto-double-puppets logged-in lyte.dev users.
+    # NOTE: changing the registration namespace requires RE-REGISTERING with tuwunel
+    # (admin room `register-appservice`) for the new namespace to take effect.
+    ${yq} -i '.double_puppet.secrets."lyte.dev" = "as_token:" + strenv(AS_TOKEN)' '${configFile}'
   '';
 in
 {
