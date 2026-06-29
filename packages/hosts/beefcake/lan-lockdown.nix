@@ -56,6 +56,16 @@ let
   # password is the gate rather than source IP.
   #   1883: mosquitto MQTT broker (#584), allow_anonymous = false.
   authGatedLanTcp = "1883";
+  # Music Assistant audio DATA plane. Cast/AirPlay/squeezelite players stream the
+  # audio MA itself serves from :8097, and squeezelite's SlimProto control is on
+  # :3483. Unlike the rest of beefcake's services these CAN'T move to the tailnet:
+  # the players are consumer LAN devices (Nest speakers, kids' tablets, the
+  # steamdeck) that can't be tailnet peers, and MA serves every player from one
+  # publish-IP, so the stream has to be LAN-reachable. MA's admin/API (:8095)
+  # deliberately stays OFF this list — it's reached only via the Caddy TLS vhost
+  # (music-assistant.h.lyte.dev). Not auth-gated, so it's open LAN-wide like
+  # publicTcp rather than password-gated like MQTT.
+  lanMediaTcp = "3483,8097";
   # beefcake is the active hidden DNS primary for lyte.dev (see ./dns-primary.nix),
   # so the 1984.is + he.net secondaries pull the zone via AXFR. Those connections
   # hit the home WAN IP, are DNAT'd by the router to beefcake:53, and arrive on
@@ -96,6 +106,8 @@ in
     # Auth-gated LAN services (MQTT): broker requires credentials, so opening the
     # port LAN-wide is gated by auth, not source IP. See authGatedLanTcp above.
     iptables -A nixos-lan-lockdown -p tcp -m multiport --dports ${authGatedLanTcp} -j RETURN
+    # Music Assistant audio data plane (Cast/AirPlay/squeezelite); see lanMediaTcp.
+    iptables -A nixos-lan-lockdown -p tcp -m multiport --dports ${lanMediaTcp} -j RETURN
     # DNS secondaries (1984/he) -> beefcake:53 (AXFR/SOA); beefcake = lyte.dev primary.
     ${dnsCarveRules}
     iptables -A nixos-lan-lockdown -j DROP
