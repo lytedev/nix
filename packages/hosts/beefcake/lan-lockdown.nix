@@ -8,7 +8,7 @@
 # pending controller creds). Rather than chase a denylist of sensitive ports,
 # we flip to default-deny so that *every* service — current and future — is
 # closed to non-dragon LAN clients unless explicitly opened. This protects
-# Samba, MQTT, and anything added later without having to remember to lock it.
+# Samba and anything added later without having to remember to lock it.
 #
 # DESIGN (per Daniel): the tailnet (headscale) is the primary admin path and
 # is left fully open — these rules only match the `${lan}` interface, never
@@ -23,16 +23,19 @@
 #     eno1 would break the router's port-forwards.
 #   - 8080 + udp/10001: UniFi AP inform/discovery — APs live on the LAN.
 #   - udp/5353 mDNS, udp/3478 STUN: discovery / NAT traversal.
+#   - 1883 MQTT (mosquitto, #584): LAN+tailnet only (NOT router-forwarded), but
+#     the broker itself requires auth (allow_anonymous = false), so credentials
+#     are the gate rather than source IP. Opened LAN-wide so dashboards and other
+#     family clients (e.g. the pitft dashboard) can publish/subscribe without
+#     per-device tailnet membership. Tailnet access is handled in mosquitto.nix.
 # WHAT GETS LOCKED to dragon-only: everything else — notably Samba
-#   (445/139/137/138 + WS-Discovery 5357/3702) and MQTT 1883 (mosquitto;
-#   auth-gated and meshtasticd is currently disabled — when it's re-enabled,
-#   add the gateway's IP here or put it on the trusted VLAN).
+#   (445/139/137/138 + WS-Discovery 5357/3702).
 #
 # IPv4 ONLY: dragon's LAN IPv6 is SLAAC (unstable) so we can't reliably
 # allowlist it; locking v6 risks breaking dragon via happy-eyeballs. v6 is
 # left open here — the guest VLAN is the real fix and isolates both protocols
-# at L2. (Samba/MQTT discovery from casual clients is v4, so the practical
-# hole is closed.)
+# at L2. (Samba discovery from casual clients is v4, so the practical hole is
+# closed; MQTT is auth-gated regardless of protocol.)
 #
 # IMPORTANT: this is a hand-maintained allowlist. If you add a new
 # internet-forwarded service on the router, add its port here too or LAN
@@ -47,6 +50,12 @@ let
   # Keep in sync with the router's beefcake `nat` block (packages/hosts/router.nix).
   publicTcp = "22,25,80,443,465,587,993,8080,24454,26968,26969,26974,26989";
   publicUdp = "3478,5353,10001,24454,26974,26989,34197";
+  # Auth-gated services intentionally reachable by any LAN client. Unlike
+  # publicTcp these are NOT router-forwarded / internet-public — they're
+  # LAN+tailnet only, and the service itself requires credentials, so the
+  # password is the gate rather than source IP.
+  #   1883: mosquitto MQTT broker (#584), allow_anonymous = false.
+  authGatedLanTcp = "1883";
   # beefcake is the active hidden DNS primary for lyte.dev (see ./dns-primary.nix),
   # so the 1984.is + he.net secondaries pull the zone via AXFR. Those connections
   # hit the home WAN IP, are DNAT'd by the router to beefcake:53, and arrive on
@@ -84,6 +93,9 @@ in
     iptables -A nixos-lan-lockdown -p icmp -j RETURN
     iptables -A nixos-lan-lockdown -p tcp -m multiport --dports ${publicTcp} -j RETURN
     iptables -A nixos-lan-lockdown -p udp -m multiport --dports ${publicUdp} -j RETURN
+    # Auth-gated LAN services (MQTT): broker requires credentials, so opening the
+    # port LAN-wide is gated by auth, not source IP. See authGatedLanTcp above.
+    iptables -A nixos-lan-lockdown -p tcp -m multiport --dports ${authGatedLanTcp} -j RETURN
     # DNS secondaries (1984/he) -> beefcake:53 (AXFR/SOA); beefcake = lyte.dev primary.
     ${dnsCarveRules}
     iptables -A nixos-lan-lockdown -j DROP
