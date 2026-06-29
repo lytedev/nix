@@ -12,6 +12,10 @@ let
   # Local broker (Mosquitto runs on this same host — see ./mosquitto.nix).
   mqttHost = "127.0.0.1";
   mqttUser = "meshtastic";
+
+  # Family channel name (not secret — it appears in the MQTT topic). The PSK is
+  # the secret, stored in sops as meshtastic-channel-psk (raw base64).
+  channelName = "flanmesh";
 in
 {
   # Radio-less Meshtastic virtual node.
@@ -28,14 +32,11 @@ in
   # are node-state, applied once via the `meshtastic` CLI by the provisioning
   # oneshot below. See https://meshtastic.org/docs/configuration/module/mqtt/
   #
-  # REQUIRED before deploy: add the family channel share-URL to sops (it encodes
-  # the channel name + PSK, so it is secret):
-  #   sops secrets/beefcake/secrets.yml
-  #   # meshtastic-channel-url: "https://meshtastic.org/e/#<your-channel-set>"
-  # Get it from the app: Channels -> (share) -> copy URL / "Add all channels".
-  # The mqtt password reuses the mosquitto-meshtastic-password secret.
+  # The channel name (above) + PSK identify the family channel. The PSK is the
+  # AES key, kept in sops as meshtastic-channel-psk (raw base64, no prefix). The
+  # mqtt password reuses the mosquitto-meshtastic-password secret.
 
-  sops.secrets."meshtastic-channel-url" = {
+  sops.secrets."meshtastic-channel-psk" = {
     mode = "0400";
   };
 
@@ -69,9 +70,10 @@ in
     path = [ pkgs.meshtastic ];
     environment = {
       REGION = region;
+      CHANNEL_NAME = channelName;
       MQTT_HOST = mqttHost;
       MQTT_USER = mqttUser;
-      CHANNEL_URL_FILE = config.sops.secrets."meshtastic-channel-url".path;
+      PSK_FILE = config.sops.secrets."meshtastic-channel-psk".path;
       MQTT_PW_FILE = config.sops.secrets."mosquitto-meshtastic-password".path;
     };
     serviceConfig = {
@@ -99,11 +101,12 @@ in
       echo "Setting LoRa region to $REGION"
       meshtastic --host 127.0.0.1 --set lora.region "$REGION"
 
-      echo "Importing family channel set from share URL"
-      meshtastic --host 127.0.0.1 --seturl "$(cat "$CHANNEL_URL_FILE")"
-
-      echo "Enabling MQTT uplink/downlink on primary channel"
-      meshtastic --host 127.0.0.1 --ch-index 0 --ch-set uplink_enabled true --ch-set downlink_enabled true
+      echo "Configuring primary channel ($CHANNEL_NAME) + MQTT uplink/downlink"
+      meshtastic --host 127.0.0.1 --ch-index 0 \
+        --ch-set name "$CHANNEL_NAME" \
+        --ch-set psk "base64:$(cat "$PSK_FILE")" \
+        --ch-set uplink_enabled true \
+        --ch-set downlink_enabled true
 
       echo "Configuring MQTT module -> local Mosquitto"
       meshtastic --host 127.0.0.1 \

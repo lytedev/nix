@@ -12,7 +12,7 @@ let
   configFile = (pkgs.formats.yaml { }).generate "mmrelay-config.yaml" {
     matrix_rooms = [
       {
-        id = "!REPLACE_WITH_ROOM_ID:lyte.dev"; # the Matrix room the family uses
+        id = "!FIQbwRW4YEcuaPoDnq:lyte.dev"; # Meshtastic Bridge room
         meshtastic_channel = 0; # primary channel
       }
     ];
