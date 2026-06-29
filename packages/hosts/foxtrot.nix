@@ -18,21 +18,39 @@ let
         pkgs.coreutils
         pkgs.procps
       ]
-    }:$PATH
+    }:/run/current-system/sw/bin:$PATH
     rm -f "${exitSentinel}"
-    # Terminate the gaming-mode gamescope: argv[0] basename exactly "gamescope"
+
+    # PIDs of the gaming-mode gamescope: argv[0] basename exactly "gamescope"
     # (the live comm is "gamescope-wl", so match argv[0], not comm; this also
     # excludes the "gamescopereaper" helper) AND argv carries the Steam gamepadui
-    # markers, so an unrelated gamescope is never killed.
-    for d in /proc/[0-9]*; do
-      [ -r "$d/cmdline" ] || continue
-      argv0=$(tr '\0' '\n' < "$d/cmdline" 2>/dev/null | head -n1)
-      [ "$(basename "$argv0" 2>/dev/null)" = gamescope ] || continue
-      cl=$(tr '\0' ' ' < "$d/cmdline" 2>/dev/null)
-      case "$cl" in
-        *com.valvesoftware.Steam*-gamepadui*) kill -TERM "''${d#/proc/}" 2>/dev/null || true ;;
-      esac
+    # markers, so an unrelated gamescope is never matched.
+    gm_pids() {
+      for d in /proc/[0-9]*; do
+        [ -r "$d/cmdline" ] || continue
+        argv0=$(tr '\0' '\n' < "$d/cmdline" 2>/dev/null | head -n1)
+        [ "$(basename "$argv0" 2>/dev/null)" = gamescope ] || continue
+        cl=$(tr '\0' ' ' < "$d/cmdline" 2>/dev/null)
+        case "$cl" in
+          *com.valvesoftware.Steam*-gamepadui*) echo "''${d#/proc/}" ;;
+        esac
+      done
+    }
+
+    # Graceful exit: ask Steam to shut down so it FINALIZES its appmanifests. An
+    # abrupt kill leaves them dirty and Steam re-validates games on next launch —
+    # notably Guild Wars 2, whose ArenaNet patcher already fights Steam over its
+    # single 92GB Gw2.dat (StateFlags=4 yet a lingering ~1GB BytesToDownload).
+    # Steam quitting collapses the nested gamescope back to niri on its own.
+    flatpak run com.valvesoftware.Steam -shutdown >/dev/null 2>&1 || true
+
+    # Wait for gamescope to fall away as Steam exits; fall back to terminating it
+    # directly if Steam hasn't quit within the grace window.
+    for _ in $(seq 1 30); do
+      [ -z "$(gm_pids)" ] && exit 0
+      sleep 1
     done
+    for pid in $(gm_pids); do kill -TERM "$pid" 2>/dev/null || true; done
   '';
 in
 {
