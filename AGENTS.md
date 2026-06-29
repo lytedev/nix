@@ -110,6 +110,18 @@ nix develop -c deploy -s --targets ".#beefcake"
 nix develop -c deploy -s --targets "git+https://git.lyte.dev/lytedev/nix#beefcake"
 ```
 
+> **Note — deploy beefcake over the LAN, not the VPN.** beefcake runs
+> `headscale` (the tailnet coordinator), so a deploy reached over the VPN
+> restarts it mid-activation and **severs its own connection**, leaving the new
+> generation's profile active but services stopped (DNS/VPN/mail/web/git down)
+> and an orphaned deploy-rs magic-rollback waiter. Deploy it over the LAN
+> instead: `deploy --hostname 192.168.0.9 …` (also reachable as `beefcake.lan`).
+> If it wedges anyway, recover from `root@192.168.0.9`: re-run
+> `/run/current-system/bin/switch-to-configuration switch` to finish the
+> activation, then `kill` the lingering `deploy-rs … activate wait` PID so it
+> can't auto-rollback. For major-release bumps prefer `nixos-rebuild boot` +
+> reboot.
+
 ## Forgejo (fj CLI)
 Remote is hosted on Forgejo. Use `fj` (forgejo-cli, available via `nix develop`) for PRs:
 
