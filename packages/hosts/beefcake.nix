@@ -142,6 +142,7 @@
     ./beefcake/daniel.nix
     ./beefcake/jellyfin.nix
     ./beefcake/music-assistant.nix
+    ./beefcake/home-assistant.nix
     ./beefcake/daniel.nix
     ./beefcake/postgres.nix
     ./beefcake/other-users.nix

@@ -1,0 +1,324 @@
+language: en
+intents:
+  # {timer_spec} is a wildcard (e.g. "10 minute", "10-minute pasta", "5 minutes",
+  # "1 hour", "two minute egg"). The HearthStartTimer intent_script parses the
+  # duration + optional label out of it, so STT formatting quirks like the
+  # hyphen in "10-minute" don't break matching.
+  HearthStartTimer:
+    data:
+      - sentences:
+          - "set a timer for {timer_spec}"
+          - "set a {timer_spec} timer"
+          - "start a timer for {timer_spec}"
+          - "start a {timer_spec} timer"
+          - "create a {timer_spec} timer"
+          - "make a {timer_spec} timer"
+  HearthAddGrocery:
+    data:
+      - sentences:
+          - "add {item} to [the] groceries"
+          - "add {item} to [the] grocery list"
+          - "add {item} to [the] shopping list"
+          - "put {item} on [the] grocery list"
+  HearthAddTask:
+    data:
+      - sentences:
+          - "add {title} to [the] tasks"
+          - "add [a] task to {title}"
+          - "remind me to {title}"
+  # {event_name} + {event_when} split on a literal delimiter ("on"/"for"). The
+  # Hearth /api/intent/event/create endpoint parses {event_when} (natural
+  # language: "tomorrow at 3pm", "next tuesday", "december 26") server-side.
+  HearthAddEvent:
+    data:
+      - sentences:
+          - "(add|create|put) [an|a] event [called|named] {event_name} on {event_when}"
+          - "(add|create|put) [an|a] event [called|named] {event_name} for {event_when}"
+          - "(add|put) {event_name} on [the|my] calendar [on|for] {event_when}"
+          - "(add|put) {event_name} to [the|my] calendar [on|for] {event_when}"
+          - "schedule {event_name} for {event_when}"
+          - "schedule {event_name} on {event_when}"
+  # Ask what's coming up. {cal_range} is an optional fixed list (today/tomorrow/
+  # week); Hearth formats the spoken summary and HA reads it back.
+  HearthListEvents:
+    data:
+      - sentences:
+          - "what's on [the|my] (calendar|schedule)"
+          - "what's on [the|my] (calendar|schedule) {cal_range}"
+          - "what do I have [going on]"
+          - "what do I have [going on] {cal_range}"
+          - "what's (coming up|happening|going on)"
+          - "what's (coming up|happening|going on) {cal_range}"
+          - "do I have (anything|any events|any plans)"
+          - "do I have (anything|any events|any plans) {cal_range}"
+          - "what are my (events|plans)"
+          - "what are my (events|plans) {cal_range}"
+  # Meal plan. Two wildcards ({meal_name}+{meal_when}) split on literal anchors;
+  # Hearth resolves {meal_when} ("tonight"/"tomorrow"/"friday") to a date.
+  HearthSetMeal:
+    data:
+      - sentences:
+          - "(set|plan) dinner to {meal_name}"
+          - "(set|plan) dinner {meal_when} to {meal_name}"
+          - "(plan|make) {meal_name} for dinner"
+          - "(plan|make) {meal_name} for dinner {meal_when}"
+          - "we're having {meal_name} for dinner"
+          - "we're having {meal_name} for dinner {meal_when}"
+          - "dinner is {meal_name}"
+          - "dinner {meal_when} is {meal_name}"
+  HearthWhatsForDinner:
+    data:
+      - sentences:
+          - "what's for dinner"
+          - "what's for dinner {meal_when}"
+          - "what are we having for dinner"
+          - "what are we having for dinner {meal_when}"
+          - "what's the dinner plan"
+          - "what's the dinner plan {meal_when}"
+          - "what's the plan for dinner"
+          - "what's the plan for dinner {meal_when}"
+  # Push a recipe's ingredients to the grocery list. The "ingredients for" anchor
+  # keeps these from being swallowed by HearthAddGrocery ("add {item} to …").
+  HearthGroceriesFromRecipe:
+    data:
+      - sentences:
+          - "add [the] ingredients for {recipe_name}"
+          - "add [the] ingredients for {recipe_name} to [the] (groceries|grocery list|shopping list)"
+          - "I need [the] ingredients for {recipe_name}"
+          - "put [the] ingredients for {recipe_name} on [the] (grocery list|shopping list)"
+  # Pantry inventory.
+  HearthPantryAdd:
+    data:
+      - sentences:
+          - "add {pantry_item} to [the] pantry"
+          - "put {pantry_item} in [the] pantry"
+          - "we (bought|got) {pantry_item}"
+          - "we just (bought|got) {pantry_item}"
+  HearthPantryRemove:
+    data:
+      - sentences:
+          - "we('re| are) out of {pantry_item}"
+          - "we ran out of {pantry_item}"
+          - "remove {pantry_item} from [the] pantry"
+          - "take {pantry_item} out of [the] pantry"
+  HearthPantryHas:
+    data:
+      - sentences:
+          - "do we have [any] {pantry_item}"
+          - "do we have [any] {pantry_item} (left|in the pantry)"
+          - "is there [any] {pantry_item} (left|in the pantry)"
+          - "have we got [any] {pantry_item}"
+  HearthPantryList:
+    data:
+      - sentences:
+          - "what's in [the] pantry"
+          - "what do we have in [the] pantry"
+          - "list [the] pantry"
+  HearthMealCooked:
+    data:
+      - sentences:
+          - "we (cooked|made|had|ate) dinner"
+          - "we (cooked|made|had|ate) dinner {meal_when}"
+          - "I (cooked|made) dinner"
+          - "we just (cooked|made|ate) dinner"
+          - "mark dinner [as] cooked"
+  # Catch unhandled commands so we can see what the household wants. NOTE: a bare
+  # "{utterance}" wildcard is dangerous — hassil scores by wildcard COUNT, so a
+  # single bare wildcard outranks any two-slot intent (it shadowed HearthAddEvent).
+  # Instead, anchor on leading words that NO Hearth intent starts with (never
+  # schedule/add/create/put/set/make/remind — those drive real intents). Each
+  # sentence has a literal anchor, so real intents always outscore it.
+  # Play music via Music Assistant. {music_query} is searched by MA (artist /
+  # track / album / playlist); {music_player} (optional) picks the room, else a
+  # default player. NOTE: keep "play" OUT of the HearthUnknown catch-all below.
+  HearthPlayMusic:
+    data:
+      - sentences:
+          - "play {music_query}"
+          - "play {music_query} (on|in) [the] {music_player}"
+          - "put on {music_query}"
+          - "put on {music_query} (on|in) [the] {music_player}"
+  # Play to every room at once. The literal "everywhere"/"every room" anchor
+  # outranks HearthPlayMusic's bare "play {music_query}".
+  HearthPlayEverywhere:
+    data:
+      - sentences:
+          - "play {music_query} everywhere"
+          - "play {music_query} (in|on) every room"
+          - "play {music_query} (in|on) all [the] (rooms|speakers)"
+          - "play {music_query} (in|on) the (whole|entire) house"
+          - "put on {music_query} everywhere"
+  # Video on the TV (steamdeck mpv, YouTube via yt-dlp). "on the TV"/"on
+  # YouTube"/"watch" anchor distinguishes video from audio ("in the living room").
+  HearthPlayTvVideo:
+    data:
+      - sentences:
+          - "(watch|play|put on) {video_query} on [the] (tv|television)"
+          - "(play|search|find|put on) {video_query} on youtube"
+          - "(watch|play) {video_query} video"
+          - "(play|put on) [the] [music] video (for|of) {video_query}"
+  HearthStopTv:
+    data:
+      - sentences:
+          - "(stop|close|turn off|kill) [the] (video|tv|television)"
+          - "(stop|close) watching"
+          - "stop the (video|tv)"
+  # Audiobooks (Audiobookshelf via Music Assistant). The "audiobook"/"book"
+  # anchor keeps these from being swallowed by HearthPlayMusic's "play
+  # {music_query}". MA resumes from the saved listening position.
+  HearthPlayAudiobook:
+    data:
+      - sentences:
+          - "play [the] audiobook {audiobook_name}"
+          - "play [the] audiobook {audiobook_name} (on|in) [the] {music_player}"
+          - "put on [the] audiobook {audiobook_name}"
+          - "(start|begin) [the] (audiobook|book) {audiobook_name}"
+          - "read [me] [the] book {audiobook_name}"
+          - "(continue|resume) [the] audiobook {audiobook_name}"
+  HearthResumeAudiobook:
+    data:
+      - sentences:
+          - "(resume|continue) (my|the last) audiobook"
+          - "(resume|continue) listening"
+          - "keep (reading|listening)"
+  # Podcasts (Audiobookshelf via Music Assistant). The "podcast" anchor keeps
+  # these out of the music and audiobook paths. MA resumes the right episode.
+  HearthPlayPodcast:
+    data:
+      - sentences:
+          - "play [the] podcast {podcast_name}"
+          - "play [the] podcast {podcast_name} (on|in) [the] {music_player}"
+          - "put on [the] podcast {podcast_name}"
+          - "(play|put on) [the] (latest|newest) episode of {podcast_name}"
+  HearthResumePodcast:
+    data:
+      - sentences:
+          - "(resume|continue) (my|the last) podcast"
+          - "play my podcast"
+  # Move whatever's playing to another room (MA transfer_queue). The
+  # {music_player} room is the destination; the source is the active player.
+  HearthMoveMusic:
+    data:
+      - sentences:
+          - "move (it|the music|the song|playback) to [the] {music_player}"
+          - "(move|transfer|send) (it|this|the music|the song) to [the] {music_player}"
+          - "(move|transfer) to [the] {music_player}"
+          - "(play|put) (it|this) (in|on) [the] {music_player} instead"
+  # Media controls — act on whichever Music Assistant player is active.
+  HearthMusicPause:
+    data:
+      - sentences:
+          - "pause [the] (music|song|playback)"
+          - "pause"
+  HearthMusicResume:
+    data:
+      - sentences:
+          - "(resume|unpause|continue|keep playing) [the] [(music|song)]"
+  HearthMusicNext:
+    data:
+      - sentences:
+          - "(skip|next) [(this|the)] [(song|track)]"
+          - "skip it"
+          - "next one"
+  HearthMusicPrevious:
+    data:
+      - sentences:
+          - "(previous|last) [(song|track)]"
+          - "go back [a song]"
+  HearthMusicStop:
+    data:
+      - sentences:
+          - "stop [the] (music|song|playback)"
+  HearthMusicVolumeUp:
+    data:
+      - sentences:
+          - "(turn it up|turn up the (music|volume)|louder|volume up|crank it [up])"
+  HearthMusicVolumeDown:
+    data:
+      - sentences:
+          - "(turn it down|turn down the (music|volume)|quieter|volume down)"
+  HearthMusicVolumeSet:
+    data:
+      - sentences:
+          - "set [the] volume to {volume_pct}"
+          - "volume {volume_pct} [percent]"
+  HearthUnknown:
+    data:
+      - sentences:
+          - "turn {utterance}"
+          - "tell {utterance}"
+          - "show {utterance}"
+          - "open {utterance}"
+          - "close {utterance}"
+          - "dim {utterance}"
+          - "lock {utterance}"
+          - "unlock {utterance}"
+          - "find {utterance}"
+          - "call {utterance}"
+          - "text {utterance}"
+          - "email {utterance}"
+          - "search {utterance}"
+          - "who {utterance}"
+          - "where {utterance}"
+          - "when {utterance}"
+          - "how {utterance}"
+          - "why {utterance}"
+          - "is {utterance}"
+          - "are {utterance}"
+          - "can you {utterance}"
+  # Silence a ringing timer alarm.
+  HearthStopAlarm:
+    data:
+      - sentences:
+          - "stop"
+          - "stop [the] (timer|timers|alarm)"
+          - "turn off [the] (timer|timers|alarm)"
+          - "dismiss [the] (timer|timers|alarm)"
+          - "(timer|timers) (are|is) done"
+          - "okay [I'm] (done|coming)"
+lists:
+  timer_spec:
+    wildcard: true
+  item:
+    wildcard: true
+  title:
+    wildcard: true
+  event_name:
+    wildcard: true
+  event_when:
+    wildcard: true
+  cal_range:
+    values:
+      - in: "(this week|the week|for the week)"
+        out: "week"
+      - in: "(today|tonight)"
+        out: "today"
+      - in: "tomorrow"
+        out: "tomorrow"
+  utterance:
+    wildcard: true
+  meal_name:
+    wildcard: true
+  meal_when:
+    wildcard: true
+  recipe_name:
+    wildcard: true
+  pantry_item:
+    wildcard: true
+  music_query:
+    wildcard: true
+  audiobook_name:
+    wildcard: true
+  podcast_name:
+    wildcard: true
+  video_query:
+    wildcard: true
+  volume_pct:
+    wildcard: true
+  # Room → Music Assistant player entity. Extend as more Cast/speakers appear.
+  music_player:
+    values:
+      - in: "(master bedroom|bedroom|master bedroom speaker)"
+        out: "media_player.master_bedroom_speaker"
+      - in: "(living room|the living room|front room|downstairs)"
+        out: "media_player.living_room"
