@@ -106,10 +106,13 @@ let
       ${lib.getExe pkg} -g -c '${configFile}' -r '${registrationFile}'
     fi
 
-    # Splice the stable tokens from the registration into the config.
-    AS_TOKEN="$(${yq} -r '.as_token' '${registrationFile}')" \
-    HS_TOKEN="$(${yq} -r '.hs_token' '${registrationFile}')" \
-      ${yq} -i '.appservice.as_token = strenv(AS_TOKEN) | .appservice.hs_token = strenv(HS_TOKEN)' '${configFile}'
+    # Splice the stable tokens from the registration into the config. Export them
+    # (rather than inline-prefixing the one yq call) so AS_TOKEN is also in scope
+    # for the double-puppet step below.
+    AS_TOKEN="$(${yq} -r '.as_token' '${registrationFile}')"
+    HS_TOKEN="$(${yq} -r '.hs_token' '${registrationFile}')"
+    export AS_TOKEN HS_TOKEN
+    ${yq} -i '.appservice.as_token = strenv(AS_TOKEN) | .appservice.hs_token = strenv(HS_TOKEN)' '${configFile}'
 
     # --- Double-puppeting ---
     # So @daniel's own sent messages (RCS/SMS from his phone) appear as
