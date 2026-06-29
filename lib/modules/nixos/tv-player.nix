@@ -111,13 +111,19 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.mpv pkgs.yt-dlp ];
+    environment.systemPackages = [
+      pkgs.mpv
+      pkgs.yt-dlp
+    ];
 
     systemd.services.tv-player = {
       description = "TV video player control service";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      path = [ pkgs.util-linux pkgs.procps ]; # runuser + pkill
+      path = [
+        pkgs.util-linux
+        pkgs.procps
+      ]; # runuser + pkill
       serviceConfig = {
         ExecStart = "${pkgs.python3}/bin/python3 ${server}";
         Restart = "on-failure";
