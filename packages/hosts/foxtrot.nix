@@ -5,12 +5,12 @@
   ...
 }:
 let
-  # Sentinel for controller-driven exit from gaming mode. Steam's data dir is
-  # bind-shared into the Flatpak sandbox at this same absolute path, so a
-  # non-Steam "Exit Gaming Mode" shortcut that `touch`es it is seen here on the
-  # host. A systemd .path unit watches it (event-driven — systemd's own inotify,
-  # no polling and no idle process) and triggers the kill below.
-  exitSentinel = "/home/daniel/.var/app/com.valvesoftware.Steam/.local/share/Steam/.foxtrot-exit-gamemode";
+  # Sentinel for controller-driven exit from gaming mode. It lives in Steam's
+  # data dir, so a non-Steam "Exit Gaming Mode" shortcut that `touch`es it (path
+  # relative to Steam's install dir) is seen here on the host. A systemd .path
+  # unit watches it (event-driven — systemd's own inotify, no polling and no idle
+  # process) and triggers the kill below.
+  exitSentinel = "/home/daniel/.local/share/Steam/.foxtrot-exit-gamemode";
 
   gamemodeExit = pkgs.writeShellScript "foxtrot-gamemode-exit" ''
     export PATH=${
@@ -32,7 +32,7 @@ let
         [ "$(basename "$argv0" 2>/dev/null)" = gamescope ] || continue
         cl=$(tr '\0' ' ' < "$d/cmdline" 2>/dev/null)
         case "$cl" in
-          *com.valvesoftware.Steam*-gamepadui*) echo "''${d#/proc/}" ;;
+          *steam*-gamepadui*) echo "''${d#/proc/}" ;;
         esac
       done
     }
@@ -42,7 +42,7 @@ let
     # notably Guild Wars 2, whose ArenaNet patcher already fights Steam over its
     # single 92GB Gw2.dat (StateFlags=4 yet a lingering ~1GB BytesToDownload).
     # Steam quitting collapses the nested gamescope back to niri on its own.
-    flatpak run com.valvesoftware.Steam -shutdown >/dev/null 2>&1 || true
+    steam -shutdown >/dev/null 2>&1 || true
 
     # Wait for gamescope to fall away as Steam exits; fall back to terminating it
     # directly if Steam hasn't quit within the grace window.
@@ -51,6 +51,101 @@ let
       sleep 1
     done
     for pid in $(gm_pids); do kill -TERM "$pid" 2>/dev/null || true; done
+  '';
+
+  # "Gaming (gamescope)" session: a wayland-session entry the display manager
+  # (plasma-login-manager) launches SEATED, exactly like it launches niri. On its
+  # own DRM seat gamescope owns input, so Steam Input drives the cursor natively
+  # (the Steam Deck model) — the only way to get controller-as-mouse. Nested in
+  # niri, gamescope doesn't own the seat and Steam falls back to XTest (frozen
+  # cursor). Letting the DM do the seating also means Steam runs in a real login
+  # session, so its bwrap/runtime works (a hand-rolled systemd seat broke it).
+  # Pick this session at the greeter to game; exit returns to the greeter for niri.
+  gamingSessionScript = pkgs.writeShellScript "foxtrot-gaming-session" ''
+    export PATH=/run/current-system/sw/bin:$PATH
+    # --backend drm: drive the displays directly on this session's seat. gamescope
+    # picks the connected output(s); with the glasses connected it uses them.
+    exec gamescope --backend drm -e -- steam -gamepadui > "$HOME/.foxtrot-gaming.log" 2>&1
+  '';
+  gamingSessionPackage =
+    (pkgs.writeTextFile {
+      name = "foxtrot-gaming-session";
+      destination = "/share/wayland-sessions/foxtrot-gaming.desktop";
+      text = ''
+        [Desktop Entry]
+        Name=Gaming (gamescope)
+        Comment=Steam Big Picture in a seated gamescope session (controller-native)
+        Exec=${gamingSessionScript}
+        Type=Application
+        DesktopNames=gamescope
+      '';
+    }).overrideAttrs
+      (_: {
+        passthru.providedSessions = [ "foxtrot-gaming" ];
+      });
+
+  # Make Steam's "Switch to Desktop" actually work without the full Jovian session
+  # manager. Steam shells out to `steamos-session-select <target>` to switch
+  # sessions; we have no in-place desktop session to switch to (deliberately no
+  # steamos-manager), so any non-gamescope target instead ENDS this gamescope
+  # session: touch the exit sentinel -> the foxtrot-gamemode-exit.path unit (live
+  # in this session) quits Steam + kills gamescope -> plasma-login-manager returns
+  # to the greeter, where the niri session is picked. (Logs the arg so we can see
+  # exactly what Steam asks for.)
+  steamosSessionSelect = pkgs.writeShellScriptBin "steamos-session-select" ''
+    echo "steamos-session-select $* @ $(date)" >> "$HOME/.foxtrot-session-select.log"
+    case "''${1:-}" in
+      gamescope | "") : ;; # staying in game mode -> no-op
+      *) touch "${exitSentinel}" ;; # any desktop target -> exit gaming mode
+    esac
+  '';
+
+  # Greeter overhaul: replace plasma-login-manager with greetd + ReGreet, hosted
+  # in a minimal niri compositor that ALSO runs wvkbd as a layer-shell on-screen
+  # keyboard. plasma-login-manager has no controller-usable OSK — its keyboard is
+  # touch-gated and QT_IM_MODULE can't reach the greeter's separate PAM session
+  # (so only touch hosts like babyflip ever get it). niri renders layer-shell
+  # reliably (the same wvkbd we already use on the desktop), so the Steam
+  # Controller's lizard-mode trackpad — a real HID mouse at the greeter — can pick
+  # a session and click out the password: controller-only, lid-closed login.
+  greeterNiriConfig = pkgs.writeText "greeter-niri.kdl" ''
+    hotkey-overlay {
+        skip-at-startup
+    }
+    prefer-no-csd
+    input {
+        touchpad {
+            tap
+            natural-scroll
+        }
+    }
+    // ReGreet does the login; wvkbd is the always-visible OSK. wvkbd is a
+    // layer-shell surface, so it renders above the fullscreen greeter window and
+    // stays clickable with the controller-as-mouse.
+    spawn-at-startup "regreet"
+    spawn-at-startup "wvkbd-mobintl" "-L" "320"
+    window-rule {
+        open-fullscreen true
+    }
+    binds {
+        // Recovery escape hatch from a physical keyboard, if one is attached.
+        Mod+Shift+E { quit skip-confirmation=true; }
+    }
+  '';
+  greeterCommand = pkgs.writeShellScript "foxtrot-greeter" ''
+    export PATH=${
+      lib.makeBinPath [
+        config.programs.niri.package
+        pkgs.regreet
+        pkgs.wvkbd
+        pkgs.dbus
+      ]
+    }:/run/current-system/sw/bin:$PATH
+    # ReGreet discovers sessions from XDG_DATA_DIRS (each dir + /wayland-sessions).
+    # Point it at the display manager's sessionData so BOTH niri and the
+    # "Gaming (gamescope)" session appear in the picker.
+    export XDG_DATA_DIRS=${config.services.displayManager.sessionData.desktops}/share''${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
+    exec dbus-run-session niri -c ${greeterNiriConfig}
   '';
 in
 {
@@ -145,6 +240,17 @@ in
     };
   };
 
+  # Register the "Gaming (gamescope)" wayland-session so it appears in the
+  # display manager's session picker. The DM seats it like any other session.
+  services.displayManager.sessionPackages = [ gamingSessionPackage ];
+
+  # Greeter = greetd + ReGreet inside niri + wvkbd OSK (see greeterCommand above
+  # for the why). plasma.nix unconditionally enables plasma-login-manager for any
+  # plasma-enabled host, so force it off here and stand up greetd in its place.
+  services.displayManager.plasma-login-manager.enable = lib.mkForce false;
+  programs.regreet.enable = true;
+  services.greetd.settings.default_session.command = "${greeterCommand}";
+
   # Use password (not fingerprint) for initial login so pam_gnome_keyring
   # can capture it and auto-unlock the login keyring. Without this, NM's
   # agent-owned wifi PSKs (and anything else in the keyring) prompt every
@@ -154,19 +260,47 @@ in
   security.pam.services = {
     login.fprintAuth = false;
     plasmalogin.fprintAuth = false;
+    # greetd is the greeter PAM service now (ReGreet authenticates through it).
+    # Keep it on password so the controller OSK can drive login, and so
+    # pam_gnome_keyring captures the password to unlock the login keyring.
+    greetd.fprintAuth = false;
   };
 
-  # Steam: install via flatpak (com.valvesoftware.Steam) — see
-  # lib/doc/steam-flatpak-migration.md for the move from the old
-  # nix-managed Steam library at ~/.local/share/Steam.
-  # Keep the steam-hardware udev rules so Flatpak Steam still sees
-  # Steam Controllers / Steam Deck dock correctly.
-  hardware.steam-hardware.enable = true;
+  # Steam: nix-managed (programs.steam), NOT flatpak. The Flatpak Steam's sandbox
+  # always binds the host (niri) display sockets, so a host gamescope can never
+  # contain it — Steam escapes onto niri's display and the SteamOS behaviors
+  # (Steam-button overlay, controller-as-mouse, single-surface fullscreen,
+  # game<->Steam focus switching) never work. System Steam embeds in the nested
+  # gamescope properly. See lib/doc/steam-flatpak-migration.md (now reversed) for
+  # the library move (~/.var/app/.../Steam -> ~/.local/share/Steam).
+  #
+  # programs.steam.enable pulls in lib/modules/nixos/gaming.nix (gated on it):
+  # gamescope + its CAP_SYS_NICE setcap wrapper, steam-hardware udev (Steam
+  # Controller / Deck dock), 32-bit graphics, proton-ge, esync fd limits, and
+  # extest disabled (gamescope handles controller input natively).
+  programs.steam.enable = true;
 
-  # Host gamescope (with its CAP_SYS_NICE setcap wrapper). NB: the gamescope in
-  # gaming.nix is gated on programs.steam.enable, which foxtrot doesn't set
-  # (Steam is the flatpak) — so enable the upstream module directly here.
-  programs.gamescope.enable = true;
+  # Controller-as-mouse on Wayland: Steam Input's mouse emulation injects motion
+  # via XTest, which warps the X11 logical pointer (apps react, cursor shape
+  # changes) but NOT the Wayland/gamescope pointer that draws the visible cursor
+  # — so with a controller the sprite stays frozen while a real trackpad moves it
+  # fine. `extest` (the XTest->Wayland shim) is the obvious bridge, BUT it was
+  # tried here on 2026-06-29 with Steam running INSIDE gamescope (so a Wayland
+  # compositor IS present) and it STILL aborts: the 32-bit ubuntu12_32/steam
+  # client SIGABRTs the instant Steam Input injects motion (coredump confirmed).
+  # ROOT CAUSE (investigated 2026-06-29): the nixpkgs lib is 32-bit-only, so it
+  # loads ONLY into the 32-bit Steam bootstrap client (64-bit procs reject it —
+  # the ELFCLASS32 spam). On the first injected motion, extest lazily builds an
+  # absolute uinput pointer sized from Wayland xdg-output, with `.unwrap()` at
+  # every step — but that bootstrap client, inside the Steam runtime
+  # (pressure-vessel) container nested in gamescope, has no usable Wayland /
+  # xdg-output global, so it panics and the panic abort()s Steam across extest's
+  # nounwind extern-"C" XTest shim (SIGABRT, confirmed). extest assumes Steam on a
+  # bare wlroots desktop, not nested in gamescope inside pressure-vessel — it's
+  # architecturally mismatched here and tested-dead even with `-steamos3`. The real
+  # fix is a proper gamescope SESSION (Jovian steamos-session-select, desktop=niri)
+  # where Steam Input drives the cursor natively, no extest. So leave it OFF.
+  # programs.steam.extest.enable = lib.mkForce true;  # SIGABRTs Steam — see above
   lyte = {
     editableConfigFiles = true;
     flakePath = "/etc/nix/flake";
@@ -229,6 +363,16 @@ in
   environment.systemPackages = with pkgs; [
     hidapi
 
+    # Also install the gaming-session .desktop into the system path's
+    # share/wayland-sessions/ — plasma-login-manager reads sessions from there
+    # (its built-in default dir), NOT from services.displayManager.sessionData,
+    # so sessionPackages alone doesn't surface it in the greeter (niri shows up
+    # only because the niri package lands its .desktop here too).
+    gamingSessionPackage
+
+    # steamos-session-select stub so Steam's "Switch to Desktop" exits game mode.
+    steamosSessionSelect
+
     # "Gaming mode": one nested gamescope window hosting Steam in gamepad-UI, so
     # every game launched from it inherits gamescope isolation (clean cursor/
     # focus, native controller input) with NO per-game launch options. It's a
@@ -239,8 +383,9 @@ in
     # mode is pinned there via niri open-on-output), falling back to the focused
     # output otherwise — so launching with the lid open doesn't render at the
     # laptop panel's resolution on the glasses. niri reports refresh in mHz;
-    # falls back to 1080p60 if niri/jq aren't reachable. (The flatpak reaches
-    # gamescope's nested Wayland socket fine — no --socket=wayland override.)
+    # falls back to 1080p60 if niri/jq aren't reachable. System Steam connects to
+    # gamescope's nested Wayland display directly (unlike the Flatpak, whose
+    # sandbox bound niri's sockets and escaped gamescope entirely).
     #
     # Inhibits the screen lock AND idle suspend for the session: DMS's lock timer
     # is `enabled = acLockTimeout > 0` (and ignores the `dms ipc inhibit` flag),
@@ -250,9 +395,9 @@ in
     # gamescope, not niri, so niri's idle timer keeps counting). Both restored on
     # exit.
     #
-    # Controller-driven exit: gamescope's SteamOS "Switch to Desktop" is a no-op
-    # on the Flatpak (it's a SteamOS-only session action Valve never wires up —
-    # makes no D-Bus call, just hangs). Instead, a non-Steam "Exit Gaming Mode"
+    # Controller-driven exit: Steam's "Switch to Desktop" expects a real SteamOS
+    # gamescope-session to switch to, which a nested gamescope launched from niri
+    # is not — so it's a no-op here. Instead, a non-Steam "Exit Gaming Mode"
     # shortcut in the Steam library touches the exit sentinel; the
     # foxtrot-gamemode-exit.path unit watches it and quits gamescope, after which
     # the foreground gamescope below returns and the trap restores idle/lock. See
@@ -297,8 +442,26 @@ in
       # which this foreground gamescope returns and the trap restores idle/lock.
       rm -f "${exitSentinel}"
 
+      # Steam is single-instance: if a desktop Steam is already running,
+      # `steam -gamepadui` just signals THAT instance to switch to Big Picture on
+      # the niri desktop and our gamescope child exits immediately (gamescope
+      # quits with an empty window). So fully quit any running Steam first.
+      # `steam -shutdown` alone can take longer than we want (and sometimes
+      # doesn't land), so wait briefly then SIGKILL the stragglers + the runtime.
+      if pgrep -u "$(id -u)" -x steamwebhelper >/dev/null 2>&1; then
+        echo "foxtrot-gamemode: quitting the running desktop Steam first" >&2
+        steam -shutdown >/dev/null 2>&1 || true
+        for _ in $(seq 1 20); do
+          pgrep -u "$(id -u)" -x steamwebhelper >/dev/null 2>&1 || break
+          sleep 1
+        done
+        pkill -u "$(id -u)" -9 -x steamwebhelper 2>/dev/null || true
+        pkill -u "$(id -u)" -9 -f ubuntu12_ 2>/dev/null || true
+        sleep 2
+      fi
+
       gamescope -W "$W" -H "$H" -r "$R" -f -e -- \
-        flatpak run com.valvesoftware.Steam -gamepadui "$@"
+        steam -gamepadui "$@"
     '')
 
     # Desktop entry so "Gaming Mode" is launchable from the DMS launcher (or any

@@ -386,8 +386,8 @@ window-rule {
 }
 
 // "Gaming mode": the nested gamescope window (Steam Big Picture / games via
-// `foxtrot-gamemode`) takes a full column instead of the default half. Swap to
-// `open-fullscreen true` if you want it bezel-free.
+// `foxtrot-gamemode`) opens bezel-free fullscreen on the glasses. Without the
+// rule it lands at niri's default half-column width on whatever output is focused.
 window-rule {
     match app-id="gamescope"
     // Always open gaming-mode (gamescope) on the VITURE glasses when connected,
@@ -395,7 +395,7 @@ window-rule {
     // this, niri's per-output workspaces can land it on (or snap it back to) the
     // built-in panel when eDP re-enables on lid-open.
     open-on-output "PNP(CVT) VITURE 0x88888800"
-    default-column-width { proportion 1.0; }
+    open-fullscreen true
 }
 
 // Example: block out two password managers from screen capture.
