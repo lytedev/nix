@@ -5,8 +5,16 @@
   ...
 }:
 let
-  # Beefcake's Stalwart instance over Tailscale VPN
-  beefcakeSmtp = "beefcake.internal.vpn.h.lyte.dev";
+  # Beefcake's Stalwart instance over Tailscale VPN — its STABLE tailnet IP, not
+  # the hostname. HAProxy resolves backend hostnames ONCE at startup; if it starts
+  # before tailscale/MagicDNS is ready (e.g. right after a pebble reboot) it can't
+  # resolve `beefcake.internal.vpn.h.lyte.dev`, marks the backend permanently DOWN,
+  # and never re-resolves — so it stays stuck queuing to the Postfix fallback even
+  # after beefcake is reachable (observed 2026-06-27; needed a manual `haproxy
+  # reload`). An IP has no startup-resolution dependency, so the health check just
+  # auto-recovers once the tailnet is up. (beefcake = 100.64.0.2 in the headscale
+  # ACL host map; also used for the knot tailnet listener + AXFR.)
+  beefcakeSmtp = "100.64.0.2";
   domain = "lyte.dev";
 in
 {
