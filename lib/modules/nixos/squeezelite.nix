@@ -13,7 +13,11 @@ in
 
     server = lib.mkOption {
       type = lib.types.str;
-      default = "192.168.0.198";
+      # Stable mDNS name (resolves to beefcake's LAN IPv4) rather than a raw IP
+      # that breaks when MA moves hosts — which is exactly what happened moving
+      # off bigtower. Use .local (avahi → LAN IPv4), NOT .lan (resolves to a
+      # public IPv6 that MA's IPv4-only SlimProto doesn't bind).
+      default = "beefcake.local";
       description = ''
         Music Assistant SlimProto server address (the host running Music
         Assistant with its `squeezelite` provider enabled). Optionally
