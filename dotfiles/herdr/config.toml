@@ -6,6 +6,8 @@ focus_pane_up = ["prefix+k", "ctrl+k"]
 focus_pane_right = ["prefix+l", "ctrl+l"]
 next_tab = ["prefix+n", "alt+."]
 previous_tab = ["prefix+p", "alt+,"]
+next_agent = ["prefix+ctrl+n", "ctrl+alt+."]
+previous_agent = ["prefix+ctrl+p", "ctrl+alt+,"]
 last_pane = ["prefix+shift+b", "ctrl+shift+b"]
 
 [ui]
