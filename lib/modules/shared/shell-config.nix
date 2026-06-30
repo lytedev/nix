@@ -100,6 +100,7 @@ in
         };
 
         lyte.userSymlinks = {
+          ".config/herdr/config.toml" = "${dotfilesPath}/herdr/config.toml";
           ".config/fish/functions/d.fish" = "${dotfilesPath}/fish/functions/d.fish";
           ".config/fish/functions/c.fish" = "${dotfilesPath}/fish/functions/c.fish";
           ".config/fish/functions/ltl.fish" = "${dotfilesPath}/fish/functions/ltl.fish";
