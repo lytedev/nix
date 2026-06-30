@@ -6,7 +6,8 @@ let
   # LoadBalancer:
   #   - service.type NodePort (with ServiceLB gone a LoadBalancer would be inert
   #     anyway, but we make NodePort explicit so the intent lives in our repo);
-  #   - the web (:80) entrypoint maps to NodePort 30080 — caddy proxies *.k here;
+  #   - the web (:80) entrypoint maps to NodePort 30081 — caddy proxies *.k here
+  #     (30080 is taken by a pre-existing default/echo-server test service);
   #   - the websecure (:443) entrypoint is NOT exposed, because caddy terminates
   #     TLS at the edge and forwards plain HTTP to traefik.
   traefikNodePortManifest = pkgs.writeText "traefik-nodeport.yaml" ''
@@ -21,7 +22,7 @@ let
           type: NodePort
         ports:
           web:
-            nodePort: 30080
+            nodePort: 30081
           websecure:
             expose:
               default: false

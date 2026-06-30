@@ -125,7 +125,7 @@
             server {env.TSIG_SERVER}
           }
         }
-        reverse_proxy http://127.0.0.1:30080 {
+        reverse_proxy http://127.0.0.1:30081 {
           header_up Host {host}
         }
       '';
