@@ -88,6 +88,10 @@
       "home-assistant.h"
       "openobserve.h"
       "syncthing.h"
+      # Wildcard for k3s cluster apps: anything under *.k.lyte.dev resolves here,
+      # caddy terminates TLS (one wildcard cert) and forwards to traefik, which
+      # routes by Host. A new cluster app needs only an Ingress — no DNS change.
+      "*.k"
     ];
   };
 

@@ -24,7 +24,13 @@ let
       # itself; this base just had to exceed the serial the secondaries were frozen
       # on during the 2026-06 cutover (2025032567), so it was bumped well past it.
       serial = 2026062400;
-      refresh = 7200;
+      # Short refresh so secondaries that miss a NOTIFY (notably HE — which only
+      # honours NOTIFY to ns1.he.net) still pick up changes within minutes rather
+      # than the 2h default. This is the fallback behind NOTIFY; it bounds how
+      # stale a secondary can get, which matters for *.k.lyte.dev ACME DNS-01
+      # challenge TXTs needing to land on ALL authoritative NS quickly. The poll
+      # is a tiny SOA query; a transfer only happens on an actual serial change.
+      refresh = 300;
       retry = 3600;
       expire = 1209600;
       minimum = 3600;
