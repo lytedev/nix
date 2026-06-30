@@ -1,0 +1,31 @@
+{
+  // Adds valerie to matrix.lyte.dev_users (Matrix/Element SSO access) as its own
+  // fresh-id migration rather than editing 00-groups: replaying 00-groups'
+  // recorded assertions fails with SchemaViolation(AttributeNotValidForClass
+  // (gidnumber)) (pre-existing drift), and apply-once means an edit there never
+  // re-applies. New assertions under a fresh file id apply cleanly via
+  // `kanidmd scripting reload`. Full member list (present = reconcile) so the
+  // existing members are preserved.
+  //
+  // The assertion id MUST be the EXISTING group's uuid (from 00-groups) so
+  // kanidm MODIFIES it; a random id makes it try to CREATE -> AttributeUniqueness
+  // (Name/Spn) since the group already exists. The file id is a fresh tracking id.
+  "id": "7c9dec9f-ddc1-4dad-8ab6-43bcd4645021",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "9ae4aa89-6dcf-42b8-9d42-3e1718797879",
+      "class": [
+        "group"
+      ],
+      "name": "matrix.lyte.dev_users",
+      "member": [
+        "voice-bridge",
+        "lytebot-svc",
+        "daniel",
+        "valerie",
+        "lytebot"
+      ]
+    }
+  ]
+}

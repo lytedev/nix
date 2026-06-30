@@ -79,6 +79,7 @@ in
         "26-host-beefcake-privileges.hjson" = ./kanidm-migrations/26-host-beefcake-privileges.hjson;
         "27-oauth2-admins.hjson" = ./kanidm-migrations/27-oauth2-admins.hjson;
         "30-immich-group.hjson" = ./kanidm-migrations/30-immich-group.hjson;
+        "31-matrix-valerie.hjson" = ./kanidm-migrations/31-matrix-valerie.hjson;
       };
 
       migrations.secretFiles = {
