@@ -53,6 +53,18 @@
 
   systemd.tmpfiles.settings = {
     "10-daniel-nightly-flake-build" = {
+      # Declare the .cache parent explicitly. If only the leaf is declared,
+      # systemd-tmpfiles auto-creates the parent as root:root, which then trips
+      # its unsafe-path-transition guard (daniel-owned .home -> root-owned
+      # .cache) on every later run and silently refuses to create the leaf,
+      # leaving build-lytedev-flake.service to fail with CHDIR (status 200).
+      "/home/daniel/.home/.cache" = {
+        "d" = {
+          mode = "0700";
+          user = "daniel";
+          group = "daniel";
+        };
+      };
       "/home/daniel/.home/.cache/nightly-flake-builds" = {
         "d" = {
           mode = "0750";
