@@ -1,0 +1,98 @@
+# =============================================================================
+# Example: deploy a service to the beefcake k3s cluster
+# =============================================================================
+#
+# This is the canonical pattern for any *.k.lyte.dev app. It is a plain
+# `kubectl apply`-able manifest — three resources (Deployment, Service, Ingress)
+# — and needs NO DNS, cert, or caddy/host change to go live.
+#
+# DEPLOY:
+#   nix develop                              # puts kubectl + k9s on PATH
+#   kubectl apply -f lib/doc/k8s-service-example.yaml
+#   # then: https://whoami.k.lyte.dev
+#
+# (kubeconfig: ~/.kube/config on dragon points at beefcake's tailnet API
+#  https://beefcake.internal.vpn.h.lyte.dev:6443 — the API is tailnet-only.)
+#
+# REQUEST PATH (how an app under *.k.lyte.dev is reached):
+#   https://whoami.k.lyte.dev
+#     -> DNS: the *.k wildcard A record resolves to beefcake; router DNATs :443
+#     -> caddy (the SOLE edge): terminates TLS with the *.k.lyte.dev wildcard cert
+#     -> 127.0.0.1:30081  (traefik's loopback-only NodePort)
+#     -> traefik (in-cluster ingress controller): routes by Host (the Ingress below)
+#     -> this Service (ClusterIP) -> these pods
+#   The *.k wildcard A + *.k.lyte.dev wildcard cert cover EVERY subdomain, so a
+#   new app is purely an Ingress — never a DNS/cert/caddy edit.
+#
+# TO ADAPT FOR A NEW SERVICE, change:
+#   - the name `whoami` -> your app (it appears in all three resources + labels)
+#   - the Ingress `host` -> <yourapp>.k.lyte.dev
+#   - the container `image` + `containerPort`
+#   - the Service `targetPort` (must match the container's port)
+#
+# IMAGES: public images (docker.io, ghcr.io, ...) pull automatically. A LOCALLY
+# built image (e.g. `localhost/myapp:latest` from podman) is NOT visible to k3s's
+# containerd — import it first and pin the pull policy:
+#   podman save localhost/myapp:latest | sudo k3s ctr images import -
+#   # and set: imagePullPolicy: Never   (or IfNotPresent)
+#
+# NOTE: the Service is ClusterIP, NOT NodePort — traefik reaches it inside the
+# cluster. There is exactly ONE NodePort in the whole system (traefik's 30081);
+# apps never need their own. (Workloads are intentionally public via the ingress;
+# add app-level auth / kanidm SSO if a given app needs it.)
+# =============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+  namespace: default
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+        - name: whoami
+          image: traefik/whoami:latest # public image — pulls automatically
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  namespace: default
+spec:
+  type: ClusterIP # traefik reaches this in-cluster; do NOT use NodePort
+  selector:
+    app: whoami
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: whoami
+  namespace: default
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: whoami.k.lyte.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: whoami
+                port:
+                  number: 80
