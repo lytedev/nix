@@ -769,16 +769,32 @@ in
     ./home-assistant/custom_sentences/en/hearth.yaml
   ];
 
-  # Wyoming voice pipeline DEFERRED to bigtower (kept running there).
-  # faster-whisper/piper/openwakeword pull ML deps (lightning/PyTorch) from this
-  # unstable rev that Hydra has NOT cached (cache.nixos.org returns 404), so
-  # building them here would mean compiling PyTorch from source — impractical.
-  # bigtower already runs these natively, so HA's `wyoming` integration points at
-  # bigtower over the tailnet (config_entries host 100.64.0.10:10300/10200/10400).
-  # Re-enable native Wyoming here once these paths land in the binary cache:
-  #   services.wyoming.faster-whisper.servers.hearth = { enable=true; model="small.en"; language="en"; uri="tcp://0.0.0.0:10300"; };
-  #   services.wyoming.piper.servers.hearth = { enable=true; voice="en_US-lessac-medium"; uri="tcp://0.0.0.0:10200"; };
-  #   services.wyoming.openwakeword = { enable=true; uri="tcp://0.0.0.0:10400"; threshold=0.3; extraArgs=["--preload-model" "alexa"]; };
+  # Wyoming voice pipeline — native on beefcake (STT/TTS/wake all local to HA).
+  # Bound to loopback: HA runs on this host and is the only consumer; the
+  # LVA/ESP32 mic satellites talk to HA, not directly to Wyoming. The ML closure
+  # (faster-whisper / piper / openwakeword) isn't on cache.nixos.org, so deploys
+  # build it on dragon and beefcake pulls it from nix.h.lyte.dev (dragon Harmonia)
+  # over the LAN — beefcake's own nix wedges substituting from cache.nixos.org.
+  services.wyoming.faster-whisper.servers.hearth = {
+    enable = true;
+    model = "small.en";
+    language = "en";
+    uri = "tcp://127.0.0.1:10300";
+  };
+  services.wyoming.piper.servers.hearth = {
+    enable = true;
+    voice = "en_US-lessac-medium";
+    uri = "tcp://127.0.0.1:10200";
+  };
+  services.wyoming.openwakeword = {
+    enable = true;
+    uri = "tcp://127.0.0.1:10400";
+    threshold = 0.3; # lower threshold for easier wake detection
+    extraArgs = [
+      "--preload-model"
+      "alexa"
+    ];
+  };
 
   # Hearth intent-API bearer token, stored whole ("Bearer <token>") and
   # rendered into HA's secrets.yaml so `!secret hearth_auth` resolves.
