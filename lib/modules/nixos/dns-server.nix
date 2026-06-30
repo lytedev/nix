@@ -227,13 +227,22 @@ in
             if aclIds != [ ] then "\n    acl: [${concatStringsSep ", " aclIds}]" else "";
 
           # Primary zone config blocks (served from a local, locally-signed file)
+          # DNSSEC signing is OFF. The parent (.dev) publishes no DS for lyte.dev,
+          # so the chain is never validated by any resolver — signing was purely
+          # cosmetic (no security benefit). It also actively broke things: the HE
+          # free-DNS secondaries mishandle the signed zone ("not all DNSSEC record
+          # types are supported"), so records under the *.k wildcard — notably the
+          # _acme-challenge TXT for the *.k.lyte.dev wildcard cert — failed to
+          # appear on the HE nameservers, breaking Let's Encrypt DNS-01 validation.
+          # Mail auth (SPF/DKIM/DMARC) is plain TXT and unaffected; no DANE/TLSA
+          # exists. Re-enable only if .dev ever supports DS *and* HE is dropped.
           zoneBlocks = concatStringsSep "\n" (
             mapAttrsToList (
               name: _file:
               let
                 notifyLine = if notifyIds != [ ] then "\n    notify: [${concatStringsSep ", " notifyIds}]" else "";
               in
-              "  - domain: ${name}\n    file: /var/lib/knot/zones/${name}.zone\n    storage: /var/lib/knot/zones\n    zonefile-sync: -1\n    zonefile-load: difference-no-serial\n    journal-content: all\n    semantic-checks: true\n    dnssec-signing: true\n    dnssec-policy: default-dnssec${aclIdsLine}${notifyLine}"
+              "  - domain: ${name}\n    file: /var/lib/knot/zones/${name}.zone\n    storage: /var/lib/knot/zones\n    zonefile-sync: -1\n    zonefile-load: difference-no-serial\n    journal-content: all\n    semantic-checks: true\n    dnssec-signing: false${aclIdsLine}${notifyLine}"
             ) primaryZoneFiles
           );
 
