@@ -46,6 +46,12 @@ in
     extraFlags = [
       "--tls-san=beefcake"
       "--tls-san=beefcake.lan"
+      # Reachable over the tailnet (where :6443 is firewall-open — the API is NOT
+      # exposed on the LAN) so dragon, the admin/workhost, can run kubectl against
+      # the cluster. The API server cert's default SANs cover beefcake/beefcake.lan
+      # /192.168.0.9 but not the VPN hostname or tailnet IP that dragon connects to.
+      "--tls-san=beefcake.internal.vpn.h.lyte.dev"
+      "--tls-san=100.64.0.2"
 
       # --- Strict edge/ingress separation (the 2026-06 outage guard) ---
       # Disabling ServiceLB removes the ONLY mechanism that fulfills LoadBalancer
