@@ -62,6 +62,12 @@ in
       markdown-oxide
       forgejo-cli
       nh
+      # Admin the beefcake k3s cluster. kubeconfig isn't in the flake (it embeds
+      # k3s's admin client cert); point KUBECONFIG at ~/.kube/config sourced from
+      # beefcake's /etc/rancher/k3s/k3s.yaml with the server rewritten to the
+      # tailnet endpoint https://beefcake.internal.vpn.h.lyte.dev:6443.
+      kubectl
+      k9s
     ];
   };
 
