@@ -137,14 +137,17 @@ in
       }
     ];
 
-    # NOTIFY HE's slave puller (slave.dns.he.net) the instant the zone changes, so
-    # the public ns*.he.net refresh in seconds instead of waiting out the 2h SOA
-    # timer. HE AXFRs lyte.dev from pebble (its configured master), so the NOTIFY
-    # must originate from pebble for HE to honour it — beefcake notifying HE would
-    # not, since beefcake is not HE's master. Without this, *.k.lyte.dev ACME
-    # DNS-01 challenge TXT records can lag up to 2h on the HE nameservers and fail
-    # caddy's propagation check (the HE NS are part of the lyte.dev NS set).
-    secondaryNotify = [ "216.218.133.2" ]; # slave.dns.he.net
+    # NOTIFY HE the instant the zone changes, so the public ns*.he.net refresh in
+    # seconds instead of waiting out the SOA timer. Without this, *.k.lyte.dev ACME
+    # DNS-01 challenge TXTs lag on the HE nameservers and Let's Encrypt's
+    # multi-perspective validation fails ("No TXT record found" from an HE NS).
+    #
+    # Target is ns1.he.net, NOT slave.dns.he.net (216.218.133.2): per HE's docs the
+    # slave/transfer host only *pulls* AXFR and does not listen for DNS requests, so
+    # NOTIFY to it just gets connection-reset (observed). HE's actual nameservers
+    # accept NOTIFY from the zone's master — pebble, which HE AXFRs from — and then
+    # re-pull. https://stuff.baturin.org/post/86747317815
+    secondaryNotify = [ "216.218.130.2" ]; # ns1.he.net
   };
 
   environment.systemPackages = [ pkgs.ghostty-terminfo ];
