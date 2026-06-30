@@ -1,15 +1,43 @@
-{ config, ... }:
+{ config, pkgs, ... }:
+let
+  dataDir = "/storage/k3s";
+
+  # Pin the bundled traefik to a loopback NodePort instead of its default
+  # LoadBalancer:
+  #   - service.type NodePort (with ServiceLB gone a LoadBalancer would be inert
+  #     anyway, but we make NodePort explicit so the intent lives in our repo);
+  #   - the web (:80) entrypoint maps to NodePort 30080 — caddy proxies *.k here;
+  #   - the websecure (:443) entrypoint is NOT exposed, because caddy terminates
+  #     TLS at the edge and forwards plain HTTP to traefik.
+  traefikNodePortManifest = pkgs.writeText "traefik-nodeport.yaml" ''
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChartConfig
+    metadata:
+      name: traefik
+      namespace: kube-system
+    spec:
+      valuesContent: |-
+        service:
+          type: NodePort
+        ports:
+          web:
+            nodePort: 30080
+          websecure:
+            expose:
+              default: false
+  '';
+in
 {
   k3s = {
     enable = true;
     role = "server";
     clusterInit = true;
-    dataDir = "/storage/k3s";
+    inherit dataDir;
 
     # Traefik IS our in-cluster ingress controller — but it is constrained to a
-    # loopback-only NodePort (see services.k3s.manifests below), NEVER a
-    # LoadBalancer. caddy remains the sole edge on :80/:443; it reverse-proxies
-    # *.k.lyte.dev → traefik. New cluster apps then need only an Ingress resource.
+    # loopback-only NodePort (see the manifest below), NEVER a LoadBalancer. caddy
+    # remains the sole edge on :80/:443; it reverse-proxies *.k.lyte.dev → traefik.
+    # New cluster apps then need only an Ingress resource.
     disableTraefik = false;
 
     tokenFile = config.sops.secrets.k3s-token.path;
@@ -34,34 +62,16 @@
     ];
   };
 
-  # Force the bundled traefik to a loopback NodePort instead of its default
-  # LoadBalancer:
-  #   - service.type NodePort (with ServiceLB gone, a LoadBalancer would be inert
-  #     anyway, but we make NodePort explicit so the intent lives in our repo);
-  #   - the web (:80) entrypoint maps to NodePort 30080 — caddy proxies *.k here;
-  #   - the websecure (:443) entrypoint is NOT exposed, because caddy terminates
-  #     TLS at the edge and forwards plain HTTP to traefik.
-  # services.k3s.manifests writes this HelmChartConfig to k3s's auto-deploy
-  # manifests dir; the helm-controller applies it to the bundled traefik chart.
-  services.k3s.manifests.traefik-nodeport.content = [
-    {
-      apiVersion = "helm.cattle.io/v1";
-      kind = "HelmChartConfig";
-      metadata = {
-        name = "traefik";
-        namespace = "kube-system";
-      };
-      spec.valuesContent = ''
-        service:
-          type: NodePort
-        ports:
-          web:
-            nodePort: 30080
-          websecure:
-            expose:
-              default: false
-      '';
-    }
+  # k3s reads auto-deploy manifests from <dataDir>/server/manifests. The NixOS
+  # services.k3s.manifests option hardcodes /var/lib/rancher/k3s/server/manifests,
+  # which our custom --data-dir bypasses — so k3s never saw the override there.
+  # Drop it into the REAL dir ourselves. k3s watches this directory, so the
+  # HelmChartConfig is applied to the bundled traefik chart whether it lands
+  # before or after the chart installs.
+  systemd.tmpfiles.rules = [
+    "d ${dataDir}/server 0700 root root -"
+    "d ${dataDir}/server/manifests 0700 root root -"
+    "L+ ${dataDir}/server/manifests/traefik-nodeport.yaml - - - - ${traefikNodePortManifest}"
   ];
 
   systemd.tmpfiles.settings."10-k3s" = {
