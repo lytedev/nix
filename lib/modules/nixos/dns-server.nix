@@ -249,10 +249,16 @@ in
           # Secondary zone config blocks: AXFR'd from a master, no local file, no
           # local signing — the (already-signed) zone is served exactly as received.
           # NOTIFY from the configured master is accepted automatically by knot.
+          # A secondary may also re-NOTIFY its own downstream secondaries (via
+          # `secondaryNotify`) so they refresh in seconds rather than on their SOA
+          # timer — e.g. pebble notifying HE's slave puller, which AXFRs from pebble.
           secondaryZoneBlocks = concatStringsSep "\n" (
             mapAttrsToList (
               name: master:
-              "  - domain: ${name}\n    storage: /var/lib/knot/zones\n    master: ${master}\n    journal-content: all${aclIdsLine}"
+              let
+                notifyLine = if notifyIds != [ ] then "\n    notify: [${concatStringsSep ", " notifyIds}]" else "";
+              in
+              "  - domain: ${name}\n    storage: /var/lib/knot/zones\n    master: ${master}\n    journal-content: all${aclIdsLine}${notifyLine}"
             ) cfg.secondaryOf
           );
 
