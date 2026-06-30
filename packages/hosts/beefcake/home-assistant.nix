@@ -769,29 +769,16 @@ in
     ./home-assistant/custom_sentences/en/hearth.yaml
   ];
 
-  # Wyoming voice pipeline (moved off bigtower). HA reaches these over
-  # loopback; bound on 0.0.0.0 to match the bigtower voice modules.
-  services.wyoming.faster-whisper.servers.hearth = {
-    enable = true;
-    model = "small.en";
-    language = "en";
-    uri = "tcp://0.0.0.0:10300";
-  };
-  services.wyoming.piper.servers.hearth = {
-    enable = true;
-    voice = "en_US-lessac-medium";
-    uri = "tcp://0.0.0.0:10200";
-  };
-  services.wyoming.openwakeword = {
-    enable = true;
-    uri = "tcp://0.0.0.0:10400";
-    threshold = 0.3; # Lower threshold for easier detection
-    extraArgs = [
-      "--preload-model"
-      "alexa"
-      "--debug" # Enable debug logging for detection messages
-    ];
-  };
+  # Wyoming voice pipeline DEFERRED to bigtower (kept running there).
+  # faster-whisper/piper/openwakeword pull ML deps (lightning/PyTorch) from this
+  # unstable rev that Hydra has NOT cached (cache.nixos.org returns 404), so
+  # building them here would mean compiling PyTorch from source — impractical.
+  # bigtower already runs these natively, so HA's `wyoming` integration points at
+  # bigtower over the tailnet (config_entries host 100.64.0.10:10300/10200/10400).
+  # Re-enable native Wyoming here once these paths land in the binary cache:
+  #   services.wyoming.faster-whisper.servers.hearth = { enable=true; model="small.en"; language="en"; uri="tcp://0.0.0.0:10300"; };
+  #   services.wyoming.piper.servers.hearth = { enable=true; voice="en_US-lessac-medium"; uri="tcp://0.0.0.0:10200"; };
+  #   services.wyoming.openwakeword = { enable=true; uri="tcp://0.0.0.0:10400"; threshold=0.3; extraArgs=["--preload-model" "alexa"]; };
 
   # Hearth intent-API bearer token, stored whole ("Bearer <token>") and
   # rendered into HA's secrets.yaml so `!secret hearth_auth` resolves.
