@@ -76,7 +76,35 @@ export helper below (as Daniel, who can auth) to find out and capture them.
 The design follows the boundary that `disk-alerts.nix` already established:
 **failure classes that mean "the box or its storage is in trouble" must not
 depend on OpenObserve** (which lives on that same box/pool); everything else
-can go through the metrics/log stack (OO).
+can go through the metrics/log stack (OO). Above both of those sits an
+off-site watcher, because nothing running _on_ beefcake can report that
+beefcake itself is down.
+
+### Tier 0 — external (off-site) uptime monitoring
+
+A [val.town](https://www.val.town) cron
+(`lytedev/SimpleSiteUptimeMonitor`, source snapshot:
+[external-uptime-monitor.tsx](./external-uptime-monitor.tsx)) runs _off_
+beefcake and HTTP-GETs a list of public endpoints on a schedule; if any returns
+`>= 400` or fails to fetch, it emails via val.town's own `std/email`.
+
+This is the **dead-man's-switch for total beefcake outage**. It is the only
+tier whose detection _and_ notification paths are both external:
+
+- It exercises the full public path (DNS → internet → Caddy → service), so it
+  catches "beefcake / Caddy is entirely down" — which Tier 1 and Tier 2 cannot,
+  since they run on beefcake.
+- Its notification does **not** route through beefcake's Stalwart: val.town
+  sends the alert email from its own infrastructure, so it still arrives when
+  beefcake (and therefore mail) is down.
+
+Currently monitored: `files.lyte.dev`, `openobserve.h.lyte.dev`. Because it
+only checks those two Caddy vhosts, it detects a full outage but **not** a
+single service failing behind a healthy Caddy (that is Tier 1's job). Worth
+expanding the list to the other externally-reachable criticals — `mail.lyte.dev`
+(Stalwart), `git.lyte.dev` (Forgejo), the Matrix/VPN endpoints — so a partial
+outage also pages. It lives on val.town, not in this flake; the snapshot here
+is for the record and drifts if the val is edited.
 
 ### Tier 1 — host-direct systemd alerts (OO-independent)
 
@@ -116,10 +144,12 @@ ingests), and any threshold alerts on CPU/memory/zfs/postgres.
 
 ## Known gaps / follow-ups
 
-- **beefcake-down is not self-detectable.** Tier 1 runs _on_ beefcake, and OO
-  runs on beefcake, so neither can alert that beefcake itself is unreachable.
-  A true dead-man's-switch needs an external watcher (pebble or rascal, or an
-  OO alert evaluated for _remote_ hosts). Left as a follow-up.
+- **beefcake-down is covered externally, not by this flake.** Tier 1 and OO
+  both run _on_ beefcake, so neither can alert that beefcake itself is
+  unreachable. The Tier 0 val.town watcher fills that gap. Follow-up: broaden
+  its endpoint list beyond `files`/`openobserve` so a single-service outage
+  behind a healthy Caddy also pages, and consider a same-tailnet backup watcher
+  (pebble/rascal) so the dead-man's-switch isn't solely on a third-party.
 - **Dead code cleanup.** `prometheus.nix` / `grafana.nix` are unimported; a
   separate PR should delete them to remove the "we have Prometheus" illusion.
 - **Shared notifier dedup.** `matrix-alerts.nix` intentionally duplicates the
