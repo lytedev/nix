@@ -169,33 +169,50 @@ let
       "layer": "overlay",
       "position": "top",
       "height": 40,
-      "modules-right": ["custom/keyboard"],
+      "modules-right": ["custom/keyboard", "custom/suspend", "custom/hibernate"],
       "custom/keyboard": {
         "format": "⌨",
         "tooltip": false,
         "on-click": "${pkgs.procps}/bin/pkill --signal RTMIN wvkbd-mobintl"
+      },
+      "custom/suspend": {
+        "format": "Suspend",
+        "tooltip": false,
+        "on-click": "/run/current-system/sw/bin/systemctl suspend"
+      },
+      "custom/hibernate": {
+        "format": "Hibernate",
+        "tooltip": false,
+        "on-click": "/run/current-system/sw/bin/systemctl hibernate"
       }
     }
   '';
   greeterWaybarStyle = pkgs.writeText "greeter-waybar.css" ''
+    /* Ayu Dark */
     * {
       font-family: sans-serif;
-      font-size: 20px;
+      font-size: 18px;
       min-height: 0;
     }
     window#waybar {
       background: transparent;
     }
-    #custom-keyboard {
-      background: rgba(49, 50, 68, 0.92);
-      color: #cdd6f4;
-      padding: 2px 20px;
-      margin: 6px 12px;
+    #custom-keyboard,
+    #custom-suspend,
+    #custom-hibernate {
+      background: rgba(15, 20, 25, 0.92); /* #0F1419 */
+      color: #bfbdb6;
+      padding: 2px 16px;
+      margin: 6px 6px;
+      border: 1px solid #1e232b;
       border-radius: 12px;
     }
-    #custom-keyboard:hover {
-      background: rgba(137, 180, 250, 0.95);
-      color: #1e1e2e;
+    #custom-keyboard:hover,
+    #custom-suspend:hover,
+    #custom-hibernate:hover {
+      background: rgba(230, 180, 80, 0.95); /* #E6B450 */
+      color: #0b0e14;
+      border-color: #e6b450;
     }
   '';
   greeterNiriConfig = pkgs.writeText "greeter-niri.kdl" ''
@@ -356,7 +373,71 @@ in
   programs.regreet.enable = true;
   # Dark greeter (ReGreet's GTK dark-theme preference).
   programs.regreet.settings.GTK.application_prefer_dark_theme = true;
+  # Ayu Dark theme. ReGreet is plain GTK4/Adwaita (no libadwaita) and loads this
+  # CSS at application priority, so override Adwaita's named colors (@define-color)
+  # plus a few direct selectors for the login form.
+  programs.regreet.extraCss = ''
+    @define-color window_bg_color #0b0e14;
+    @define-color window_fg_color #bfbdb6;
+    @define-color view_bg_color #0f1419;
+    @define-color view_fg_color #bfbdb6;
+    @define-color card_bg_color #0f1419;
+    @define-color card_fg_color #bfbdb6;
+    @define-color popover_bg_color #0f1419;
+    @define-color popover_fg_color #bfbdb6;
+    @define-color accent_bg_color #e6b450;
+    @define-color accent_fg_color #0b0e14;
+    @define-color accent_color #ffb454;
+    @define-color theme_bg_color #0b0e14;
+    @define-color theme_fg_color #bfbdb6;
+    @define-color theme_base_color #0f1419;
+    @define-color theme_text_color #bfbdb6;
+    @define-color theme_selected_bg_color #e6b450;
+    @define-color theme_selected_fg_color #0b0e14;
+    @define-color borders #1e232b;
+
+    window, .background { background-color: #0b0e14; color: #bfbdb6; }
+    label { color: #bfbdb6; }
+    entry, spinbutton {
+      background-color: #0f1419;
+      color: #bfbdb6;
+      border: 1px solid #1e232b;
+      border-radius: 8px;
+      padding: 8px 10px;
+      caret-color: #e6b450;
+    }
+    entry:focus-within { border-color: #e6b450; }
+    button {
+      background-color: #0f1419;
+      color: #bfbdb6;
+      border: 1px solid #1e232b;
+      border-radius: 8px;
+      padding: 8px 14px;
+    }
+    button:hover { background-color: #151a21; border-color: #565b66; }
+    button:active, button.suggested-action, button.default {
+      background-color: #e6b450;
+      color: #0b0e14;
+      border-color: #e6b450;
+    }
+    button.destructive-action { color: #f07178; }
+    dropdown, dropdown button, combobox button { background-color: #0f1419; color: #bfbdb6; }
+    selection { background-color: #e6b450; color: #0b0e14; }
+  '';
   services.greetd.settings.default_session.command = "${greeterCommand}";
+
+  # Let the greeter user actually run the suspend/hibernate waybar buttons.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (subject.user == "greeter" &&
+          (action.id == "org.freedesktop.login1.suspend" ||
+           action.id == "org.freedesktop.login1.suspend-multiple-sessions" ||
+           action.id == "org.freedesktop.login1.hibernate" ||
+           action.id == "org.freedesktop.login1.hibernate-multiple-sessions")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
 
   # Use password (not fingerprint) for initial login so pam_gnome_keyring
   # can capture it and auto-unlock the login keyring. Without this, NM's
