@@ -148,122 +148,6 @@ let
       *) touch "${exitSentinel}" ;; # any desktop target -> exit gaming mode
     esac
   '';
-
-  # Greeter overhaul: replace plasma-login-manager with greetd + ReGreet, hosted
-  # in a minimal niri compositor that ALSO runs wvkbd as a layer-shell on-screen
-  # keyboard. plasma-login-manager has no controller-usable OSK — its keyboard is
-  # touch-gated and QT_IM_MODULE can't reach the greeter's separate PAM session
-  # (so only touch hosts like babyflip ever get it). niri renders layer-shell
-  # reliably (the same wvkbd we already use on the desktop), so the Steam
-  # Controller's lizard-mode trackpad — a real HID mouse at the greeter — can pick
-  # a session and click out the password: controller-only, lid-closed login.
-  # A clickable on-screen keyboard toggle for the greeter. wvkbd can't be moved at
-  # runtime (its anchor is compile-time), but it hides/shows on SIGRTMIN — so a
-  # small always-on-top waybar button that sends that signal lets you dismiss the
-  # keyboard to see whatever it covers, then bring it back. Controller/touch-only
-  # friendly (clicked with the trackpad-mouse); only the greeter needs it (the niri
-  # desktop has DMS's own OSK toggle). Anchored top-right, clear of the centred
-  # login form and the bottom-anchored keyboard.
-  greeterWaybarConfig = pkgs.writeText "greeter-waybar.json" ''
-    {
-      "layer": "overlay",
-      "position": "top",
-      "height": 40,
-      "modules-right": ["custom/keyboard", "custom/suspend", "custom/hibernate"],
-      "custom/keyboard": {
-        "format": "⌨",
-        "tooltip": false,
-        "on-click": "${pkgs.procps}/bin/pkill --signal RTMIN wvkbd-mobintl"
-      },
-      "custom/suspend": {
-        "format": "Suspend",
-        "tooltip": false,
-        "on-click": "/run/current-system/sw/bin/systemctl suspend"
-      },
-      "custom/hibernate": {
-        "format": "Hibernate",
-        "tooltip": false,
-        "on-click": "/run/current-system/sw/bin/systemctl hibernate"
-      }
-    }
-  '';
-  greeterWaybarStyle = pkgs.writeText "greeter-waybar.css" ''
-    /* Ayu Dark */
-    * {
-      font-family: sans-serif;
-      font-size: 18px;
-      min-height: 0;
-    }
-    window#waybar {
-      background: transparent;
-    }
-    #custom-keyboard,
-    #custom-suspend,
-    #custom-hibernate {
-      background: rgba(15, 20, 25, 0.92); /* #0F1419 */
-      color: #bfbdb6;
-      padding: 2px 16px;
-      margin: 6px 6px;
-      border: 1px solid #1e232b;
-      border-radius: 12px;
-    }
-    #custom-keyboard:hover,
-    #custom-suspend:hover,
-    #custom-hibernate:hover {
-      background: rgba(230, 180, 80, 0.95); /* #E6B450 */
-      color: #0b0e14;
-      border-color: #e6b450;
-    }
-  '';
-  greeterNiriConfig = pkgs.writeText "greeter-niri.kdl" ''
-    hotkey-overlay {
-        skip-at-startup
-    }
-    prefer-no-csd
-    input {
-        touchpad {
-            tap
-            natural-scroll
-        }
-    }
-    // ReGreet does the login; wvkbd is the always-visible OSK. wvkbd is a
-    // layer-shell surface, so it renders above the fullscreen greeter window and
-    // stays clickable with the controller-as-mouse.
-    spawn-at-startup "regreet"
-    // Start hidden — the ⌨ toggle button (below) shows it on demand, keeping the
-    // login form and background unobstructed by default.
-    spawn-at-startup "wvkbd-mobintl" "-L" "320" "--hidden"
-    // Clickable keyboard toggle (top-right); sends wvkbd its SIGRTMIN hide/show.
-    spawn-at-startup "waybar" "-c" "${greeterWaybarConfig}" "-s" "${greeterWaybarStyle}"
-    // Hold an idle+sleep inhibitor while the greeter is up, so laptop.nix's
-    // logind IdleAction=suspend (11m) doesn't fire and drop foxtrot off the
-    // network while it sits at the login screen. Released when a session starts.
-    // (Lid-close still suspends by design — LidSwitchIgnoreInhibited defaults on.)
-    spawn-at-startup "systemd-inhibit" "--what=idle:sleep" "--who=greeter" "--why=keep the login screen reachable" "--mode=block" "sleep" "infinity"
-    window-rule {
-        open-fullscreen true
-    }
-    binds {
-        // Recovery escape hatch from a physical keyboard, if one is attached.
-        Mod+Shift+E { quit skip-confirmation=true; }
-    }
-  '';
-  greeterCommand = pkgs.writeShellScript "foxtrot-greeter" ''
-    export PATH=${
-      lib.makeBinPath [
-        config.programs.niri.package
-        pkgs.regreet
-        pkgs.wvkbd
-        pkgs.waybar
-        pkgs.dbus
-      ]
-    }:/run/current-system/sw/bin:$PATH
-    # ReGreet discovers sessions from XDG_DATA_DIRS (each dir + /wayland-sessions).
-    # Point it at the display manager's sessionData so BOTH niri and the
-    # "Gaming (gamescope)" session appear in the picker.
-    export XDG_DATA_DIRS=${config.services.displayManager.sessionData.desktops}/share''${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
-    exec dbus-run-session niri -c ${greeterNiriConfig}
-  '';
 in
 {
   imports = [
@@ -372,93 +256,13 @@ in
   # display manager's session picker. The DM seats it like any other session.
   services.displayManager.sessionPackages = [ gamingSessionPackage ];
 
-  # Greeter = greetd + ReGreet inside niri + wvkbd OSK (see greeterCommand above
-  # for the why). plasma.nix unconditionally enables plasma-login-manager for any
-  # plasma-enabled host, so force it off here and stand up greetd in its place.
-  services.displayManager.plasma-login-manager.enable = lib.mkForce false;
-  programs.regreet.enable = true;
-  # Dark greeter (ReGreet's GTK dark-theme preference).
-  programs.regreet.settings.GTK.application_prefer_dark_theme = true;
-  # Ayu Dark theme. ReGreet is plain GTK4/Adwaita (no libadwaita) and loads this
-  # CSS at application priority, so override Adwaita's named colors (@define-color)
-  # plus a few direct selectors for the login form.
-  programs.regreet.extraCss = ''
-    @define-color window_bg_color #0b0e14;
-    @define-color window_fg_color #bfbdb6;
-    @define-color view_bg_color #0f1419;
-    @define-color view_fg_color #bfbdb6;
-    @define-color card_bg_color #0f1419;
-    @define-color card_fg_color #bfbdb6;
-    @define-color popover_bg_color #0f1419;
-    @define-color popover_fg_color #bfbdb6;
-    @define-color accent_bg_color #e6b450;
-    @define-color accent_fg_color #0b0e14;
-    @define-color accent_color #ffb454;
-    @define-color theme_bg_color #0b0e14;
-    @define-color theme_fg_color #bfbdb6;
-    @define-color theme_base_color #0f1419;
-    @define-color theme_text_color #bfbdb6;
-    @define-color theme_selected_bg_color #e6b450;
-    @define-color theme_selected_fg_color #0b0e14;
-    @define-color borders #1e232b;
-
-    window, .background { background-color: #0b0e14; color: #bfbdb6; }
-    label { color: #bfbdb6; }
-    entry, spinbutton {
-      background-color: #0f1419;
-      color: #bfbdb6;
-      border: 1px solid #1e232b;
-      border-radius: 8px;
-      padding: 8px 10px;
-      caret-color: #e6b450;
-    }
-    entry:focus-within { border-color: #e6b450; }
-    button {
-      background-color: #0f1419;
-      color: #bfbdb6;
-      border: 1px solid #1e232b;
-      border-radius: 8px;
-      padding: 8px 14px;
-    }
-    button:hover { background-color: #151a21; border-color: #565b66; }
-    button:active, button.suggested-action, button.default {
-      background-color: #e6b450;
-      color: #0b0e14;
-      border-color: #e6b450;
-    }
-    button.destructive-action { color: #f07178; }
-    dropdown, dropdown button, combobox button { background-color: #0f1419; color: #bfbdb6; }
-    selection { background-color: #e6b450; color: #0b0e14; }
-  '';
-  services.greetd.settings.default_session.command = "${greeterCommand}";
-
-  # Let the greeter user actually run the suspend/hibernate waybar buttons.
-  security.polkit.extraConfig = ''
-    polkit.addRule(function(action, subject) {
-      if (subject.user == "greeter" &&
-          (action.id == "org.freedesktop.login1.suspend" ||
-           action.id == "org.freedesktop.login1.suspend-multiple-sessions" ||
-           action.id == "org.freedesktop.login1.hibernate" ||
-           action.id == "org.freedesktop.login1.hibernate-multiple-sessions")) {
-        return polkit.Result.YES;
-      }
-    });
-  '';
-
   # Use password (not fingerprint) for initial login so pam_gnome_keyring
   # can capture it and auto-unlock the login keyring. Without this, NM's
   # agent-owned wifi PSKs (and anything else in the keyring) prompt every
   # session and again on resume from suspend. Fingerprint stays on for
   # sudo / polkit / screen unlock, which only need re-auth, not the
-  # password text.
-  security.pam.services = {
-    login.fprintAuth = false;
-    plasmalogin.fprintAuth = false;
-    # greetd is the greeter PAM service now (ReGreet authenticates through it).
-    # Keep it on password so the controller OSK can drive login, and so
-    # pam_gnome_keyring captures the password to unlock the login keyring.
-    greetd.fprintAuth = false;
-  };
+  # password text. (greetd's fprintAuth is set by lib/modules/nixos/greeter.nix.)
+  security.pam.services.login.fprintAuth = false;
 
   # Steam: nix-managed (programs.steam), NOT flatpak. The Flatpak Steam's sandbox
   # always binds the host (niri) display sockets, so a host gamescope can never
@@ -583,10 +387,11 @@ in
     kdePackages.breeze-icons
 
     # Also install the gaming-session .desktop into the system path's
-    # share/wayland-sessions/ — plasma-login-manager reads sessions from there
-    # (its built-in default dir), NOT from services.displayManager.sessionData,
-    # so sessionPackages alone doesn't surface it in the greeter (niri shows up
-    # only because the niri package lands its .desktop here too).
+    # share/wayland-sessions/, alongside sessionPackages above — the greeter
+    # (lib/modules/nixos/greeter.nix) points ReGreet's XDG_DATA_DIRS at
+    # services.displayManager.sessionData.desktops, which is how "Gaming
+    # (gamescope)" actually shows up in the picker; this system-path copy is
+    # kept for anything else that reads the default XDG_DATA_DIRS.
     gamingSessionPackage
 
     # Controller-reachable game-mode exit: add as a non-Steam library shortcut.

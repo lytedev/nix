@@ -24,7 +24,7 @@ in
         };
         cosmic.enable = lib.mkEnableOption "Enable Cosmic desktop configuration and applications";
         plasma.enable = lib.mkOption {
-          default = config.lyte.desktop.enable;
+          default = false;
           example = true;
           description = "Enable Plasma desktop configuration and applications";
           type = types.bool;
@@ -32,6 +32,18 @@ in
         niri.enable = lib.mkOption {
           default = config.lyte.desktop.enable;
           description = "Enable niri configuration and applications";
+          type = types.bool;
+          example = true;
+        };
+        greeter.enable = lib.mkOption {
+          default =
+            config.lyte.desktop.enable && config.lyte.desktop.niri.enable && !config.lyte.desktop.plasma.enable;
+          description = ''
+            Enable the greetd + ReGreet greeter (a minimal niri session running
+            ReGreet plus a wvkbd on-screen keyboard). Defaults on for niri
+            desktop hosts that don't run Plasma; Plasma hosts get
+            plasma-login-manager/sddm from plasma.nix instead.
+          '';
           type = types.bool;
           example = true;
         };

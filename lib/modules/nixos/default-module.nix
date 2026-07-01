@@ -30,6 +30,7 @@
     cosmic
     niri
     plasma
+    greeter
     wifi
     printing
     podman

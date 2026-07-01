@@ -16,6 +16,7 @@ inputs: {
   niri = import ./niri.nix inputs;
   laptop = import ./laptop.nix;
   plasma = import ./plasma.nix;
+  greeter = import ./greeter.nix;
   gaming = import ./gaming.nix;
   pipewire = import ./pipewire.nix;
   podman = import ./podman.nix;
