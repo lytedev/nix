@@ -168,6 +168,8 @@
     ./beefcake/bulwark.nix
     ./beefcake/jmap-matrix-notify
     ./beefcake/disk-alerts.nix
+    ./beefcake/matrix-alerts.nix # host-direct OnFailure + disk-full → Matrix (see lib/doc/alerting.md)
+    ./beefcake/openobserve-alerts # capture OpenObserve alerts into the repo (export + opt-in reconcile)
     ./beefcake/disk-identification.nix
     ./beefcake/lan-lockdown.nix
     ./beefcake/dns-primary.nix # active hidden DNS primary for lyte.dev (pebble = secondary)

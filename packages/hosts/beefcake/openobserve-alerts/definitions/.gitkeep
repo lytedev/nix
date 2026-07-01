@@ -1,0 +1,3 @@
+# Exported OpenObserve alert definitions land here — see ../README.md.
+# Run `sudo openobserve-alerts-export <this dir>` on beefcake, then commit the
+# resulting alerts.json / alerts-templates.json / alerts-destinations.json.
