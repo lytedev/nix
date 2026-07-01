@@ -1,4 +1,42 @@
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+let
+  # Reuse the already-provisioned disk-alert webhook (declared in disk-alerts.nix)
+  # so restic failures land in the same infra-health Matrix room without minting a
+  # second webhook/secret. Split into a dedicated secret later if the volume warrants.
+  webhookSecret = config.sops.secrets.disk-alert-webhook-url.path;
+
+  # Fired via OnFailure=restic-backup-notify@<failing-unit>.service. The instance
+  # name (%i) is the unit that failed; we POST a one-liner to the hookshot webhook.
+  # Best-effort: it must never fail (a missing webhook is not an alerting emergency).
+  resticBackupNotify = pkgs.writeShellApplication {
+    name = "restic-backup-notify";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      jq
+    ];
+    text = ''
+      webhook="$(cat ${webhookSecret} 2>/dev/null || true)"
+      if [ -z "$webhook" ]; then
+        echo "restic-backup-notify: no webhook url available" >&2
+        exit 0
+      fi
+      unit="''${1:-unknown restic unit}"
+      host="$(uname -n)"
+      text="$(printf '🔴 restic failure on %s: %s\n\nInvestigate: journalctl -u %s -n 80' "$host" "$unit" "$unit")"
+      payload="$(jq -n --arg t "$text" '{text: $t}')"
+      curl --fail --silent --show-error --max-time 20 \
+        --header 'Content-Type: application/json' \
+        --data "$payload" \
+        "$webhook" >/dev/null || echo "restic-backup-notify: post failed" >&2
+    '';
+  };
+in
 {
   # restic backups
   sops.secrets = {
@@ -64,6 +102,14 @@
         ];
         initialize = true;
         exclude = [ ];
+        # Retention: without a forget policy every 2×/day snapshot is kept
+        # forever and the repos grow unbounded. The module runs
+        # `restic unlock` + `restic forget --prune` AFTER each backup.
+        pruneOpts = [
+          "--keep-daily 7"
+          "--keep-weekly 4"
+          "--keep-monthly 6"
+        ];
         timerConfig = {
           OnCalendar = [
             "04:45"
@@ -90,6 +136,25 @@
         repository = "sftp://daniel@n.benhaney.com://storage/backups/beefcake";
       };
     };
+
+  # Templated Matrix notifier fired by OnFailure on the backup + canary units.
+  # Previously a broken backup or a failing restore-canary was entirely silent.
+  systemd.services."restic-backup-notify@" = {
+    description = "Notify Matrix on restic failure of %i";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${lib.getExe resticBackupNotify} %i";
+    };
+  };
+
+  # Wire OnFailure onto the module-generated backup units (merged into their
+  # existing definitions). %n is the failing unit's full name, passed as the
+  # notifier's instance (%i).
+  systemd.services.restic-backups-local.unitConfig.OnFailure = [ "restic-backup-notify@%n.service" ];
+  systemd.services.restic-backups-rascal.unitConfig.OnFailure = [ "restic-backup-notify@%n.service" ];
+  systemd.services.restic-backups-benland.unitConfig.OnFailure = [
+    "restic-backup-notify@%n.service"
+  ];
 
   systemd.tmpfiles.settings."10"."/storage/backups/canary".d = {
     mode = "0750";
@@ -121,6 +186,7 @@
     '';
     # TODO: depends on systemd.tmpfiles?
     path = with pkgs; [ restic ];
+    unitConfig.OnFailure = [ "restic-backup-notify@%n.service" ];
     serviceConfig = {
       WorkingDirectory = "/storage/backups/canary";
       Type = "oneshot";
@@ -144,6 +210,7 @@
       openssh
       diffutils
     ];
+    unitConfig.OnFailure = [ "restic-backup-notify@%n.service" ];
     serviceConfig.Type = "oneshot";
     script = ''
       set -eux
