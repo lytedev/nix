@@ -20,7 +20,17 @@
   };
   sops.secrets = {
     factorio-server-settings = {
-      mode = "0777";
+      # Holds the Factorio account + game passwords (see extraSettingsFile
+      # above), so it must not be world-readable. Root-only.
+      #
+      # NOTE: the factorio unit runs with `DynamicUser = true`, so there is
+      # no static `factorio` user/group at sops activation time to own this
+      # secret (a transient DynamicUser identity does not exist in NSS when
+      # sops chowns secrets early in activation). When re-enabling the
+      # service, grant read access via a shared supplementary group
+      # (secret `group` + `SupplementaryGroups` on the unit) rather than
+      # loosening the mode.
+      mode = "0400";
     };
   };
 }

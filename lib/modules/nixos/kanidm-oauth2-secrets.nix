@@ -124,7 +124,13 @@ in
     systemd.tmpfiles.settings."10-kanidm-oauth2-secrets" = {
       ${secretsDir} = {
         "d" = {
-          mode = "0755";
+          # 0751 (traverse-but-not-list), mirroring sops-nix's own
+          # /run/secrets.d convention. Consuming services (e.g. immich,
+          # running as its own non-root user) still need +x to reach their
+          # individual 0400-owned secret file, but no one should be able to
+          # *list* this directory and enumerate which OAuth2 clients exist.
+          # The secret contents stay protected by the files' own 0400 mode.
+          mode = "0751";
           user = "root";
           group = "root";
         };
