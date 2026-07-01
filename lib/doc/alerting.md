@@ -86,24 +86,26 @@ A [val.town](https://www.val.town) cron
 (`lytedev/SimpleSiteUptimeMonitor`, source snapshot:
 [external-uptime-monitor.tsx](./external-uptime-monitor.tsx)) runs _off_
 beefcake and HTTP-GETs a list of public endpoints on a schedule; if any returns
-`>= 400` or fails to fetch, it pushes an alert to [ntfy.sh](https://ntfy.sh).
+`>= 400` or fails to fetch, it fires **both** channels: an email via val.town's
+`std/email` (a durable record) and a push to [ntfy.sh](https://ntfy.sh) (the
+reliable alert).
 
 This is the **dead-man's-switch for total beefcake outage**, and the only tier
 that runs entirely off beefcake end to end. Detection exercises the full public
 path (DNS → internet → Caddy → service), so it catches "beefcake / Caddy is
-entirely down" — which Tier 1 and Tier 2 cannot, since they run on beefcake. And
-the notification path is external too: ntfy.sh is a hosted push service reached
-with one `fetch` and read by a phone app, so the alert arrives with **no**
-beefcake dependency.
+entirely down" — which Tier 1 and Tier 2 cannot, since they run on beefcake. The
+**ntfy** leg is what makes the notification external too: a hosted push service
+reached with one `fetch` and read by a phone app, so the alert arrives with
+**no** beefcake dependency.
 
-> **Why ntfy and not email.** `std/email` with no `to:` field delivers to the
-> val.town account owner's registered address; if that is a `@lyte.dev` mailbox
-> on Stalwart, the alert queues at the VPS relay and is unreadable until
+> **Why ntfy is the leg that matters.** `std/email` with no `to:` field delivers
+> to the val.town account owner's registered address; if that is a `@lyte.dev`
+> mailbox on Stalwart, the email queues at the VPS relay and is unreadable until
 > beefcake returns (see [email-architecture.md](./email-architecture.md)) — i.e.
-> you'd only learn beefcake was down _after_ it recovered. The Tier-1
-> Matrix/hookshot path is _also_ on beefcake (tuwunel), so it is likewise dead
-> in a full outage. Only a channel with no beefcake dependency (ntfy.sh here)
-> works for a genuine beefcake-down alert.
+> you'd only see it _after_ recovery. The Tier-1 Matrix/hookshot path is _also_
+> on beefcake (tuwunel), so it is likewise dead in a full outage. The email leg
+> is kept as a backup/record, but only the ntfy push reliably reaches you during
+> a genuine beefcake-down.
 
 **Setup (one-time):**
 
@@ -111,8 +113,10 @@ beefcake dependency.
 2. Prefer a **reserved** topic on a free ntfy.sh account (Access → reserve a
    topic → generate an access token) so the topic requires auth. A public topic
    is readable/writable by anyone who guesses its name.
-3. In the val (Settings → Environment Variables) set `NTFY_TOPIC` (and
-   `NTFY_TOKEN` if reserved). The topic is intentionally **not** committed here.
+3. In the val (Settings → Environment Variables) set `NTFY_URL` to the full
+   topic URL (`https://ntfy.sh/<topic>`) and `NTFY_TOKEN` if reserved. The topic
+   is intentionally **not** committed here; the same URL is stored in sops as
+   `ntfy-sh-topic-url` for a future beefcake/pebble backup watcher.
 4. Subscribe the phone to that topic (with the token if reserved) and test by
    running the val once.
 

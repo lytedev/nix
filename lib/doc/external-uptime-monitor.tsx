@@ -4,22 +4,24 @@
 // val is edited:
 //   https://www.val.town/x/lytedev/SimpleSiteUptimeMonitor/code/main.tsx
 //
-// It GETs each public endpoint on a schedule and, on failure, pushes to
-// ntfy.sh. ntfy is used instead of email deliberately: it is a hosted push
-// service reached with a single fetch and read by a phone app, so BOTH the
-// detection and the notification stay entirely off beefcake — unlike email,
-// whose @lyte.dev delivery depends on beefcake's Stalwart and so cannot reach
-// you during the very outage this is meant to catch.
+// On failure it fires BOTH channels:
+//   - email via val.town's std/email (a durable record / backup), and
+//   - a push to ntfy.sh (the reliable, beefcake-independent alert).
+// ntfy matters because email to @lyte.dev is delivered by beefcake's Stalwart,
+// so it can't reach you during the very outage this is meant to catch; ntfy is
+// a hosted push read by a phone app, with no beefcake dependency end to end.
 //
 // Config comes from val.town environment variables (Settings → Environment
 // Variables), so the topic stays out of version control — a public ntfy topic
 // is readable by anyone who knows its name:
-//   NTFY_TOPIC   required. Prefer a RESERVED topic on a free ntfy.sh account
-//                (Access → reserve) so it can require auth, rather than a
-//                guessable public one.
-//   NTFY_TOKEN   optional. Bearer token for a reserved/private topic. If unset,
-//                the topic is treated as public.
-//   NTFY_SERVER  optional. Defaults to https://ntfy.sh.
+//   NTFY_URL     required for the ntfy push. The full topic URL, e.g.
+//                https://ntfy.sh/<topic>. Prefer a RESERVED topic on a free
+//                ntfy.sh account so it can require auth. (Same value stored in
+//                sops as `ntfy-sh-topic-url`, for a future beefcake/pebble
+//                backup watcher.) If unset, only email is sent.
+//   NTFY_TOKEN   optional. Bearer token for a reserved/private topic.
+
+import { email } from "https://esm.town/v/std/email";
 
 const sites = [
   "https://files.lyte.dev",
@@ -29,16 +31,15 @@ const sites = [
   "https://openobserve.h.lyte.dev",
 ];
 
-const NTFY_SERVER = Deno.env.get("NTFY_SERVER") ?? "https://ntfy.sh";
-const NTFY_TOPIC = Deno.env.get("NTFY_TOPIC");
+const NTFY_URL = Deno.env.get("NTFY_URL");
 const NTFY_TOKEN = Deno.env.get("NTFY_TOKEN");
 
-// Push a notification. ntfy takes metadata via headers; header values must be
-// ASCII, so emoji go through the `Tags` header (rendered by the app), never the
-// Title. Priority 5 ("urgent") so it can punch through phone Do-Not-Disturb.
-async function push(title: string, message: string): Promise<void> {
-  if (!NTFY_TOPIC) {
-    console.error("NTFY_TOPIC is unset — cannot send push");
+// Push to ntfy. Metadata goes in headers; header values must be ASCII, so emoji
+// use the `Tags` header (rendered by the app), never the Title. Priority 5
+// ("urgent") so it can punch through phone Do-Not-Disturb.
+async function pushNtfy(title: string, message: string): Promise<void> {
+  if (!NTFY_URL) {
+    console.error("NTFY_URL unset — skipping ntfy push");
     return;
   }
   const headers: Record<string, string> = {
@@ -48,11 +49,7 @@ async function push(title: string, message: string): Promise<void> {
   };
   if (NTFY_TOKEN) headers.Authorization = `Bearer ${NTFY_TOKEN}`;
   try {
-    const res = await fetch(`${NTFY_SERVER}/${NTFY_TOPIC}`, {
-      method: "POST",
-      headers,
-      body: message,
-    });
+    const res = await fetch(NTFY_URL, { method: "POST", headers, body: message });
     if (!res.ok) console.error(`ntfy push failed: HTTP ${res.status}`);
   } catch (e) {
     console.error(`ntfy push failed: ${e}`);
@@ -69,8 +66,14 @@ export async function checkSite(url: string): Promise<boolean> {
     reason = `couldn't fetch: ${e}`;
   }
   if (reason) {
-    console.error(`${url} down: ${reason}`);
-    await push(`${url} is DOWN`, `At ${date} ${time} UTC, ${url} was down: ${reason}`);
+    const subject = `${url} down`;
+    const text = `At ${date} ${time} (UTC), ${url} was down: ${reason}`;
+    console.error(subject, text);
+    // Fire both channels; a failure in one must not suppress the other.
+    await Promise.allSettled([
+      email({ subject, text }),
+      pushNtfy(`${url} is DOWN`, text),
+    ]);
     return false;
   }
   console.log(`${url} ok`);
