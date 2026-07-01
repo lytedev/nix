@@ -57,7 +57,6 @@
       "git"
       "grafana.h"
       "prometheus.h"
-      "finances.h"
       "video"
       "video.h"
       "audio"
@@ -172,8 +171,6 @@
     ./beefcake/disk-identification.nix
     ./beefcake/lan-lockdown.nix
     ./beefcake/dns-primary.nix # active hidden DNS primary for lyte.dev (pebble = secondary)
-
-    # ./beefcake/actual.nix
     ./beefcake/factorio-servers.nix
     # ./beefcake/conduwuit.nix
     ./beefcake/tuwunel.nix
