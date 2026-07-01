@@ -1,9 +1,15 @@
+# Root-on-ZFS boot config (SSD mirror). STAGED — do NOT deploy until the rpool +
+# ESPs exist (Phase 1 of issues/open/beefcake-root-on-zfs-mirror.md); deploying
+# this before rpool/root exists makes the system unbootable.
+{ pkgs, ... }:
 {
   boot = {
+    # zstorage holds /nix + the ZFS-native mounts (/storage, /var/lib/{containers,
+    # private}); extraPools imports it and runs `zfs mount -a` for those. rpool
+    # (the root pool) is auto-imported in initrd because / is on it.
     zfs.extraPools = [ "zstorage" ];
     supportedFilesystems.zfs = true;
     initrd.supportedFilesystems.zfs = true;
-    # kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
     initrd.availableKernelModules = [
       "ehci_pci"
       "mpt3sas"
@@ -13,20 +19,34 @@
     kernelModules = [ "kvm-intel" ];
     kernelParams = [ "nohibernate" ];
     loader.systemd-boot.enable = true;
-    # The ESP is only 512MB. Without a limit systemd-boot keeps every generation's
-    # kernel+initrd until /boot fills and bootloader installs fail (which is exactly
-    # what blocked the 26.05 upgrade). Cap retained generations to keep headroom.
+    # ESP is now ~1G per SSD, so 20 generations is comfortable.
     loader.systemd-boot.configurationLimit = 20;
     loader.efi.canTouchEfiVariables = true;
+    # Boot redundancy: /boot is SSD-A's ESP. After systemd-boot installs, mirror
+    # the whole ESP onto SSD-B's ESP so either SSD boots (via each ESP's fallback
+    # \EFI\BOOT\BOOTX64.EFI) if the other dies. Skips cleanly while SSD-B's ESP
+    # doesn't exist yet (Phase 1 = single SSD).
+    loader.systemd-boot.extraInstallCommands = ''
+      espB=/dev/disk/by-partlabel/ESP-B
+      if [ -e "$espB" ]; then
+        m=$(mktemp -d)
+        ${pkgs.util-linux}/bin/mount "$espB" "$m"
+        ${pkgs.rsync}/bin/rsync -a --delete /boot/ "$m"/
+        ${pkgs.util-linux}/bin/umount "$m"
+        rmdir "$m"
+      fi
+    '';
   };
 
   fileSystems = {
+    # Root on the SSD ZFS mirror. /nix stays on zstorage (608G — too big for the
+    # SSDs). Both pools are imported in initrd (zstorage already was, for /nix).
     "/" = {
-      device = "/dev/disk/by-uuid/992ce55c-7507-4d6b-938c-45b7e891f395";
-      fsType = "ext4";
+      device = "rpool/root";
+      fsType = "zfs";
     };
     "/boot" = {
-      device = "/dev/disk/by-uuid/B6C4-7CF4";
+      device = "/dev/disk/by-partlabel/ESP-A";
       fsType = "vfat";
       options = [
         "fmask=0022"
@@ -37,11 +57,9 @@
       device = "zstorage/nix";
       fsType = "zfs";
     };
-    # NOTE: /var/lib/containers and /var/lib/private were relocated onto zstorage
-    # using ZFS-native mountpoints (mountpoint=/var/lib/..., like /storage) — done
-    # imperatively 2026-06-29 via the runbook below. They are intentionally NOT
-    # declared here: a fileSystems entry (legacy mountpoint) would conflict with
-    # the live ZFS-native mounts. See issues/closed/beefcake-relocate-state-to-pool.md.
+    # /var/lib/containers and /var/lib/private are ZFS-native mounts on zstorage
+    # (mountpoint=/var/lib/..., like /storage), created imperatively 2026-06-29 —
+    # intentionally NOT declared here. See issues/closed/beefcake-relocate-state-to-pool.md.
   };
 
   services = {
