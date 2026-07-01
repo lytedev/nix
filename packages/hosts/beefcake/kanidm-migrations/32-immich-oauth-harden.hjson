@@ -1,0 +1,61 @@
+{
+  // Harden the Immich (photos.lyte.dev) OAuth2 client — security audit M2.
+  //
+  // The Immich client shipped triple-weakened in 20-oauth2.hjson:
+  //   oauth2_strict_redirect_uri: false            (loose origin matching)
+  //   oauth2_allow_insecure_client_disable_pkce    (PKCE not enforced)
+  //   oauth2_jwt_legacy_crypto_enable: true         (RS256, not ES256)
+  // Loose redirect matching + no PKCE widens auth-code interception.
+  //
+  // Why a new file instead of editing 20-oauth2.hjson: these migrations are
+  // APPLY-ONCE, keyed by the top-level file `id`. 20-oauth2.hjson's id is
+  // already recorded as applied, so editing its Immich assertion in place is
+  // a no-op (that same apply-once behaviour is why the imperative mobile
+  // redirect URLs added by immich.nix's immich-ensure-mobile-oauth are not
+  // clobbered on every reload). Per the convention documented in
+  // 21-bulwark-group.hjson we assert the change from a NEW file with a fresh
+  // top-level id, and the assertion `id` is the EXISTING Immich client uuid
+  // (c51de6b3-… from 20-oauth2.hjson) so kanidm MODIFIES that entry instead
+  // of trying to CREATE a duplicate (which would fail AttributeUniqueness).
+  //
+  // SCIM `present` merges only the attributes named below; oauth2_rs_origin
+  // is deliberately NOT listed so the registered redirect-URI set is left
+  // untouched — in particular the mobile app.immich:/// entries that
+  // immich-ensure-mobile-oauth adds imperatively. Those opaque URIs still
+  // cannot be expressed in the HJSON migration path (kanidm#4268/#4271 only
+  // fixed multivalue http(s) arrays, not non-http schemes), so the imperative
+  // registration must stay. Both attributes changed here are on the SCIM
+  // migration whitelist (packages/kanidm/0001-scim-migration-allow-oauth2-required-attrs.patch).
+  //
+  // What changes:
+  //   oauth2_strict_redirect_uri -> true: every real redirect URI is already
+  //     registered — web https://photos.lyte.dev/auth/login (declarative in
+  //     20-oauth2.hjson) plus /user-settings, /api/oauth/mobile-redirect and
+  //     app.immich:/// (immich-ensure-mobile-oauth) — so exact-match redirect
+  //     validation no longer permits loose same-origin redirects.
+  //   oauth2_allow_insecure_client_disable_pkce -> false: enforce PKCE.
+  //     Immich 2.7.5 sends S256 PKCE when the OIDC discovery advertises it
+  //     (openid-client serverMetadata().supportsPKCE()), for both web and
+  //     mobile, so enforcement is safe.
+  //
+  // What deliberately stays weakened:
+  //   oauth2_jwt_legacy_crypto_enable is left ON. Immich only verifies
+  //     RS256/HS256 id tokens, NOT kanidm's default ES256 — dropping this
+  //     would break token verification for this client. Revisit if a future
+  //     Immich adds ES256 support.
+  //
+  // Post-deploy: re-test Android + iOS Immich login (mobile custom-scheme
+  // redirect + PKCE) in addition to web. If a stale login fails immediately
+  // after deploy, restart immich-server so it re-reads the OIDC discovery
+  // document.
+  "id": "b3d9c7e2-4a10-4d55-9f6c-2e8f1a0b7c34",
+  "assertions": [
+    {
+      "state": "present",
+      "id": "c51de6b3-bf98-4a59-9620-6bef56fa2339",
+      "name": "photos.lyte.dev",
+      "oauth2_strict_redirect_uri": true,
+      "oauth2_allow_insecure_client_disable_pkce": false
+    }
+  ]
+}

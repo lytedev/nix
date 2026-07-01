@@ -80,6 +80,7 @@ in
         "27-oauth2-admins.hjson" = ./kanidm-migrations/27-oauth2-admins.hjson;
         "30-immich-group.hjson" = ./kanidm-migrations/30-immich-group.hjson;
         "31-matrix-valerie.hjson" = ./kanidm-migrations/31-matrix-valerie.hjson;
+        "32-immich-oauth-harden.hjson" = ./kanidm-migrations/32-immich-oauth-harden.hjson;
       };
 
       migrations.secretFiles = {

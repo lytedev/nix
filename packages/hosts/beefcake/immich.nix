@@ -75,6 +75,12 @@ in
   # Kanidm's HJSON migration rejects opaque URIs like app.immich://,
   # so we add them imperatively after Kanidm starts. This is additive
   # and idempotent — existing URIs are preserved.
+  #
+  # LOAD-BEARING: kanidm-migrations/32-immich-oauth-harden.hjson enables
+  # oauth2_strict_redirect_uri for this client, so these redirect URIs must
+  # be registered exactly or mobile login (custom-scheme + mobile-redirect
+  # bounce) and the web settings-link flow break. Do not remove this service
+  # without also relaxing strict redirect matching.
   systemd.services.immich-ensure-mobile-oauth = {
     description = "Register Immich mobile OAuth redirect URIs in Kanidm";
     after = [ "kanidm.service" ];
