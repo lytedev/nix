@@ -1,0 +1,94 @@
+# =============================================================================
+# Reusable NetworkPolicy baseline for a beefcake k3s app namespace
+# =============================================================================
+#
+# WHY THIS IS REAL (not a no-op): k3s embeds kube-router's NetworkPolicy
+# controller alongside flannel and enforces it by default (we do not pass
+# --disable-network-policy). Plain flannel-the-CNI can't enforce netpol, but k3s
+# adds the controller on top, so these policies actually take effect.
+#   https://docs.k3s.io/networking/networking-services#network-policy-controller
+#
+# PATTERN: NetworkPolicy is *namespaced* and there is no cluster-wide default
+# deny. So each app gets its OWN namespace with these three policies:
+#   1. default-deny-ingress  — nothing may reach these pods unless allowed below
+#   2. allow-from-traefik    — let the ingress controller (kube-system) in
+#   3. allow-dns             — let pods resolve names via coredns (egress)
+# Egress is otherwise left open (homelab: pods reach postgres/redis/the internet
+# freely). Tighten egress per app if/when you want to.
+#
+# HOW TO APPLY (two ways):
+#   - ad hoc:      kubectl apply -f this-file  (after sed-ing NAMESPACE below)
+#   - declarative: render per-app and drop into <dataDir>/server/manifests via
+#                  systemd.tmpfiles, exactly like packages/hosts/beefcake/k3s.nix
+#                  does for traefik-nodeport.yaml. k3s auto-applies that dir.
+#
+# ADAPT: replace every `myapp` with your namespace name. The app's own
+# Deployment/Service/Ingress (see k8s-service-example.yaml) go in the SAME
+# namespace and must carry a label the allow-rules can select on if you scope
+# them tighter than namespace-wide.
+# -----------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myapp
+  labels:
+    kubernetes.io/metadata.name: myapp
+    # Optional per-namespace PodSecurity override (else inherits the cluster
+    # baseline default set in k3s.nix). Uncomment to pin/relax for this app:
+    # pod-security.kubernetes.io/enforce: baseline
+---
+# 1. Deny ALL ingress to every pod in the namespace. An empty podSelector
+#    selects all pods; listing policyTypes: [Ingress] with no `ingress:` rules
+#    means "no ingress is permitted" until another policy allows it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: myapp
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# 2. Allow ingress from the traefik ingress controller (in kube-system). This is
+#    what lets *.k.lyte.dev traffic (caddy -> traefik -> this Service) reach the
+#    pods. Namespace-scoped: anything in kube-system may connect. Tighten with a
+#    podSelector on traefik's labels if desired.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-traefik
+  namespace: myapp
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+---
+# 3. Allow DNS egress to coredns (kube-system) so name resolution works. Without
+#    this, an egress policy would break DNS; even with egress otherwise open this
+#    documents the dependency and is required once you add any egress deny.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: myapp
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
