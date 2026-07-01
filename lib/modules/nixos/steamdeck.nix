@@ -298,13 +298,19 @@
 
       {
         # Home-theater dock display management. This deck lives docked to the
-        # living-room TV but is also used handheld. A session controller keeps
-        # the built-in LCD panel off whenever an external (dock) display is
-        # connected -- it was once found docked with the internal panel lit at
-        # full brightness on a static Plasma desktop, causing temporary image
-        # retention on the LCD -- while keeping the TV always on. See the script
-        # for the full rationale (powerdevil's idle screen-off is global, so it
-        # can't idle-off only the internal panel).
+        # living-room TV but is also used handheld. It was once found docked
+        # with the built-in LCD panel lit at full brightness on a static Plasma
+        # desktop, causing temporary image retention on the LCD.
+        #
+        # powerdevil's idle screen-off is global (it can't target one output)
+        # and a ScreenSaver inhibit does not reliably stop its DPMS screen-off,
+        # so we take powerdevil out of display-blanking (keeping the TV
+        # structurally safe) and manage the built-in panel ourselves:
+        #   - steamdeck-dock-panel disables the built-in panel while docked and
+        #     re-enables it when undocked.
+        #   - steamdeck-internal-idle turns the built-in panel's backlight off
+        #     on idle when undocked (on AC as well as battery), never the TV.
+
         systemd.user.services.steamdeck-dock-panel = {
           description = "Drive only the TV when docked; keep the built-in panel off";
           wantedBy = [ "graphical-session.target" ];
@@ -312,7 +318,6 @@
           after = [ "graphical-session.target" ];
           path = [
             pkgs.kdePackages.libkscreen # kscreen-doctor
-            pkgs.kdePackages.kde-cli-tools # kde-inhibit
             pkgs.kdePackages.kconfig # kwriteconfig6
             pkgs.jq
             config.systemd.package # udevadm
@@ -327,6 +332,43 @@
             );
           };
         };
+
+        # Idle-off the built-in panel (only) when undocked. swayidle detects
+        # session idle via KWin's ext-idle-notify; the helper blanks the panel
+        # backlight and no-ops when docked so the TV is never touched.
+        systemd.user.services.steamdeck-internal-idle =
+          let
+            internalBlank = pkgs.writeShellScript "steamdeck-internal-blank" (
+              builtins.readFile ./steamdeck-internal-blank.sh
+            );
+          in
+          {
+            description = "Turn off the built-in panel on idle when undocked";
+            wantedBy = [ "graphical-session.target" ];
+            partOf = [ "graphical-session.target" ];
+            after = [ "graphical-session.target" ];
+            path = [
+              pkgs.kdePackages.libkscreen # kscreen-doctor
+              pkgs.jq
+              pkgs.coreutils
+            ];
+            serviceConfig = {
+              Type = "simple";
+              Restart = "on-failure";
+              RestartSec = "5s";
+              ExecStart =
+                "${pkgs.swayidle}/bin/swayidle -w "
+                + "timeout 600 '${internalBlank} off' "
+                + "resume '${internalBlank} on'";
+            };
+          };
+
+        # Let the session (wheel) write the built-in panel backlight so the idle
+        # helper can power it down without root. Mirrors the status-LED rule
+        # below. bl_power=4 powers the backlight down; brightness=0 is the floor.
+        services.udev.extraRules = ''
+          SUBSYSTEM=="backlight", KERNEL=="amdgpu_bl0", ACTION=="add", RUN+="${pkgs.coreutils}/bin/chgrp wheel /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power", RUN+="${pkgs.coreutils}/bin/chmod 0664 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
+        '';
       }
 
       {

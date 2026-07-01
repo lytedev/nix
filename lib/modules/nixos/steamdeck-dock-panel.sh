@@ -8,18 +8,18 @@
 #   1. Docked  -> drive ONLY the TV. The built-in LCD panel must be OFF, so it
 #      can't sit lit on a static Plasma desktop (which caused temporary image
 #      retention on the LCD panel).
-#   2. Undocked -> the built-in panel is the only display; leave it on and let
-#      powerdevil turn it off on idle -- including while charging (on AC), not
-#      just on battery.
-#   3. The TV must never be force-blanked on idle.
+#   2. The TV must never be force-blanked on idle.
+#   3. Undocked -> the built-in panel turns off on idle -- while charging (on
+#      AC) as well as on battery. (Handled by steamdeck-internal-idle, which
+#      blanks only the built-in panel; see that unit.)
 #
-# powerdevil's "turn off display when idle" is global (it can't target a single
-# output) and its inhibitor handling is unreliable, so we do NOT try to make it
-# idle-off only the internal panel. Instead:
-#   - powerdevil owns idle screen-off for the undocked panel (goal 2).
-#   - While an external output is connected we disable the internal panel
-#     (goal 1) and hold a ScreenSaver inhibit so powerdevil's global idle
-#     screen-off can't blank the TV (goal 3).
+# powerdevil's "turn off display when idle" is global -- it can't target a
+# single output, and a ScreenSaver inhibit does NOT reliably stop its DPMS
+# screen-off. So we take powerdevil out of display-blanking entirely (the TV is
+# then structurally safe) and manage the built-in panel ourselves:
+#   - This unit disables the built-in panel whenever an external output is
+#     connected (goal 1) and re-enables it when undocked.
+#   - steamdeck-internal-idle idle-offs the built-in panel's backlight (goal 3).
 #
 # Runs as a user service in the graphical (Plasma/KWin) session. In a gamescope
 # gaming session kscreen-doctor is a no-op and the calls fail harmlessly.
@@ -27,57 +27,35 @@
 set -uo pipefail
 
 edp=eDP-1
-inhibit_pid=""
 
 # True when any connected output other than the built-in eDP panel is present
-# (i.e. we're docked to a TV/monitor). Keyed off "non-eDP connected" rather than
-# a hardcoded DP-1 so it works on any dock, port, or connector name.
+# (i.e. we're docked). Keyed off "non-eDP connected" rather than a hardcoded
+# DP-1 so it works on any dock, port, or connector name.
 external_connected() {
   kscreen-doctor -j 2>/dev/null |
     jq -e 'any(.outputs[]; .connected and (.name | test("eDP") | not))' >/dev/null 2>&1
 }
 
-hold_inhibit() {
-  if [[ -z $inhibit_pid ]] || ! kill -0 "$inhibit_pid" 2>/dev/null; then
-    kde-inhibit --screenSaver sleep infinity &
-    inhibit_pid=$!
-  fi
-}
-
-drop_inhibit() {
-  if [[ -n $inhibit_pid ]]; then
-    kill "$inhibit_pid" 2>/dev/null || true
-    wait "$inhibit_pid" 2>/dev/null || true
-    inhibit_pid=""
-  fi
-}
-
 apply() {
   if external_connected; then
     kscreen-doctor output."$edp".disable >/dev/null 2>&1 || true
-    hold_inhibit
   else
     kscreen-doctor output."$edp".enable >/dev/null 2>&1 || true
-    drop_inhibit
   fi
 }
 
-trap drop_inhibit EXIT
-
-# Wait for the Wayland session to be reachable before touching anything; the
-# service can start before Plasma has exported WAYLAND_DISPLAY into the user
-# systemd environment.
+# Wait for the Wayland session to be reachable; the service can start before
+# Plasma has exported WAYLAND_DISPLAY into the user systemd environment.
 for _ in $(seq 1 30); do
   kscreen-doctor -j >/dev/null 2>&1 && break
   sleep 2
 done
 
-# Turn the built-in display off on idle even while charging. Battery already
-# does this (10 min); AC shipped with it disabled, which is what let the docked
-# panel stay lit indefinitely. Takes effect on the next login if a live reload
-# isn't available.
-kwriteconfig6 --file powerdevilrc --group AC --group Display --key TurnOffDisplayWhenIdle true
-kwriteconfig6 --file powerdevilrc --group AC --group Display --key TurnOffDisplayIdleTimeoutSec 600
+# Take powerdevil out of display idle-off entirely so it can never blank the TV
+# (its screen-off is global and can't target one output). The built-in panel's
+# idle-off is done per-output by steamdeck-internal-idle instead.
+kwriteconfig6 --file powerdevilrc --group AC --group Display --key TurnOffDisplayWhenIdle false
+kwriteconfig6 --file powerdevilrc --group Battery --group Display --key TurnOffDisplayWhenIdle false
 
 apply
 
