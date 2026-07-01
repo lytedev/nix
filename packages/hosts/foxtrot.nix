@@ -84,14 +84,24 @@ let
         passthru.providedSessions = [ "foxtrot-gaming" ];
       });
 
-  # Make Steam's "Switch to Desktop" actually work without the full Jovian session
-  # manager. Steam shells out to `steamos-session-select <target>` to switch
-  # sessions; we have no in-place desktop session to switch to (deliberately no
-  # steamos-manager), so any non-gamescope target instead ENDS this gamescope
-  # session: touch the exit sentinel -> the foxtrot-gamemode-exit.path unit (live
-  # in this session) quits Steam + kills gamescope -> plasma-login-manager returns
-  # to the greeter, where the niri session is picked. (Logs the arg so we can see
-  # exactly what Steam asks for.)
+  # Controller-reachable exit from gaming mode. Steam's own "Switch to Desktop" is
+  # a NO-OP here — verified live on both flatpak AND system Steam: it never shells
+  # out to steamos-session-select, so the stub below is never reached. The working
+  # exit is this helper added ONCE as a non-Steam library shortcut ("Add a
+  # Non-Steam Game" -> point it at /run/current-system/sw/bin/foxtrot-exit-gamemode).
+  # Clicking it in Big Picture (controller-navigable) touches the exit sentinel ->
+  # the foxtrot-gamemode-exit.path watcher quits Steam + kills gamescope -> greetd
+  # returns to the ReGreet greeter, where niri is picked. A real touch binary
+  # (not /usr/bin/touch, which doesn't exist on NixOS) and the system-Steam
+  # sentinel path.
+  exitGamemode = pkgs.writeShellScriptBin "foxtrot-exit-gamemode" ''
+    exec ${pkgs.coreutils}/bin/touch "${exitSentinel}"
+  '';
+
+  # Kept as a fallback in case a future Steam/gamescope build DOES call
+  # steamos-session-select on "Switch to Desktop": any non-gamescope target ends
+  # the session via the same sentinel. (Logs the arg so we can tell if it ever
+  # fires.) As of 2026-06-30 it never does — use exitGamemode above.
   steamosSessionSelect = pkgs.writeShellScriptBin "steamos-session-select" ''
     echo "steamos-session-select $* @ $(date)" >> "$HOME/.foxtrot-session-select.log"
     case "''${1:-}" in
@@ -375,7 +385,10 @@ in
     # only because the niri package lands its .desktop here too).
     gamingSessionPackage
 
-    # steamos-session-select stub so Steam's "Switch to Desktop" exits game mode.
+    # Controller-reachable game-mode exit: add as a non-Steam library shortcut.
+    # (Steam's "Switch to Desktop" is a no-op here, so this is the real exit.)
+    exitGamemode
+    # Fallback stub in case a future Steam build DOES call steamos-session-select.
     steamosSessionSelect
 
     # "Gaming mode": one nested gamescope window hosting Steam in gamepad-UI, so
