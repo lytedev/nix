@@ -174,7 +174,9 @@ let
     // layer-shell surface, so it renders above the fullscreen greeter window and
     // stays clickable with the controller-as-mouse.
     spawn-at-startup "regreet"
-    spawn-at-startup "wvkbd-mobintl" "-L" "320"
+    // Start hidden — the ⌨ toggle button (below) shows it on demand, keeping the
+    // login form and background unobstructed by default.
+    spawn-at-startup "wvkbd-mobintl" "-L" "320" "--hidden"
     // Clickable keyboard toggle (top-right); sends wvkbd its SIGRTMIN hide/show.
     spawn-at-startup "waybar" "-c" "${greeterWaybarConfig}" "-s" "${greeterWaybarStyle}"
     // Hold an idle+sleep inhibitor while the greeter is up, so laptop.nix's
