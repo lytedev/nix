@@ -70,6 +70,16 @@ in
       mode = "0440";
       group = "knot";
     };
+    # Dedicated, least-privilege TSIG key for caddy's ACME DNS-01 challenge.
+    # Group-readable by knot (its preStart injects the server-side key); caddy
+    # reads the same secret via a sops template (see beefcake/caddy.nix). Both
+    # sides derive from THIS one secret, so the client key always matches the
+    # server key. Its ACL (acl-update-caddy-acme below) restricts it to
+    # `_acme-challenge.*` TXT updates, unlike beefcake-h's whole-zone update.
+    tsig-caddy-acme = {
+      mode = "0440";
+      group = "knot";
+    };
   };
 
   # dns-zones.nix requires this (it builds the stalwart._domainkey TXT record);
@@ -102,15 +112,43 @@ in
     tsigKeys = {
       beefcake-h.secretFile = config.sops.secrets.tsig-beefcake-h.path;
       router-h.secretFile = config.sops.secrets.tsig-router-h.path;
+      # NOTE: kept but currently UNREFERENCED by any ACL — 1984's FreeDNS secondary
+      # service authenticates the master by source IP only and exposes no TSIG
+      # field in its web UI, so there is no server-side key to pair this with. See
+      # acl-xfr-1984 below. Left defined in case 1984 ever adds TSIG (or for
+      # symmetry with secondary-he); harmless while unused.
       secondary-1984.secretFile = config.sops.secrets.tsig-secondary-1984.path;
       secondary-he.secretFile = config.sops.secrets.tsig-secondary-he.path;
+      caddy-acme.secretFile = config.sops.secrets.tsig-caddy-acme.path;
     };
 
     acl = [
       {
+        # Whole-zone dynamic update. Used ONLY by dns-updater (root, on beefcake)
+        # to write the dynamic A records (home WAN IP). Intentionally unscoped —
+        # dns-updater touches many owners. caddy no longer uses this key; see
+        # acl-update-caddy-acme.
         id = "acl-update-beefcake";
         key = "beefcake-h";
         action = [ "update" ];
+      }
+      {
+        # Least-privilege ACL for caddy's ACME DNS-01 challenge. caddy only ever
+        # writes the `_acme-challenge` TXT for the `*.k.lyte.dev` wildcard cert
+        # (owner `_acme-challenge.k.lyte.dev`), so this key is scoped to
+        # `_acme-challenge.*` owners and TXT type only. A caddy compromise can no
+        # longer rewrite MX/NS/SPF/DKIM/A or any other record. Pattern match: `*`
+        # matches exactly one label, so this covers `_acme-challenge.<label>` under
+        # the zone (e.g. `_acme-challenge.k.lyte.dev`); a deeper/apex DNS-01 host
+        # would need its owner added here.
+        # https://www.knot-dns.cz/docs/3.5/html/reference.html#acl-section
+        id = "acl-update-caddy-acme";
+        key = "caddy-acme";
+        action = [ "update" ];
+        update-owner = "name";
+        update-owner-match = "pattern";
+        update-owner-name = [ "_acme-challenge.*" ];
+        update-type = [ "TXT" ];
       }
       {
         id = "acl-update-router";
@@ -118,6 +156,17 @@ in
         action = [ "update" ];
       }
       {
+        # Source-IP-only transfer ACL (no TSIG). INVESTIGATED 2026-07: 1984's
+        # FreeDNS secondary service identifies the master purely by its public IP
+        # (their setup UI/docs only ask for the master IP; there is no TSIG field),
+        # so TSIG-authenticated AXFR is not offered — unlike HE (see acl-xfr-he,
+        # which does use a key). A `secondary-1984` TSIG key exists in sops but has
+        # nothing to authenticate against and is therefore intentionally NOT wired
+        # here. Residual risk is low: AXFR is TCP (spoofing a source IP requires
+        # completing the 3-way handshake, i.e. a return path to that IP), and the
+        # payload is public authoritative zone data. If 1984 ever adds TSIG, add
+        # `key = "secondary-1984";` here.
+        # https://kb.1984hosting.com/doku.php?id=freedns
         id = "acl-xfr-1984";
         address = nineteen84Nameservers;
         action = [ "transfer" ];

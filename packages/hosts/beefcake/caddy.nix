@@ -3,19 +3,30 @@
   pkgs,
   ...
 }:
+let
+  # The key NAME string must match the ACL `key:` id in ./dns-primary.nix
+  # (acl-update-caddy-acme). The SECRET comes from the shared sops secret
+  # tsig-caddy-acme, so caddy (client) and knot (server) always agree.
+  tsigCaddyKeyName = "caddy-acme";
+in
 {
   # TSIG secret for the wildcard *.k.lyte.dev DNS-01 ACME challenge.
-  # Reuses the existing beefcake-h key (ACL-update on the lyte.dev zone).
-  # Server/key name pulled from lyte.dns-updater so they stay in sync with
-  # the dynamic DNS client configured on this host.
+  #
+  # Uses the DEDICATED, least-privilege `caddy-acme` key (defined + ACL-scoped in
+  # ./dns-primary.nix), NOT the whole-zone `beefcake-h` update key. Its knot ACL
+  # (acl-update-caddy-acme) restricts it to `_acme-challenge.*` TXT updates, so a
+  # caddy compromise cannot rewrite MX/NS/SPF/DKIM/A or any other record.
+  #
+  # Server address/port is still the local knot on this host (127.0.0.1:53),
+  # reused from lyte.dns-updater.
   sops.templates."caddy-tsig.env" = {
     owner = "caddy";
     group = "caddy";
     content = ''
-      TSIG_KEY_NAME=${config.lyte.dns-updater.tsigKeyName}
+      TSIG_KEY_NAME=${tsigCaddyKeyName}
       TSIG_KEY_ALG=${config.lyte.dns-updater.tsigAlgorithm}
       TSIG_SERVER=${config.lyte.dns-updater.server}:53
-      TSIG_KEY=${config.sops.placeholder.tsig-beefcake-h}
+      TSIG_KEY=${config.sops.placeholder.tsig-caddy-acme}
     '';
   };
 

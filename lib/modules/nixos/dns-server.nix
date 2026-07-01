@@ -214,8 +214,35 @@ in
                     }"
                   else
                     "";
+                # Optional per-ACL dynamic-update owner/type restrictions (knot
+                # `acl.update-owner` / `update-owner-match` / `update-owner-name` /
+                # `update-type`). These narrow an `update` ACL from whole-zone to a
+                # specific owner subtree and/or record types — e.g. scoping an ACME
+                # client to `_acme-challenge.*` TXT only. See
+                # https://www.knot-dns.cz/docs/3.5/html/reference.html#acl-section
+                # Owner names are quoted because pattern labels use `*`, which is a
+                # reserved indicator in YAML flow context.
+                updateOwnerLine =
+                  if entry ? "update-owner" then "\n    update-owner: ${entry."update-owner"}" else "";
+                updateOwnerMatchLine =
+                  if entry ? "update-owner-match" then
+                    "\n    update-owner-match: ${entry."update-owner-match"}"
+                  else
+                    "";
+                updateOwnerNameLine =
+                  if entry ? "update-owner-name" then
+                    "\n    update-owner-name: [${
+                      concatStringsSep ", " (map (n: ''"${n}"'') entry."update-owner-name")
+                    }]"
+                  else
+                    "";
+                updateTypeLine =
+                  if entry ? "update-type" then
+                    "\n    update-type: [${concatStringsSep ", " entry."update-type"}]"
+                  else
+                    "";
               in
-              "  - id: ${entry.id}${addressLines}${keyLine}${actionLine}"
+              "  - id: ${entry.id}${addressLines}${keyLine}${actionLine}${updateOwnerLine}${updateOwnerMatchLine}${updateOwnerNameLine}${updateTypeLine}"
             ) cfg.acl
           );
 
