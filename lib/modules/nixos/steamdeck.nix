@@ -171,6 +171,12 @@
 
         lyte.shell.enable = true;
         lyte.desktop.enable = true;
+        # The deck's "Switch to Desktop" target is the Plasma session
+        # (desktopSession = "plasma" below) and it runs its own SDDM autologin, so
+        # it opts back into Plasma now that it's off by default fleet-wide. This
+        # also keeps the greetd/ReGreet greeter off here (its default is
+        # niri && !plasma), avoiding a second display manager.
+        lyte.desktop.plasma.enable = true;
 
         environment.systemPackages = with pkgs; [
           steamdeck-firmware
