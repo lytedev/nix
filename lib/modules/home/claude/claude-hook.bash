@@ -111,25 +111,6 @@ resolve_session_name() {
   printf '%s:%s' "$(project_name)" "$(session_petname)"
 }
 
-# Rename the herdr tab CONTAINING THIS PANE to $SESSION_NAME, but only if the
-# name has changed since the last invocation for this session. Lets /rename
-# (and any other later-arriving name source) propagate to the tab on the next
-# hook event.
-#
-# herdr injects $HERDR_TAB_ID into every managed pane, so we can target our own
-# tab directly instead of querying to resolve which tab a pane lives in.
-sync_herdr_tab_name() {
-  [ "${HERDR_ENV:-}" = "1" ] || return 0
-  [ -n "${HERDR_TAB_ID:-}" ] || return 0
-  local applied_file="$PETNAMES_DIR/$SESSION_ID.tab-applied"
-  local last_applied=""
-  [ -s "$applied_file" ] && last_applied="$(cat "$applied_file")"
-  if [ "$last_applied" != "$SESSION_NAME" ]; then
-    herdr tab rename "$HERDR_TAB_ID" "$SESSION_NAME" 2>/dev/null || true
-    printf '%s' "$SESSION_NAME" >"$applied_file"
-  fi
-}
-
 SESSION_NAME="$(resolve_session_name)"
 
 # Session state files are keyed by name, so when the name changes mid-session
@@ -144,7 +125,7 @@ if [ -s "$LAST_NAME_FILE" ]; then
 fi
 printf '%s' "$SESSION_NAME" >"$LAST_NAME_FILE"
 
-# Build from-URI: user@host:/cwd?pid=N&herdr=workspace.tab.pane
+# Build from-URI: user@host:/cwd?pid=N&...
 FROM_URI="$(whoami 2>/dev/null || echo unknown)@$(hostname -s 2>/dev/null || echo unknown):${HOOK_CWD}"
 
 urlencode() { jq -rn --arg v "$1" '$v|@uri'; }
@@ -152,13 +133,6 @@ urlencode() { jq -rn --arg v "$1" '$v|@uri'; }
 QUERY_PARTS=()
 QUERY_PARTS+=("session=$(urlencode "$SESSION_ID")")
 QUERY_PARTS+=("pid=$$")
-if [ "${HERDR_ENV:-}" = "1" ]; then
-  # herdr injects the workspace/tab/pane ids of the current pane, so no query is
-  # needed to locate ourselves. The middle (tab) field is what claude-notify
-  # uses to focus the tab on notification click.
-  HERDR_LOC="${HERDR_WORKSPACE_ID:-}${HERDR_TAB_ID:+.$HERDR_TAB_ID}${HERDR_PANE_ID:+.$HERDR_PANE_ID}"
-  [ -n "$HERDR_LOC" ] && QUERY_PARTS+=("herdr=$(urlencode "$HERDR_LOC")")
-fi
 
 CLAUDE_TITLE="$(echo "$HOOK_DATA" | jq -r '.session_title // empty')"
 [ -n "$CLAUDE_TITLE" ] && QUERY_PARTS+=("title=$(urlencode "$CLAUDE_TITLE")")
@@ -228,10 +202,6 @@ touch_ws_activity() {
   fi
 }
 
-# Keep the herdr tab name in sync on every event, so a later /rename reflects
-# on the next hook firing.
-sync_herdr_tab_name
-
 case "$SUBCOMMAND" in
   session-start)
     write_status "working" "Session started"
@@ -241,7 +211,7 @@ case "$SUBCOMMAND" in
     MESSAGE="$(echo "$HOOK_DATA" | jq -r '.message // "Needs attention"')"
 
     # Label the notification with the resolved session name (the same name used
-    # for the herdr tab and the session state file). resolve_session_name()
+    # for the session state file). resolve_session_name()
     # already prefers an explicit /rename title or workspace name and only falls
     # back to "$PROJECT:$PETNAME" — never a bare cwd basename.
     SESSION_LABEL="$SESSION_NAME"
@@ -269,7 +239,7 @@ case "$SUBCOMMAND" in
     touch_ws_activity "$(echo "$HOOK_DATA" | jq -r '.prompt // empty')"
     ;;
   session-end)
-    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID" "$PETNAMES_DIR/$SESSION_ID.tab-applied" "$LAST_NAME_FILE"
+    rm -f "$SESSION_FILE" "$PETNAMES_DIR/$SESSION_ID" "$LAST_NAME_FILE"
     ;;
   *)
     echo "Unknown subcommand: $SUBCOMMAND" >&2

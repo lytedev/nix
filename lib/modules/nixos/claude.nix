@@ -113,7 +113,6 @@ let
     runtimeInputs = with pkgs; [
       jq
       coreutils
-      herdr
       rust-petname
     ];
   };
