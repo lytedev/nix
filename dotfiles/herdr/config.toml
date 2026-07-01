@@ -1,3 +1,4 @@
+onboarding = false
 [keys]
 prefix = "ctrl+space"
 focus_pane_left = ["prefix+h", "ctrl+h"]
@@ -13,3 +14,14 @@ last_pane = ["prefix+shift+b", "ctrl+shift+b"]
 [ui]
 pane_borders = false
 pane_gaps = false
+
+[ui.toast]
+delivery = "system"
+
+[experimental]
+pane_history = true
+switch_ascii_input_source_in_prefix = false
+
+[theme]
+name = "catppuccin"
+auto_switch = false
