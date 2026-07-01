@@ -708,8 +708,8 @@ debug {
 // Shell-specific layer-rule, spawn-at-startup, switch-events, and bindings
 // live in this include. The file is generated per-host based on
 // `lyte.desktop.niri.shell` (noctalia | dms | none).
-include "/etc/niri/shell-bindings.kdl"
+include optional=true "/etc/niri/shell-bindings.kdl"
 
-include "./noctalia.kdl"
-include "/etc/niri/laptop.kdl"
-include "./host-specific.kdl"
+include optional=true "./noctalia.kdl"
+include optional=true "/etc/niri/laptop.kdl"
+include optional=true "./host-specific.kdl"

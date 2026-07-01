@@ -275,19 +275,6 @@ in
 
         # Niri user services (absorbed from HM)
 
-        # Ensure niri config include files exist before starting niri
-        systemd.user.services.niri-file-setup = {
-          description = "Ensure niri config include files exist";
-          wantedBy = [ "niri.service" ];
-          before = [ "niri.service" ];
-          partOf = [ "niri.service" ];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/touch ${config.lyte.userHome}/.config/niri/noctalia.kdl ${config.lyte.userHome}/.config/niri/host-specific.kdl'";
-          };
-        };
-
         # Quickshell does not clean up its $XDG_RUNTIME_DIR/quickshell/by-id/<id>
         # directories on abnormal exit. Crash-loops (e.g. broken QML imports)
         # can fill the 784M tmpfs with thousands of stale instance dirs, after
