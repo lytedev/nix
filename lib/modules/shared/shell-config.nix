@@ -71,6 +71,7 @@ in
             gawk
             harper
             helix
+            herdr
             hexyl
             htop
             jq

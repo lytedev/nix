@@ -11,6 +11,7 @@ let
       inherit (inputs)
         helix
         ghostty
+        herdr
         tuwunel
         ;
       unstable-packages = import nixpkgs-unstable {
@@ -246,6 +247,7 @@ let
         '';
       });
       helix = helix.outputs.packages.${prev.system}.default;
+      herdr = herdr.outputs.packages.${prev.system}.herdr;
 
       iosevkaLyteTerm = inputs.iosevka-lyte.outputs.packages.${prev.system}.default;
       matrix-tuwunel = tuwunel.packages.${prev.system}.default;
