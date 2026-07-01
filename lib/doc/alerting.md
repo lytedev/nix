@@ -120,11 +120,16 @@ reached with one `fetch` and read by a phone app, so the alert arrives with
 4. Subscribe the phone to that topic (with the token if reserved) and test by
    running the val once.
 
-Currently monitored: `files`, `mail`, `git`, `matrix`, `openobserve`
-(`.lyte.dev`). These all sit behind Caddy, so they mainly catch a total outage;
-a specific backend failing while Caddy stays up shows as a `502` and is caught
-too, but per-service health while the box is up is really Tier 1's job. DNS and
-the VPN aren't HTTP-checkable this way. It lives on val.town, not in this flake;
+Currently monitored (each at its **health/semantic endpoint**, not `/` — several
+serve a 404/redirect at the root even when healthy, and a health path also
+confirms the backend actually serves rather than just that Caddy answered):
+`files.lyte.dev/`, `mail.lyte.dev/healthz/live` (Stalwart — root 404s),
+`git.lyte.dev/api/healthz` (Forgejo), `matrix.lyte.dev/_matrix/client/versions`
+(Matrix C-S API), `openobserve.h.lyte.dev/healthz`. These all sit behind Caddy,
+so they mainly catch a total outage; a specific backend failing while Caddy stays
+up shows as a `502` and is caught too, but per-service health while the box is up
+is really Tier 1's job. DNS and the VPN aren't HTTP-checkable this way. It lives
+on val.town, not in this flake;
 the snapshot here is for the record and drifts if the val is edited.
 
 ### Tier 1 — host-direct systemd alerts (OO-independent)

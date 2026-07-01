@@ -23,12 +23,15 @@
 
 import { email } from "https://esm.town/v/std/email";
 
+// Hit each service's health/semantic endpoint, not its root: several serve a
+// 404/redirect at "/" even when perfectly healthy, and a health path also
+// confirms the backend actually serves (not just that Caddy answered).
 const sites = [
-  "https://files.lyte.dev",
-  "https://mail.lyte.dev",
-  "https://git.lyte.dev",
-  "https://matrix.lyte.dev",
-  "https://openobserve.h.lyte.dev",
+  "https://files.lyte.dev/",
+  "https://mail.lyte.dev/healthz/live", // Stalwart liveness (root 404s)
+  "https://git.lyte.dev/api/healthz", // Forgejo
+  "https://matrix.lyte.dev/_matrix/client/versions", // Matrix client-server API
+  "https://openobserve.h.lyte.dev/healthz", // OpenObserve
 ];
 
 const NTFY_URL = Deno.env.get("NTFY_URL");
