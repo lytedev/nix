@@ -333,6 +333,12 @@ in
     power-profiles-daemon.enable = true;
     fprintd.enable = true;
     postgresql.enable = true;
+    # Secret Service. It's already running here, but only the GNOME desktop path
+    # enables it in this repo — with Plasma removed, pin it explicitly so the
+    # login keyring (pam_gnome_keyring capture, libsecret consumers) survives.
+    # NetworkManager wifi PSKs are stored plaintext in system-connections, so
+    # they don't depend on this either way.
+    gnome.gnome-keyring.enable = true;
   };
 
   systemd.services.fprintd = {
@@ -497,6 +503,12 @@ in
     family-account.enable = true;
     syncthing.enable = true;
     desktop = {
+      # niri, not Plasma. Drop the Plasma desktop / apps / display-manager /
+      # kwallet entirely — niri already provides dconf, xdg portals, and the
+      # polkit agent, gnome-keyring (pinned below) is the Secret Service, and the
+      # greeter is greetd/ReGreet. Dolphin (the one KDE app kept) is added back
+      # explicitly below. niri.enable still defaults on via lyte.desktop.enable.
+      plasma.enable = false;
       displaylink.enable = true;
       niri.osk = "wvkbd";
       easyeffects = {
@@ -550,6 +562,14 @@ in
   # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
     hidapi
+
+    # Keep the KDE file manager after dropping the rest of Plasma. dolphin pulls
+    # its own kio; kio-extras adds the extra kioworkers (mtp/sftp/archive/etc.)
+    # and breeze-icons keeps its toolbar/mimetype icons from rendering blank
+    # without the Plasma icon theme installed.
+    kdePackages.dolphin
+    kdePackages.kio-extras
+    kdePackages.breeze-icons
 
     # Also install the gaming-session .desktop into the system path's
     # share/wayland-sessions/ — plasma-login-manager reads sessions from there
