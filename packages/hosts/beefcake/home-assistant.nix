@@ -769,31 +769,83 @@ in
     ./home-assistant/custom_sentences/en/hearth.yaml
   ];
 
-  # Wyoming voice pipeline — native on beefcake (STT/TTS/wake all local to HA).
-  # Bound to loopback: HA runs on this host and is the only consumer; the
-  # LVA/ESP32 mic satellites talk to HA, not directly to Wyoming. The ML closure
-  # (faster-whisper / piper / openwakeword) isn't on cache.nixos.org, so deploys
-  # build it on dragon and beefcake pulls it from nix.h.lyte.dev (dragon Harmonia)
-  # over the LAN — beefcake's own nix wedges substituting from cache.nixos.org.
+  # Wyoming voice pipeline with primary→backup failover.
+  #
+  # STT is CPU-bound, and beefcake's 2013-era Xeon under steady CI/k3s load runs
+  # faster-whisper slowly (~5s/utterance). bigtower has an idle Ryzen 5 5600 and
+  # already runs the identical Wyoming stack, so it serves as the *primary* while
+  # beefcake's local Wyoming stays an always-on *backup*.
+  #
+  # haproxy (below) owns the canonical loopback ports HA connects to
+  # (10300/10200/10400), health-checks bigtower, and transparently fails over to
+  # the local backup when bigtower is unreachable — flipping back when it returns.
+  # HA's config entries stay pointed at 127.0.0.1, so the failover is invisible to
+  # HA. The local backup is shifted to 1031x so haproxy can bind the canonical
+  # ports. The ML closure isn't on cache.nixos.org, so deploys build it on dragon
+  # and beefcake pulls from nix.h.lyte.dev (dragon Harmonia) over the LAN.
   services.wyoming.faster-whisper.servers.hearth = {
     enable = true;
     model = "small.en";
     language = "en";
-    uri = "tcp://127.0.0.1:10300";
+    uri = "tcp://127.0.0.1:10310";
   };
   services.wyoming.piper.servers.hearth = {
     enable = true;
     voice = "en_US-lessac-medium";
-    uri = "tcp://127.0.0.1:10200";
+    uri = "tcp://127.0.0.1:10210";
   };
   services.wyoming.openwakeword = {
     enable = true;
-    uri = "tcp://127.0.0.1:10400";
+    uri = "tcp://127.0.0.1:10410";
     threshold = 0.3; # lower threshold for easier wake detection
     extraArgs = [
       "--preload-model"
       "alexa"
     ];
+  };
+
+  # Front the Wyoming stack: HA connects to 127.0.0.1:{10300,10200,10400} and
+  # haproxy routes to bigtower first (fast, idle), falling back to the local
+  # backup on 1031x if bigtower's health check fails. bigtower's Wyoming ports
+  # must be reachable — see services.lytebot.voice.openFirewall in the
+  # lytebot-alexa flake (bigtower side of this change).
+  services.haproxy = {
+    enable = true;
+    config = ''
+      global
+        log stdout format raw daemon notice
+        maxconn 512
+
+      defaults
+        mode tcp
+        log global
+        option tcplog
+        timeout connect 5s
+        # Wyoming holds long-lived connections and streams audio; be generous.
+        timeout client 1h
+        timeout server 1h
+
+      frontend wyoming_stt_in
+        bind 127.0.0.1:10300
+        default_backend wyoming_stt
+      backend wyoming_stt
+        server bigtower 192.168.0.198:10300 check inter 10s fall 2 rise 1
+        server local 127.0.0.1:10310 backup
+
+      frontend wyoming_tts_in
+        bind 127.0.0.1:10200
+        default_backend wyoming_tts
+      backend wyoming_tts
+        server bigtower 192.168.0.198:10200 check inter 10s fall 2 rise 1
+        server local 127.0.0.1:10210 backup
+
+      frontend wyoming_wake_in
+        bind 127.0.0.1:10400
+        default_backend wyoming_wake
+      backend wyoming_wake
+        server bigtower 192.168.0.198:10400 check inter 10s fall 2 rise 1
+        server local 127.0.0.1:10410 backup
+    '';
   };
 
   # Hearth intent-API bearer token, stored whole ("Bearer <token>") and
