@@ -177,6 +177,11 @@ let
     spawn-at-startup "wvkbd-mobintl" "-L" "320"
     // Clickable keyboard toggle (top-right); sends wvkbd its SIGRTMIN hide/show.
     spawn-at-startup "waybar" "-c" "${greeterWaybarConfig}" "-s" "${greeterWaybarStyle}"
+    // Hold an idle+sleep inhibitor while the greeter is up, so laptop.nix's
+    // logind IdleAction=suspend (11m) doesn't fire and drop foxtrot off the
+    // network while it sits at the login screen. Released when a session starts.
+    // (Lid-close still suspends by design — LidSwitchIgnoreInhibited defaults on.)
+    spawn-at-startup "systemd-inhibit" "--what=idle:sleep" "--who=greeter" "--why=keep the login screen reachable" "--mode=block" "sleep" "infinity"
     window-rule {
         open-fullscreen true
     }
