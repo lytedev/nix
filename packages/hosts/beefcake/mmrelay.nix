@@ -95,8 +95,13 @@ in
   };
 
   virtualisation.oci-containers.containers.mmrelay = {
-    # TODO: pin to a released tag/digest instead of :latest.
-    image = "ghcr.io/jeremiah-k/mmrelay:latest";
+    # Pinned by digest (not :latest) so an upstream push can't silently swap the
+    # bridge out from under us on the next pull. This digest is the image proven
+    # working live on 2026-07-01 (it was :latest at the time). To update: pull the
+    # new image, verify it, then replace the digest here —
+    #   podman image inspect ghcr.io/jeremiah-k/mmrelay:latest \
+    #     --format '{{index .RepoDigests 0}}'
+    image = "ghcr.io/jeremiah-k/mmrelay@sha256:124495431856499e9904c2392fd86e82da828cadab929438c6952333867480cc";
     autoStart = true;
     # Run as the dedicated mmrelay user (numeric — podman resolves names in the
     # container, not on the host) so it reads the mmrelay-owned credentials
@@ -112,4 +117,14 @@ in
     # without exposing that API or touching the firewall.
     extraOptions = [ "--network=host" ];
   };
+
+  # mmrelay reaches the Matrix homeserver at https://matrix.lyte.dev via caddy —
+  # the sole :443 edge on beefcake. A nixos switch that restarts both units can
+  # otherwise bring mmrelay up while caddy is still mid-restart; it then can't
+  # reach matrix.lyte.dev:443 and, after the deploy settles, gets left down (the
+  # 2026-06-30 kanidm-deploy incident — needed a manual `systemctl restart
+  # podman-mmrelay`). Ordering it after caddy makes the edge come up first.
+  # (Restart=on-failure is already set by the oci-containers module, so a crashed
+  # container is retried regardless — this only fixes the startup ordering.)
+  systemd.services.podman-mmrelay.after = [ "caddy.service" ];
 }
