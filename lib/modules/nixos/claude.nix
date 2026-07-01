@@ -113,7 +113,7 @@ let
     runtimeInputs = with pkgs; [
       jq
       coreutils
-      zellij
+      herdr
       rust-petname
     ];
   };
@@ -166,7 +166,7 @@ let
     name = "claude-ws";
     runtimeInputs = with pkgs; [
       jujutsu
-      zellij
+      herdr
       util-linux # uuidgen
       coreutils
       findutils

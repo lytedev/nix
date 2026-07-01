@@ -46,8 +46,8 @@ alias v='$EDITOR'
 alias sv='sudo $EDITOR'
 alias kssh='kitty +kitten ssh'
 
-# zellij
-alias z='zellij'
+# herdr
+alias z='herdr'
 
 # bat
 alias cat='bat'

@@ -12,21 +12,14 @@ const Notify: Plugin = async (ctx) => {
     const parts: string[] = []
     parts.push(`pid=${process.pid}`)
 
-    // Zellij context
-    const zellij = process.env.ZELLIJ
-    if (zellij) {
-      const session = process.env.ZELLIJ_SESSION_NAME || ""
-      const tab = (
-        await ctx.$`zellij action query-tab-names`
-          .quiet()
-          .nothrow()
-          .text()
-      )
-        .trim()
-        .split("\n")[0]
-      const pane = process.env.ZELLIJ_PANE_ID || ""
-      const zj = [session, tab, pane].filter(Boolean).join(".")
-      if (zj) parts.push(`zellij=${encodeURIComponent(zj)}`)
+    // Herdr context. herdr injects the workspace/tab/pane ids of the current
+    // pane, so no query is needed to locate ourselves.
+    if (process.env.HERDR_ENV === "1") {
+      const workspace = process.env.HERDR_WORKSPACE_ID || ""
+      const tab = process.env.HERDR_TAB_ID || ""
+      const pane = process.env.HERDR_PANE_ID || ""
+      const loc = [workspace, tab, pane].filter(Boolean).join(".")
+      if (loc) parts.push(`herdr=${encodeURIComponent(loc)}`)
     }
 
     // Niri window ID for focus-on-click

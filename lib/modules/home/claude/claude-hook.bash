@@ -111,38 +111,22 @@ resolve_session_name() {
   printf '%s:%s' "$(project_name)" "$(session_petname)"
 }
 
-# Resolve the zellij tab_id of the tab containing the current pane.
-# Uses $ZELLIJ_PANE_ID (stable pane ID set by zellij) and queries list-panes.
-# Echoes the tab_id on success, nothing on failure.
-zellij_tab_id_for_current_pane() {
-  [ -n "${ZELLIJ_PANE_ID:-}" ] || return 0
-  zellij action list-panes --json 2>/dev/null \
-    | jq -r --arg pid "$ZELLIJ_PANE_ID" \
-        '.[] | select(.id == ($pid|tonumber)) | .tab_id' \
-    | head -1
-}
-
-# Rename the zellij tab CONTAINING THIS PANE to $SESSION_NAME, but only if
-# the name has changed since the last invocation for this session. Lets
-# /rename (and any other later-arriving name source) propagate to the tab on
-# the next hook event.
+# Rename the herdr tab CONTAINING THIS PANE to $SESSION_NAME, but only if the
+# name has changed since the last invocation for this session. Lets /rename
+# (and any other later-arriving name source) propagate to the tab on the next
+# hook event.
 #
-# Plain `zellij action rename-tab <name>` operates on the *currently focused*
-# tab in the session — which may be a completely different tab if the user
-# has switched away. Use rename-tab-by-id with the tab id resolved from our
-# own pane id so we always target our own tab.
-sync_zellij_tab_name() {
-  [ -n "${ZELLIJ:-}" ] || return 0
+# herdr injects $HERDR_TAB_ID into every managed pane, so we can target our own
+# tab directly instead of querying to resolve which tab a pane lives in.
+sync_herdr_tab_name() {
+  [ "${HERDR_ENV:-}" = "1" ] || return 0
+  [ -n "${HERDR_TAB_ID:-}" ] || return 0
   local applied_file="$PETNAMES_DIR/$SESSION_ID.tab-applied"
   local last_applied=""
   [ -s "$applied_file" ] && last_applied="$(cat "$applied_file")"
   if [ "$last_applied" != "$SESSION_NAME" ]; then
-    local tab_id
-    tab_id="$(zellij_tab_id_for_current_pane)"
-    if [ -n "$tab_id" ]; then
-      zellij action rename-tab-by-id "$tab_id" "$SESSION_NAME" 2>/dev/null || true
-      printf '%s' "$SESSION_NAME" >"$applied_file"
-    fi
+    herdr tab rename "$HERDR_TAB_ID" "$SESSION_NAME" 2>/dev/null || true
+    printf '%s' "$SESSION_NAME" >"$applied_file"
   fi
 }
 
@@ -160,7 +144,7 @@ if [ -s "$LAST_NAME_FILE" ]; then
 fi
 printf '%s' "$SESSION_NAME" >"$LAST_NAME_FILE"
 
-# Build from-URI: user@host:/cwd?pid=N&zellij=session.tab.pane
+# Build from-URI: user@host:/cwd?pid=N&herdr=workspace.tab.pane
 FROM_URI="$(whoami 2>/dev/null || echo unknown)@$(hostname -s 2>/dev/null || echo unknown):${HOOK_CWD}"
 
 urlencode() { jq -rn --arg v "$1" '$v|@uri'; }
@@ -168,18 +152,12 @@ urlencode() { jq -rn --arg v "$1" '$v|@uri'; }
 QUERY_PARTS=()
 QUERY_PARTS+=("session=$(urlencode "$SESSION_ID")")
 QUERY_PARTS+=("pid=$$")
-if [ -n "${ZELLIJ:-}" ]; then
-  ZJ_SESSION="${ZELLIJ_SESSION_NAME:-}"
-  # Resolve OUR tab's name via list-panes — query-tab-names returns every tab
-  # name in arbitrary order, so | head -1 yields whatever tab happens to be
-  # first, not the one this pane lives in.
-  ZJ_TAB="$(zellij action list-panes --json 2>/dev/null \
-    | jq -r --arg pid "${ZELLIJ_PANE_ID:-}" \
-        '.[] | select(.id == ($pid|tonumber)) | .tab_name' \
-    | head -1 || true)"
-  ZJ_PANE="${ZELLIJ_PANE_ID:-}"
-  ZJ="${ZJ_SESSION}${ZJ_TAB:+.$ZJ_TAB}${ZJ_PANE:+.$ZJ_PANE}"
-  [ -n "$ZJ" ] && QUERY_PARTS+=("zellij=$(urlencode "$ZJ")")
+if [ "${HERDR_ENV:-}" = "1" ]; then
+  # herdr injects the workspace/tab/pane ids of the current pane, so no query is
+  # needed to locate ourselves. The middle (tab) field is what claude-notify
+  # uses to focus the tab on notification click.
+  HERDR_LOC="${HERDR_WORKSPACE_ID:-}${HERDR_TAB_ID:+.$HERDR_TAB_ID}${HERDR_PANE_ID:+.$HERDR_PANE_ID}"
+  [ -n "$HERDR_LOC" ] && QUERY_PARTS+=("herdr=$(urlencode "$HERDR_LOC")")
 fi
 
 CLAUDE_TITLE="$(echo "$HOOK_DATA" | jq -r '.session_title // empty')"
@@ -250,9 +228,9 @@ touch_ws_activity() {
   fi
 }
 
-# Keep the zellij tab name in sync on every event, so a later /rename reflects
+# Keep the herdr tab name in sync on every event, so a later /rename reflects
 # on the next hook firing.
-sync_zellij_tab_name
+sync_herdr_tab_name
 
 case "$SUBCOMMAND" in
   session-start)
@@ -263,7 +241,7 @@ case "$SUBCOMMAND" in
     MESSAGE="$(echo "$HOOK_DATA" | jq -r '.message // "Needs attention"')"
 
     # Label the notification with the resolved session name (the same name used
-    # for the zellij tab and the session state file). resolve_session_name()
+    # for the herdr tab and the session state file). resolve_session_name()
     # already prefers an explicit /rename title or workspace name and only falls
     # back to "$PROJECT:$PETNAME" — never a bare cwd basename.
     SESSION_LABEL="$SESSION_NAME"

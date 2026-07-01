@@ -358,11 +358,15 @@ fi
 export CLAUDE_SESSION_NAME="$NAME"
 CLAUDE_CMD=(env "CLAUDE_SESSION_NAME=$NAME" claude --dangerously-skip-permissions --remote-control "$NAME" --name "$NAME" "${CLAUDE_ARGS[@]}")
 
-if [ -n "${ZELLIJ:-}" ]; then
-  if zellij action query-tab-names 2>/dev/null | grep -Fxq "$NAME"; then
-    exec zellij action go-to-tab-name "$NAME"
+if [ "${HERDR_ENV:-}" = "1" ]; then
+  # Inside herdr: focus this workspace's agent if it already exists, else start
+  # it in a fresh tab. The agent is named after the workspace, mirroring the
+  # per-workspace zellij tab we used before. `herdr agent get` exits non-zero
+  # when no such agent is running.
+  if herdr agent get "$NAME" >/dev/null 2>&1; then
+    exec herdr agent focus "$NAME"
   fi
-  exec zellij action new-tab --cwd "$WS_PATH" --name "$NAME" -- "${CLAUDE_CMD[@]}"
+  exec herdr agent start "$NAME" --cwd "$WS_PATH" -- "${CLAUDE_CMD[@]}"
 fi
 
 cd "$WS_PATH" || exit 1

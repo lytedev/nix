@@ -88,7 +88,6 @@ in
             w3m
             wden
             xh
-            zellij
 
             aerc
             iamb
@@ -123,8 +122,6 @@ in
           ".config/bat/config" = "${dotfilesPath}/bat/config";
           ".config/git/config" = "${dotfilesPath}/git/config.local";
           ".config/jj/config.toml" = "${dotfilesPath}/jujutsu/config.toml";
-          ".config/zellij/config.kdl" = "${dotfilesPath}/zellij/config.kdl";
-          ".config/zellij/layouts/compact-keys.kdl" = "${dotfilesPath}/zellij/layouts/compact-keys.kdl";
           ".config/htop/htoprc" = "${dotfilesPath}/htop/htoprc";
           ".cargo/config.toml" = "${dotfilesPath}/cargo/config.toml";
           ".iex.exs" = "${dotfilesPath}/iex/.iex.exs";

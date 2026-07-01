@@ -120,7 +120,7 @@
     ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
     ghostty.inputs.flake-compat.follows = "flake-compat";
 
-    # herdr — agent-aware terminal multiplexer, intended to replace zellij
+    # herdr — agent-aware terminal multiplexer (default; replaced zellij)
     herdr.url = "github:ogulcancelik/herdr";
     herdr.inputs.nixpkgs.follows = "nixpkgs-unstable";
 

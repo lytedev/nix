@@ -40,17 +40,21 @@ fi
 
 if [ -z "$FORWARDED" ]; then
   # Desktop notification with action to focus the claude session
-  # Parse niri_window and zellij info from the from-URI query string
+  # Parse niri_window and herdr info from the from-URI query string
+  urldecode() {
+    local s="${1//+/ }"
+    printf '%b' "${s//%/\\x}"
+  }
   NIRI_WINDOW=""
-  ZELLIJ_TAB=""
+  HERDR_TAB=""
   if [ -n "$FROM" ]; then
     QUERY="${FROM#*\?}"
     if [ "$QUERY" != "$FROM" ]; then
       NIRI_WINDOW="$(echo "$QUERY" | tr '&' '\n' | sed -n 's/^niri_window=//p')"
-      # extract zellij session.tab.pane -> tab is the middle part
-      ZJ_VAL="$(echo "$QUERY" | tr '&' '\n' | sed -n 's/^zellij=//p')"
-      if [ -n "$ZJ_VAL" ]; then
-        ZELLIJ_TAB="$(echo "$ZJ_VAL" | cut -d. -f2)"
+      # extract herdr workspace.tab.pane -> tab id is the middle part
+      HERDR_VAL="$(echo "$QUERY" | tr '&' '\n' | sed -n 's/^herdr=//p')"
+      if [ -n "$HERDR_VAL" ]; then
+        HERDR_TAB="$(urldecode "$(echo "$HERDR_VAL" | cut -d. -f2)")"
       fi
     fi
   fi
@@ -67,8 +71,8 @@ if [ -z "$FORWARDED" ]; then
         "$TITLE" "$BODY" 2>/dev/null) || true
       if [ "$ACTION" = "focus" ]; then
         niri msg action focus-window --id "$NIRI_WINDOW" 2>/dev/null || true
-        if [ -n "$ZELLIJ_TAB" ]; then
-          zellij action go-to-tab-name "$ZELLIJ_TAB" 2>/dev/null || true
+        if [ -n "$HERDR_TAB" ]; then
+          herdr tab focus "$HERDR_TAB" 2>/dev/null || true
         fi
       fi
     ) &
