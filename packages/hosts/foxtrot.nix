@@ -229,7 +229,12 @@ in
   # re-arms the .path for next time.
   systemd.user.paths.foxtrot-gamemode-exit = {
     description = "Watch for the Exit-Gaming-Mode sentinel";
-    wantedBy = [ "graphical-session.target" ];
+    # default.target, NOT graphical-session.target: niri/DMS never starts
+    # graphical-session.target on foxtrot (verified inactive even in a live niri
+    # session), so a unit wanted by it is never armed — the exit watcher was dead.
+    # default.target is active in every logged-in user session (niri AND the bare
+    # gamescope gaming session), so the sentinel is actually watched.
+    wantedBy = [ "default.target" ];
     pathConfig.PathExists = exitSentinel;
   };
   systemd.user.services.foxtrot-gamemode-exit = {
