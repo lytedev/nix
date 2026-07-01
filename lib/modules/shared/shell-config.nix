@@ -72,7 +72,7 @@ in
             harper
             helix
             herdr
-            python3Full
+            python3
             hexyl
             htop
             jq
