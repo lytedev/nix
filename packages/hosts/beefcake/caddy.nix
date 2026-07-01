@@ -19,9 +19,62 @@
     '';
   };
 
-  systemd.services.caddy.serviceConfig.EnvironmentFile = [
-    config.sops.templates."caddy-tsig.env".path
-  ];
+  # systemd sandboxing for the sole :443 edge daemon. The upstream NixOS caddy
+  # module already sets NoNewPrivileges / ProtectHome / PrivateDevices /
+  # StateDirectory=caddy / LogsDirectory=caddy; this overlay adds the rest so a
+  # code-exec bug in caddy (or a Go plugin) can't reach the host. Keys the module
+  # already defines are intentionally NOT repeated here to avoid eval conflicts.
+  #
+  # Deliberately omitted, with reasons:
+  #   - MemoryDenyWriteExecute: caddy is pure Go (no JIT) so it *should* tolerate
+  #     W^X, but this is unverified on this host; left off to avoid a startup
+  #     regression. Safe to add + test later for the last 0.1.
+  #   - PrivateNetwork / IPAddressDeny: caddy needs arbitrary outbound (ACME,
+  #     rfc2136 DNS-01, reverse_proxy upstreams) so an address allow-list isn't
+  #     practical here.
+  #   - PrivateUsers: would namespace CAP_NET_BIND_SERVICE and break binding
+  #     80/443 on the host.
+  # Note: dropping CAP_NET_ADMIN means caddy can't bump the UDP receive-buffer
+  # size for HTTP/3, so it logs a benign "failed to sufficiently increase receive
+  # buffer size" warning on start. HTTP/3 still works. See
+  # https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes
+  systemd.services.caddy.serviceConfig = {
+    EnvironmentFile = [
+      config.sops.templates."caddy-tsig.env".path
+    ];
+
+    # caddy only needs to bind low ports; drop everything else (incl. NET_ADMIN).
+    CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
+    AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+
+    # StateDirectory=caddy (/var/lib/caddy) and LogsDirectory=caddy
+    # (/var/log/caddy) remain writable automatically; everything else read-only.
+    # /storage/files.lyte.dev is served read-only (file_server browse), so it
+    # does not need a ReadWritePaths entry.
+    ProtectSystem = "strict";
+    ProtectKernelTunables = true;
+    ProtectKernelModules = true;
+    ProtectKernelLogs = true;
+    ProtectControlGroups = true;
+    ProtectClock = true;
+    ProtectHostname = true;
+    ProtectProc = "invisible";
+    ProcSubset = "pid";
+    RestrictAddressFamilies = [
+      "AF_INET"
+      "AF_INET6"
+      "AF_UNIX"
+    ];
+    RestrictNamespaces = true;
+    RestrictRealtime = true;
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
+    RemoveIPC = true;
+    UMask = "0077";
+    SystemCallArchitectures = "native";
+    SystemCallFilter = [ "@system-service" ];
+    SystemCallErrorNumber = "EPERM";
+  };
 
   systemd.tmpfiles.settings = {
     "10-caddy" = {

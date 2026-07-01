@@ -71,6 +71,61 @@ in
     };
   };
 
+  # systemd sandboxing for the internet-facing webhook bridge
+  # (hookshot.matrix.lyte.dev). The upstream NixOS module ships this unit with
+  # NO hardening and running as root (systemd-analyze: 9.6 UNSAFE), so this
+  # overlay both drops it to the dedicated matrix-hookshot user and confines it.
+  #
+  # Running as matrix-hookshot is clean: the on-disk state (passkey.pem,
+  # registration.yaml) is already owned by that user (uid 950) and the data dir
+  # is 0700 matrix-hookshot, so no ownership migration is needed. hookshot binds
+  # only high ports (9500 webhooks, 9993 appservice) and needs no capabilities.
+  #
+  # Deliberately omitted, with reasons:
+  #   - MemoryDenyWriteExecute: hookshot is a Node app; V8's JIT requires
+  #     writable-then-executable mappings, so this WOULD crash it. Left off.
+  #   - AF_NETLINK is kept in RestrictAddressFamilies because libuv/Node
+  #     enumerate interfaces (getifaddrs) over a netlink socket.
+  systemd.services.matrix-hookshot.serviceConfig = {
+    User = "matrix-hookshot";
+    Group = "matrix-hookshot";
+    WorkingDirectory = dataDir;
+
+    # Drop all capabilities: a non-root high-port bridge needs none.
+    CapabilityBoundingSet = [ "" ];
+    AmbientCapabilities = [ "" ];
+    NoNewPrivileges = true;
+
+    ProtectSystem = "strict";
+    ReadWritePaths = [ dataDir ];
+    ProtectHome = true;
+    PrivateTmp = true;
+    PrivateDevices = true;
+    ProtectKernelTunables = true;
+    ProtectKernelModules = true;
+    ProtectKernelLogs = true;
+    ProtectControlGroups = true;
+    ProtectClock = true;
+    ProtectHostname = true;
+    ProtectProc = "invisible";
+    ProcSubset = "pid";
+    RestrictAddressFamilies = [
+      "AF_INET"
+      "AF_INET6"
+      "AF_UNIX"
+      "AF_NETLINK"
+    ];
+    RestrictNamespaces = true;
+    RestrictRealtime = true;
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
+    RemoveIPC = true;
+    UMask = "0077";
+    SystemCallArchitectures = "native";
+    SystemCallFilter = [ "@system-service" ];
+    SystemCallErrorNumber = "EPERM";
+  };
+
   # Generate registration file on first run if it doesn't exist
   systemd.services.matrix-hookshot.preStart = lib.mkAfter ''
         if [ ! -f '${registrationFile}' ]; then
