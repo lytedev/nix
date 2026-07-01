@@ -118,6 +118,47 @@ let
   # reliably (the same wvkbd we already use on the desktop), so the Steam
   # Controller's lizard-mode trackpad — a real HID mouse at the greeter — can pick
   # a session and click out the password: controller-only, lid-closed login.
+  # A clickable on-screen keyboard toggle for the greeter. wvkbd can't be moved at
+  # runtime (its anchor is compile-time), but it hides/shows on SIGRTMIN — so a
+  # small always-on-top waybar button that sends that signal lets you dismiss the
+  # keyboard to see whatever it covers, then bring it back. Controller/touch-only
+  # friendly (clicked with the trackpad-mouse); only the greeter needs it (the niri
+  # desktop has DMS's own OSK toggle). Anchored top-right, clear of the centred
+  # login form and the bottom-anchored keyboard.
+  greeterWaybarConfig = pkgs.writeText "greeter-waybar.json" ''
+    {
+      "layer": "overlay",
+      "position": "top",
+      "height": 40,
+      "modules-right": ["custom/keyboard"],
+      "custom/keyboard": {
+        "format": "⌨",
+        "tooltip": false,
+        "on-click": "${pkgs.procps}/bin/pkill --signal RTMIN wvkbd-mobintl"
+      }
+    }
+  '';
+  greeterWaybarStyle = pkgs.writeText "greeter-waybar.css" ''
+    * {
+      font-family: sans-serif;
+      font-size: 20px;
+      min-height: 0;
+    }
+    window#waybar {
+      background: transparent;
+    }
+    #custom-keyboard {
+      background: rgba(49, 50, 68, 0.92);
+      color: #cdd6f4;
+      padding: 2px 20px;
+      margin: 6px 12px;
+      border-radius: 12px;
+    }
+    #custom-keyboard:hover {
+      background: rgba(137, 180, 250, 0.95);
+      color: #1e1e2e;
+    }
+  '';
   greeterNiriConfig = pkgs.writeText "greeter-niri.kdl" ''
     hotkey-overlay {
         skip-at-startup
@@ -134,6 +175,8 @@ let
     // stays clickable with the controller-as-mouse.
     spawn-at-startup "regreet"
     spawn-at-startup "wvkbd-mobintl" "-L" "320"
+    // Clickable keyboard toggle (top-right); sends wvkbd its SIGRTMIN hide/show.
+    spawn-at-startup "waybar" "-c" "${greeterWaybarConfig}" "-s" "${greeterWaybarStyle}"
     window-rule {
         open-fullscreen true
     }
@@ -148,6 +191,7 @@ let
         config.programs.niri.package
         pkgs.regreet
         pkgs.wvkbd
+        pkgs.waybar
         pkgs.dbus
       ]
     }:/run/current-system/sw/bin:$PATH
