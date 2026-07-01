@@ -297,6 +297,39 @@
       }
 
       {
+        # Home-theater dock display management. This deck lives docked to the
+        # living-room TV but is also used handheld. A session controller keeps
+        # the built-in LCD panel off whenever an external (dock) display is
+        # connected -- it was once found docked with the internal panel lit at
+        # full brightness on a static Plasma desktop, causing temporary image
+        # retention on the LCD -- while keeping the TV always on. See the script
+        # for the full rationale (powerdevil's idle screen-off is global, so it
+        # can't idle-off only the internal panel).
+        systemd.user.services.steamdeck-dock-panel = {
+          description = "Drive only the TV when docked; keep the built-in panel off";
+          wantedBy = [ "graphical-session.target" ];
+          partOf = [ "graphical-session.target" ];
+          after = [ "graphical-session.target" ];
+          path = [
+            pkgs.kdePackages.libkscreen # kscreen-doctor
+            pkgs.kdePackages.kde-cli-tools # kde-inhibit
+            pkgs.kdePackages.kconfig # kwriteconfig6
+            pkgs.jq
+            config.systemd.package # udevadm
+            pkgs.coreutils
+          ];
+          serviceConfig = {
+            Type = "simple";
+            Restart = "on-failure";
+            RestartSec = "5s";
+            ExecStart = pkgs.writeShellScript "steamdeck-dock-panel" (
+              builtins.readFile ./steamdeck-dock-panel.sh
+            );
+          };
+        };
+      }
+
+      {
         # Status/charger LED ("status:white"). Effective brightness is
         #   brightness * led_brightness_multiplier   (both 0-100)
         # and both attrs are root-only by default, so the LED can't be adjusted
