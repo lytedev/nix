@@ -84,6 +84,11 @@ let
       # the home WAN — to route mail straight to beefcake while pebble was down.)
       pebble.A = [ "204.168.181.230" ];
 
+      # `*.e.lyte.dev` = external / not-home hosts (mirrors `.h` for home). These
+      # are STATIC records to a public IP, unlike the dynamic `.h` records.
+      # ntfy.e -> pebble (self-hosted ntfy push, see packages/hosts/pebble/ntfy.nix).
+      "ntfy.e".A = [ "204.168.181.230" ];
+
       "login.alaeria".CNAME = [ "alias.deno.net." ];
       "_acme-challenge.login.alaeria".CNAME = [ "_acme.deno.net." ];
 

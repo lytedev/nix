@@ -18,6 +18,10 @@ let
   domain = "lyte.dev";
 in
 {
+  imports = [
+    ./pebble/ntfy.nix # self-hosted ntfy push channel (ntfy.e.lyte.dev)
+  ];
+
   # This is a small (2-core) box. Without the lyte/upstream binary caches its
   # nix-daemon falls back to building overlay/custom packages from source, which
   # is painfully slow. Mirror the flake's nixConfig substituters so it can pull
