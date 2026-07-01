@@ -150,8 +150,17 @@ in
         };
         dragon = {
           ip = "192.168.0.10";
-          nat.tcp.SSH = 4822;
           mac = "f0:2f:74:c9:9b:61";
+          # NOTE: dragon's SSH is deliberately NOT published to the WAN. It used
+          # to be DNAT-forwarded as WAN:4822 -> 192.168.0.10:22 as an out-of-band
+          # "reach the LAN if the tailnet explodes" fallback, but dragon holds
+          # tag:admindevice (full-fleet root), so a direct public path to it was
+          # the single highest-value attack surface on the network. The recovery
+          # path is preserved without it: the router itself accepts SSH on WAN
+          # :2201 (see openPorts + services.fail2ban), and from the router you can
+          # hop to dragon:22 or any LAN host. The tailnet (headscale) remains the
+          # primary admin path. Re-add `nat.tcp.SSH = 4822;` here if you ever need
+          # the direct forward back.
         };
         bald = {
           ip = "192.168.0.11";

@@ -31,11 +31,26 @@
 # WHAT GETS LOCKED to dragon-only: everything else — notably Samba
 #   (445/139/137/138 + WS-Discovery 5357/3702).
 #
-# IPv4 ONLY: dragon's LAN IPv6 is SLAAC (unstable) so we can't reliably
-# allowlist it; locking v6 risks breaking dragon via happy-eyeballs. v6 is
-# left open here — the guest VLAN is the real fix and isolates both protocols
-# at L2. (Samba discovery from casual clients is v4, so the practical hole is
-# closed; MQTT is auth-gated regardless of protocol.)
+# IPv6: dragon's LAN IPv6 is SLAAC + privacy temp-addresses (unstable), so we
+# CAN'T reliably allowlist dragon by v6 source IP the way the v4 chain does —
+# a v6 default-deny would lock dragon out of everything too. So instead of
+# mirroring the v4 default-deny, the v6 side is a targeted DENYLIST gated by
+# interface: on the LAN interface (${lan}) we DROP inbound v6 to just the
+# sensitive Samba + WS-Discovery ports, and leave every other v6 flow alone.
+#   - Samba/WS-Discovery isn't router-forwarded and the router does no v6 NAT,
+#     so these ports have no legitimate off-LAN or public v6 caller — the only
+#     thing this blocks is LAN-local v6 clients reaching them, which is exactly
+#     the hole M4-ipv6 flagged (SLAAC is on, so v6 was an open bypass).
+#   - dragon doesn't lose anything: it reaches Samba over v4 (allowlisted by
+#     src IP above) and over the tailnet, not LAN-v6, so dropping LAN-v6 Samba
+#     is safe for it.
+#   - Only the ${lan} interface is matched, so tailscale0 (Samba over the
+#     tailnet, intentional per Daniel) and loopback are untouched.
+#   - ICMPv6/NDP is NOT touched (we only match the sensitive L4 ports), so
+#     SLAAC/RA/neighbor-discovery keep working — v6 stays healthy.
+# The guest-VLAN L2 isolation staged on the router is still the real long-term
+# fix (it walls off both protocols at L2 for casual clients); this v6 denylist
+# is the interim that brings v6 up to the v4 intent for the sensitive ports.
 #
 # IMPORTANT: this is a hand-maintained allowlist. If you add a new
 # internet-forwarded service on the router, add its port here too or LAN
@@ -46,6 +61,13 @@
 let
   lan = "eno1"; # beefcake's wired LAN interface (see unifi.nix)
   dragon = "192.168.0.10"; # admin/bastion; MAC-reserved on the router
+  # Sensitive ports the LAN default-deny locks to dragon-only over v4. Over v6
+  # we can't identify dragon (SLAAC), so we DROP these outright on the LAN
+  # interface — see the IPv6 note in the header for why that's safe. Samba
+  # (SMB 445, NetBIOS session 139) + WS-Discovery (5357).
+  sensitiveV6Tcp = "139,445,5357";
+  # NetBIOS name/datagram (137/138) + WS-Discovery multicast (3702).
+  sensitiveV6Udp = "137,138,3702";
   # Internet-public (router DNAT-forwarded) + LAN-infra ports — open to all.
   # Keep in sync with the router's beefcake `nat` block (packages/hosts/router.nix).
   publicTcp = "22,25,80,443,465,587,993,8080,24454,26968,26969,26974,26989";
@@ -117,10 +139,27 @@ in
     # and RETURN lets allowed packets fall through to normal accept rules.
     iptables -D nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown 2>/dev/null || true
     iptables -I nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown
+
+    # --- IPv6 (M4-ipv6): targeted denylist, NOT default-deny. See the header.
+    # We can't allowlist dragon over SLAAC v6, so instead of a v4-style default
+    # -deny (which would break dragon's v6), we DROP only the sensitive Samba +
+    # WS-Discovery ports arriving on the LAN interface. Everything else v6 falls
+    # through this chain untouched (no trailing DROP), so ICMPv6/NDP and all
+    # other services keep working. tailscale0 is never matched (we bind to
+    # ${lan}), so Samba over the tailnet is unaffected.
+    ip6tables -N nixos-lan-lockdown6 2>/dev/null || ip6tables -F nixos-lan-lockdown6
+    ip6tables -A nixos-lan-lockdown6 -p tcp -m multiport --dports ${sensitiveV6Tcp} -j DROP
+    ip6tables -A nixos-lan-lockdown6 -p udp -m multiport --dports ${sensitiveV6Udp} -j DROP
+    ip6tables -D nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown6 2>/dev/null || true
+    ip6tables -I nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown6
   '';
   networking.firewall.extraStopCommands = ''
     iptables -D nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown 2>/dev/null || true
     iptables -F nixos-lan-lockdown 2>/dev/null || true
     iptables -X nixos-lan-lockdown 2>/dev/null || true
+
+    ip6tables -D nixos-fw -i ${lan} -m conntrack --ctstate NEW -j nixos-lan-lockdown6 2>/dev/null || true
+    ip6tables -F nixos-lan-lockdown6 2>/dev/null || true
+    ip6tables -X nixos-lan-lockdown6 2>/dev/null || true
   '';
 }
