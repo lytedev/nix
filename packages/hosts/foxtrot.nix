@@ -264,6 +264,8 @@ in
   # plasma-enabled host, so force it off here and stand up greetd in its place.
   services.displayManager.plasma-login-manager.enable = lib.mkForce false;
   programs.regreet.enable = true;
+  # Dark greeter (ReGreet's GTK dark-theme preference).
+  programs.regreet.settings.GTK.application_prefer_dark_theme = true;
   services.greetd.settings.default_session.command = "${greeterCommand}";
 
   # Use password (not fingerprint) for initial login so pam_gnome_keyring
