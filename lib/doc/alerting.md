@@ -88,15 +88,27 @@ A [val.town](https://www.val.town) cron
 beefcake and HTTP-GETs a list of public endpoints on a schedule; if any returns
 `>= 400` or fails to fetch, it emails via val.town's own `std/email`.
 
-This is the **dead-man's-switch for total beefcake outage**. It is the only
-tier whose detection _and_ notification paths are both external:
+This is the **dead-man's-switch for total beefcake outage**, and the only tier
+whose _detection_ runs entirely off beefcake: it exercises the full public path
+(DNS → internet → Caddy → service), so it catches "beefcake / Caddy is entirely
+down" — which Tier 1 and Tier 2 cannot, since they run on beefcake.
 
-- It exercises the full public path (DNS → internet → Caddy → service), so it
-  catches "beefcake / Caddy is entirely down" — which Tier 1 and Tier 2 cannot,
-  since they run on beefcake.
-- Its notification does **not** route through beefcake's Stalwart: val.town
-  sends the alert email from its own infrastructure, so it still arrives when
-  beefcake (and therefore mail) is down.
+> **⚠ The notification path is only half-external — verify the destination
+> mailbox is NOT on beefcake.** `std/email` with no `to:` field delivers to the
+> val.town _account owner's registered email address_
+> ([docs](https://docs.val.town/std/email/): free tier can only email
+> yourself). val.town **sends** the mail from its own infra (good), but if that
+> registered address is a `@lyte.dev` mailbox on Stalwart, the alert can't be
+> **delivered** during a beefcake outage — it queues at the VPS relay
+> (unreadable until beefcake returns; see
+> [email-architecture.md](./email-architecture.md)). Net: you'd only learn
+> beefcake was down _after_ it came back. For the switch to actually fire, the
+> val.town account's email must be an **off-beefcake** mailbox (e.g. a Gmail
+> address), or — more robustly — swap the channel for a fully external push
+> service (ntfy.sh / Pushover / an SMS gateway) that never touches email.
+> Note the Tier-1 Matrix/hookshot path is _also_ on beefcake (tuwunel), so it
+> is likewise dead in a full outage; a genuine beefcake-down alert must use a
+> channel with **no** beefcake dependency end to end.
 
 Currently monitored: `files.lyte.dev`, `openobserve.h.lyte.dev`. Because it
 only checks those two Caddy vhosts, it detects a full outage but **not** a
@@ -144,12 +156,15 @@ ingests), and any threshold alerts on CPU/memory/zfs/postgres.
 
 ## Known gaps / follow-ups
 
-- **beefcake-down is covered externally, not by this flake.** Tier 1 and OO
-  both run _on_ beefcake, so neither can alert that beefcake itself is
-  unreachable. The Tier 0 val.town watcher fills that gap. Follow-up: broaden
-  its endpoint list beyond `files`/`openobserve` so a single-service outage
-  behind a healthy Caddy also pages, and consider a same-tailnet backup watcher
-  (pebble/rascal) so the dead-man's-switch isn't solely on a third-party.
+- **beefcake-down detection is external; its notification may not be.** Tier 1
+  and OO both run _on_ beefcake, so the Tier 0 val.town watcher is what detects
+  a full outage — but its alert only _reaches_ you if the val.town account's
+  email is an off-beefcake mailbox (see the ⚠ under Tier 0). **Action: confirm
+  that address is not a `@lyte.dev`/Stalwart mailbox, or move the alert to a
+  fully-external push channel.** Further follow-ups: broaden the endpoint list
+  beyond `files`/`openobserve` so a single-service outage behind a healthy Caddy
+  also pages, and consider a same-tailnet backup watcher (pebble/rascal) so the
+  dead-man's-switch isn't solely on a third party.
 - **Dead code cleanup.** `prometheus.nix` / `grafana.nix` are unimported; a
   separate PR should delete them to remove the "we have Prometheus" illusion.
 - **Shared notifier dedup.** `matrix-alerts.nix` intentionally duplicates the
