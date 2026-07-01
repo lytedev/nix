@@ -61,11 +61,34 @@ let
   # cursor). Letting the DM do the seating also means Steam runs in a real login
   # session, so its bwrap/runtime works (a hand-rolled systemd seat broke it).
   # Pick this session at the greeter to game; exit returns to the greeter for niri.
+  # Media / volume / brightness keys for the gaming session. gamescope passes these
+  # keys straight through to Steam (which ignores them) and this session has no
+  # desktop shell to bind them, so a tiny evdev daemon (triggerhappy) handles them.
+  # Scoped to the gaming session only — a system-wide daemon would double-fire with
+  # DMS on the niri desktop (every volume tap moving twice). Full binary paths since
+  # thd runs commands via a bare shell; they inherit this session's env
+  # (XDG_RUNTIME_DIR → wpctl finds PipeWire; the backlight is daniel-writable via
+  # the video group; playerctl talks to the user bus for any MPRIS player).
+  gamingKeyTriggers = pkgs.writeText "foxtrot-gaming-keys.conf" ''
+    KEY_VOLUMEUP       1  ${pkgs.wireplumber}/bin/wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
+    KEY_VOLUMEDOWN     1  ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+    KEY_MUTE           1  ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+    KEY_BRIGHTNESSUP   1  ${pkgs.brightnessctl}/bin/brightnessctl set 5%+
+    KEY_BRIGHTNESSDOWN 1  ${pkgs.brightnessctl}/bin/brightnessctl set 5%-
+    KEY_PLAYPAUSE      1  ${pkgs.playerctl}/bin/playerctl play-pause
+    KEY_NEXTSONG       1  ${pkgs.playerctl}/bin/playerctl next
+    KEY_PREVIOUSSONG   1  ${pkgs.playerctl}/bin/playerctl previous
+  '';
   gamingSessionScript = pkgs.writeShellScript "foxtrot-gaming-session" ''
     export PATH=/run/current-system/sw/bin:$PATH
+    # Media/volume/brightness key handler (see gamingKeyTriggers), for the session
+    # lifetime only. --deviceglob picks up the keyboard(s); daniel is in `input`.
+    ${pkgs.triggerhappy}/bin/thd --triggers ${gamingKeyTriggers} --deviceglob '/dev/input/event*' &
+    thd_pid=$!
+    trap 'kill "$thd_pid" 2>/dev/null || true' EXIT
     # --backend drm: drive the displays directly on this session's seat. gamescope
     # picks the connected output(s); with the glasses connected it uses them.
-    exec gamescope --backend drm -e -- steam -gamepadui > "$HOME/.foxtrot-gaming.log" 2>&1
+    gamescope --backend drm -e -- steam -gamepadui > "$HOME/.foxtrot-gaming.log" 2>&1
   '';
   gamingSessionPackage =
     (pkgs.writeTextFile {
