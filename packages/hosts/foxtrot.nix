@@ -81,14 +81,30 @@ let
   '';
   gamingSessionScript = pkgs.writeShellScript "foxtrot-gaming-session" ''
     export PATH=/run/current-system/sw/bin:$PATH
-    # Media/volume/brightness key handler (see gamingKeyTriggers), for the session
-    # lifetime only. --deviceglob picks up the keyboard(s); daniel is in `input`.
-    ${pkgs.triggerhappy}/bin/thd --triggers ${gamingKeyTriggers} --deviceglob '/dev/input/event*' &
+
+    # Media/volume/brightness keys for the session lifetime (see gamingKeyTriggers).
+    # Hand thd only KEYBOARD-CLASS devices: thd chokes on non-key devices (the
+    # controller's motion sensors report "not suitable"), and passing the raw
+    # /dev/input/event* glob then breaks its reads. Select devices that expose
+    # EV_KEY but aren't gamepads — that's the AT keyboard (volume/mute) + the
+    # Framework "Consumer Control" device (brightness). daniel is in `input`.
+    keydevs=""
+    for e in /dev/input/event*; do
+      p=$(udevadm info -q property -n "$e" 2>/dev/null) || continue
+      case "$p" in *ID_INPUT_KEY=1*) ;; *) continue ;; esac
+      case "$p" in *ID_INPUT_JOYSTICK=1*) continue ;; esac
+      keydevs="$keydevs $e"
+    done
+    ${pkgs.triggerhappy}/bin/thd --triggers ${gamingKeyTriggers} $keydevs &
     thd_pid=$!
     trap 'kill "$thd_pid" 2>/dev/null || true' EXIT
-    # --backend drm: drive the displays directly on this session's seat. gamescope
-    # picks the connected output(s); with the glasses connected it uses them.
-    gamescope --backend drm -e -- steam -gamepadui > "$HOME/.foxtrot-gaming.log" 2>&1
+
+    # Keep the session awake: laptop.nix sets logind IdleAction=suspend (11m), and
+    # unlike the greeter this session holds no inhibitor, so foxtrot would suspend
+    # mid-game (or when paused) and drop off the network. Held for gamescope's life.
+    # --backend drm: drive the displays directly on this session's seat.
+    systemd-inhibit --what=idle:sleep --who=gaming --why="no idle-suspend while gaming" \
+      gamescope --backend drm -e -- steam -gamepadui > "$HOME/.foxtrot-gaming.log" 2>&1
   '';
   gamingSessionPackage =
     (pkgs.writeTextFile {
