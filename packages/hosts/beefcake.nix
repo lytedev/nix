@@ -185,7 +185,11 @@
     ./beefcake/roms.nix
     ./beefcake/miyoo-retrodeck-mirror.nix
     # ./beefcake/n8n.nix # disabled 2026-06: unused (empty /var/lib/n8n, no workflows) and the uncached 2.25.7 npm build is a slow source compile on every rebuild
-    # ./beefcake/happy.nix # retired 2026-06: podman-happy.service kept failing on activation (per Daniel)
+    # happy.nix (self-hosted happy-coder server) deleted 2026-07: unused + retired
+    # since 2026-06 (podman-happy.service failed on activation). Orphaned sops
+    # secrets happy.env/garage.toml and on-disk state (/storage/happy,
+    # /var/lib/happy, /var/lib/garage, postgres `happy` db) still need manual
+    # cleanup — see the PR.
     ./beefcake/hearth.nix
     ./beefcake/k3s.nix
 

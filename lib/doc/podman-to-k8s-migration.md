@@ -20,12 +20,21 @@ Read alongside:
   stateless-ish, HTTP* services that today sit behind caddy. Migrating them
   buys uniform deploys, NetworkPolicy isolation, PodSecurity, and one ingress
   story.
-- **Some workloads should never move.** Anything that needs `--network=host`
-  (mDNS/Cast discovery), local hardware / a serial mesh node, or a raw non-HTTP
-  TCP port is *harder in k8s than in podman* and gains nothing. Keep them on
-  podman.
-- **Prove the pattern once, end-to-end, on a low-stakes app first** (openobserve
-  or actual), including sops→Secret and hostPath storage. Then batch the rest.
+- **On a single node, almost everything *can* run in k8s — the real axis is
+  "uniformity gained vs. isolation given up," not "possible vs. impossible."**
+  The k8s node *is* the host, so a `hostNetwork` pod has identical LAN/loopback
+  access to today's `--network=host` container. The host-network / raw-TCP
+  workloads (music-assistant, mmrelay, game servers) therefore *can* migrate —
+  but only into a **PSA-`privileged`, NetworkPolicy-exempt namespace**, so they
+  get the uniform-workflow benefit and **none** of the hardening benefit. That's
+  a legitimate trade if one workflow (everything a manifest, visible in k9s) is
+  the goal; just go in eyes-open.
+- **A few should stay off k8s on principle, not capability.** openobserve is the
+  observability *sink* — putting the tool you'd use to debug a wedged cluster
+  *inside* that cluster is a circular dependency. Keep infra-tier services on the
+  host.
+- **Prove the pattern once, end-to-end, on a low-stakes HTTP app first**
+  (bulwark), including sops→Secret and hostPath storage. Then batch the rest.
 
 ## What "good in k8s" looks like here
 
@@ -35,33 +44,72 @@ The cluster is deliberately constrained (see `k3s.nix`):
   `https://<app>.k.lyte.dev` → caddy → traefik's loopback NodePort 30081 →
   ClusterIP Service → pods. So a migratable app must speak **HTTP** behind an
   Ingress.
-- **No ServiceLB, NodePorts are loopback-only.** There is *no* way to expose a
-  raw TCP port to the LAN from the cluster. A workload that needs a public
-  non-HTTP port (game server, etc.) cannot use this cluster without reintroducing
-  the exact host-port-binding capability the edge-separation design removed.
+- **No ServiceLB, and kube-proxy NodePorts are pinned to loopback**
+  (`--kube-proxy-arg=nodeport-addresses=127.0.0.0/8`). So *NodePort/LoadBalancer*
+  services can't reach the LAN — that's the outage guard for the `:443` edge.
+  This is **not** the same as "no raw-TCP path exists"; see the escape-hatch
+  section below (`hostPort` bypasses kube-proxy entirely, and caddy-l4 preserves
+  the single-edge story).
 - **Single node.** hostPath on `/storage` (ZFS, already in the restic backup
   set) is the simplest durable storage. PVCs work but add indirection with no
   payoff at one node (see Storage below).
 
 So the migration sweet spot is: **HTTP, single-replica, state that fits a
-hostPath, secrets that fit a mounted file or a small Secret.**
+hostPath, secrets that fit a mounted file or a small Secret.** Everything else is
+possible but pays for it (privileged namespace, hostPort, no isolation).
+
+## Exposing a raw/LAN TCP port (the NodePort exception)
+
+`nodeport-addresses=127.0.0.0/8` is a **node-global** kube-proxy setting — there
+is no per-service knob to bind one NodePort on the LAN while the rest stay
+loopback. **Do not** flip it globally (that re-exposes *every* NodePort on the
+LAN and defeats the design). To let a *specific* workload (a game server, any
+raw-TCP service) take a LAN/WAN port, pick one of:
+
+1. **`hostPort` on the pod (recommended for the one-off).** A `hostPort` is a
+   CNI/portmap binding — k3s bundles the portmap plugin, so it works out of the
+   box — and it **bypasses kube-proxy's `nodeport-addresses` entirely**. It
+   binds the port on the node directly, defaulting to all interfaces; pin it with
+   `hostIP: 192.168.0.9` for LAN-only. Crucially it does **not** touch `:80/:443`,
+   so it does *not* re-create the ServiceLB/`:443` outage hazard. Caveats:
+   `hostPort` is **baseline-PSA-forbidden**, so the workload's namespace must be
+   labeled `pod-security.kubernetes.io/enforce: privileged`; and the pod is pinned
+   to the node (fine at one node). This is the surgical, per-workload exception.
+2. **caddy-l4 stream proxy (keeps caddy the sole edge).** Keep the service a
+   *loopback* NodePort/ClusterIP and have caddy — built with the
+   [`caddy-l4`](https://github.com/mholt/caddy-l4) layer-4 plugin — listen on
+   `192.168.0.9:<port>` and TCP-proxy to `127.0.0.1:<loopback-nodeport>`. This
+   preserves the "everything LAN-facing goes through caddy" invariant for TCP
+   too, and the service keeps loopback-only exposure. Cost: a custom caddy build
+   with the plugin. Best when you want the edge story to stay uniform.
+
+Rule of thumb: one-off game server → `hostPort`; a class of TCP services you want
+funnelled through the one edge → caddy-l4.
 
 ## Workload triage
 
+These verdicts reflect Daniel's calls (2026-07).
+
 | Workload | Shape today | Verdict | Notes |
 |---|---|---|---|
-| **openobserve** | 1 container, sops env, hostPath vol, loopback `:5080`, caddy-proxied | ✅ **Early candidate** | Cleanest first move — already HTTP-behind-caddy. Becomes an Ingress app. |
-| **actual** (actualbudget) | 1 container, hostPath data, HTTP | ✅ **Early candidate** | Small, self-contained, low blast radius. Good pattern-prover. |
-| **bulwark** (webmail) | 1 container, sops env, loopback `:3000`, caddy `reverse_proxy` | ✅ **Good, after pattern proven** | HTTP; coupled to the mail stack but only as a client. |
-| **hearth** | locally-built `localhost/hearth:latest`, HTTP | ✅ **Good, needs image import** | Exercises the `k3s ctr images import` local-image path (see below). |
-| **matrix bridges** (`mautrix-*`, heisenbridge, hookshot) | app containers → tuwunel, sqlite/registration on disk, sops registration files | 🟡 **Medium — batch later** | All share a shape (talk to tuwunel, need a sops `registration.yaml` + a sqlite/postgres store). Migrate as *one* batch once secrets+storage are solved, not one-by-one. Keep **tuwunel** (the homeserver) itself on the host until last, or leave it. |
-| **jmap-matrix-notify** | small notifier | 🟡 **Medium** | Fine to move with the bridge batch; low value alone. |
-| **music-assistant** | `--network=host` for **Cast/AirPlay mDNS**, hostPath `/data` | ❌ **Stay podman** | mDNS discovery needs host network. `hostNetwork: true` pods violate baseline PSA *and* defeat NetworkPolicy — you'd be fighting the cluster's whole security model for zero gain. |
-| **mmrelay** | `--network=host`, talks to **meshtasticd** on `localhost:4403` + mosquitto, mesh hardware | ❌ **Stay podman** | Host-network + local hardware/daemon coupling. No benefit in k8s. |
-| **minecraft** (jonland / prom2 / `minecraft-server-containers`) | `itzg/minecraft-server`, **raw TCP :25565**, large world state | ❌ **Stay podman** | Players connect over a raw public TCP port. The cluster has no LAN-facing port path by design (no ServiceLB, loopback NodePorts). Putting it in k8s means re-adding host-port binding — the one thing the 2026-06 edge-separation outage guard forbids. |
-| **happy** | locally-built image, `--network=host`, postgres+redis+garage+S3 | ❌ **Stay podman (for now)** | Multi-service, host-network, tightly coupled to on-host garage/redis. Migrate only if it's ever rebuilt as a clean HTTP service; not worth it today. |
+| **bulwark** (webmail) | 1 container, sops env, loopback `:3000`, caddy `reverse_proxy` | ✅ **First move (pattern-prover)** | Plain HTTP web client. Cleanest end-to-end proof of namespace+netpol / sops→secret / hostPath / ingress. |
+| **hearth** | locally-built `localhost/hearth:latest`, HTTP | ✅ **Early** | Same HTTP pattern, plus exercises the `k3s ctr images import` local-image path (see below). |
+| **matrix bridges** (`mautrix-*`, heisenbridge, hookshot) + **jmap-matrix-notify** | app containers ↔ tuwunel, sqlite/registration on disk, sops registration files | ✅ **Batch — move *with* tuwunel** | Appservice traffic is **bidirectional** (bridges dial tuwunel *and* tuwunel pushes to each bridge). If tuwunel stays on the host while bridges become pods, the host must reach ClusterIPs — the classic split-appservice pain. So migrate tuwunel **and** all bridges together as one unit, or leave the whole set on the host. Don't straddle the boundary. |
+| **music-assistant** | `--network=host` for **Cast/AirPlay mDNS**, hostPath `/data` | ✅ **OK — hostNetwork, privileged ns** | Single node ⇒ a `hostNetwork: true` pod sees LAN multicast exactly as today's container. Needs a `pod-security.kubernetes.io/enforce: privileged` namespace and gets **no netpol isolation**. "podman with more YAML"; fine if uniformity is the goal. |
+| **mmrelay** | `--network=host`, talks to **meshtasticd** on `localhost:4403` + mosquitto | ✅ **OK — hostNetwork, privileged ns** | Same as MA: `hostNetwork` pod reaches host `localhost:4403`. Privileged namespace, no isolation. (Alternative: bind meshtasticd to the cni bridge and skip hostNetwork — more moving parts; hostNetwork is simpler.) |
+| **minecraft / game servers** (jonland / prom2 / `minecraft-server-containers`) | `itzg/minecraft-server`, **raw TCP :25565**, large world state | ✅ **OK — `hostPort`, privileged ns** | Expose via pod `hostPort: 25565` (bypasses the loopback NodePort pin; does **not** threaten the `:443` edge). Baseline forbids `hostPort` ⇒ privileged namespace. Big stateful world on hostPath `/storage`. A pets workload with modest k8s payoff, but feasible. See the NodePort-exception section. |
+| **openobserve** | 1 container, sops env, hostPath vol, loopback `:5080`, otel sink | ❌ **Stay on host** | It's the observability **sink** (host otel-collector ships to `127.0.0.1:5080`). Running the tool you'd use to debug a wedged cluster *inside* that cluster is a circular dependency. Infra-tier, low churn ⇒ little uniformity payoff. |
+| **actual** (actualbudget) | 1 container, hostPath data, HTTP | — **Being deleted** | Dropped from the plan (Daniel is removing it). |
+| **happy** | retired self-hosted happy-coder server | 🔥 **Deleted** | Unused + scary; already retired since 2026-06. `happy.nix` removed in this PR (config only — see the on-disk/sops cleanup list). |
 
-Legend: ✅ migrate early · 🟡 migrate later / as a batch · ❌ keep on podman.
+Legend: ✅ migrate · ❌ keep off k8s (principle) · 🔥 delete · — n/a.
+
+**On the ✅-privileged-namespace ones (MA, mmrelay, game servers):** put each in
+its own namespace labeled `pod-security.kubernetes.io/enforce: privileged` so it
+opts out of the cluster's `baseline` default (the PSA config in `k3s.nix` is only
+a *default*; per-namespace labels override it). They won't get NetworkPolicy
+isolation either (hostNetwork bypasses netpol). The rest of the cluster keeps the
+hardened baseline — the exceptions are contained to their own namespaces.
 
 ## The mechanics (how each concern moves)
 
@@ -69,9 +117,9 @@ Legend: ✅ migrate early · 🟡 migrate later / as a batch · ❌ keep on podm
 
 - **Public images** (`docker.io/…`, `ghcr.io/…`, `public.ecr.aws/…`) just pull —
   put the ref straight in the Deployment.
-- **Locally-built images** (`localhost/hearth:latest`, `localhost/happy-server`)
-  are invisible to k3s's containerd. Import into containerd and pin the pull
-  policy so k8s doesn't try to re-pull:
+- **Locally-built images** (e.g. `localhost/hearth:latest`) are invisible to
+  k3s's containerd. Import into containerd and pin the pull policy so k8s doesn't
+  try to re-pull:
 
   ```bash
   podman save localhost/hearth:latest | sudo k3s ctr images import -
@@ -116,10 +164,12 @@ Skip External-Secrets-Operator / sops-operator — overkill for one node.
   `k8s-networkpolicy-template.yaml` (default-deny-ingress + allow-from-traefik +
   allow-dns). Do this from the start so isolation is the default, not a retrofit.
 - The cluster-wide **PodSecurity** default is `baseline` enforce (see `k3s.nix`).
-  Migrated apps must be baseline-clean: no `privileged`, no `hostNetwork`, no
-  `hostPath` for *device* access (a hostPath *volume* for data is allowed under
-  baseline; host **path types** like device files are what baseline restricts —
-  validate per app). This is exactly why the `--network=host` workloads are ❌.
+  HTTP apps (bulwark, hearth, bridges) must be baseline-clean: no `privileged`,
+  no `hostNetwork`, no `hostPort` (both are baseline-forbidden). A `hostPath`
+  *volume* for data is fine under baseline. The host-network / hostPort workloads
+  (MA, mmrelay, game servers) instead go in a namespace labeled
+  `pod-security.kubernetes.io/enforce: privileged`, opting out of the default —
+  contained to their own namespace, no netpol isolation.
 
 ### Reaching host services from pods (postgres, redis, …)
 
@@ -143,29 +193,36 @@ loopback boundary — but that's a later-stage decision, not a first move.
 ## Recommended order
 
 1. **(this PR) Baseline the cluster.** PodSecurity `baseline` default + the
-   NetworkPolicy template + postgres loopback bind. No workloads move yet.
+   NetworkPolicy template + postgres loopback bind + delete the retired `happy`.
+   No workloads move yet.
 2. **Remove the stale test junk.** Delete the 169-day `default/echo-server`
    Deployment/Service and the `whoami` example once real apps land (runtime
    state — Daniel deletes; see the flag in the PR). Keeps `default` empty so it
    can stay locked down.
-3. **Prove the pattern on ONE low-stakes app: `openobserve` (or `actual`).**
-   Full loop: namespace + netpol, Deployment+Service+Ingress, sops secret via
-   hostPath mount, hostPath data on `/storage`, cut caddy to proxy the ingress.
-   Confirm live, then delete the podman unit.
+3. **Prove the pattern on `bulwark`** (first HTTP move). Full loop: namespace +
+   netpol, Deployment+Service+Ingress, sops secret via hostPath mount, hostPath
+   data on `/storage`, cut caddy to proxy the ingress. Confirm live, then delete
+   the podman unit.
 4. **`hearth`** — same pattern, plus the local-image import path (containerd).
-5. **`bulwark`** — same HTTP pattern once 3–4 are boring.
-6. **Matrix bridge batch** (`mautrix-*` + heisenbridge + hookshot +
-   jmap-matrix-notify) — as ONE coordinated change after secrets+storage are
-   proven, because they share a shape. Decide separately whether tuwunel itself
-   moves (recommend: last, or never).
-7. **Leave on podman, permanently:** `music-assistant`, `mmrelay`, `minecraft`,
-   `happy`. Revisit only if a workload is fundamentally rearchitected.
+5. **Matrix + tuwunel batch** (`mautrix-*` + heisenbridge + hookshot +
+   jmap-matrix-notify **and** tuwunel) — as ONE coordinated change after
+   secrets+storage are proven, because appservice traffic is bidirectional and
+   must not straddle the host/cluster boundary. Or leave the whole set on the
+   host.
+6. **Host-network / game-server workloads, if/when you want the uniform
+   workflow:** `music-assistant`, `mmrelay`, `minecraft` — each into its own
+   `privileged`-labeled namespace (hostNetwork / hostPort), no netpol. Lowest
+   priority; they gain workflow uniformity, not hardening.
+7. **Stay off k8s:** `openobserve` (observability sink — circular dep).
 
 ## Anti-goals / guardrails
 
-- Don't reintroduce host-port binding (no `hostPort`, no ServiceLB, no
-  LoadBalancer) to fit a workload — that's the outage guard. If an app can't be
-  reached as HTTP-behind-traefik, it stays on podman.
+- **Never re-enable ServiceLB or create a LoadBalancer service, and never widen
+  `nodeport-addresses` off loopback.** That is the specific outage guard for the
+  `:80/:443` edge. Note this does *not* forbid a pod `hostPort` on a distinct
+  high port (e.g. game-server `:25565`) — that bypasses kube-proxy and never
+  touches the web edge (see the NodePort-exception section). The line is
+  "nothing may contend for the caddy edge," not "no host ports ever."
 - Don't fold "migrate app X" and "refactor the shared k8s module" into one
   change. Extract shared manifest helpers as their own step.
 - Don't materialise secrets into the repo or into etcd when a hostPath mount of
