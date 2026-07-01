@@ -135,14 +135,21 @@ in
       script = ''
         export STHOMEDIR="${danielHome}/.config/syncthing"
         PASSWORD="$(cat ${config.sops.secrets.syncthing-gui-password.path})"
-        # Wait for syncthing API to be ready
-        for i in $(seq 1 30); do
-          if syncthing cli config gui get 2>/dev/null | grep -q user; then
-            break
+        # Setting the GUI password talks to syncthing's REST API, which is
+        # unavailable (connection refused) or mid-restart (EOF) for a while
+        # after syncthing (re)starts — e.g. during a deploy that bumps the
+        # syncthing package. Retry the idempotent set until it succeeds rather
+        # than probing readiness once and then POSTing blindly (which raced the
+        # restart and failed activation, tripping deploy-rs magic-rollback).
+        for i in $(seq 1 60); do
+          if syncthing cli config gui password set "$PASSWORD"; then
+            echo "syncthing GUI password set (attempt $i)"
+            exit 0
           fi
           sleep 2
         done
-        syncthing cli config gui password set "$PASSWORD"
+        echo "failed to set syncthing GUI password after retries" >&2
+        exit 1
       '';
     };
 
