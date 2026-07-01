@@ -40,16 +40,18 @@ Read alongside:
 
 The cluster is deliberately constrained (see `k3s.nix`):
 
-- **caddy is the sole edge on :80/:443.** Apps are reached *only* as
-  `https://<app>.k.lyte.dev` → caddy → traefik's loopback NodePort 30081 →
-  ClusterIP Service → pods. So a migratable app must speak **HTTP** behind an
-  Ingress.
-- **No ServiceLB, and kube-proxy NodePorts are pinned to loopback**
-  (`--kube-proxy-arg=nodeport-addresses=127.0.0.0/8`). So *NodePort/LoadBalancer*
-  services can't reach the LAN — that's the outage guard for the `:443` edge.
-  This is **not** the same as "no raw-TCP path exists"; see the escape-hatch
-  section below (`hostPort` bypasses kube-proxy entirely, and caddy-l4 preserves
-  the single-edge story).
+- **caddy is the sole edge on :80/:443.** HTTP apps are reached as
+  `https://<app>.k.lyte.dev` → caddy → traefik NodePort 30081 (over loopback) →
+  ClusterIP Service → pods. This is the *convention* for HTTP apps (free TLS +
+  wildcard hostname), not a hard requirement for everything (see NodePorts below).
+- **No ServiceLB — the real `:443` guard.** `--disable=servicelb` removes the only
+  thing that could fulfil a LoadBalancer by binding host ports, so nothing can
+  seize `:80/:443`. This is independent of NodePorts and stays no matter what.
+- **NodePorts are firewall-gated, not loopback-pinned.** NodePorts bind all
+  interfaces, but the host firewall keeps the `30000-32767` range closed on the
+  LAN, so a NodePort is only LAN-reachable once you open its port. NodePorts live
+  in `30000-32767` and *cannot* bind `:443`, so they never threaten the edge. See
+  the NodePort section below.
 - **Single node.** hostPath on `/storage` (ZFS, already in the restic backup
   set) is the simplest durable storage. PVCs work but add indirection with no
   payoff at one node (see Storage below).
@@ -58,33 +60,36 @@ So the migration sweet spot is: **HTTP, single-replica, state that fits a
 hostPath, secrets that fit a mounted file or a small Secret.** Everything else is
 possible but pays for it (privileged namespace, hostPort, no isolation).
 
-## Exposing a raw/LAN TCP port (the NodePort exception)
+## Exposing a raw/LAN TCP port
 
-`nodeport-addresses=127.0.0.0/8` is a **node-global** kube-proxy setting — there
-is no per-service knob to bind one NodePort on the LAN while the rest stay
-loopback. **Do not** flip it globally (that re-exposes *every* NodePort on the
-LAN and defeats the design). To let a *specific* workload (a game server, any
-raw-TCP service) take a LAN/WAN port, pick one of:
+Not everything deserves a reverse proxy. For a simple TCP service (or anything
+non-HTTP), there are three paths, easiest first:
 
-1. **`hostPort` on the pod (recommended for the one-off).** A `hostPort` is a
-   CNI/portmap binding — k3s bundles the portmap plugin, so it works out of the
-   box — and it **bypasses kube-proxy's `nodeport-addresses` entirely**. It
-   binds the port on the node directly, defaulting to all interfaces; pin it with
-   `hostIP: 192.168.0.9` for LAN-only. Crucially it does **not** touch `:80/:443`,
-   so it does *not* re-create the ServiceLB/`:443` outage hazard. Caveats:
-   `hostPort` is **baseline-PSA-forbidden**, so the workload's namespace must be
-   labeled `pod-security.kubernetes.io/enforce: privileged`; and the pod is pinned
-   to the node (fine at one node). This is the surgical, per-workload exception.
-2. **caddy-l4 stream proxy (keeps caddy the sole edge).** Keep the service a
+1. **Plain NodePort + open the firewall port (the default answer).** Give the
+   Service `type: NodePort` with a pinned `nodePort:` (so the number is stable),
+   then open exactly that port on the LAN in NixOS:
+   `networking.firewall.allowedTCPPorts = [ 31234 ];` (or interface-scoped) and
+   deploy. NodePorts bind all interfaces already; the firewall is the gate, so
+   opening the one port is all it takes — no ingress, no proxy. `nodeport-addresses`
+   is node-global (there's no per-service loopback-vs-LAN knob), which is *why* the
+   firewall — not a kube-proxy pin — is the exposure control here.
+2. **`hostPort` on the pod.** A portmap binding (k3s bundles the plugin) on the
+   node directly; pin with `hostIP: 192.168.0.9` for LAN-only. Use it when you
+   want the port bound *only while the pod runs* / co-located with the pod rather
+   than a cluster-wide NodePort. Caveat: `hostPort` is **baseline-PSA-forbidden**,
+   so its namespace needs `pod-security.kubernetes.io/enforce: privileged`.
+3. **caddy-l4 stream proxy (keeps caddy the sole edge).** Keep the service a
    *loopback* NodePort/ClusterIP and have caddy — built with the
    [`caddy-l4`](https://github.com/mholt/caddy-l4) layer-4 plugin — listen on
-   `192.168.0.9:<port>` and TCP-proxy to `127.0.0.1:<loopback-nodeport>`. This
-   preserves the "everything LAN-facing goes through caddy" invariant for TCP
-   too, and the service keeps loopback-only exposure. Cost: a custom caddy build
-   with the plugin. Best when you want the edge story to stay uniform.
+   `192.168.0.9:<port>` and TCP-proxy to `127.0.0.1:<nodeport>`. Preserves the
+   "everything LAN-facing goes through one edge" invariant for TCP too, and lets
+   you add TLS/SNI routing. Cost: a custom caddy build. Best for a *class* of TCP
+   services you want funnelled through the single edge.
 
-Rule of thumb: one-off game server → `hostPort`; a class of TCP services you want
-funnelled through the one edge → caddy-l4.
+Rule of thumb: one-off LAN service → **NodePort + firewall port**; want it gone
+when the pod is → `hostPort`; a managed class of TCP services → caddy-l4. What you
+**must not** do is re-enable ServiceLB or create a LoadBalancer service — that's
+the actual `:443` edge guard (see anti-goals).
 
 ## Workload triage
 
@@ -97,7 +102,7 @@ These verdicts reflect Daniel's calls (2026-07).
 | **matrix bridges** (`mautrix-*`, heisenbridge, hookshot) + **jmap-matrix-notify** | app containers ↔ tuwunel, sqlite/registration on disk, sops registration files | ✅ **Batch — move *with* tuwunel** | Appservice traffic is **bidirectional** (bridges dial tuwunel *and* tuwunel pushes to each bridge). If tuwunel stays on the host while bridges become pods, the host must reach ClusterIPs — the classic split-appservice pain. So migrate tuwunel **and** all bridges together as one unit, or leave the whole set on the host. Don't straddle the boundary. |
 | **music-assistant** | `--network=host` for **Cast/AirPlay mDNS**, hostPath `/data` | ✅ **OK — hostNetwork, privileged ns** | Single node ⇒ a `hostNetwork: true` pod sees LAN multicast exactly as today's container. Needs a `pod-security.kubernetes.io/enforce: privileged` namespace and gets **no netpol isolation**. "podman with more YAML"; fine if uniformity is the goal. |
 | **mmrelay** | `--network=host`, talks to **meshtasticd** on `localhost:4403` + mosquitto | ✅ **OK — hostNetwork, privileged ns** | Same as MA: `hostNetwork` pod reaches host `localhost:4403`. Privileged namespace, no isolation. (Alternative: bind meshtasticd to the cni bridge and skip hostNetwork — more moving parts; hostNetwork is simpler.) |
-| **minecraft / game servers** (jonland / prom2 / `minecraft-server-containers`) | `itzg/minecraft-server`, **raw TCP :25565**, large world state | ✅ **OK — `hostPort`, privileged ns** | Expose via pod `hostPort: 25565` (bypasses the loopback NodePort pin; does **not** threaten the `:443` edge). Baseline forbids `hostPort` ⇒ privileged namespace. Big stateful world on hostPath `/storage`. A pets workload with modest k8s payoff, but feasible. See the NodePort-exception section. |
+| **minecraft / game servers** (jonland / prom2 / `minecraft-server-containers`) | `itzg/minecraft-server`, **raw TCP :25565**, large world state | ✅ **OK — NodePort + firewall port** | Expose via `type: NodePort` (pinned) + opening that port in `networking.firewall` — no proxy, no privileged namespace needed. (`hostPort` also works but needs a privileged namespace.) Neither can bind `:443`, so no edge risk. Big stateful world on hostPath `/storage`. A pets workload with modest k8s payoff, but feasible. See the NodePort section. |
 | **openobserve** | 1 container, sops env, hostPath vol, loopback `:5080`, otel sink | ❌ **Stay on host** | It's the observability **sink** (host otel-collector ships to `127.0.0.1:5080`). Running the tool you'd use to debug a wedged cluster *inside* that cluster is a circular dependency. Infra-tier, low churn ⇒ little uniformity payoff. |
 | **actual** (actualbudget) | 1 container, hostPath data, HTTP | — **Being deleted** | Dropped from the plan (Daniel is removing it). |
 | **happy** | retired self-hosted happy-coder server | 🔥 **Deleted** | Unused + scary; already retired since 2026-06. `happy.nix` removed in this PR (config only — see the on-disk/sops cleanup list). |
@@ -217,12 +222,12 @@ loopback boundary — but that's a later-stage decision, not a first move.
 
 ## Anti-goals / guardrails
 
-- **Never re-enable ServiceLB or create a LoadBalancer service, and never widen
-  `nodeport-addresses` off loopback.** That is the specific outage guard for the
-  `:80/:443` edge. Note this does *not* forbid a pod `hostPort` on a distinct
-  high port (e.g. game-server `:25565`) — that bypasses kube-proxy and never
-  touches the web edge (see the NodePort-exception section). The line is
-  "nothing may contend for the caddy edge," not "no host ports ever."
+- **Never re-enable ServiceLB or create a LoadBalancer service.** That is the
+  specific outage guard for the `:80/:443` edge — a LoadBalancer is the only
+  thing that can bind arbitrary host ports and seize `:443`. Firewall-gated
+  NodePorts and pod `hostPort`s on distinct high ports are fine — they can't bind
+  `:443` and never contend for the caddy edge (see the NodePort section). The line
+  is "nothing may contend for the caddy edge," not "no host ports ever."
 - Don't fold "migrate app X" and "refactor the shared k8s module" into one
   change. Extract shared manifest helpers as their own step.
 - Don't materialise secrets into the repo or into etcd when a hostPath mount of
