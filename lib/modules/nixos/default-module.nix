@@ -103,6 +103,30 @@
             fi
           '';
         };
+
+        # The family user predates the home-manager removal and was never fully
+        # migrated: ~flanfam/.config/niri is a stale home-manager symlink (→ an old
+        # hm_niri config), and now that Plasma is off fleet-wide (niri-only) that
+        # stale config is what flanfam actually runs. flanfamEnv above can't fix it —
+        # it only runs on flanfam login (this device auto-boots to a greeter, flanfam
+        # rarely has a live session at deploy) and its `ln -sfT` silently fails
+        # against home-manager's leftover real dirs.
+        #
+        # So provision niri here at DEPLOY time, as root (no flanfam session needed).
+        # Make ~/.config/niri a REAL dir so DMS's generated dms/ can live beside the
+        # symlinked config.kdl, and point config.kdl at the store (deterministic —
+        # every deploy re-points it to the config that was built). config.kdl's own
+        # includes are all `optional` and resolved from /etc/niri, so config.kdl is
+        # the only file the family user needs.
+        system.activationScripts.flanfamNiri = ''
+          if [ -d /home/flanfam ]; then
+            d=/home/flanfam/.config/niri
+            [ -L "$d" ] && rm -f "$d"
+            install -d -o flanfam -g flanfam -m 0755 /home/flanfam/.config "$d"
+            ln -sfn ${../../../dotfiles/niri/config.kdl} "$d/config.kdl"
+            chown -h flanfam:flanfam "$d/config.kdl"
+          fi
+        '';
       }
     )
 
