@@ -40,6 +40,14 @@ let
     set -eu
     export NTFY_AUTH_FILE=${authFile}
     export NTFY_AUTH_DEFAULT_ACCESS=deny-all
+    # The server creates the auth-file on startup, and ExecStartPost can fire
+    # before that finishes — the CLI refuses to touch a missing auth-file ("please
+    # start the server at least once to create it"), which would fail the whole
+    # unit. Wait for it to appear (up to ~30s) first.
+    for _ in $(seq 1 60); do
+      [ -f "${authFile}" ] && break
+      sleep 0.5
+    done
     # Create the publisher/subscriber user once (no-op if it already exists; the
     # password is set only at creation — rotate with `ntfy user change-pass`).
     NTFY_PASSWORD="$ALERTS_PASSWORD" ${ntfy} user add --ignore-exists alerts
