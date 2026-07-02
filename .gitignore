@@ -15,3 +15,4 @@ packages/miyoo-sync/bin/
 # DankMaterialShell: app-managed config and generated theme files
 dotfiles/niri/dms/
 dotfiles/ghostty/themes/dankcolors
+demo-state/

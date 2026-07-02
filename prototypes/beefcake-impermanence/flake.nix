@@ -46,27 +46,99 @@
         modelb-storage = import ./modelb-storage-test.nix { inherit pkgs; };
       };
 
-      # P1b: the real *mechanism* — ZFS root + @blank rollback via a
-      # systemd-initrd unit, in a disko-built image booted twice under qemu.
-      nixosConfigurations.rollback = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          disko.nixosModules.disko
-          impermanence.nixosModules.impermanence
-          ./rollback-config.nix
-        ];
-      };
+      # rollback = P1b (disko image, initrd @blank rollback — see rollback-demo).
+      # slot-*/demo-host = the hands-on demo (nix run .#demo): a persistent
+      # "thin host" VM owning a ZFS pool, running blue/green slot VMs (nested
+      # KVM) with real services (vaultwarden + caddy + postgres) on Model B
+      # storage attachments.
+      nixosConfigurations =
+        let
+          qemuVm = "${nixpkgs}/nixos/modules/virtualisation/qemu-vm.nix";
+          mkSlot =
+            name: extra:
+            nixpkgs.lib.nixosSystem {
+              inherit system;
+              modules = [
+                qemuVm
+                (import ./demo/slot-config.nix { slotName = name; })
+                extra
+              ];
+            };
+        in
+        {
+          rollback = nixpkgs.lib.nixosSystem {
+            inherit system;
+            modules = [
+              disko.nixosModules.disko
+              impermanence.nixosModules.impermanence
+              ./rollback-config.nix
+            ];
+          };
+          slot-blue = mkSlot "blue" { };
+          slot-green = mkSlot "green" {
+            # The candidate generation: visibly different from blue.
+            environment.etc."generation-note".text = "green: the CANDIDATE generation (pretend nixpkgs bump)";
+          };
+          demo-host = nixpkgs.lib.nixosSystem {
+            inherit system;
+            modules = [
+              qemuVm
+              (import ./demo/host-config.nix {
+                slotVMs = {
+                  blue = self.nixosConfigurations.slot-blue.config.system.build.vm;
+                  green = self.nixosConfigurations.slot-green.config.system.build.vm;
+                };
+              })
+            ];
+          };
+        };
 
       packages.${system} = {
         rollback-demo = import ./rollback-demo.nix {
           inherit pkgs;
           rollbackSystem = self.nixosConfigurations.rollback;
         };
+        demo = pkgs.writeShellApplication {
+          name = "modelb-demo";
+          text = ''
+            state="''${DEMO_STATE_DIR:-$PWD/demo-state}"
+            mkdir -p "$state"
+            # ssh refuses group/world-readable identity files, and the repo
+            # checkout leaves the test key at 0644 — install a 0600 copy.
+            install -m 600 ${./keys/demo-ssh-key} "$state/ssh-key"
+            cd "$state"
+            export NIX_DISK_IMAGE=demo-host.qcow2
+            export QEMU_NET_OPTS="hostfwd=tcp::2200-:22,hostfwd=tcp::2201-:12201,hostfwd=tcp::2202-:12202,hostfwd=tcp::8080-:8000,hostfwd=tcp::8081-:13001,hostfwd=tcp::8082-:13002"
+            cat <<'BANNER'
+            ================== Model B hands-on demo ==================
+            demo host : ssh -p 2200 -i demo-state/ssh-key root@localhost
+            blue slot : ssh -p 2201 ...   green slot: ssh -p 2202 ...
+            service   : http://localhost:8080  (the VIP -> active slot)
+            blue web  : http://localhost:8081   green web: http://localhost:8082
+            suggested tour (on the demo host):
+              demo-status; slot-run blue; vip-set blue
+              -> create a vaultwarden account/entry at :8080
+              slot-run green validate   # green vs CLONES, egress cut
+              -> poke :8082, your data is there; writes are throwaway
+              cutover green             # the real thing
+              -> :8080 now green, your data followed; cutover blue = rollback
+            (this terminal becomes the demo host serial console; C-a x quits)
+            ============================================================
+            BANNER
+            exec ${self.nixosConfigurations.demo-host.config.system.build.vm}/bin/run-demo-host-vm
+          '';
+        };
       };
 
-      apps.${system}.rollback-demo = {
-        type = "app";
-        program = "${self.packages.${system}.rollback-demo}/bin/rollback-demo";
+      apps.${system} = {
+        rollback-demo = {
+          type = "app";
+          program = "${self.packages.${system}.rollback-demo}/bin/rollback-demo";
+        };
+        demo = {
+          type = "app";
+          program = "${self.packages.${system}.demo}/bin/modelb-demo";
+        };
       };
     };
 }
