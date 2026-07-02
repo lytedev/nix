@@ -1,0 +1,364 @@
+# beefcake: impermanence + thin-hypervisor blue/green — design
+
+**Status:** design + prototype phase (2026-07). Companion issue:
+`issues/open/blue-green.md`. Investigation notes and full inventories were
+gathered live on 2026-07-01 (repo config sweep + read-only audit of the running
+host + prior-art research); the load-bearing facts are inlined here.
+
+**Goal:** make beefcake structurally safe to deploy by (1) making all of its
+state *explicit* (nix-impermanence), then (2) demoting today's bare-metal OS to
+a **guest VM** under a thin NixOS hypervisor host, so a new generation can be
+**validated in a green slot before cutover**, with one-step rollback.
+
+---
+
+## 1. Where beefcake is today (facts that shape the design)
+
+Hardware: Dell R720xd, 2× Xeon E5-2680 v2 (40 threads), **251 GiB RAM** (no
+swap), 4× Intel I350 GbE (only `eno1` connected). All disks — the 12-bay
+backplane *and* the boot/rear disks — hang off a **single crossflashed IT-mode
+LSI SAS2308 HBA** (`02:00.0`) behind a SAS expander (verified via
+`/sys/block/*` device paths). There is no usable second disk controller today.
+
+Storage:
+
+- `zstorage` — 21.8 T draid3 (`draid3:3d:8c:2s`), the real payload. Holds
+  `/storage` (3.2 T), `/nix` (!, `zstorage/nix`, 627 G incl. snapshots),
+  `/var/lib/containers` + `/var/lib/private` (ZFS-native mounts, migrated
+  2026-06-29, **deliberately not in `fileSystems`** — see
+  `issues/closed/beefcake-relocate-state-to-pool.md`).
+- `/` — **plain ext4 on a single 300 G 10K SAS spinner** (`sdf2`), with the
+  512 MB ESP on the same disk. This is the SPOF the SSD-mirror project
+  (2× PM863a purchased) is meant to fix.
+- `rpool` — a single Samsung PM863 240 G SSD carrying an *unused* alternate
+  root (`/mnt/rpool-root`, read-only).
+
+Ext4-root residue (the impermanence work list, ~69 G live): `/var/cache` 52 G
+(restic caches ×3), `/var/log` 3.3 G, and — critically — **plain `/var/lib`
+dirs still on the spinner** for headscale, hass, clickhouse, knot, mosquitto,
+unifi, vaultwarden(?), jellyfin cache, mautrix-*, redis, forgejo-db, kanidm and
+friends, plus `/etc/machine-id`, `/etc/ssh/ssh_host_*` (the sops-nix age
+identity), `/root`, `/home`. Another ~89 G of shadowed pre-migration originals
+sits invisibly under the ZFS overlay mounts (reclaim pending).
+
+Virtualization readiness: VT-x + `/dev/kvm` ready; **VT-d (IOMMU) is OFF**
+(BIOS + `intel_iommu=on` both missing); no libvirt/qemu installed. The I350
+NICs are SR-IOV-capable; three ports are unplugged.
+
+Workload (~80 native services + 6 podman containers + k3s): mail (stalwart),
+matrix (tuwunel + 5 bridges), git (forgejo + runners), DNS (knot, hidden
+primary for lyte.dev), VPN (headscale + tailscale exit node + DERP), identity
+(kanidm), photos/media (immich/jellyfin/audiobookshelf), home automation
+(hass + wyoming + music-assistant + mqtt), postgres 17 + clickhouse, caddy as
+sole :443 edge, samba/avahi/wsdd, k3s + traefik, minecraft. Full service→state
+map lives in the inventory (see §9 backup-gaps table for the risky subset).
+
+Existing pain this design must fix (from `issues/open/blue-green.md`, the
+2026-06-28 incident): live `switch` is all-or-nothing; a stale-workspace deploy
+downgraded nixpkgs → systemd re-exec wedge → redis RDB-format refusal →
+services dropped; recovery was manual surgery. Guards today are procedural
+(AGENTS.md rules + devshell deploy wrapper), not structural.
+
+---
+
+## 2. Target architecture
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│ beefcake-host (thin hypervisor, NixOS, impermanent)                │
+│  root: rpool2 = ZFS mirror on 2× PM863a SSD, blank-snapshot        │
+│        rollback each boot; /persist dataset for host identity      │
+│  runs: sshd, libvirtd (or microvm.nix), br0(eno1), smartd +        │
+│        disk-bays + IPMI fans, node exporter                        │
+│                                                                    │
+│  ┌──────────────────────────────┐  ┌──────────────────────────────┐│
+│  │ beefcake-blue (ACTIVE)       │  │ beefcake-green (candidate)   ││
+│  │ = today's beefcake config    │  │ same closure family, next    ││
+│  │ OS disk: zvol on rpool2      │  │ generation; OS zvol on rpool2││
+│  │ /nix inside OS zvol          │  │                              ││
+│  │ owns zstorage: 12 whole      │  │ validation boot: NO pool,    ││
+│  │ disks via virtio-blk,        │  │ synthetic/fixture state,     ││
+│  │ imports pool itself          │  │ isolated validation network  ││
+│  │ NIC: virtio on br0 with the  │  │ cutover: disks + service MAC ││
+│  │ “service MAC” → keeps        │  │ move here atomically         ││
+│  │ 192.168.0.9 via router       │  │                              ││
+│  │ reservation                  │  │                              ││
+│  └──────────────────────────────┘  └──────────────────────────────┘│
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### Design decisions (with the reasoning that picked them)
+
+**DD1 — Impermanence mechanism: ZFS blank-snapshot rollback, not tmpfs.**
+For a box with ~100 services and unpredictable write patterns, tmpfs-root risks
+RAM exhaustion; ZFS rollback costs nothing at runtime, and `zfs diff
+pool/root@blank` becomes a free, continuous **state-discovery audit** (the
+exact tool needed to build/verify the persist list). Canonical pattern:
+[Erase your darlings](https://grahamc.com/blog/erase-your-darlings/).
+⚠️ The widely-copied `boot.initrd.postDeviceCommands` rollback hook **does not
+run under systemd-initrd**; use an initrd systemd service ordered after
+`zfs-import-<pool>.service` and before `sysroot.mount`
+([modern recipe](https://notthebe.ee/blog/nixos-ephemeral-zfs-root/)). The
+prototype must prove this.
+
+**DD2 — Who owns `zstorage`: the guest, via whole-disk virtio-blk.**
+Options considered:
+
+| Option | Verdict |
+|---|---|
+| (a) HBA PCI passthrough to guest | Cleanest for the guest, but the ONE HBA also drives the host's boot disks — the host would have nothing to boot from. Needs VT-d enabled + host boot moved off the backplane (e.g. a PCIe NVMe adapter). **Deferred as a future upgrade**, not required. |
+| (b) Host owns pool; guest gets zvols + virtiofs | High-fidelity green validation via ZFS clones, but forces a full relayout of 3.8 T (datasets→zvols), loses the guest's ZFS-native per-service datasets/snapshots/ZED, puts DBs behind an extra layer, and makes the guest config diverge hard from today's. Rejected: migration cost + fidelity loss. |
+| (c) **Guest owns pool; host passes 12 raw disks (`/dev/disk/by-id/…`) as virtio-blk** | Guest config ≈ today's beefcake (same pool, same dataset mounts, same `hostId` 541ede55). ZFS stays at exactly one level per pool (host: rpool2 SSDs; guest: zstorage on virtio disks — supported and common). No VT-d/BIOS dependency. Host keeps SMART/SES/bay tooling (which belongs on the hypervisor anyway). **Chosen.** |
+
+Consequences of (c): SMART/smartd + `disk-bays` + disk-alerts move to the thin
+host (guest sees featureless virtio disks); ZED/scrub stays in the guest (pool
+owner). The pool is importable by exactly one VM at a time — which is exactly
+the exclusivity blue/green needs (enforced by only ever attaching the disk set
+to one domain; libvirt/virtlockd guards double-attach).
+
+**DD3 — Guest OS disk (root + /nix) = per-slot zvol on the host SSD mirror;
+`/nix` moves OFF `zstorage/nix`.**
+Blue and green must be able to exist *simultaneously* with different
+generations, so each slot needs its own independent store — the shared
+`zstorage/nix` dataset can't serve two NixOS instances. A fresh guest closure
+is a few tens of GB (the 627 G in `zstorage/nix` is history + snapshots + every
+host's CI builds); thin-provisioned ~100 G zvols per slot fit the SSD mirror
+(verify PM863a capacity — if they're 240 G it's tight and GC discipline
+matters; if 960 G it's trivial). Guest root inside the zvol is itself
+impermanent (blank-rollback or rebuilt image per deploy); all durable state
+lives in zstorage datasets via the persist list.
+
+**DD4 — Hypervisor substrate: libvirt (declaratively wrapped), microvm.nix as
+the evaluated alternative.** For one or two heavyweight guests, libvirt/qemu
+gives virtio-blk whole-disk attach, PCI hotplug later, virtlockd exclusivity,
+and mature ops tooling (`virsh` console/shutdown). microvm.nix's strengths
+(many small VMs, ro-erofs roots) matter less here, but its "host rebuild
+doesn't restart guests" property and clean flake integration make it a real
+contender — the blue/green prototype should try the disk-handoff mechanic on
+plain qemu (which is what both reduce to) and the final pick can follow
+ergonomics. NixVirt or hand-templated domain XML keeps libvirt declarative.
+nspawn/nixos-containers were rejected: shared kernel can't give the guest its
+own ZFS or survive host-userspace wedges — the incident class we're fixing
+includes systemd re-exec wedges, which containers share with the host.
+
+**DD5 — Networking: bridge + MAC-anchored identity.**
+Host owns `eno1` in a bridge `br0`; the **active** slot's virtio NIC carries a
+fixed "service MAC" and the router's DHCP reservation for `192.168.0.9` moves
+(once) from the physical NIC's MAC to that service MAC. The host gets its own
+IP/reservation (new: host and beefcake-guest are separately reachable — the
+"deploy over LAN because headscale lives on it" problem finally gets a clean
+answer: the *host* is reachable even when the guest's headscale is mid-restart,
+and hosts a serial/virsh console into the guest). Cutover = detach service NIC
+from blue + attach to green (or stop blue / start green with the same NIC
+definition): same MAC ⇒ same IP, switches learn the move on first frame; L2
+services (avahi/mDNS, wsdd, SlimProto, DHCP) keep working because the bridge is
+the same segment. Green's validation boot uses a *different* MAC on an isolated
+host-only network so it can never collide with production. eno2–4 stay
+available for a future dedicated validation/管理 uplink or SR-IOV.
+
+**DD6 — Blue/green semantics: validate cold, cut over with a bounded stop.**
+With single-writer state (postgres, RocksDB, sqlite everywhere) there is no
+zero-downtime dual-write; the honest model is:
+
+1. **Green validation (no downtime):** boot the candidate generation in the
+   green slot with *no* zstorage and no service MAC — synthetic empty state,
+   plus optional small **fixtures** (redis dump, the sqlite DBs, latest
+   pg_dump) fed from blue's snapshots so data-format regressions (the redis
+   RDB incident!) are caught. Health gate: all units active/no failed, key
+   ports answering, `nixpkgs` date ≥ blue's (structural no-downgrade check),
+   version-sensitive stores open their fixture copies.
+2. **Cutover (minutes, controlled):** `zfs snapshot -r zstorage@pre-cutover`
+   → clean shutdown of blue (pool exports) → move disk set + service NIC to
+   green → green imports pool, starts services → health gate again → done.
+3. **Rollback (one step):** reverse the move; blue's generation is untouched.
+   State changes made during green's tenure are bounded by the pre-cutover
+   snapshot (restore = explicit, documented decision, not data loss by
+   surprise).
+
+Ordinary low-risk config tweaks can still be plain deploys into the active
+guest; the blue/green path is for kernel/nixpkgs/systemd/db bumps — exactly the
+class that must never live-switch today (cross-release rule).
+
+**DD7 — The old bare-metal system stays bootable as the final rollback.**
+The 300 G spinner (today's root) is left intact and out of the VM story. If the
+hypervisor world fails badly, boot the spinner and beefcake is bare-metal again
+(both configs mount the same zstorage state at the same paths — one world at a
+time). This makes the big migration day reversible at the firmware-boot-menu
+level.
+
+---
+
+## 3. Impermanence design (applies to bare-metal now, guest later)
+
+The persist list is *the* deliverable; the VM/blue-green story consumes it.
+
+Datasets (names bikesheddable):
+
+```
+zstorage/state              mountpoint=/persist        (new)
+zstorage/varlib-private     mountpoint=/var/lib/private  (exists)
+zstorage/containers         mountpoint=/var/lib/containers (exists)
+zstorage/storage            mountpoint=/storage        (exists)
+rpool2/local/root           ← blank-rollback (host; guest has its own)
+rpool2/local/nix            (host store; guest store lives in its OS zvol)
+```
+
+`environment.persistence."/persist"` (impermanence module), initial list —
+compiled from the config sweep + live ext4-root audit:
+
+- **Identity/boot-critical (files):** `/etc/machine-id`; ssh host keys via
+  `services.openssh.hostKeys[].path = "/persist/etc/ssh/…"` (NOT a bind of
+  /etc/ssh) — these are also the **sops-nix age identity**, so they must exist
+  before secret decryption; keeping the same keys keeps `secrets/beefcake/*`
+  decryptable with zero re-keying.
+- **Directories still on ext4 root today:** `/var/lib/headscale`,
+  `/var/lib/hass`, `/var/lib/clickhouse`, `/var/lib/knot`,
+  `/var/lib/mosquitto`, `/var/lib/unifi`, `/var/lib/jellyfin` (cache/config
+  residue; media already on /storage), `/var/lib/forgejo-db`,
+  `/var/lib/mautrix-{discord,slack,gmessages}`, `/var/lib/heisenbridge`,
+  `/var/lib/redis-*`, `/var/lib/meshtasticd`, `/var/lib/jmap-matrix-notify`,
+  `/var/lib/forgejo-github-mirror`, `/var/lib/music-assistant`,
+  `/var/lib/mmrelay`, `/var/lib/hearth`, `/var/lib/vaultwarden`(verify —
+  module may already point at /storage), `/var/lib/kanidm`(verify vs
+  /storage/kanidm), `/var/lib/nixos` (uid/gid maps — required),
+  `/var/lib/tailscale` (node key!), `/var/lib/systemd` (persistent timers,
+  coredump config), `/var/log` (journal + caddy logs; or accept loss),
+  `/root` (small; contains runbooks/scripts today), `/home` (2.5 G),
+  `/srv/h.lyte.dev`.
+- **Deliberately ephemeral:** `/var/cache` (52 G of restic caches — rebuilt;
+  *maybe* persist to keep backup runs fast, decide during burn-in),
+  `/tmp`, podman graph roots already on their dataset.
+- The June relocation's symlink layer (`/var/lib/X → private/X`) gets
+  superseded by real persistence entries; the not-in-`fileSystems` ZFS-native
+  mounts get declared properly once the shadowed originals are reclaimed
+  (mount ordering: `zfs-mount` vs impermanence binds — prototype verifies).
+
+**Completeness verification** (no first-party dry-run exists —
+[impermanence#240](https://github.com/nix-community/impermanence/issues/240)):
+
+1. `zfs diff rpool2/local/root@blank` on the running system → anything not in
+   the persist list is a finding (this audit is free forever — DD1).
+2. A **nixosTest harness**: boot the config, exercise services, reboot (root
+   wiped), assert every service's state survived + `machine-id` stable + sops
+   secrets decrypt. This harness is the reusable regression gate for "did we
+   forget a StateDirectory".
+3. Burn-in on the physical box for ≥2 weeks before the VM migration relies on
+   the same list.
+
+**sops-nix ordering on a wiped root** (the one folkloric bit — prototype must
+prove): `sops.age.sshKeyPaths` → persisted host-key path; secret decryption
+runs in activation, so the only hard requirement is that `/persist` is mounted
+in initrd (`neededForBoot = true` on the dataset's mount) — the nixosTest
+asserts a service consuming a sops secret starts on second (wiped) boot.
+
+---
+
+## 4. Migration path
+
+Sequenced so every phase delivers standalone value and has its own rollback.
+
+**Phase 0 — hygiene (now, no reboot, PR-sized chunks):**
+- Add `/var/lib/headscale` to restic `commonPaths` — the tailnet DB is
+  currently unbacked-up (also decide clickhouse + caddy ACME state). ← do
+  regardless of everything else.
+- Reclaim the ~89 G shadowed originals + finish `*.old` cleanup (post-resilver,
+  next maintenance window).
+- Declare the existing ZFS-native mounts (`containers`, `varlib-private`) in
+  config (ordering-safe form) so a rebuild elsewhere reproduces them.
+
+**Phase 1 — impermanence, proven in VMs on dragon (no beefcake risk):**
+- Build the persist list + impermanence module config for beefcake behind a
+  flag (`lyte.impermanence.enable`), OFF for the physical host initially.
+- Build the nixosTest harness (§3) + a disko-built qemu image on dragon that
+  boots the ZFS-blank-rollback root twice and proves rollback + persistence +
+  sops ordering. ← prototype task, in flight.
+
+**Phase 2 — physical enablers (one maintenance window, after resilver):**
+- Install the 2× PM863a; create `rpool2` mirror (bigger ESPs ≥1 G on both).
+- Flip VT-d on in BIOS (+`intel_iommu=on` later; harmless, enables the future
+  HBA-passthrough upgrade path) — while the chassis is open anyway.
+- Optional but recommended dry-run: apply impermanence to the *physical*
+  system with root moved to rpool2 (blank-rollback) — this alone retires the
+  spinner SPOF and burns in the persist list under production load, while the
+  spinner remains the bootable rollback (DD7).
+
+**Phase 3 — thin host + single guest (the big cutover, boot-menu-reversible):**
+- Thin-host config (new `packages/hosts/beefcake-host.nix`): bridge, libvirt,
+  smartd/disk-bays/IPMI, sshd, impermanent root on rpool2.
+- Guest config = today's beefcake minus hardware.nix, plus virtio hardware,
+  `/nix` in OS zvol, impermanence ON, same hostId/host-keys/secrets.
+- Cut over: shut down bare-metal, boot thin host, guest imports zstorage,
+  service MAC claims 192.168.0.9. Rollback = boot the spinner.
+- Burn-in: mail/DNS/headscale/matrix/mDNS/exit-node all verified; perf checked
+  (postgres, immich, CI runners; virtio-blk on spinners ≈ negligible vs seek
+  latency, but measure).
+
+**Phase 4 — blue/green machinery:**
+- Second slot + validation network + fixture pipeline (blue snapshots → small
+  state copies for green's gate).
+- Cutover tool (`beefcake-cutover`): health gates, snapshot, NIC+disk move,
+  automatic no-downgrade check (subsumes the devshell deploy wrapper for this
+  host), one-command rollback. deploy-rs keeps deploying "into the active
+  slot" for routine changes; risky bumps go through green.
+
+**Phase 5 (optional, later):** VT-d HBA passthrough (needs host boot off a
+PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
+`zfs send` off-machine replication of the guest OS zvols.
+
+---
+
+## 5. Failure modes & operational notes
+
+- **Host wedges:** guests die with it — same blast radius as today, but the
+  host's closure is tiny/rarely-changing (that's the point). Host deploys
+  follow the same no-downgrade/boot+reboot discipline; its update cadence is
+  deliberately slow.
+- **Guest wedges/panics:** host restarts it (`on_crash=restart`); host serial
+  console (`virsh console`) replaces "drive to the LAN" for un-SSH-able states.
+  This is a strict *improvement* on today's headscale-chicken-egg (host is
+  reachable via LAN/its own tailscale regardless of guest VPN state).
+- **Pool double-import:** structurally prevented (disk set attached to one
+  domain; virtlockd; `zpool import` without `-f` refuses foreign hostid).
+- **RAM:** guest ~200 G, host ~20 G + small capped ARC; guest runs its own big
+  ARC. No swap today; consider zram/zswap in guest during Phase 3.
+- **Monitoring split:** smartd/bays/IPMI/host-node-exporter on host (shipping
+  to the guest's OpenObserve — accept the "monitoring target hosts its own
+  sink" loop, alerts also go out via ntfy/Matrix which live in the guest;
+  consider pointing host alerts at pebble's ntfy as the out-of-band channel).
+- **k3s inside the guest:** unchanged; nested-virt not needed (no KVM use
+  inside guest today).
+- **Deploy targets:** `beefcake` (guest, as today) + new `beefcake-host` node
+  in deploy-rs. The LAN-vs-VPN deploy caveat *relaxes* for the guest (host
+  console is the recovery path) but stays for the host itself.
+
+## 6. Open questions
+
+1. PM863a capacity (240 G vs 960 G) → how comfortable the OS-zvol budget is.
+2. Persist-or-not: `/var/cache` restic caches (52 G — speed vs purity),
+   `/var/log` history.
+3. Validation fixtures: which small state copies give the best
+   regression-catch per byte (redis dump, headscale sqlite, forgejo sqlite,
+   latest pg_dump?).
+4. libvirt+NixVirt vs microvm.nix vs hand-rolled qemu units — decide after the
+   prototype; requirements: raw-disk exclusivity, NIC hotmove or fast
+   stop/start, serial console, autostart-active-slot marker on host /persist.
+5. Does anything on the LAN hard-code beefcake's *MAC* (router reservation
+   aside)? (Wake-on-LAN, unifi fixed-IP by MAC, etc.)
+6. IPv6: today's GUA is SLAAC on eno1; service MAC keeps EUI-64 stable enough,
+   but verify AAAA records / firewall assumptions.
+
+## 7. Prototype plan (dragon)
+
+- **P1 `impermanence-vm`:** disko-built qemu image: ZFS root + `@blank`
+  rollback via **systemd-initrd service**, `/persist` dataset
+  (`neededForBoot`), impermanence module, sops-nix keyed from persisted host
+  key, postgres + a DynamicUser service. Boot → seed state → reboot → assert:
+  root actually rolled back, state + secrets + machine-id survived.
+  Also delivered as a `nixosTest` for CI-able regression checking.
+- **P2 `blue-green-handoff`:** two "slot" guests + file-backed "physical
+  disks" on dragon; guest A creates a pool + writes state; cutover script
+  stops A, attaches disks to B (same config, newer closure), B imports and
+  serves the same state; then rollback. Plus a validation boot of B with no
+  disks + fixture state. Measures the cutover wall-clock.
+
+Results land in this doc + the issue when the prototypes run.

@@ -5,6 +5,11 @@ environment that mirrors production closely enough to validate a deploy before
 it touches the real host.
 
 **Labels**: infra, deploy, reliability
+**Related**: `lib/doc/beefcake-impermanence-blue-green.md` — full design
+(impermanence → thin-hypervisor host → blue/green guest slots), written
+2026-07-01 from a config sweep + live audit + prior-art research. The "Open
+questions" below are addressed there; remaining work is tracked as the design
+doc's migration phases 0–4.
 
 ## Motivation
 
