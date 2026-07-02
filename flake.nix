@@ -52,6 +52,14 @@
     # unstable inputs
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # deckmode: standalone jump-in/out gamescope gaming-mode module (foxtrot uses
+    # it via packages/hosts/default.nix extraModules). Consumed as a pure module,
+    # so its nixpkgs follow is only for lock dedup.
+    deckmode = {
+      url = "git+https://git.lyte.dev/lytedev/nixos-deckmode.git";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # Transitive dependencies shared by multiple inputs — pulled to root
     # level so they're deduplicated via follows instead of each input
     # vendoring its own copy in the lock file.

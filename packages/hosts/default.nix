@@ -12,7 +12,13 @@ in
 {
   beefcake = stableHost ./beefcake.nix { };
   dragon = host ./dragon.nix { };
-  foxtrot = host ./foxtrot.nix { };
+  # Like `host` (baseHost unstable) but with the standalone deckmode module for the
+  # jump-in/out gamescope gaming mode. Kept out of the shared modules since it's a
+  # foxtrot-specific opt-in for now.
+  foxtrot = baseHost {
+    nixpkgs = inputs.nixpkgs-unstable;
+    extraModules = [ inputs.deckmode.nixosModules.default ];
+  } ./foxtrot.nix { };
   thinker = host ./thinker.nix { };
   # htpc = host ./htpc.nix { }; # broken: rtl8812au marked broken upstream
   # htpc2 = stableHost ./htpc2.nix { };

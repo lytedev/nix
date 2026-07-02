@@ -170,6 +170,26 @@
         "type": "github"
       }
     },
+    "deckmode": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782966042,
+        "narHash": "sha256-4ZX5jtFaLgrT1ZGzviv0n4u8/E6STKeVTbI2xABuasE=",
+        "ref": "refs/heads/main",
+        "rev": "a24dd389827c61fade72e5a4e72d73b586f6c32d",
+        "revCount": 3,
+        "type": "git",
+        "url": "https://git.lyte.dev/lytedev/nixos-deckmode.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://git.lyte.dev/lytedev/nixos-deckmode.git"
+      }
+    },
     "deploy-rs": {
       "inputs": {
         "flake-compat": [
@@ -1337,6 +1357,7 @@
     "root": {
       "inputs": {
         "dankMaterialShell": "dankMaterialShell",
+        "deckmode": "deckmode",
         "deploy-rs": "deploy-rs",
         "determinate": "determinate",
         "disko": "disko",
