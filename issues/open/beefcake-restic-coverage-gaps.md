@@ -9,30 +9,31 @@ Found during the impermanence state audit; these live as plain dirs on the
 non-redundant ext4 boot spinner, so they have neither pool redundancy NOR
 backups today.
 
-## Definite gap (fix first)
+## Decisions (Daniel, 2026-07-01) — fixes in PR #700
 
+**Added to restic (PR #700):**
 - **`/var/lib/headscale`** — the sqlite DB holding every tailnet node
-  registration, preauth keys, DERP state. Losing it means re-registering
-  every device on the tailnet. One-line `services.restic.commonPaths`
-  append in `headscale.nix`.
+  registration + preauth keys; losing it means re-registering every device.
+  The urgent one.
+- **`/var/lib/hearth`** — "for sure should be backed up" (was flagged: dir
+  declared but absent from the aggregated restic set).
+- **`/var/lib/unifi`** — keep; live-mongodb copy is crash-consistent only.
+  Follow-up (Daniel, UI action): enable the controller's scheduled
+  autobackup so proper `.unf` dumps land under `data/backup/` (picked up by
+  the same restic path once enabled).
 
-## Decide-and-document (each is a judgment call, not obviously a bug)
+**Deliberately excluded (confirmed 2026-07-01):**
+- `/var/lib/caddy` — ACME state; re-issuable, little reason to keep.
+- `/var/lib/clickhouse` — plausible analytics only; acceptable loss.
 
-- `/var/lib/caddy` — ACME account + issued certs. Re-issuable, but losing it
-  mid-outage adds rate-limit risk. Cheap to include.
-- `/var/lib/clickhouse` — plausible analytics; restic exclusion is
-  deliberate (commented out in `clickhouse.nix`). Confirm "acceptable loss"
-  is still the intent, or back it up.
-- UniFi mongodb (`/var/lib/unifi`) — controller config; losing it means
-  re-adopting APs. Alternative: rely on UniFi's own autobackup dir (verify
-  it's enabled and that dir is under a covered path).
+## Still open
+
+- `/var/lib/containers` — podman images are rebuildable, but containers are
+  per-service: audit each for volume-backed state inside the graph root,
+  then decide per service.
 - `/var/lib/forgejo-github-mirror`, `/var/lib/meshtasticd`,
-  `/var/lib/jmap-matrix-notify` — small; probably cheap to include.
-- `/var/lib/hearth` — verify: dir is declared for the container but did not
-  appear in the aggregated restic path list during the audit.
-- `/var/lib/containers` — podman images/volumes; rebuildable, but any
-  volume-backed state inside would be silently unprotected. Audit for
-  volumes, then decide.
+  `/var/lib/jmap-matrix-notify` — small/cheap; sweep into a follow-up
+  alongside the containers audit.
 
 Redis (nextcloud remnant) and postgres live-datadir are intentionally not
 listed: postgres is covered via nightly `pg_dumpall` to
