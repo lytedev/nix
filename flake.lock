@@ -177,11 +177,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782966042,
+        "lastModified": 1782974269,
         "narHash": "sha256-4ZX5jtFaLgrT1ZGzviv0n4u8/E6STKeVTbI2xABuasE=",
         "ref": "refs/heads/main",
-        "rev": "a24dd389827c61fade72e5a4e72d73b586f6c32d",
-        "revCount": 3,
+        "rev": "4814675ea7853d6367bbb02ed78668081f3b4358",
+        "revCount": 5,
         "type": "git",
         "url": "https://git.lyte.dev/lytedev/nixos-deckmode.git"
       },
