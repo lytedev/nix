@@ -6,20 +6,19 @@
 //
 // On failure it fires BOTH channels:
 //   - email via val.town's std/email (a durable record / backup), and
-//   - a push to ntfy.sh (the reliable, beefcake-independent alert).
+//   - a push to self-hosted ntfy on pebble (the reliable, beefcake-independent
+//     alert; ntfy.e.lyte.dev, see packages/hosts/pebble/ntfy.nix).
 // ntfy matters because email to @lyte.dev is delivered by beefcake's Stalwart,
 // so it can't reach you during the very outage this is meant to catch; ntfy is
-// a hosted push read by a phone app, with no beefcake dependency end to end.
+// a push read by a phone app, hosted on pebble (not beefcake) — no beefcake
+// dependency end to end.
 //
 // Config comes from val.town environment variables (Settings → Environment
-// Variables), so the topic stays out of version control — a public ntfy topic
-// is readable by anyone who knows its name:
-//   NTFY_URL     required for the ntfy push. The full topic URL, e.g.
-//                https://ntfy.sh/<topic>. Prefer a RESERVED topic on a free
-//                ntfy.sh account so it can require auth. (Same value stored in
-//                sops as `ntfy-sh-topic-url`, for a future beefcake/pebble
-//                backup watcher.) If unset, only email is sent.
-//   NTFY_TOKEN   optional. Bearer token for a reserved/private topic.
+// Variables), set via the val.town API (not committed):
+//   NTFY_URL     required. Full topic URL: https://ntfy.e.lyte.dev/infra-alerts
+//   NTFY_TOKEN   required for the private topic. An ntfy access token for the
+//                `alerts` user (deny-all server); sent as a Bearer token.
+//                If unset, only email is sent.
 
 import { email } from "https://esm.town/v/std/email";
 

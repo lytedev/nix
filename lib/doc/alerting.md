@@ -85,18 +85,20 @@ beefcake itself is down.
 A [val.town](https://www.val.town) cron
 (`lytedev/SimpleSiteUptimeMonitor`, source snapshot:
 [external-uptime-monitor.tsx](./external-uptime-monitor.tsx)) runs _off_
-beefcake and HTTP-GETs a list of public endpoints on a schedule; if any returns
+beefcake and HTTP-GETs a list of health endpoints on a schedule; if any returns
 `>= 400` or fails to fetch, it fires **both** channels: an email via val.town's
-`std/email` (a durable record) and a push to [ntfy.sh](https://ntfy.sh) (the
-reliable alert).
+`std/email` (a durable record) and a push to **self-hosted ntfy on pebble**
+([`ntfy.e.lyte.dev`](https://ntfy.e.lyte.dev), module:
+[packages/hosts/pebble/ntfy.nix](../../packages/hosts/pebble/ntfy.nix)) — the
+reliable alert.
 
 This is the **dead-man's-switch for total beefcake outage**, and the only tier
 that runs entirely off beefcake end to end. Detection exercises the full public
 path (DNS → internet → Caddy → service), so it catches "beefcake / Caddy is
 entirely down" — which Tier 1 and Tier 2 cannot, since they run on beefcake. The
-**ntfy** leg is what makes the notification external too: a hosted push service
-reached with one `fetch` and read by a phone app, so the alert arrives with
-**no** beefcake dependency.
+**ntfy** leg is what makes the notification external too: a push service running
+on **pebble** (a separate host, not beefcake) reached with one `fetch` and read
+by a phone app, so the alert arrives with **no** beefcake dependency.
 
 > **Why ntfy is the leg that matters.** `std/email` with no `to:` field delivers
 > to the val.town account owner's registered address; if that is a `@lyte.dev`
@@ -107,18 +109,19 @@ reached with one `fetch` and read by a phone app, so the alert arrives with
 > is kept as a backup/record, but only the ntfy push reliably reaches you during
 > a genuine beefcake-down.
 
-**Setup (one-time):**
+**Setup.** ntfy is **self-hosted on pebble** — private/authenticated topics for
+free, which reserving a topic on hosted ntfy.sh would cost. See
+[packages/hosts/pebble/ntfy.nix](../../packages/hosts/pebble/ntfy.nix):
+`auth-default-access = deny-all`, one user `alerts` with read-write on topic
+`infra-alerts`, fronted by Caddy TLS at `ntfy.e.lyte.dev`.
 
-1. Install the ntfy app (Android/iOS) or use the web app.
-2. Prefer a **reserved** topic on a free ntfy.sh account (Access → reserve a
-   topic → generate an access token) so the topic requires auth. A public topic
-   is readable/writable by anyone who guesses its name.
-3. In the val (Settings → Environment Variables) set `NTFY_URL` to the full
-   topic URL (`https://ntfy.sh/<topic>`) and `NTFY_TOKEN` if reserved. The topic
-   is intentionally **not** committed here; the same URL is stored in sops as
-   `ntfy-sh-topic-url` for a future beefcake/pebble backup watcher.
-4. Subscribe the phone to that topic (with the token if reserved) and test by
-   running the val once.
+- **The val** publishes with val.town env vars `NTFY_URL =
+  https://ntfy.e.lyte.dev/infra-alerts` and `NTFY_TOKEN` (an ntfy access token
+  for `alerts`, sent as a Bearer token — minted with `ntfy token add alerts` on
+  pebble). These are set via the val.town API, not committed.
+- **The phone** subscribes to `infra-alerts` on server `ntfy.e.lyte.dev` as user
+  `alerts` (password in pebble sops `ntfy-env`).
+- Test: `curl -u alerts:<pw> -d msg https://ntfy.e.lyte.dev/infra-alerts`.
 
 Currently monitored (each at its **health/semantic endpoint**, not `/` — several
 serve a 404/redirect at the root even when healthy, and a health path also
@@ -170,7 +173,7 @@ ingests), and any threshold alerts on CPU/memory/zfs/postgres.
 
 ## Known gaps / follow-ups
 
-- **beefcake-down is covered by the Tier 0 val.town + ntfy.sh watcher**, which
+- **beefcake-down is covered by the Tier 0 val.town + self-hosted-ntfy watcher**, which
   is external end to end. Remaining follow-ups: it depends on a single third
   party (val.town) — consider a same-tailnet backup watcher (pebble/rascal) or a
   second cron elsewhere so the dead-man's-switch isn't solely on val.town; and
