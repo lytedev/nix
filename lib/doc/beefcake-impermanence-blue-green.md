@@ -342,6 +342,16 @@ PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
 4. libvirt+NixVirt vs microvm.nix vs hand-rolled qemu units — decide after the
    prototype; requirements: raw-disk exclusivity, NIC hotmove or fast
    stop/start, serial console, autostart-active-slot marker on host /persist.
+   Evaluated and rejected for the *slots* (2026-07-01): Firecracker (no
+   PCI/vfio ever → kills the Phase-5 HBA path; no virtiofs; direct-kernel
+   boot only), Ignite (archived), smolvm (libkrun; no raw block devices, no
+   tap, no vfio), zeroboot (CoW-forked AI sandboxes, not pet VMs), Incus
+   (qemu underneath — no gain; stateful daemon fights declarativeness).
+   Still open for the *validation tier only*: cloud-hypervisor via
+   microvm.nix — direct-kernel-boot the candidate toplevel with the host
+   store shared read-only for a seconds-fast "does this generation start"
+   gate, no OS-zvol build needed. VM boot time is irrelevant for the real
+   slots anyway: green's clock is dominated by pool import + ~80 services.
 5. Does anything on the LAN hard-code beefcake's *MAC* (router reservation
    aside)? (Wake-on-LAN, unifi fixed-IP by MAC, etc.)
 6. IPv6: today's GUA is SLAAC on eno1; service MAC keeps EUI-64 stable enough,
@@ -361,4 +371,33 @@ PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
   serves the same state; then rollback. Plus a validation boot of B with no
   disks + fixture state. Measures the cutover wall-clock.
 
-Results land in this doc + the issue when the prototypes run.
+### Results (2026-07-01, all three passing on dragon)
+
+Code: `prototypes/beefcake-impermanence/` (standalone flake, README inside).
+
+- **P1a `checks.semantics` — PASS** (first run). Across a wiped root: sops
+  decrypted unattended from the persisted age identity, postgres and
+  DynamicUser (`/var/lib/private`) state survived, machine-id and ssh host
+  key stayed stable, and an unpersisted `/root` file vanished. The feared
+  sops-nix ordering problem did not materialize: `neededForBoot` on the
+  persist mount is sufficient.
+- **P1b `apps.rollback-demo` — PASS** (1m32s cached end-to-end). The
+  systemd-initrd rollback unit works as designed. Gotchas harvested, all
+  encoded as comments in `rollback-config.nix`:
+  1. default flake-registry/NIX_PATH pins embed the whole nixpkgs tree in
+     the image closure (blows fd limits + image size) — disable for images;
+  2. `zpool import` in initrd uses `/dev/disk/by-id`, which is EMPTY for
+     serial-less virtio disks → import hangs forever; use
+     `boot.zfs.devNodes = "/dev/disk/by-path"` or assign disk serials —
+     **this applies to the production guest's 12 virtio disks too**;
+  3. image-built pools need `forceImportRoot` on first boot (foreign
+     hostid); the blue/green handoff itself does not (shared hostId + clean
+     export);
+  4. the rollback unit needs `requires` (not just `after`) on the import
+     unit.
+- **P2 `checks.handoff` — PASS.** Clean blue → green → blue pool handoff
+  with postgres state continuity, plus green's no-pool validation boot.
+  Gotcha: units whose `ReadWritePaths` live on the handed-off pool need
+  `ConditionPathExists` (or equivalent) so boot-time auto-start skips
+  instead of crash-looping into the start limit before the pool arrives —
+  the production cutover tool must account for every such unit.
