@@ -78,6 +78,11 @@ let
         skip-at-startup
     }
     prefer-no-csd
+    // VITURE Pro XR glasses: niri auto-scales them to an unusable 2.25 at the
+    // greeter; pin 1.5 to match the desktop config. No-op without the glasses.
+    output "PNP(CVT) VITURE 0x88888800" {
+        scale 1.5
+    }
     input {
         touchpad {
             tap
