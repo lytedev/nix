@@ -474,6 +474,17 @@ in
   # extest disabled (gamescope handles controller input natively).
   programs.steam.enable = true;
 
+  # 2026 Steam Controller (28DE:1303) over Bluetooth enumerates as a uhid device,
+  # and the steam-hardware BT uaccess rule (KERNELS=="*28DE:*") doesn't land on it
+  # — its hidraw stays root:root 0600, so system Steam can't claim the controller
+  # out of kernel "lizard mode" (keyboard/mouse) into Steam Input, and the Steam
+  # button never opens the overlay in gaming mode. Grant the input group (daniel)
+  # access (+ uaccess) so Steam can open it. Verified live: this flips the hidraw
+  # to root:input 0660 and daniel can read it.
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", KERNELS=="*28DE:1303*", MODE="0660", GROUP="input", TAG+="uaccess"
+  '';
+
   # Controller-as-mouse on Wayland: Steam Input's mouse emulation injects motion
   # via XTest, which warps the X11 logical pointer (apps react, cursor shape
   # changes) but NOT the Wayland/gamescope pointer that draws the visible cursor
