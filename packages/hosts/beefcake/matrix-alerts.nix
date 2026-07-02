@@ -9,9 +9,10 @@
 #   - any of the critical service units failing (OnFailure → Matrix), and
 #   - a local filesystem crossing 90% full.
 #
-# Both post to the SAME matrix-hookshot generic webhook the disk alerts use
-# (`disk-alert-webhook-url` in sops), so there is no new secret and this works
-# on deploy. See lib/doc/alerting.md for the full picture.
+# Both post to a DEDICATED matrix-hookshot generic webhook (`infra-alert-webhook-url`
+# in sops) landing in its own room — kept separate from disk-alerts.nix's
+# `disk-alert-webhook-url` (smartd/ZED hardware failures) so the channels don't
+# conflate. See lib/doc/alerting.md for the full picture.
 #
 # NOTE (repo policy): the tiny hookshot-poster below is a deliberate duplicate
 # of disk-alerts.nix's `disk-alert-notify` rather than a shared refactor —
@@ -24,7 +25,7 @@
   ...
 }:
 let
-  webhookSecret = config.sops.secrets.disk-alert-webhook-url.path;
+  webhookSecret = config.sops.secrets.infra-alert-webhook-url.path;
 
   # Reads the alert text on stdin and posts it to the hookshot webhook.
   # Best-effort: never fails its caller (a failed OnFailure handler that itself
@@ -65,6 +66,11 @@ let
   ];
 in
 {
+  # Dedicated webhook for general infra alerts (unit failures + disk-full),
+  # separate from disk-alerts.nix's hardware-failure webhook. root reads it
+  # (the notifiers run as root).
+  sops.secrets.infra-alert-webhook-url.mode = "0400";
+
   systemd.services =
     # Wire OnFailure on each critical unit. `%n` expands to the failing unit's
     # full name, so the template instance is e.g. alert-unit-failed@caddy.service.
