@@ -12,6 +12,13 @@ let
   # process) and triggers the kill below.
   exitSentinel = "/home/daniel/.local/share/Steam/.foxtrot-exit-gamemode";
 
+  # Sentinel for stopping the CONCURRENT gaming session (greetd-gaming on vt7) from
+  # inside Steam. A non-Steam library shortcut touches it (works from Steam's bwrap
+  # sandbox — just a file write); a ROOT systemd .path watches it and does the
+  # privileged part (chvt back to niri + systemctl stop greetd-gaming), which the
+  # sandbox itself can't (NoNewPrivileges blocks a cap-wrapped chvt).
+  stopGamingSentinel = "/home/daniel/.local/share/Steam/.foxtrot-gaming-vt-stop";
+
   gamemodeExit = pkgs.writeShellScript "foxtrot-gamemode-exit" ''
     export PATH=${
       lib.makeBinPath [
@@ -99,11 +106,13 @@ let
     thd_pid=$!
     trap 'kill "$thd_pid" 2>/dev/null || true' EXIT
 
-    # Keep the session awake: laptop.nix sets logind IdleAction=suspend (11m), and
-    # unlike the greeter this session holds no inhibitor, so foxtrot would suspend
-    # mid-game (or when paused) and drop off the network. Held for gamescope's life.
+    # Keep the session awake for gamescope's life: idle+sleep (laptop.nix sets
+    # IdleAction=suspend at 11m) AND handle-lid-switch — so closing the lid while
+    # gaming on the glasses doesn't suspend. The lid inhibitor only bites because
+    # this host sets LidSwitchIgnoreInhibited=no (below); it's released when the
+    # gaming session ends, so normal lid-close still suspends otherwise.
     # --backend drm: drive the displays directly on this session's seat.
-    systemd-inhibit --what=idle:sleep --who=gaming --why="no idle-suspend while gaming" \
+    systemd-inhibit --what=idle:sleep:handle-lid-switch --who=gaming --why="gaming on the glasses" \
       gamescope --backend drm -e -- steam -gamepadui > "$HOME/.foxtrot-gaming.log" 2>&1
   '';
   gamingSessionPackage =
@@ -122,6 +131,21 @@ let
       (_: {
         passthru.providedSessions = [ "foxtrot-gaming" ];
       });
+
+  # Concurrent gaming: a SECOND greetd instance that autologins daniel into the
+  # same seated gamescope session on its OWN vt (7), so it can run alongside the
+  # niri session on vt1 — Ctrl+Alt+F7 into full controller-mouse gaming, Ctrl+Alt+F1
+  # back to niri with every program still running. greetd (not a hand-rolled systemd
+  # unit) gives a proper PAM login so Steam's bwrap works. On-demand: the
+  # greetd-gaming.service is not started at boot.
+  gamingGreetdConfig = pkgs.writeText "greetd-gaming.toml" ''
+    [terminal]
+    vt = 7
+
+    [default_session]
+    command = "${gamingSessionScript}"
+    user = "daniel"
+  '';
 
   # Controller-reachable exit from gaming mode. Steam's own "Switch to Desktop" is
   # a NO-OP here — verified live on both flatpak AND system Steam: it never shells
@@ -217,6 +241,11 @@ in
     power-profiles-daemon.enable = true;
     fprintd.enable = true;
     postgresql.enable = true;
+    # Respect lid-switch inhibitors, so the gaming session can hold one and closing
+    # the lid while gaming on the glasses doesn't suspend. laptop.nix leaves this
+    # default-on (lid ignores inhibitors — "don't melt in a bag"); flipping it means
+    # ONLY an active inhibitor changes behavior — a plain lid-close still suspends.
+    logind.settings.Login.LidSwitchIgnoreInhibited = false;
     # Secret Service. It's already running here, but only the GNOME desktop path
     # enables it in this repo — with Plasma removed, pin it explicitly so the
     # login keyring (pam_gnome_keyring capture, libsecret consumers) survives.
@@ -256,6 +285,40 @@ in
   # display manager's session picker. The DM seats it like any other session.
   services.displayManager.sessionPackages = [ gamingSessionPackage ];
 
+  # Second greetd instance for the concurrent gaming session on vt7 (see
+  # gamingGreetdConfig). Not wanted by any target — started on demand
+  # (`systemctl start greetd-gaming`), then Ctrl+Alt+F7 to switch to it.
+  # Restart=no: this is an on-demand, explicitly-killable session. gamescope tends
+  # to crash when you switch AWAY from its VT (a documented gamescope-on-a-separate-
+  # TTY caveat), and that crash is an autonomous exit — with Restart=always systemd
+  # would respawn it 2s later and yank you straight back to vt7, so "switch/exit to
+  # desktop" could never actually leave. We're fine with the session dying on exit
+  # (niri and its programs are preserved on vt1); relaunch to game again.
+  systemd.services.greetd-gaming = {
+    description = "Concurrent gamescope gaming session (greetd, vt7)";
+    serviceConfig = {
+      ExecStart = "${config.services.greetd.package}/bin/greetd --config ${gamingGreetdConfig}";
+      Restart = "no";
+      # Whenever the gaming session ends for ANY reason — clean stop, Steam quit,
+      # or gamescope crash — switch back to niri on vt1. Without this, killing Steam
+      # while on vt7 strands you on a dead compositor-less VT that a controller
+      # (no Ctrl+Alt+F1) can't escape. Runs as root on every exit path.
+      ExecStopPost = "${pkgs.kbd}/bin/chvt 1";
+    };
+    restartIfChanged = false;
+  };
+
+  # Let daniel start/stop the concurrent gaming session (greetd-gaming.service)
+  # from the desktop launcher without a root prompt.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (action.id == "org.freedesktop.systemd1.manage-units" &&
+          action.lookup("unit") == "greetd-gaming.service" &&
+          subject.user == "daniel") {
+        return polkit.Result.YES;
+      }
+    });
+  '';
   # Use password (not fingerprint) for initial login so pam_gnome_keyring
   # can capture it and auto-unlock the login keyring. Without this, NM's
   # agent-owned wifi PSKs (and anything else in the keyring) prompt every
@@ -508,5 +571,73 @@ in
         "bigpicture"
       ];
     })
+
+    # Concurrent gaming (vt7): start on-demand (auto-switches to vt7; niri keeps
+    # running on vt1). Launch from the DMS/app launcher.
+    (writeShellScriptBin "foxtrot-gaming-start" ''
+      # If the gaming session is already up on vt7, just switch to it (starting an
+      # already-active unit is a no-op and wouldn't flip the VT). daniel's session
+      # is allowed to chvt via logind (org.freedesktop.login1.chvt allow_active=yes).
+      if ${pkgs.systemd}/bin/systemctl is-active --quiet greetd-gaming.service; then
+        exec ${pkgs.systemd}/bin/busctl call org.freedesktop.login1 \
+          /org/freedesktop/login1/seat/seat0 org.freedesktop.login1.Seat SwitchTo u 7
+      else
+        # Fresh start auto-switches to vt7.
+        exec ${pkgs.systemd}/bin/systemctl start greetd-gaming.service
+      fi
+    '')
+    (makeDesktopItem {
+      name = "foxtrot-gaming-vt";
+      desktopName = "Gaming Mode (glasses)";
+      comment = "Full-controller gamescope on its own VT; niri keeps running (Ctrl+Alt+F1 returns)";
+      exec = "foxtrot-gaming-start";
+      icon = "input-gaming";
+      terminal = false;
+      categories = [ "Game" ];
+    })
+    # Return to niri + kill the gaming session. Just touches the sentinel (works
+    # from Steam's bwrap sandbox); the root watcher below does chvt + stop. Add as a
+    # non-Steam library shortcut for a controller-only "Switch to Desktop", or run
+    # from the niri launcher.
+    (writeShellScriptBin "foxtrot-gaming-stop" ''
+      exec ${pkgs.coreutils}/bin/touch "${stopGamingSentinel}"
+    '')
+    (makeDesktopItem {
+      name = "foxtrot-gaming-stop";
+      desktopName = "Exit Gaming Mode (glasses)";
+      comment = "Return to niri and kill the concurrent gaming session";
+      exec = "foxtrot-gaming-stop";
+      icon = "application-exit";
+      terminal = false;
+      categories = [ "Game" ];
+    })
   ];
+
+  # Root-side watcher for the stop sentinel: chvt back to niri (vt1) then stop the
+  # concurrent gaming session. Root so it can chvt + manage the system unit (the
+  # Steam sandbox can't). Event-driven via the .path unit.
+  systemd.paths.foxtrot-gaming-vt-stop = {
+    wantedBy = [ "multi-user.target" ];
+    pathConfig.PathExists = stopGamingSentinel;
+  };
+  systemd.services.foxtrot-gaming-vt-stop = {
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "foxtrot-gaming-vt-stop" ''
+        ${pkgs.coreutils}/bin/rm -f "${stopGamingSentinel}"
+        ${pkgs.kbd}/bin/chvt 1 || true
+        if ${pkgs.systemd}/bin/systemctl stop greetd-gaming.service; then
+          body="Back at the desktop; gaming session closed."
+          urgency=normal
+        else
+          body="Something went wrong stopping the gaming session."
+          urgency=critical
+        fi
+        # Notify in daniel's niri session (runs as root; hop to daniel + the session bus).
+        ${pkgs.util-linux}/bin/runuser -u daniel -- \
+          env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+          ${pkgs.libnotify}/bin/notify-send -a "Gaming Mode" -u "$urgency" "Gaming Mode" "$body" || true
+      '';
+    };
+  };
 }
