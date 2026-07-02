@@ -308,6 +308,81 @@ asserts a service consuming a sops secret starts on second (wiped) boot.
 
 ---
 
+## 3b. Service → storage-class map (all of them)
+
+The prototypes prove one representative per *storage-behavior class*; every
+beefcake service falls into a class. This map is the Phase-1 work list — each
+row becomes a `zvol`/`share` declaration plus a `lyte.validation.checks`
+smoke probe.
+
+**Class Z — zvol-backed dir (fsync-disciplined or format-sensitive; live
+snapshots are crash-consistent-safe). Representative PROVEN: postgres (P3 +
+demo).**
+- postgres 17 (all DBs: atuin, plausible, immich, daniel) — smoke: `SELECT`
+  against each DB
+- stalwart (RocksDB — fsync'd WAL; the mail store) — smoke: IMAP login +
+  JMAP /healthz
+- tuwunel (RocksDB) — smoke: /_matrix/client/versions + login
+- clickhouse (plausible) — smoke: trivial query
+- unifi mongodb — smoke: controller API ping
+- redis instances (AOF/RDB; loss window is redis-inherent) — smoke: PING +
+  DBSIZE (catches the RDB-format incident class)
+- k3s (etcd fsyncs raft WAL; containerd images rebuildable) — smoke:
+  `kubectl get nodes` Ready
+- openobserve + spacetimedb (own on-disk stores, fsync behavior unaudited →
+  zvol to be safe) — smoke: HTTP health endpoints
+- forgejo's sqlite (`/var/lib/forgejo-db`) — deliberately on SSD for perf
+  today, so zvol (not share) despite being sqlite — smoke: web + git-over-ssh
+  clone
+
+**Class S — share + QUIESCE hook (sqlite-WAL family; `synchronous=NORMAL`
+commits sit in guest page cache — the demo's vaultwarden finding).
+Representative PROVEN: vaultwarden (user-level, incl. clone-login).**
+- headscale, hass (sqlite recorder), paperless (sqlite + documents),
+  mautrix-{discord,slack,gmessages}, heisenbridge, matrix-hookshot, hearth,
+  jmap-matrix-notify, mmrelay, audiobookshelf, music-assistant,
+  forgejo-github-mirror, meshtasticd — smoke per service: unit active +
+  cheapest data-plane read (e.g. `headscale nodes list`, HA API ping,
+  bridge /live)
+
+**Class F — plain share (flat files; no write-ordering sensitivity). Dataset
+semantics PROVEN in P3 (xattr/acl) + demo (9p).**
+- /storage media (jellyfin, immich originals, audiobookshelf files), samba
+  shares (family/valerie/daniel/public), files.lyte.dev, /srv cdn, roms,
+  minecraft world dirs (JVM writes are periodic saves — snapshot-safe
+  enough; smoke: server MOTD ping), syncthing folders (its index db
+  self-heals by rescan; syncthing is itself a replication layer)
+
+**Class E — ephemeral (never persisted, rebuilt on boot):**
+- /var/cache except restic's, gitea-runner workdirs (tmpfs today), jellyfin
+  transcode cache, podman *images* (volumes/state live in Z/S above)
+
+**Class H — leaves the guest entirely (host concerns):**
+- smartd + disk-bays + ZFS ZED/scrub + IPMI fans + disk-alerts, the slot
+  lifecycle + no-downgrade gate, (host's own node exporter → guest's
+  OpenObserve)
+
+Cross-cutting, already designed: caddy (certs re-issuable, state on a share;
+smoke: :443 for a known vhost), knot (zone files regenerable from git +
+dynamic updates; smoke: SOA query), tailscale/headscale node keys (class S),
+podman graph (`zstorage/containers` stays a dataset mounted into the slot
+via share... or the graph moves to a zvol if overlay-on-9p/virtiofs
+misbehaves — **flagged for Phase-3 verification**).
+
+### Honest residual risk (what no dragon-scale test can prove)
+1. **virtiofs transport** at scale (demo used 9p) — Phase 3 on real hardware.
+2. **overlayfs (podman) on a virtiofs share** — may need the graph on a
+   zvol; known-fiddly combination.
+3. **The full closure booting as a slot** — config-level (hardware/network
+   swap) is testable by eval + a trimmed-profile boot on dragon; the full
+   ~80-service boot needs beefcake's RAM and happens as Phase 3's first
+   validation boot.
+4. RocksDB clone-recovery (stalwart/tuwunel) is *argued* safe (fsync'd WAL,
+   same class as postgres) but not yet demonstrated — cheap to add to P3 if
+   we want the receipt before touching mail.
+
+---
+
 ## 4. Migration path
 
 Sequenced so every phase delivers standalone value and has its own rollback.
