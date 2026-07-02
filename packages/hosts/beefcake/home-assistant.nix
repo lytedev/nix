@@ -45,6 +45,14 @@ in
         name = "Home";
         unit_system = "us_customary";
         time_zone = "America/Chicago";
+        # Generate absolute URLs (notably TTS media for voice satellites) via
+        # Caddy rather than HA's auto-detected raw LAN IP:8124. HA is only exposed
+        # through Caddy — 8124 is firewalled — so a satellite (bigtower's LVA)
+        # handed http://192.168.0.9:8124/api/tts_proxy/….mp3 couldn't fetch it:
+        # every spoken response failed (mpv reason=4), which also wedged the
+        # pipeline so the next wake word was ignored. Caddy (:443) is reachable.
+        internal_url = "https://home-assistant.h.lyte.dev";
+        external_url = "https://home-assistant.h.lyte.dev";
       };
       http = {
         # clickhouse owns 127.0.0.1:8123 on beefcake, so HA listens on 8124.
