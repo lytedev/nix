@@ -52,21 +52,30 @@ let
     in
     ''
       echo "Fetching OAuth2 secret for ${client}..."
-      attempt=0
-      while [ "$attempt" -lt 5 ]; do
+      # kanidm.service reports "active" before it has finished provisioning its
+      # OAuth2 clients on a cold boot (observed ~5min on beefcake with a slow/
+      # degraded pool). The old 5×2s (~10s) poll gave up long before the client
+      # existed, then exited 0 anyway — leaving no secret file and crash-looping
+      # consumers like immich (see the 2026-07-02 root-on-ZFS cutover cold boot).
+      # Poll patiently until the client is provisioned, and fail loudly if it
+      # never appears so the problem is visible instead of silent.
+      got=""
+      deadline=$((SECONDS + 540))
+      while [ "$SECONDS" -lt "$deadline" ]; do
         if secret="$(${curl} -sf -H "Authorization: Bearer $KANIDM_TOKEN" \
             "${kanidmUrl}/v1/oauth2/${client}/_basic_secret" | ${jq} -r '.')" \
             && [ -n "$secret" ] && [ "$secret" != "null" ]; then
           printf '%s' "$secret" | install -m ${lib.escapeShellArg secretCfg.mode} -o ${lib.escapeShellArg secretCfg.owner} -g ${lib.escapeShellArg secretCfg.group} /dev/stdin ${dest}
           echo "  → ${dest}"
+          got=1
           break
         fi
-        attempt=$((attempt + 1))
-        echo "  attempt $attempt/5 failed, retrying in 2s..."
-        sleep 2
+        echo "  ${client} not ready yet, retrying in 5s..."
+        sleep 5
       done
-      if [ "$attempt" -ge 5 ]; then
-        echo "WARNING: Failed to fetch secret for ${client} (token may not be bootstrapped yet)" >&2
+      if [ -z "$got" ]; then
+        echo "ERROR: gave up fetching secret for ${client} after ~9min (client not provisioned?)" >&2
+        failed=1
       fi
     '';
 
@@ -158,14 +167,25 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+        # The fetch loop polls for up to ~9min per secret waiting for kanidm to
+        # finish provisioning; give the unit headroom past that so systemd
+        # doesn't kill it mid-poll. (Secrets after the first resolve instantly
+        # once kanidm is ready, so this is a ceiling, not a per-secret cost.)
+        TimeoutStartSec = 900;
       };
 
       script = ''
         set -euo pipefail
         export KANIDM_TOKEN
         KANIDM_TOKEN="$(cat ${cfg.tokenFile})"
+        failed=0
 
         ${fetchStanzas}
+
+        if [ "$failed" -ne 0 ]; then
+          echo "One or more OAuth2 secrets could not be fetched — failing so it is visible and retryable" >&2
+          exit 1
+        fi
       '';
     };
 
