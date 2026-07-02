@@ -40,6 +40,10 @@
         # P2: blue/green *handoff* — two guests sequentially own a shared
         # disk-backed ZFS pool (the zstorage stand-in); cutover + rollback.
         handoff = import ./handoff-test.nix { inherit pkgs; };
+        # P3: Model B storage primitives — postgres on ext4-on-zvol, live
+        # snapshot+clone opened by a second instance (validation), two-way
+        # isolation, clone discard, share-dataset xattr/acl semantics.
+        modelb-storage = import ./modelb-storage-test.nix { inherit pkgs; };
       };
 
       # P1b: the real *mechanism* — ZFS root + @blank rollback via a

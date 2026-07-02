@@ -101,32 +101,51 @@ run under systemd-initrd**; use an initrd systemd service ordered after
 ([modern recipe](https://notthebe.ee/blog/nixos-ephemeral-zfs-root/)). The
 prototype must prove this.
 
-**DD2 — Who owns `zstorage`: the guest, via whole-disk virtio-blk.**
+**DD2 — Who owns `zstorage`: the HOST (Model B). Revised 2026-07-01 with
+Daniel; pending the Model-B storage prototype.**
 Options considered:
 
 | Option | Verdict |
 |---|---|
 | (a) HBA PCI passthrough to guest | Cleanest for the guest, but the ONE HBA also drives the host's boot disks — the host would have nothing to boot from. Needs VT-d enabled + host boot moved off the backplane (e.g. a PCIe NVMe adapter). **Deferred as a future upgrade**, not required. |
-| (b) Host owns pool; guest gets zvols + virtiofs | High-fidelity green validation via ZFS clones, but forces a full relayout of 3.8 T (datasets→zvols), loses the guest's ZFS-native per-service datasets/snapshots/ZED, puts DBs behind an extra layer, and makes the guest config diverge hard from today's. Rejected: migration cost + fidelity loss. |
-| (c) **Guest owns pool; host passes 12 raw disks (`/dev/disk/by-id/…`) as virtio-blk** | Guest config ≈ today's beefcake (same pool, same dataset mounts, same `hostId` 541ede55). ZFS stays at exactly one level per pool (host: rpool2 SSDs; guest: zstorage on virtio disks — supported and common). No VT-d/BIOS dependency. Host keeps SMART/SES/bay tooling (which belongs on the hypervisor anyway). **Chosen.** |
+| (b) **Host owns pool; guests get virtiofs shares of the existing datasets + zvols for databases** | High-fidelity green validation via ZFS **clones** (the killer feature — see DD6); `/nix` stays on `zstorage/nix` as the HOST's store, shared read-only into both slots (dissolves the 240 G SSD budget problem — no per-slot OS zvols); today's dataset layout survives (virtiofs shares the same trees — no 3.8 T relayout, only DB dirs move onto zvols). **Chosen (2026-07-01), pending prototype proof of postgres-on-zvol handoff + virtiofs data plane.** |
+| (c) Guest owns pool; host passes 12 raw disks as virtio-blk | Minimal guest-config delta and the handoff mechanics are proven (prototype P2 passed), but: no clone-based validation (the pool is importable by only one slot at a time), forces ~100 G per-slot OS zvols onto a 240 G SSD mirror, and cannot share `/nix`. **Demoted to fallback** if Model B's virtiofs/zvol fidelity disappoints. |
 
-Consequences of (c): SMART/smartd + `disk-bays` + disk-alerts move to the thin
-host (guest sees featureless virtio disks); ZED/scrub stays in the guest (pool
-owner). The pool is importable by exactly one VM at a time — which is exactly
-the exclusivity blue/green needs (enforced by only ever attaching the disk set
-to one domain; libvirt/virtlockd guards double-attach).
+Consequences of (b): the host imports zstorage — its own `/nix` can literally
+remain `zstorage/nix`, today's layout. ZED/scrub/smartd/`disk-bays`/ZED alerts
+ALL stay on the host: one storage domain from hardware to filesystems. Guests
+become pure compute shells consuming three attachment types, and **"give this
+service a zvol-backed directory" is a first-class primitive** (Daniel's
+requirement) — a per-service declaration in the service's own module
+(analogous to the `services.restic.commonPaths` idiom) that provisions the
+zvol host-side, attaches it virtio-blk to the active slot, and mounts it at
+the service's dataDir:
 
-**DD3 — Guest OS disk (root + /nix) = per-slot zvol on the host SSD mirror;
-`/nix` moves OFF `zstorage/nix`.**
-Blue and green must be able to exist *simultaneously* with different
-generations, so each slot needs its own independent store — the shared
-`zstorage/nix` dataset can't serve two NixOS instances. A fresh guest closure
-is a few tens of GB (the 627 G in `zstorage/nix` is history + snapshots + every
-host's CI builds); thin-provisioned ~100 G zvols per slot fit the SSD mirror
-(verify PM863a capacity — if they're 240 G it's tight and GC discipline
-matters; if 960 G it's trivial). Guest root inside the zvol is itself
-impermanent (blank-rollback or rebuilt image per deploy); all durable state
-lives in zstorage datasets via the persist list.
+1. **virtiofs share** — default for file trees (`/storage/*` media, forgejo
+   repos, syncthing, samba shares); the shared datasets need `xattr=sa` +
+   `acltype=posixacl`.
+2. **zvol, virtio-blk, ext4 inside** — for fsync-heavy or format-sensitive
+   state: postgres, stalwart + tuwunel RocksDB, sqlite-heavy dirs if virtiofs
+   semantics ever bite. Snapshot/clone granularity becomes whole-volume
+   instead of per-file — acceptable, and the host still snapshots zvols.
+3. **host-store read-only share** — `/nix/store` into every slot
+   (microvm.nix's ro-store pattern) with a small writable overlay; guest
+   closures live in the host's store.
+
+Deploy-model consequence: guest generations are built into the HOST's store;
+"deploy beefcake" becomes "host pins the new guest closure; the target slot
+(re)starts into it". The host being the deploy chokepoint is what finally
+makes the no-downgrade guard *structural*: host tooling compares candidate vs
+running closure before any slot may start.
+
+**DD3 — Slot roots: tiny generated images over the shared host store.**
+(Rewritten for Model B — the original per-slot-OS-zvol design is obsolete.)
+Blue and green coexist as two closures in the host store; each slot's root is
+a small disposable image (erofs/squashfs + tmpfs overlay, microvm-style) —
+impermanent *by construction*, which is the same discipline the persist list
+already enforces. The 240 G SSD mirror now only carries the host's own
+(blank-rollback) root + ESPs; the host store, guest closures and all state
+live on zstorage.
 
 **DD4 — Hypervisor substrate: libvirt (declaratively wrapped), microvm.nix as
 the evaluated alternative.** For one or two heavyweight guests, libvirt/qemu
@@ -156,24 +175,43 @@ the same segment. Green's validation boot uses a *different* MAC on an isolated
 host-only network so it can never collide with production. eno2–4 stay
 available for a future dedicated validation/管理 uplink or SR-IOV.
 
-**DD6 — Blue/green semantics: validate cold, cut over with a bounded stop.**
-With single-writer state (postgres, RocksDB, sqlite everywhere) there is no
-zero-downtime dual-write; the honest model is:
+**DD6 — Blue/green semantics: validate against CLONES, cut over with a
+bounded stop.** With single-writer state (postgres, RocksDB, sqlite
+everywhere) there is no zero-downtime dual-write; the honest model — much
+stronger under Model B, because validation runs against *clones of the real
+data*:
 
-1. **Green validation (no downtime):** boot the candidate generation in the
-   green slot with *no* zstorage and no service MAC — synthetic empty state,
-   plus optional small **fixtures** (redis dump, the sqlite DBs, latest
-   pg_dump) fed from blue's snapshots so data-format regressions (the redis
-   RDB incident!) are caught. Health gate: all units active/no failed, key
-   ports answering, `nixpkgs` date ≥ blue's (structural no-downgrade check),
-   version-sensitive stores open their fixture copies.
-2. **Cutover (minutes, controlled):** `zfs snapshot -r zstorage@pre-cutover`
-   → clean shutdown of blue (pool exports) → move disk set + service NIC to
-   green → green imports pool, starts services → health gate again → done.
-3. **Rollback (one step):** reverse the move; blue's generation is untouched.
-   State changes made during green's tenure are bounded by the pre-cutover
-   snapshot (restore = explicit, documented decision, not data loss by
-   surprise).
+1. **Green validation (no downtime, no risk to real data — by construction):**
+   host snapshots every state dataset/zvol and gives green **ZFS clones** of
+   all of them. Green boots the candidate generation against a byte-identical
+   copy of production state: every "new version refuses old data" failure
+   (the redis-RDB incident class) surfaces here, with full-size real data,
+   at zero copy cost. Green's writes land in the clones, which are discarded
+   afterward — the origin datasets are untouchable through the clone.
+   Health gate: no failed units, per-service smoke checks (see below),
+   `nixpkgs` date ≥ blue's (structural no-downgrade), data stores actually
+   opened their cloned state.
+   ⚠️ **Egress isolation is mandatory**: a green slot holding cloned real
+   state runs real services with real credentials — its stalwart would try
+   to deliver queued mail, bridges would double-post, DDNS would fire. The
+   validation network must be egress-blocked (host-only + explicit
+   allowlist); this is the main "pull it off correctly" hazard, and it's a
+   *duplicate-actions* hazard, not a data-loss one.
+2. **Per-service smoke checks:** each service module declares its own
+   validation probe alongside its config (same aggregation idiom as
+   `services.restic.commonPaths` — e.g. `lyte.validation.checks`): "unit
+   active" plus a data-plane assertion that exercises loaded state (psql
+   query against a known table, redis PING+DBSIZE, headscale nodes list,
+   forgejo API hit, IMAP login). The same registry doubles as the
+   post-cutover health gate.
+3. **Cutover (minutes, controlled):** fresh `zfs snapshot -r` savepoint →
+   stop blue's services (clean unmount/detach of shares + zvols) → attach
+   the REAL datasets/zvols + service NIC to green → green starts services →
+   run the same smoke-check registry → done.
+4. **Rollback (one step):** reverse the attachment; blue's generation is
+   untouched. State changes during green's tenure are bounded by the
+   pre-cutover snapshot (restoring it is an explicit, documented decision,
+   not surprise data loss).
 
 Ordinary low-risk config tweaks can still be plain deploys into the active
 guest; the blue/green path is for kernel/nixpkgs/systemd/db bumps — exactly the
@@ -199,8 +237,10 @@ zstorage/state              mountpoint=/persist        (new)
 zstorage/varlib-private     mountpoint=/var/lib/private  (exists)
 zstorage/containers         mountpoint=/var/lib/containers (exists)
 zstorage/storage            mountpoint=/storage        (exists)
-rpool2/local/root           ← blank-rollback (host; guest has its own)
-rpool2/local/nix            (host store; guest store lives in its OS zvol)
+zstorage/nix                (host store under Model B — today's layout, kept)
+zstorage/zvols/<service>    (DD2 primitive: per-service zvol-backed dirs)
+rpool2/local/root           ← blank-rollback (host root; slot roots are
+                              generated images, see DD3)
 ```
 
 `environment.persistence."/persist"` (impermanence module), initial list —
@@ -225,9 +265,15 @@ compiled from the config sweep + live ext4-root audit:
   coredump config), `/var/log` (journal + caddy logs; or accept loss),
   `/root` (small; contains runbooks/scripts today), `/home` (2.5 G),
   `/srv/h.lyte.dev`.
-- **Deliberately ephemeral:** `/var/cache` (52 G of restic caches — rebuilt;
-  *maybe* persist to keep backup runs fast, decide during burn-in),
-  `/tmp`, podman graph roots already on their dataset.
+- **Deliberately ephemeral:** `/var/cache` — EXCEPT `/var/cache/restic`
+  (decided 2026-07-01: persist it, dedicated dataset, snapshots off, with a
+  config comment explaining it's a rebuildable metadata cache kept only so
+  post-reboot backup runs don't re-fetch repo indexes from the two remote
+  sftp repos); `/tmp`; podman graph roots already on their dataset.
+- `/var/log`: persist (trivially small; journald is already capped fleet-wide
+  at `SystemMaxUse=1G` in `default-module.nix` and shipped to OpenObserve via
+  the OTel collector, so this is belt-and-suspenders for local debugging, not
+  a retention decision).
 - The June relocation's symlink layer (`/var/lib/X → private/X`) gets
   superseded by real persistence entries; the not-in-`fileSystems` ZFS-native
   mounts get declared properly once the shadowed originals are reclaimed
@@ -333,15 +379,20 @@ PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
 
 ## 6. Open questions
 
-1. PM863a capacity (240 G vs 960 G) → how comfortable the OS-zvol budget is.
-2. Persist-or-not: `/var/cache` restic caches (52 G — speed vs purity),
-   `/var/log` history.
-3. Validation fixtures: which small state copies give the best
-   regression-catch per byte (redis dump, headscale sqlite, forgejo sqlite,
-   latest pg_dump?).
+1. ~~PM863a capacity~~ ANSWERED 2026-07-01: 240 G — and moot under Model B
+   (SSD mirror carries only the host's slim root + ESPs).
+2. ~~Persist-or-not `/var/cache`/`/var/log`~~ DECIDED 2026-07-01: persist
+   `/var/cache/restic` (commented, dedicated dataset) and `/var/log`;
+   journald already capped at 1G + shipped to OpenObserve.
+3. ~~Validation fixtures~~ SUPERSEDED by Model B: validation uses ZFS clones
+   of the full real state — strictly better than hand-picked fixtures. What
+   remains is the per-service smoke-check registry (DD6.2, Daniel confirmed
+   wanted).
 4. libvirt+NixVirt vs microvm.nix vs hand-rolled qemu units — decide after the
-   prototype; requirements: raw-disk exclusivity, NIC hotmove or fast
-   stop/start, serial console, autostart-active-slot marker on host /persist.
+   prototype. Model B tilts this toward **microvm.nix** (virtiofs shares +
+   ro-store + volumes are literally its native vocabulary); requirements:
+   zvol/share exclusivity, NIC hotmove or fast stop/start, serial console,
+   autostart-active-slot marker on host /persist.
    Evaluated and rejected for the *slots* (2026-07-01): Firecracker (no
    PCI/vfio ever → kills the Phase-5 HBA path; no virtiofs; direct-kernel
    boot only), Ignite (archived), smolvm (libkrun; no raw block devices, no
@@ -370,6 +421,14 @@ PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
   stops A, attaches disks to B (same config, newer closure), B imports and
   serves the same state; then rollback. Plus a validation boot of B with no
   disks + fixture state. Measures the cutover wall-clock.
+- **P3 `modelb-storage` (added after the 2026-07-01 DD2 revision):** prove
+  Model B's storage primitives on one ZFS node: postgres with dataDir on an
+  ext4-on-zvol; snapshot + clone of both a dataset and the zvol while
+  postgres runs; a second postgres instance reads the *cloned* zvol
+  (validation stand-in) and its writes provably never touch the origin;
+  clone discard; zvol handoff origin→clone→origin. The virtiofs data plane
+  (share mount, xattr/acl semantics) rides the established qemu/virtiofsd
+  pattern and gets exercised in the Phase-3 integration on real hardware.
 
 ### Results (2026-07-01, all three passing on dragon)
 
