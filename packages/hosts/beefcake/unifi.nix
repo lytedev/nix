@@ -32,4 +32,11 @@
       10001 # AP discovery (controller broadcasts here)
     ];
   };
+
+  # Controller config + AP adoptions live in the embedded mongodb; restic of
+  # the live DB is only crash-consistent, but it beats re-adopting every AP.
+  # Cleaner long-term: enable the controller's scheduled autobackup (UI
+  # setting, writes .unf dumps under data/backup/) — this path covers those
+  # dumps too once enabled.
+  services.restic.commonPaths = [ "/var/lib/unifi" ];
 }

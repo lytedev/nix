@@ -35,4 +35,7 @@
       reverse_proxy :8473
     '';
   };
+
+  # sqlite DB + env; the container is rebuildable but this state is not.
+  services.restic.commonPaths = [ "/var/lib/hearth" ];
 }

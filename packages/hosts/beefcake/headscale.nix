@@ -183,4 +183,9 @@ in
   };
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.headscale.enable [ 3478 ];
+
+  # The sqlite DB is every tailnet node registration + preauth key; losing it
+  # means re-registering every device. Live-file copy is crash-consistent,
+  # which is acceptable for headscale's rare writes.
+  services.restic.commonPaths = [ "/var/lib/headscale" ];
 }
