@@ -191,6 +191,15 @@ data*:
    Health gate: no failed units, per-service smoke checks (see below),
    `nixpkgs` date ≥ blue's (structural no-downgrade), data stores actually
    opened their cloned state.
+   ⚠️ **Quiesce before snapshot** (found empirically in the hands-on demo):
+   sqlite under `synchronous=NORMAL` (vaultwarden et al.) does NOT fsync
+   per-commit — committed writes sit in the guest page cache, so a live
+   host-side snapshot misses them on ANY transport (9p/virtiofs/zvol). A
+   registered vaultwarden account was absent from the validation clone until
+   the tooling learned to `sync` the active slot first. Postgres/RocksDB are
+   immune (they fsync their WALs). Corollary for cutover: **slot shutdown
+   must be a clean guest poweroff**, never SIGTERM-the-VMM, or the same
+   cached writes die with the process.
    ⚠️ **Egress isolation is mandatory**: a green slot holding cloned real
    state runs real services with real credentials — its stalwart would try
    to deliver queued mail, bridges would double-post, DDNS would fire. The

@@ -35,6 +35,7 @@ let
       zfs
       systemd
       coreutils
+      openssh
     ];
     text = ''
       slot=$1; mode=''${2:-real}
@@ -48,7 +49,26 @@ let
       zvol=/dev/zvol/demo/zvols/pg
       restrict=""
 
+      slot_ssh() { # slot_ssh <port> <cmd...>
+        p=$1; shift
+        ssh -i /etc/demo-ssh-key -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -o BatchMode=yes \
+          -p "$p" root@localhost "$@"
+      }
+
       if [ "$mode" = validate ]; then
+        # QUIESCE the active slot before snapshotting: sqlite WAL under
+        # synchronous=NORMAL lives in the guest page cache, so a live
+        # host-side snapshot would miss recent commits (found the hard way:
+        # a vaultwarden account registered minutes earlier was absent from
+        # the clone). `sync` flushes guest caches through 9p to the host.
+        for other in blue green; do
+          if systemctl is-active -q "slot-$other.service" \
+             && [ "$(cat "/var/lib/demo/mode-$other" 2>/dev/null)" = real ]; then
+            op=$([ "$other" = blue ] && echo 12201 || echo 12202)
+            slot_ssh "$op" sync || echo "WARN: quiesce of $other failed"
+          fi
+        done
         zfs destroy -r demo/shared-validate 2>/dev/null || true
         zfs destroy -r demo/zvols/pg-validate 2>/dev/null || true
         zfs destroy demo/shared@validate 2>/dev/null || true
@@ -88,9 +108,23 @@ let
     runtimeInputs = with pkgs; [
       zfs
       systemd
+      openssh
     ];
     text = ''
       slot=$1
+      # Clean guest shutdown first: SIGTERM-ing qemu drops guest page cache
+      # (unfsynced sqlite WAL commits die with it). ssh poweroff -> systemd
+      # stops services -> filesystems flush; fall back to unit stop.
+      p=$([ "$slot" = blue ] && echo 12201 || echo 12202)
+      if systemctl is-active -q "slot-$slot.service"; then
+        ssh -i /etc/demo-ssh-key -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -o BatchMode=yes \
+          -p "$p" root@localhost poweroff 2>/dev/null || true
+        for _ in $(seq 30); do
+          systemctl is-active -q "slot-$slot.service" || break
+          sleep 2
+        done
+      fi
       systemctl stop "slot-$slot.service" 2>/dev/null || true
       if [ "$(cat "/var/lib/demo/mode-$slot" 2>/dev/null)" = validate ]; then
         # validation teardown: discard clones, real state untouched
@@ -245,6 +279,12 @@ in
       '';
       Restart = "always";
     };
+  };
+
+  # slot-quiesce/clean-shutdown plumbing: the host sshes into slots.
+  environment.etc."demo-ssh-key" = {
+    source = ../keys/demo-ssh-key;
+    mode = "0600";
   };
 
   environment.systemPackages = [
