@@ -59,6 +59,21 @@ downgraded nixpkgs → systemd re-exec wedge → redis RDB-format refusal →
 services dropped; recovery was manual surgery. Guards today are procedural
 (AGENTS.md rules + devshell deploy wrapper), not structural.
 
+**It happened AGAIN mid-design (2026-07-02, ~29 min outage), and this time the
+config was innocent:** a same-nixpkgs deploy (another agent's immich-oauth
+work) live-switched beefcake; the switch stopped ~70 services, wedged before
+its restart phase (caddy stop-timeout→SIGKILL), the deploy session died, and
+deploy-rs rolled the profile back leaving the box running an unrecorded
+closure with the service herd `inactive` — note: *inactive*, not *failed*, so
+a `systemctl --failed` sweep alone under-reports a stopped world. Recovery =
+reboot into the staged known-good generation. The failure was pure
+live-switch *mechanics* — stop-the-world, then hope — which is precisely what
+DD6's cutover model (validated green slot; the serving instance never
+live-switches) eliminates. Ops lessons folded in: detach long remote
+mutations (`systemd-run`), census `is-active` on key services not just
+`--failed`, and multi-agent recoveries must be coordinated through Daniel
+(two well-meaning recoveries collided here, again).
+
 ---
 
 ## 2. Target architecture
@@ -538,6 +553,20 @@ Code: `prototypes/beefcake-impermanence/` (standalone flake, README inside).
      export);
   4. the rollback unit needs `requires` (not just `after`) on the import
      unit.
+- **P4 `lite/` — beefcake-lite PASS (2026-07-02): the REAL config runs in a
+  VM.** `extendModules` over the actual `nixosConfigurations.beefcake`
+  (dummy sops via generated format-plausible secrets, zstorage mounts →
+  plain dirs, minecraft + immich-ML cut, egress-cut usernet): **54+
+  services running in 24 G** (4 G actually used), boots to ssh in ~40 s.
+  After empty-state shims (self-signed kanidm cert, writable tuwunel dirs,
+  postgres ensure*), the only failures are structural-by-design:
+  external-egress (dns-updater, tailscale, github-mirror, wyoming model
+  download), dummy-creds (heisenbridge, matrix-hookshot), no-hardware
+  (smartd — class H anyway), missing local-only image (hearth). ZERO
+  unexplained failures — and tuwunel's RocksDB runs happily, partial
+  class-Z evidence. sops-nix's build-time manifest validation doubles as a
+  free "dummy secrets match the config's secret shape" regression gate.
+  This IS the production validation tier, demonstrated end-to-end.
 - **P2 `checks.handoff` — PASS.** Clean blue → green → blue pool handoff
   with postgres state continuity, plus green's no-pool validation boot.
   Gotcha: units whose `ReadWritePaths` live on the handed-off pool need

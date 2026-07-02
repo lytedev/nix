@@ -101,7 +101,7 @@
         demo = pkgs.writeShellApplication {
           name = "modelb-demo";
           text = ''
-            state="''${DEMO_STATE_DIR:-$PWD/demo-state}"
+            state="''${DEMO_STATE_DIR:-''${XDG_CACHE_HOME:-$HOME/.cache}/beefcake-modelb-demo}"
             mkdir -p "$state"
             # ssh refuses group/world-readable identity files, and the repo
             # checkout leaves the test key at 0644 — install a 0600 copy.
@@ -111,7 +111,7 @@
             export QEMU_NET_OPTS="hostfwd=tcp::2200-:22,hostfwd=tcp::2201-:12201,hostfwd=tcp::2202-:12202,hostfwd=tcp::8080-:8000,hostfwd=tcp::8081-:13001,hostfwd=tcp::8082-:13002"
             cat <<'BANNER'
             ================== Model B hands-on demo ==================
-            demo host : ssh -p 2200 -i demo-state/ssh-key root@localhost
+            demo host : ssh -p 2200 -i ~/.cache/beefcake-modelb-demo/ssh-key root@localhost
             blue slot : ssh -p 2201 ...   green slot: ssh -p 2202 ...
             service   : http://localhost:8080  (the VIP -> active slot)
             blue web  : http://localhost:8081   green web: http://localhost:8082

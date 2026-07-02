@@ -28,9 +28,10 @@ touchable.
 ```
 nix run .#demo        # this terminal becomes the demo host's serial console
 # elsewhere:
-ssh -p 2200 -i demo-state/ssh-key root@localhost   # the demo host
-# (the launcher installs a 0600 copy of the test key at demo-state/ssh-key —
-#  the repo copy is 0644, which ssh refuses)
+ssh -p 2200 -i ~/.cache/beefcake-modelb-demo/ssh-key root@localhost  # demo host
+# (the launcher installs a 0600 key copy there — the repo copy is 0644,
+#  which ssh refuses; state lives in ~/.cache/beefcake-modelb-demo, NOT the
+#  repo, so flake path:-eval never copies the VM images)
 ```
 
 Tour (commands on the demo host; the MOTD repeats this):
@@ -45,7 +46,7 @@ Tour (commands on the demo host; the MOTD repeats this):
    one-step rollback.
 
 State (pool vdev, `/var/lib/demo`) persists across demo-host restarts in
-`./demo-state/` (gitignored). Slot roots are tmpfs — wiped every boot, on
+`~/.cache/beefcake-modelb-demo/`. Slot roots are tmpfs — wiped every boot, on
 purpose.
 
 What the prototypes deliberately do NOT cover (Phase 3+ on real hardware):
