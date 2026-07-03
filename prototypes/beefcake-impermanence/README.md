@@ -15,6 +15,16 @@ grants access to anything real; do not reuse outside the prototypes.
 | `checks.handoff` (P2) | Blue/green cutover: two guests sequentially own a shared raw disk carrying a ZFS pool (zstorage stand-in, whole-disk virtio-blk); blue seeds postgres state → export → green imports + serves + writes → rollback to blue with all state. Plus green's no-pool "validation boot". | `nix build .#checks.x86_64-linux.handoff` |
 | `checks.modelb-storage` (P3) | Model B primitives: postgres on ext4-on-zvol; snapshot+clone taken while it runs, opened by a second instance (validation vs live real state); two-way write isolation; clean clone discard; xattr/posixacl on a share dataset. | `nix build .#checks.x86_64-linux.modelb-storage` |
 
+## beefcake-lite (`lite/`): the REAL config as a VM — tier-0 gate
+
+`bash lite/run-lite.sh run` boots the actual `nixosConfigurations.beefcake`
+(via extendModules) on dragon with RAM hogs cut, generated dummy secrets,
+and an egress-cut network. `bash lite/assert-green.sh` is the gate:
+**PASSED 2026-07-03** — `running / 0 failed / 0 stuck / 57 services` from a
+blank disk, hands-off. `lite/gen-dummy-secrets.sh` regenerates the secret
+mirror (every key the evaluated config references, format-plausible values).
+ssh: `-p 2300 -i ~/.cache/beefcake-lite/ssh-key root@localhost`.
+
 ## Hands-on demo (`nix run .#demo`)
 
 A **persistent, interactive** environment — not an assert-and-vanish test. A

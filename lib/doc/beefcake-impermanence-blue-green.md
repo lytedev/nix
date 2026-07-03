@@ -579,6 +579,19 @@ Code: `prototypes/beefcake-impermanence/` (standalone flake, README inside).
   class-Z evidence. sops-nix's build-time manifest validation doubles as a
   free "dummy secrets match the config's secret shape" regression gate.
   This IS the production validation tier, demonstrated end-to-end.
+  **Tier-0 ALL-GREEN gate PASSED (2026-07-03), hands-off from a blank
+  disk:** `state=running failed=0 stuck-jobs=0 running-services=57`
+  (`lite/assert-green.sh`). Getting there required a per-unit mask that IS
+  the production validation-slot mask (egress/hardware/state-coupled units
+  disabled with rationale), offline image seeding (dockerTools.pullImage
+  imageFile for podman; k3s airgap-images), and fixing five first-boot
+  bootstrap races that a stateful production host can never hit: atuin +
+  plausible racing their DBs into systemd's start-limit (ordering alone is
+  insufficient — a unit "started" is not a DB "accepting"), stalwart's
+  FACTORY config grabbing :443 before caddy, stalwart-apply's
+  fresh-instance chicken-and-egg (polls the mgmt port only the applied
+  plan would configure), and the kanidm/stalwart TLS-cert bootstrap. All
+  encoded in `lite/beefcake-lite.nix` with rationale comments.
 - **P2 `checks.handoff` — PASS.** Clean blue → green → blue pool handoff
   with postgres state continuity, plus green's no-pool validation boot.
   Gotcha: units whose `ReadWritePaths` live on the handed-off pool need

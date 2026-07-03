@@ -97,26 +97,107 @@
 
   # ---- empty-state shims (production/clone state would provide these) ----
   # kanidm BindReadOnlyPaths the caddy-copied cert; self-sign a stand-in.
-  systemd.services.kanidm-dummy-cert = {
-    wantedBy = [ "multi-user.target" ];
-    before = [ "kanidm.service" ];
-    requiredBy = [ "kanidm.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-    path = [ pkgs.openssl ];
-    script = ''
-      mkdir -p /storage/kanidm/certs
-      if [ ! -f /storage/kanidm/certs/idm.h.lyte.dev.crt ]; then
-        openssl req -x509 -newkey rsa:2048 -nodes -days 7 \
-          -subj "/CN=idm.h.lyte.dev" \
-          -keyout /storage/kanidm/certs/idm.h.lyte.dev.key \
-          -out /storage/kanidm/certs/idm.h.lyte.dev.crt
-        chown -R kanidm:kanidm /storage/kanidm
-      fi
-    '';
-  };
+  systemd.services = lib.mkMerge [
+    (lib.genAttrs
+      [
+        "backup-canary-write"
+        "backup-canary-read"
+        "copy-kanidm-certificates-from-caddy"
+        "copy-stalwart-certificates-from-caddy"
+        "forgejo-github-mirror"
+        "build-lytedev-flake"
+        "tailscaled-autoconnect"
+        # factory-fresh chicken-and-egg: the plan-apply polls the JMAP/mgmt
+        # port that only the applied plan would configure; production state
+        # pre-exists so this never runs from factory there
+        "stalwart-apply"
+        # state/hardware-coupled (provable only against cloned state / real hw):
+        "matrix-hookshot"
+        "mautrix-discord"
+        "mautrix-slack"
+        "mautrix-gmessages"
+        "meshtasticd"
+        "meshtasticd-provision"
+        "wyoming-faster-whisper-hearth"
+      ]
+      (_: {
+        enable = lib.mkForce false;
+      })
+    )
+    {
+      # fresh-instance stalwart initializes its FACTORY default config, which
+      # includes an https listener on :443 (production shed it at migration);
+      # let caddy win the port — stalwart tolerates the failed extra bind.
+      stalwart = {
+        after = [ "caddy.service" ];
+        wants = [ "caddy.service" ];
+      };
+      # same first-boot race class as atuin (crashes into start-limit before
+      # its DBs are up; production DBs are long-lived)
+      plausible = {
+        after = [
+          "postgresql.service"
+          "postgresql-setup.service"
+          "clickhouse.service"
+        ];
+        wants = [
+          "postgresql.service"
+          "clickhouse.service"
+        ];
+        # ordering alone is not enough: clickhouse's UNIT being started !=
+        # clickhouse accepting connections, and plausible's migrations burn
+        # the default start-limit in that gap. Retry until the world is up.
+        serviceConfig = {
+          Restart = lib.mkForce "on-failure";
+          RestartSec = lib.mkForce 10;
+        };
+        unitConfig.StartLimitIntervalSec = lib.mkForce 0;
+      };
+      # first-boot race: atuin connects before postgresql-setup created its
+      # role (production DB pre-exists; only synthetic first boots see this)
+      atuin = {
+        after = [ "postgresql-setup.service" ];
+        wants = [ "postgresql-setup.service" ];
+      };
+      kanidm-dummy-cert = {
+        wantedBy = [ "multi-user.target" ];
+        before = [
+          "kanidm.service"
+          "stalwart.service"
+        ];
+        requiredBy = [
+          "kanidm.service"
+          "stalwart.service"
+        ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+        path = [ pkgs.openssl ];
+        script = ''
+          mkdir -p /storage/kanidm/certs
+          if [ ! -f /storage/kanidm/certs/idm.h.lyte.dev.crt ]; then
+            openssl req -x509 -newkey rsa:2048 -nodes -days 7 \
+              -subj "/CN=idm.h.lyte.dev" \
+              -keyout /storage/kanidm/certs/idm.h.lyte.dev.key \
+              -out /storage/kanidm/certs/idm.h.lyte.dev.crt
+            chown -R kanidm:kanidm /storage/kanidm
+          fi
+          # stalwart's TLS listeners need fullchain/privkey at its certDir
+          # (production copies these from caddy; that unit is masked here)
+          mkdir -p /storage/stalwart/certs
+          if [ ! -f /storage/stalwart/certs/fullchain.pem ]; then
+            openssl req -x509 -newkey rsa:2048 -nodes -days 7 \
+              -subj "/CN=mail.lyte.dev" \
+              -keyout /storage/stalwart/certs/privkey.pem \
+              -out /storage/stalwart/certs/fullchain.pem
+            chown -R stalwart:stalwart /storage/stalwart/certs || true
+            chmod 600 /storage/stalwart/certs/*
+          fi
+        '';
+      };
+    }
+  ];
   # roles/DBs that exist imperatively in production postgres:
   services.postgresql.ensureDatabases = [
     "atuin"
@@ -138,6 +219,68 @@
   services.immich.machine-learning.enable = lib.mkForce false;
   # wyoming faster-whisper loads multi-GB models; keep the units but the
   # small model. (If this still hurts, disable wyoming entirely.)
+
+  # ---- TIER-0 ALL-GREEN: every unit either succeeds or is structurally
+  # absent in this tier. The disable list below IS the production
+  # validation-slot mask (egress-coupled jobs, hardware-coupled daemons,
+  # state-coupled bridges) — written once here, reused there. Gate:
+  # lite/assert-green.sh asserts is-system-running == running.
+
+  # egress-coupled periodic jobs and daemons (incl. the restic-prune-on-real-
+  # repos hazard class):
+  services.restic.backups = lib.mkForce { };
+  services.deno-netlify-ddns-client.enable = lib.mkForce false;
+  lyte.dns-updater.enable = lib.mkForce false;
+  services.gitea-actions-runner.instances = lib.mkForce { };
+  # (disable-set merged into the systemd.services mkMerge above)
+  systemd.timers =
+    lib.genAttrs
+      [
+        "backup-canary-write"
+        "backup-canary-read"
+        "copy-kanidm-certificates-from-caddy"
+        "copy-stalwart-certificates-from-caddy"
+        "forgejo-github-mirror"
+        "build-lytedev-flake"
+      ]
+      (_: {
+        enable = lib.mkForce false;
+      });
+  services.smartd.enable = lib.mkForce false;
+  services.heisenbridge.enable = lib.mkForce false;
+  # no zstorage pool in the VM -> nothing to scrub/snapshot
+  services.zfs.autoScrub.enable = lib.mkForce false;
+  services.zfs.autoSnapshot.enable = lib.mkForce false;
+
+  # state-coupled containers (image is deploy-pushed / device-coupled):
+  virtualisation.oci-containers.containers.hearth.autoStart = lib.mkForce false;
+  virtualisation.oci-containers.containers.mmrelay.autoStart = lib.mkForce false;
+
+  # containers whose images we pre-seed so their units PROVE out offline:
+  virtualisation.oci-containers.containers.bulwark.imageFile = pkgs.dockerTools.pullImage {
+    imageName = "ghcr.io/bulwarkmail/webmail";
+    imageDigest = "sha256:532fc75982a82706027cb0509db18123a9d1dc19523afa4f4b859352d6add20d";
+    finalImageName = "ghcr.io/bulwarkmail/webmail";
+    finalImageTag = "1.7.2";
+    hash = "sha256-2EwEXRz+tneCcj1i9bZswhEHXdX1wxaFX0p0simfuzs=";
+  };
+  virtualisation.oci-containers.containers.music-assistant.imageFile = pkgs.dockerTools.pullImage {
+    imageName = "ghcr.io/music-assistant/server";
+    imageDigest = "sha256:eef3ee7810d0e4702afa4a0ff55b10bbbfcaa16c98a277fe1b7f4cb6d5d426b4";
+    finalImageName = "ghcr.io/music-assistant/server";
+    finalImageTag = "2.8.7";
+    hash = "sha256-W13xYM7kNymtEsgUAup4hOlkgot/t6ucJ3M5L0nN6xg=";
+  };
+  virtualisation.oci-containers.containers.openobserve.imageFile = pkgs.dockerTools.pullImage {
+    imageName = "public.ecr.aws/zinclabs/openobserve";
+    imageDigest = "sha256:35d2b390321589d88321b421c18117a9df4720f4db3d5c7133976ef09dc25089";
+    finalImageName = "public.ecr.aws/zinclabs/openobserve";
+    finalImageTag = "v0.70.2";
+    hash = "sha256-va7FRqKtOWc4+z6UvV4BCDH7mATwTJq1tpbfefZh77M=";
+  };
+
+  # k3s fully offline via its airgap image bundle:
+  services.k3s.images = [ config.services.k3s.package.airgap-images ];
 
   # ---- debuggability ----
   services.getty.autologinUser = lib.mkForce "root";
