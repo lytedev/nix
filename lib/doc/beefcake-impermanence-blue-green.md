@@ -221,18 +221,30 @@ data*:
    validation network must be egress-blocked (host-only + explicit
    allowlist); this is the main "pull it off correctly" hazard, and it's a
    *duplicate-actions* hazard, not a data-loss one.
-2. **Per-service smoke checks:** each service module declares its own
+2. **The gate must census THREE states with an allowlist** (learned from
+   beefcake-lite): `failed` alone under-reports (timer-fired jobs fail
+   later; stuck units never fail) and all-green over-demands (a validation
+   slot has ~13 failed + ~6 stuck-activating units that are CORRECT for
+   that tier: egress-cut backups/mirrors/DDNS, dummy-cred registrations,
+   no-hardware smartd, image pulls). Each service's expected outcome per
+   tier lives in the validation registry alongside its probe.
+   ⚠️ Corollary: **validation slots must MASK outbound periodic jobs** —
+   above all restic: a green slot holds cloned real state + real
+   credentials, and a fired backup timer could prune REAL repos. Egress
+   isolation is the first wall; masking backup/mirror/DDNS timers in
+   validation mode is the belt.
+3. **Per-service smoke checks:** each service module declares its own
    validation probe alongside its config (same aggregation idiom as
    `services.restic.commonPaths` — e.g. `lyte.validation.checks`): "unit
    active" plus a data-plane assertion that exercises loaded state (psql
    query against a known table, redis PING+DBSIZE, headscale nodes list,
    forgejo API hit, IMAP login). The same registry doubles as the
    post-cutover health gate.
-3. **Cutover (minutes, controlled):** fresh `zfs snapshot -r` savepoint →
+4. **Cutover (minutes, controlled):** fresh `zfs snapshot -r` savepoint →
    stop blue's services (clean unmount/detach of shares + zvols) → attach
    the REAL datasets/zvols + service NIC to green → green starts services →
    run the same smoke-check registry → done.
-4. **Rollback (one step):** reverse the attachment; blue's generation is
+5. **Rollback (one step):** reverse the attachment; blue's generation is
    untouched. State changes during green's tenure are bounded by the
    pre-cutover snapshot (restoring it is an explicit, documented decision,
    not surprise data loss).
