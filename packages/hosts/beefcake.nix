@@ -33,6 +33,19 @@
   lyte.podman.enable = true;
   lyte.headscale.usePreAuthKey = true;
 
+  # Keep root's `systemd --user` manager (user@0.service) running persistently.
+  #
+  # Without this, user@0 is spawned by pam_systemd on each root login and idle-
+  # exits ~10s after the last session closes. A deploy opens a burst of root SSH
+  # sessions (deploy-rs's own connections, plus concurrent admin/agent shells),
+  # so user@0 rapid-cycles start→stop during activation. switch-to-configuration
+  # reloads each running user manager, and catching user@0 mid-transition (a
+  # start job blocked behind a queued stop) wedges it in `activating`, hanging
+  # the deploy's user-unit step. Lingering decouples user@0's lifetime from
+  # sessions so it's a single, stable instance that activation can reload
+  # cleanly. Mirrors the `linger = true` already used for openobserve/flanilla.
+  users.users.root.linger = true;
+
   # Keep existing DDNS client during parallel-run phase
   services.deno-netlify-ddns-client = {
     enable = true;
