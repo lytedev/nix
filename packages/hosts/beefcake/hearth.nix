@@ -27,6 +27,18 @@
       LEPTOS_OUTPUT_NAME = "hearth";
       LEPTOS_SITE_PKG_DIR = "pkg";
       DATABASE_URL = "sqlite:/var/lib/hearth/hearth.db";
+      # Hearth's HA base URL for the /music transport controls + timer announce.
+      # The runtime hearth.env (pushed by Hearth's own deploy) still carries the
+      # stale HA_URL=http://192.168.0.198:8123 — the DEAD bigtower address (HA
+      # moved to beefcake). Pin the live Caddy URL here: podman `--env` overrides
+      # `--env-file` for the same key (verified empirically), so this wins over
+      # hearth.env and survives a Hearth redeploy / DB reset. The bridge-networked
+      # container reaches HA via Caddy (raw :8124 is firewalled; localhost can't
+      # work from the bridge net). NOW_PLAYING_HA_BASE pins the now-playing media
+      # base to the same host. Token in hearth.env already works against beefcake
+      # HA over Caddy (HTTP 200), so only the URL was wrong.
+      HA_URL = "https://home-assistant.h.lyte.dev";
+      NOW_PLAYING_HA_BASE = "https://home-assistant.h.lyte.dev";
     };
   };
 
