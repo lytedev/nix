@@ -151,11 +151,27 @@ in
   # Wire OnFailure onto the module-generated backup units (merged into their
   # existing definitions). %n is the failing unit's full name, passed as the
   # notifier's instance (%i).
-  systemd.services.restic-backups-local.unitConfig.OnFailure = [ "restic-backup-notify@%n.service" ];
+  #
+  # SERIALIZE the three backups so they never run concurrently. All three share
+  # the same OnCalendar (04:45/17:45) and each reads the FULL source (~744 GiB),
+  # so firing them together thrashes the zstorage pool three ways — pathological
+  # while the pool is degraded/resilvering, where none of them complete and the
+  # backup canary goes stale (observed 2026-07: after the disk overhaul reset
+  # mtimes, all three did full re-reads at once and stalled for days). `After=`
+  # makes each wait for the previous: at the shared trigger time systemd runs
+  # them one at a time. Order: rascal (off-site; its canary greens the alert
+  # first) -> benland (off-site) -> local (same-pool, least valuable). `After=`
+  # only orders — it does not pull the predecessor in or propagate its failure —
+  # so a failed/slow rascal doesn't block benland from eventually running.
   systemd.services.restic-backups-rascal.unitConfig.OnFailure = [ "restic-backup-notify@%n.service" ];
-  systemd.services.restic-backups-benland.unitConfig.OnFailure = [
-    "restic-backup-notify@%n.service"
-  ];
+  systemd.services.restic-backups-benland.unitConfig = {
+    OnFailure = [ "restic-backup-notify@%n.service" ];
+    After = [ "restic-backups-rascal.service" ];
+  };
+  systemd.services.restic-backups-local.unitConfig = {
+    OnFailure = [ "restic-backup-notify@%n.service" ];
+    After = [ "restic-backups-benland.service" ];
+  };
 
   systemd.tmpfiles.settings."10"."/storage/backups/canary".d = {
     mode = "0750";
