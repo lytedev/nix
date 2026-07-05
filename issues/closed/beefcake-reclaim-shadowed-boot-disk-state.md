@@ -1,3 +1,8 @@
+> **CLOSED 2026-07-04 — overtaken by events.** The ext4 boot spinner was
+> physically removed in the disk agent's root-on-ZFS SSD boot-mirror
+> migration (main: 64d60d4); the ~89G of shadowed originals went with it.
+> Nothing to reclaim.
+
 # beefcake: reclaim ~89G of shadowed migration originals on the boot disk
 
 **Labels**: beefcake, storage, maintenance

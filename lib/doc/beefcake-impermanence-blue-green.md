@@ -27,11 +27,14 @@ Storage:
   `/var/lib/containers` + `/var/lib/private` (ZFS-native mounts, migrated
   2026-06-29, **deliberately not in `fileSystems`** — see
   `issues/closed/beefcake-relocate-state-to-pool.md`).
-- `/` — **plain ext4 on a single 300 G 10K SAS spinner** (`sdf2`), with the
-  512 MB ESP on the same disk. This is the SPOF the SSD-mirror project
-  (2× PM863a purchased) is meant to fix.
-- `rpool` — a single Samsung PM863 240 G SSD carrying an *unused* alternate
-  root (`/mnt/rpool-root`, read-only).
+- `/` — ~~plain ext4 on a single 300 G spinner (SPOF)~~ **SUPERSEDED
+  2026-07-02/03 by the disk agent's root-on-ZFS SSD boot mirror** (main:
+  `64d60d4`): `/` = `rpool/root` on a two-SSD ZFS mirror, dual ESPs
+  (ESP-A live, ESP-B rsync-mirrored at bootloader install), spinner
+  physically removed. **This puts the impermanence substrate in place**:
+  what remains is the `@blank` snapshot + initrd rollback unit + persist
+  dataset — exactly the proven `prototypes/.../rollback-config.nix` recipe
+  applied to the live rpool.
 
 Ext4-root residue (the impermanence work list, ~69 G live): `/var/cache` 52 G
 (restic caches ×3), `/var/log` 3.3 G, and — critically — **plain `/var/lib`
@@ -430,14 +433,17 @@ Sequenced so every phase delivers standalone value and has its own rollback.
   boots the ZFS-blank-rollback root twice and proves rollback + persistence +
   sops ordering. ← prototype task, in flight.
 
-**Phase 2 — physical enablers (one maintenance window, after resilver):**
-- Install the 2× PM863a; create `rpool2` mirror (bigger ESPs ≥1 G on both).
-- Flip VT-d on in BIOS (+`intel_iommu=on` later; harmless, enables the future
-  HBA-passthrough upgrade path) — while the chassis is open anyway.
-- Optional but recommended dry-run: apply impermanence to the *physical*
-  system with root moved to rpool2 (blank-rollback) — this alone retires the
-  spinner SPOF and burns in the persist list under production load, while the
-  spinner remains the bootable rollback (DD7).
+**Phase 2 — physical enablers:** ✅ LARGELY DONE 2026-07-02/03 by the disk
+agent's boot-mirror work (root on SSD ZFS mirror, dual ESPs, spinner
+removed; see §1). Remaining in this phase:
+- VT-d BIOS flip at any convenient window (pure option value for the
+  Phase-5 HBA path).
+- **Impermanence-ify the live rpool/root**: `zfs snapshot rpool/root@blank`
+  semantics via a fresh `rpool/local/root` (or equivalent), the
+  systemd-initrd rollback unit, `/persist` dataset + the §3 persist list —
+  the rollback-demo recipe applied in place, with the ZFS mirror itself as
+  the safety net (plus a pre-change snapshot instead of the retired
+  spinner-fallback of DD7).
 
 **Phase 3 — thin host + single guest (the big cutover, boot-menu-reversible):**
 - Thin-host config (new `packages/hosts/beefcake-host.nix`): bridge, libvirt,
