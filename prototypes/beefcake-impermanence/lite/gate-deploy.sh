@@ -31,7 +31,8 @@ rm -rf "$state"
 mkdir -p "$state"
 install -m 600 keys/demo-ssh-key "$state/ssh-key"
 
-runner=$(ls result-lite/bin/run-*-vm | head -1)
+# absolutize BEFORE the subshell cd's into the state dir
+runner=$(readlink -f "$(ls result-lite/bin/run-*-vm | head -1)")
 vm_pid=""
 cleanup() {
   if [ -n "$vm_pid" ] && kill -0 "$vm_pid" 2>/dev/null; then
