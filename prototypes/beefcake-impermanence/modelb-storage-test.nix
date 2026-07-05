@@ -118,6 +118,34 @@ pkgs.testers.runNixOSTest {
     host.succeed("setfacl -m u:postgres:r /tank/storage/file")
     assert "postgres" in host.succeed("getfacl /tank/storage/file")
 
+    # ---- 6. RocksDB (stalwart/tuwunel class): snapshots taken DURING a
+    # write loop yield clones that open and scan (WAL crash-consistency).
+    # Held-open-writer fidelity comes free in Phase-4 validation against
+    # real cloned state; this receipt covers the storage-class claim.
+    LDB = "${pkgs.rocksdb.tools}/bin/ldb"
+    host.succeed("zfs create -V 512M tank/zvols/rdb && udevadm settle")
+    host.succeed("mkfs.ext4 -q /dev/zvol/tank/zvols/rdb")
+    host.succeed("mkdir -p /srv/rdb && mount /dev/zvol/tank/zvols/rdb /srv/rdb")
+    # seed synchronously first — validation always snapshots EXISTING state
+    # (an instant snapshot can otherwise predate the writer's first flush)
+    host.succeed(f"{LDB} --db=/srv/rdb/db --create_if_missing put seed seed && sync")
+    host.succeed(
+        f"(for i in $(seq 1 2000); do {LDB} --db=/srv/rdb/db put k$i v$i; done) "
+        "> /tmp/rdb-writer.log 2>&1 & echo started"
+    )
+    for round in range(3):
+        host.succeed("sleep 2")  # land snapshots at different loop phases
+        host.succeed(f"zfs snapshot tank/zvols/rdb@r{round}")
+        host.succeed(f"zfs clone tank/zvols/rdb@r{round} tank/zvols/rdb-c{round}")
+        host.succeed("udevadm settle")
+        host.succeed(f"mkdir -p /mnt/rdb{round} && mount /dev/zvol/tank/zvols/rdb-c{round} /mnt/rdb{round}")
+        # the clone must OPEN (WAL recovery) and contain the seed key
+        # (scan|head shows lexicographic k* keys; ask for seed directly)
+        out = host.succeed(f"{LDB} --db=/mnt/rdb{round}/db get seed")
+        assert "seed" in out, f"clone r{round} lost the seed key: {out!r}"
+        host.succeed(f"umount /mnt/rdb{round} && zfs destroy tank/zvols/rdb-c{round} && zfs destroy tank/zvols/rdb@r{round}")
+    print("PASS: rocksdb clones (snapshotted mid-write-loop) open and scan")
+
     pg_stop("/srv/pg-blue/data", 5432)
     print("PASS: zvol-backed postgres + clone-validation isolation + share-dataset semantics")
   '';
