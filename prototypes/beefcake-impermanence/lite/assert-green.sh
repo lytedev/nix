@@ -22,16 +22,19 @@ for _ in $(seq 120); do
   # NB: is-system-running exits non-zero for any state != running, so a
   # `|| echo` fallback would DOUBLE the output ("starting\nunreachable").
   # Capture stdout regardless of exit code; empty means ssh never delivered.
-  state=$(S systemctl is-system-running 2>/dev/null | head -1)
+  # `|| true`: is-system-running exits non-zero while starting/degraded, and
+  # under set -e a failing command substitution in an assignment KILLS the
+  # script mid-loop (silently — learned from a receipt run that died here).
+  state=$(S systemctl is-system-running 2>/dev/null | head -1 || true)
   [ -z "$state" ] && state=unreachable
   # unreachable = ssh timeout while the box is pegged — keep waiting
   case "$state" in starting|unreachable) ;; *) break ;; esac
   sleep 10
 done
 
-jobs=$(S 'systemctl list-jobs --no-legend | wc -l')
-failed=$(S 'systemctl list-units --state=failed --no-legend | wc -l')
-running=$(S 'systemctl list-units --type=service --state=running --no-legend | wc -l')
+jobs=$(S 'systemctl list-jobs --no-legend | wc -l' || echo 999)
+failed=$(S 'systemctl list-units --state=failed --no-legend | wc -l' || echo 999)
+running=$(S 'systemctl list-units --type=service --state=running --no-legend | wc -l' || echo 0)
 
 echo "state=$state failed=$failed stuck-jobs=$jobs running-services=$running"
 if [ "$state" = running ] && [ "$jobs" -eq 0 ]; then
