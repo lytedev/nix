@@ -56,6 +56,11 @@ pkgs.writeShellApplication {
     if [ "''${LYTE_ALLOW_DOWNGRADE:-}" = "1" ]; then allow_downgrade=1; fi
     dryrun=0
     if [ "''${LYTE_DEPLOY_GUARD_DRYRUN:-}" = "1" ]; then dryrun=1; fi
+    # Validation gate (beefcake targets only): boot the candidate closure as
+    # beefcake-lite on this machine and require the all-green gate to pass
+    # BEFORE deploy-rs runs. full = build+boot+assert (default; ~20 min cold),
+    # build = eval/build/sops-shape only (~min), skip = off.
+    validate_mode="''${LYTE_VALIDATE:-full}"
 
     # ---- parse args: collect target hosts, strip our own --allow-downgrade ----
     forward_args=()
@@ -65,6 +70,12 @@ pkgs.writeShellApplication {
       case "$a" in
         --allow-downgrade)
           allow_downgrade=1
+          ;;
+        --skip-validation)
+          validate_mode=skip
+          ;;
+        --validate=*)
+          validate_mode="''${a#--validate=}"
           ;;
         .)
           all_nodes=1
@@ -80,7 +91,49 @@ pkgs.writeShellApplication {
       esac
     done
 
+    beefcake_targeted() {
+      [ "$all_nodes" = "1" ] && return 0
+      for t in ''${targets[@]+"''${targets[@]}"}; do
+        [ "$t" = beefcake ] && return 0
+      done
+      return 1
+    }
+
+    run_validation_gate() {
+      [ "$validate_mode" = skip ] && {
+        echo "deploy-guard: validation gate SKIPPED by request" >&2
+        return 0
+      }
+      beefcake_targeted || return 0
+      gate="''${repo_root:-.}/prototypes/beefcake-impermanence/lite/gate-deploy.sh"
+      if [ ! -f "$gate" ]; then
+        echo "deploy-guard: validation gate script not found ($gate), skipping (fail-open)" >&2
+        return 0
+      fi
+      if [ "$dryrun" = "1" ]; then
+        echo "deploy-guard: DRY RUN, would run validation gate: LYTE_VALIDATE=$validate_mode $gate"
+        return 0
+      fi
+      echo "deploy-guard: beefcake targeted — running the validation gate (LYTE_VALIDATE=$validate_mode)" >&2
+      echo "deploy-guard: (skip with --skip-validation; cheap tier with --validate=build)" >&2
+      if LYTE_VALIDATE="$validate_mode" bash "$gate"; then
+        return 0
+      fi
+      {
+        echo "============================ DEPLOY BLOCKED ============================"
+        echo "The candidate closure FAILED the beefcake-lite validation gate: booted"
+        echo "as a VM it did not converge all-green. Deploying it risks a broken or"
+        echo "wedged production switch. No deploy was started."
+        echo
+        echo "Override (deploy anyway):  deploy --skip-validation ..."
+        echo "Cheaper check only:        deploy --validate=build ..."
+        echo "========================================================================"
+      } >&2
+      exit 1
+    }
+
     run_real() {
+      run_validation_gate
       if [ "$dryrun" = "1" ]; then
         echo "deploy-guard: DRY RUN, would exec: $real_deploy ''${forward_args[*]}"
         exit 0
