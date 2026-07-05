@@ -171,6 +171,10 @@
 
         lyte.shell.enable = true;
         lyte.desktop.enable = true;
+        # Keep Firefox on the decks: the living-room Hearth kiosk (see
+        # lyte.tv-player) runs in Firefox, independent of the fleet-wide
+        # desktop switch to Zen.
+        lyte.desktop.firefox.enable = lib.mkDefault true;
         # The deck's "Switch to Desktop" target is the Plasma session
         # (desktopSession = "plasma" below) and it runs its own SDDM autologin, so
         # it opts back into Plasma now that it's off by default fleet-wide. This

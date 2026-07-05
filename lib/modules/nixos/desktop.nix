@@ -79,11 +79,20 @@ in
             "none"
           ];
         };
+        zen.enable = lib.mkOption {
+          type = types.bool;
+          default = cfg.enable && !cfg.firefox.mobile;
+          description = "Enable Zen Browser with profile setup (the default desktop browser)";
+        };
         firefox = {
           enable = lib.mkOption {
             type = types.bool;
-            default = cfg.enable;
-            description = "Enable Firefox with profile setup";
+            default = cfg.firefox.mobile;
+            description = ''
+              Enable Firefox with profile setup. Replaced by Zen Browser as the
+              desktop default; still used for the mobile profile and kept as an
+              opt-in escape hatch (e.g. the steamdeck Hearth kiosk).
+            '';
           };
           mobile = lib.mkEnableOption "Use mobile Firefox profile instead of desktop";
         };
@@ -200,12 +209,17 @@ in
       fonts.fontDir.enable = true;
 
       xdg.portal.enable = true;
-      xdg.mime.defaultApplications = {
-        "x-scheme-handler/http" = "firefox.desktop";
-        "x-scheme-handler/https" = "firefox.desktop";
-        "text/html" = "firefox.desktop";
-        "application/xhtml+xml" = "firefox.desktop";
-      };
+      xdg.mime.defaultApplications =
+        let
+          # zen-browser's default (beta) channel ships zen-beta.desktop
+          browserDesktopFile = if cfg.zen.enable then "zen-beta.desktop" else "firefox.desktop";
+        in
+        {
+          "x-scheme-handler/http" = browserDesktopFile;
+          "x-scheme-handler/https" = browserDesktopFile;
+          "text/html" = browserDesktopFile;
+          "application/xhtml+xml" = browserDesktopFile;
+        };
 
       hardware.graphics.enable = true;
 
@@ -272,6 +286,29 @@ in
           gtk-cursor-theme-name=Bibata-Modern-Classic
           gtk-cursor-theme-size=40
         '';
+      };
+    })
+
+    # Zen Browser profile setup. The flake's package is XDG-aware: profiles
+    # live under ~/.config/zen (verified by the flake's own VM tests), not
+    # upstream's legacy ~/.zen. No userChrome.css here — Zen ships its own
+    # heavily customized chrome and the Firefox Ayu theme would fight it.
+    (lib.mkIf (cfg.enable && cfg.zen.enable) {
+      environment.systemPackages = [ pkgs.zen-browser ];
+
+      lyte.userFiles.".config/zen/profiles.ini" = ''
+        [General]
+        StartWithLastProfile=1
+
+        [Profile0]
+        Name=primary
+        IsRelative=1
+        Path=primary
+        Default=1
+      '';
+
+      lyte.userSymlinks = {
+        ".config/zen/primary/user.js" = "${dotfilesPath}/zen/user.js";
       };
     })
 

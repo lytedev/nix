@@ -248,6 +248,8 @@ let
       });
       helix = helix.outputs.packages.${prev.system}.default;
       herdr = herdr.outputs.packages.${prev.system}.herdr;
+      # zen-browser default = beta (upstream's stable release channel)
+      zen-browser = inputs.zen-browser.outputs.packages.${prev.system}.default;
 
       iosevkaLyteTerm = inputs.iosevka-lyte.outputs.packages.${prev.system}.default;
       matrix-tuwunel = tuwunel.packages.${prev.system}.default;

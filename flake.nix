@@ -128,6 +128,10 @@
     ghostty.inputs.nixpkgs.follows = "nixpkgs-unstable";
     ghostty.inputs.flake-compat.follows = "flake-compat";
 
+    # zen-browser — Firefox fork with vertical tabs/workspaces; not in nixpkgs
+    zen-browser.url = "github:0xc000022070/zen-browser-flake";
+    zen-browser.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     # herdr — agent-aware terminal multiplexer (default; replaced zellij)
     herdr.url = "github:ogulcancelik/herdr";
     herdr.inputs.nixpkgs.follows = "nixpkgs-unstable";
