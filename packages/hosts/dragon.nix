@@ -121,6 +121,21 @@
     5000
   ];
 
+  # Advertise dragon as a tailnet exit node (in addition to beefcake).
+  # useRoutingFeatures="server" turns on IP forwarding; the up-flags advertise
+  # the exit node while still accepting routes as a client. tailscale installs
+  # its own masquerade (default NetfilterMode), so unlike beefcake (the router,
+  # which sets NetfilterMode=0 + its own networking.nat) no explicit NAT is
+  # needed here. The advertised exit-node route must be approved once on the
+  # headscale control plane (beefcake) before clients can use it.
+  services.tailscale = {
+    useRoutingFeatures = "server";
+    extraUpFlags = [
+      "--advertise-exit-node"
+      "--accept-routes"
+    ];
+  };
+
   programs.nix-ld.enable = true;
   # programs.steam.enable = true;
 
