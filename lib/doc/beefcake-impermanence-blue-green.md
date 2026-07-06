@@ -44,9 +44,13 @@ friends, plus `/etc/machine-id`, `/etc/ssh/ssh_host_*` (the sops-nix age
 identity), `/root`, `/home`. Another ~89 G of shadowed pre-migration originals
 sits invisibly under the ZFS overlay mounts (reclaim pending).
 
-Virtualization readiness: VT-x + `/dev/kvm` ready; **VT-d (IOMMU) is OFF**
-(BIOS + `intel_iommu=on` both missing); no libvirt/qemu installed. The I350
-NICs are SR-IOV-capable; three ports are unplugged.
+Virtualization readiness: VT-x + `/dev/kvm` ready. **VT-d: BIOS side is
+ALREADY fully enabled** (disk agent verified via iDRAC 2026-07-05:
+ProcVirtualization, SriovGlobalEnable, IoatEngine, MmioAbove4Gb all on; DMAR
+ACPI table published) — only `intel_iommu=on` is missing from
+`boot.kernelParams`, so enabling IOMMU is a one-line config change that
+applies on any reboot; no BIOS window needed. No libvirt/qemu installed
+yet. The I350 NICs are SR-IOV-capable; three ports are unplugged.
 
 Workload (~80 native services + 6 podman containers + k3s): mail (stalwart),
 matrix (tuwunel + 5 bridges), git (forgejo + runners), DNS (knot, hidden
@@ -436,8 +440,9 @@ Sequenced so every phase delivers standalone value and has its own rollback.
 **Phase 2 — physical enablers:** ✅ LARGELY DONE 2026-07-02/03 by the disk
 agent's boot-mirror work (root on SSD ZFS mirror, dual ESPs, spinner
 removed; see §1). Remaining in this phase:
-- VT-d BIOS flip at any convenient window (pure option value for the
-  Phase-5 HBA path).
+- ~~VT-d BIOS flip~~ BIOS already enabled (verified via iDRAC); the flip is
+  just `intel_iommu=on` in kernelParams, riding along with any future
+  reboot (pure option value for the Phase-5 HBA path).
 - **Impermanence-ify the live rpool/root**: `zfs snapshot rpool/root@blank`
   semantics via a fresh `rpool/local/root` (or equivalent), the
   systemd-initrd rollback unit, `/persist` dataset + the §3 persist list —
