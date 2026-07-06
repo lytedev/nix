@@ -10,7 +10,11 @@ let
     ;
 in
 {
-  beefcake = stableHost ./beefcake.nix { };
+  # stable + the impermanence module (flag-gated in beefcake/impermanence.nix;
+  # a no-op until lyte.impermanence.enable is flipped)
+  beefcake = baseHost (
+    stable // { extraModules = [ inputs.impermanence.nixosModules.impermanence ]; }
+  ) ./beefcake.nix { };
   dragon = host ./dragon.nix { };
   # Like `host` (baseHost unstable) but with the standalone deckmode module for the
   # jump-in/out gamescope gaming mode. Kept out of the shared modules since it's a

@@ -142,6 +142,7 @@
   ]
   ++ (builtins.map import [
     ./beefcake/hardware.nix
+    ./beefcake/impermanence.nix # flag-gated ephemeral root (OFF until runbook)
     ./beefcake/networking.nix
 
     ./beefcake/nix-serve.nix

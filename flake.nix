@@ -52,6 +52,10 @@
     # unstable inputs
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # ephemeral-root persistence plumbing (beefcake impermanence program,
+    # lib/doc/beefcake-impermanence-blue-green.md); pure module flake
+    impermanence.url = "github:nix-community/impermanence";
+
     # deckmode: standalone jump-in/out gamescope gaming-mode module (foxtrot uses
     # it via packages/hosts/default.nix extraModules). Consumed as a pure module,
     # so its nixpkgs follow is only for lock dedup.
