@@ -18,6 +18,41 @@ let
     else
       pkgs.writeText "niri-shell-bindings-empty.kdl" "";
 
+  # ayu-dark GTK theme: re-map Adwaita/libadwaita's named colors to the ayu palette
+  # (same values as the greeter's regreet CSS). Loaded via ~/.config/gtk-3.0/gtk.css +
+  # gtk-4.0/gtk.css so GTK3 and GTK4/libadwaita apps pick it up. It overrides the
+  # colors directly, so it themes apps regardless of the (finicky here) gsettings
+  # color-scheme path.
+  ayuGtkCss = ''
+    @define-color window_bg_color #0b0e14;
+    @define-color window_fg_color #bfbdb6;
+    @define-color view_bg_color #0f1419;
+    @define-color view_fg_color #bfbdb6;
+    @define-color card_bg_color #0f1419;
+    @define-color card_fg_color #bfbdb6;
+    @define-color popover_bg_color #0f1419;
+    @define-color popover_fg_color #bfbdb6;
+    @define-color dialog_bg_color #0b0e14;
+    @define-color dialog_fg_color #bfbdb6;
+    @define-color headerbar_bg_color #0f1419;
+    @define-color headerbar_fg_color #bfbdb6;
+    @define-color headerbar_backdrop_color #0b0e14;
+    @define-color sidebar_bg_color #0b0e14;
+    @define-color sidebar_fg_color #bfbdb6;
+    @define-color accent_bg_color #e6b450;
+    @define-color accent_fg_color #0b0e14;
+    @define-color accent_color #ffb454;
+    @define-color theme_bg_color #0b0e14;
+    @define-color theme_fg_color #bfbdb6;
+    @define-color theme_base_color #0f1419;
+    @define-color theme_text_color #bfbdb6;
+    @define-color theme_selected_bg_color #e6b450;
+    @define-color theme_selected_fg_color #0b0e14;
+    @define-color borders #1e232b;
+
+    window, .background { background-color: #0b0e14; color: #bfbdb6; }
+  '';
+
   # Absolute paths: these run from niri's spawn env and the swayidle systemd
   # user service, neither of which has the shell binaries on PATH — a bare
   # `dms`/`noctalia-shell` silently fails with "command not found", so locking
@@ -375,6 +410,7 @@ in
             gtk-cursor-theme-size=40
             gtk-theme-name=Adwaita
             gtk-font-name=IosevkaLyteTerm 11
+            gtk-application-prefer-dark-theme=1
           '';
           ".config/gtk-4.0/settings.ini" = lib.mkForce ''
             [Settings]
@@ -382,8 +418,22 @@ in
             gtk-cursor-theme-size=40
             gtk-theme-name=Adwaita
             gtk-font-name=IosevkaLyteTerm 11
+            gtk-application-prefer-dark-theme=1
           '';
+          # ayu palette override for GTK3 + GTK4/libadwaita apps.
+          ".config/gtk-3.0/gtk.css" = ayuGtkCss;
+          ".config/gtk-4.0/gtk.css" = ayuGtkCss;
         };
+
+        # /etc/dconf/profile/user is what makes the dconf gsettings backend read the
+        # user db (~/.config/dconf/user) — without it, dconf falls back to a bogus
+        # profile and GTK apps see gsettings SCHEMA DEFAULTS instead of our values
+        # (color-scheme=prefer-dark, font-name, ...), so nothing themed applied.
+        # programs.dconf.enable is set but does NOT generate this profile on the
+        # current nixpkgs, so provide it directly.
+        environment.etc."dconf/profile/user".text = ''
+          user-db:user
+        '';
 
         # Symlinks for niri and ironbar config
         lyte.userSymlinks = {
