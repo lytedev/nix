@@ -395,12 +395,12 @@ in
         # Niri dconf and GTK settings
         lyte.dconfSettings."org/gnome/desktop/interface" = {
           color-scheme = "prefer-dark";
-          # GTK4/libadwaita apps read their UI font from here. The schema default is
-          # "Adwaita Sans", which is only installed with GNOME — on a niri-only host
-          # it's absent and GTK renders the titlebar/tab text as tofu boxes. Pin
-          # IosevkaLyteTerm (installed, and matches the terminal font).
-          font-name = "IosevkaLyteTerm 11";
-          document-font-name = "IosevkaLyteTerm 11";
+          # GTK UI font. The schema default "Adwaita Sans" only ships with GNOME, so on
+          # a niri-only host it's absent and GTK renders titlebar/tab text as tofu. Use
+          # Inter for the proportional UI/document font (installed via desktop.nix) and
+          # keep IosevkaLyteTerm for monospace (terminals/code).
+          font-name = "Inter 11";
+          document-font-name = "Inter 11";
           monospace-font-name = "IosevkaLyteTerm 11";
         };
         lyte.userFiles = {
@@ -409,7 +409,7 @@ in
             gtk-cursor-theme-name=Bibata-Modern-Classic
             gtk-cursor-theme-size=40
             gtk-theme-name=Adwaita
-            gtk-font-name=IosevkaLyteTerm 11
+            gtk-font-name=Inter 11
             gtk-application-prefer-dark-theme=1
           '';
           ".config/gtk-4.0/settings.ini" = lib.mkForce ''
@@ -417,7 +417,7 @@ in
             gtk-cursor-theme-name=Bibata-Modern-Classic
             gtk-cursor-theme-size=40
             gtk-theme-name=Adwaita
-            gtk-font-name=IosevkaLyteTerm 11
+            gtk-font-name=Inter 11
             gtk-application-prefer-dark-theme=1
           '';
           # ayu palette override for GTK3 + GTK4/libadwaita apps.

@@ -204,6 +204,10 @@ in
             (pkgs.nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
         )
         pkgs.iosevkaLyteTerm
+        # Proportional UI sans (the GTK font-name below is Inter). Adwaita fonts too,
+        # so GNOME's default "Adwaita Sans" also resolves (was falling back to DejaVu).
+        pkgs.inter
+        pkgs.adwaita-fonts
       ];
 
       fonts.fontDir.enable = true;
