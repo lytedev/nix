@@ -104,6 +104,15 @@ in
         };
         environment.systemPackages =
           (with pkgs; [
+            # GTK4/libadwaita apps (ghostty, etc.) read their UI font + color-scheme
+            # from the org.gnome.desktop.interface gsettings schema. On a GNOME/Plasma
+            # host that schema comes for free; on niri-only it doesn't, so GTK apps
+            # get no UI font (titlebar/tab text renders as tofu) and no dark/ayu
+            # theming. Install the schemas explicitly so they land in the system
+            # gschemas.compiled on the session's XDG_DATA_DIRS.
+            gsettings-desktop-schemas
+            glib # glib-compile-schemas / the gsettings CLI
+
             slurp
             grim
             kdePackages.kdeconnect-kde
@@ -120,6 +129,17 @@ in
           ])
           ++ [ lidCloseLock ]
           ++ lib.optional (cfg.osk != "none") oskToggle;
+
+        # GTK4/libadwaita apps (ghostty, etc.) read their UI font + color-scheme
+        # from the org.gnome.desktop.interface gsettings schema. On a niri-only host
+        # that schema is not on the session's XDG_DATA_DIRS (GNOME/Plasma used to
+        # put it there; programs.dconf.enable doesn't compile a combined schema on
+        # this nixpkgs), so GTK apps get no UI font (titlebar/tab text = tofu) and no
+        # dark/ayu theming. Append the schema dir to XDG_DATA_DIRS — same pattern
+        # mobile.nix already uses for folks. (GTK looks in $XDG_DATA_DIRS/glib-2.0/schemas.)
+        environment.sessionVariables.XDG_DATA_DIRS = [
+          "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
+        ];
 
         # Pick a Quickshell-based desktop shell. Both upstream modules launch the
         # shell as a systemd user unit; spawn-at-startup is no longer needed.
