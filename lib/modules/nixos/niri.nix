@@ -18,12 +18,14 @@ let
     else
       pkgs.writeText "niri-shell-bindings-empty.kdl" "";
 
-  # ayu-dark GTK theme: re-map Adwaita/libadwaita's named colors to the ayu palette
-  # (same values as the greeter's regreet CSS). Loaded via ~/.config/gtk-3.0/gtk.css +
-  # gtk-4.0/gtk.css so GTK3 and GTK4/libadwaita apps pick it up. It overrides the
-  # colors directly, so it themes apps regardless of the (finicky here) gsettings
-  # color-scheme path.
-  ayuGtkCss = ''
+  # ayu GTK theme palettes — Adwaita/libadwaita named-color overrides (dark values
+  # match the greeter's regreet CSS). BOTH dark and light are defined and shipped as
+  # ~/.config/gtk-{3,4}.0/ayu-{dark,light}.css; the active gtk.css currently uses dark.
+  # @define-color is global (can't be scoped per light/dark mode), so we ship two files
+  # rather than one conditional file — a future switcher just swaps which one gtk.css
+  # loads (and flips gtk-application-prefer-dark-theme). Overriding the colors directly
+  # means it themes apps regardless of the (finicky here) gsettings color-scheme path.
+  ayuGtkCssDark = ''
     @define-color window_bg_color #0b0e14;
     @define-color window_fg_color #bfbdb6;
     @define-color view_bg_color #0f1419;
@@ -51,6 +53,36 @@ let
     @define-color borders #1e232b;
 
     window, .background { background-color: #0b0e14; color: #bfbdb6; }
+  '';
+  # Ayu Light palette.
+  ayuGtkCssLight = ''
+    @define-color window_bg_color #f8f9fb;
+    @define-color window_fg_color #5c6166;
+    @define-color view_bg_color #fcfcfc;
+    @define-color view_fg_color #5c6166;
+    @define-color card_bg_color #ffffff;
+    @define-color card_fg_color #5c6166;
+    @define-color popover_bg_color #ffffff;
+    @define-color popover_fg_color #5c6166;
+    @define-color dialog_bg_color #f8f9fb;
+    @define-color dialog_fg_color #5c6166;
+    @define-color headerbar_bg_color #f3f4f5;
+    @define-color headerbar_fg_color #5c6166;
+    @define-color headerbar_backdrop_color #f8f9fb;
+    @define-color sidebar_bg_color #f3f4f5;
+    @define-color sidebar_fg_color #5c6166;
+    @define-color accent_bg_color #ffaa33;
+    @define-color accent_fg_color #ffffff;
+    @define-color accent_color #f2ae49;
+    @define-color theme_bg_color #f8f9fb;
+    @define-color theme_fg_color #5c6166;
+    @define-color theme_base_color #fcfcfc;
+    @define-color theme_text_color #5c6166;
+    @define-color theme_selected_bg_color #ffaa33;
+    @define-color theme_selected_fg_color #ffffff;
+    @define-color borders #e7e8e9;
+
+    window, .background { background-color: #f8f9fb; color: #5c6166; }
   '';
 
   # Absolute paths: these run from niri's spawn env and the swayidle systemd
@@ -420,9 +452,15 @@ in
             gtk-font-name=Inter 11
             gtk-application-prefer-dark-theme=1
           '';
-          # ayu palette override for GTK3 + GTK4/libadwaita apps.
-          ".config/gtk-3.0/gtk.css" = ayuGtkCss;
-          ".config/gtk-4.0/gtk.css" = ayuGtkCss;
+          # ayu palette for GTK3 + GTK4/libadwaita. Both variants are shipped; gtk.css
+          # is the active one (dark for now). A future light/dark switcher just swaps
+          # gtk.css to ayu-light.css and flips gtk-application-prefer-dark-theme.
+          ".config/gtk-3.0/gtk.css" = ayuGtkCssDark;
+          ".config/gtk-4.0/gtk.css" = ayuGtkCssDark;
+          ".config/gtk-3.0/ayu-dark.css" = ayuGtkCssDark;
+          ".config/gtk-3.0/ayu-light.css" = ayuGtkCssLight;
+          ".config/gtk-4.0/ayu-dark.css" = ayuGtkCssDark;
+          ".config/gtk-4.0/ayu-light.css" = ayuGtkCssLight;
         };
 
         # /etc/dconf/profile/user is what makes the dconf gsettings backend read the
