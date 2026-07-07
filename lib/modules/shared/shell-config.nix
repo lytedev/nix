@@ -42,6 +42,11 @@ in
           };
         };
 
+        programs.direnv = {
+          enable = true;
+          nix-direnv.enable = true;
+        };
+
         environment = {
           variables = {
             EDITOR = "hx";
@@ -54,7 +59,6 @@ in
             atuin
             direnv
             fzf
-            nix-direnv
 
             aria2
             bat
