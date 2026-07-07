@@ -200,5 +200,7 @@
     playwright-mcp
     godot_4
     hidapi
+    # working OrcaSlicer (upstream AppImage; nixpkgs build's 3D viewport is blank)
+    orca-slicer
   ];
 }
