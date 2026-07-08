@@ -24,7 +24,12 @@
   };
 
   # Backup integration
-  services.restic.commonPaths = [ "/storage/openobserve" ];
+  # Back up ONLY OpenObserve's metadata (dashboards, users, alerts, functions,
+  # stream schemas — all in data/db/metadata.sqlite, ~1.8G), NOT the ingested
+  # log/metric data under data/{stream,wal,cache,tmp} (~297G / 15M tiny files).
+  # That data is regenerable observability history; backing it up made restic
+  # take 6+h and bloated every repo. See the 2026-07 disk-overhaul thread.
+  services.restic.commonPaths = [ "/storage/openobserve/data/db" ];
 
   # Secrets for OpenObserve authentication
   sops.secrets = {
