@@ -108,8 +108,12 @@ ssh root@192.168.0.9 'bash -s' < lib/doc/impermanence-final-delta.sh
 #  starts nothing — the reboot below brings everything up on the new root)
 
 # 2. deploy the flag-on closure as a BOOT entry (never live-switch a root
-#    change; the wrapper's validation gate runs first automatically):
-deploy -s --targets ".#beefcake" -- --boot     # from dragon
+#    change; the wrapper's validation gate runs first automatically).
+#    --boot is a deploy-rs flag ("update the boot loader, don't activate") — it
+#    MUST come before `--`; putting it after `--` passes it to `nix build`,
+#    which silently does a LIVE SWITCH instead (wedge risk). Deploy over the
+#    LAN, not the VPN: beefcake runs headscale and a VPN deploy severs itself.
+deploy --boot -s --targets ".#beefcake" --hostname 192.168.0.9     # from dragon
 
 # 3. reboot (this is the moment; ~12 min on this box):
 ssh root@192.168.0.9 systemctl reboot
@@ -138,6 +142,72 @@ generation — those boot the untouched old root (`rpool/root`) with the old
 initrd, no rollback unit, no /persist dependency. The system is then exactly
 what it was before Part 3. `/persist` keeps the newer copies of state; if
 you stayed rolled-back for long, reverse-rsync the deltas before retrying.
+
+## Part 6 — Retry #3: the proper reboot test (the current step)
+
+Where we are (2026-07-08): the flag is already ON and beefcake is **running
+the impermanent root right now** (gen 608) — but only because three fixes were
+applied by hand across two flip attempts. Two of them are baked into
+generation 608 (machine-id, #726). The third, the sops-initrd + `/var`-perms
+fix (**PR #727**, `beefcake-impermanence-boot-fixes`), is on the branch but was
+patched onto the *live* system by hand — it is **NOT in the running closure**.
+So a plain reboot today would regress the sops-initrd path and come up
+degraded. Retry #3 = bake #727 into a boot entry and reboot to prove a *clean*
+boot with everything encoded. No datasets, no migration — the state is already
+on `/persist`; this is just a deploy + reboot.
+
+**Pre-flight (do every time — the no-downgrade rule):**
+
+```bash
+# in the workspace with #727 checked out:
+#   code/workspaces/nix/beefcake-impermanence-blue-green
+jj git fetch                                   # never deploy a stale checkout
+
+# what beefcake runs now (note the date + rev suffix):
+ssh root@192.168.0.9 readlink /run/current-system
+#   -> ...-nixos-system-beefcake-26.05.20260623.667d5cf   (2026-06-23)
+
+# what #727 will build — same nixpkgs (nixpkgs_4=667d5cf), so NOT a downgrade
+# and NOT a cross-release: config + initrd change only, no toolchain re-exec:
+nix eval --raw .#nixosConfigurations.beefcake.config.system.nixos.label
+#   -> 26.05.20260623.667d5cf   (must match the date/rev above, or STOP)
+```
+
+**Deploy + reboot:**
+
+```bash
+# 1. boot entry only — no live activation (so no dbus-reexec wedge); the gate
+#    boots the candidate as beefcake-lite first. LAN, not VPN (headscale).
+deploy --boot -s --targets ".#beefcake" --hostname 192.168.0.9
+
+# 2. have the boot menu / iDRAC virtual console up BEFORE you reboot, so you
+#    can watch stage-1 and drop to a pre-flip generation if it hangs.
+ssh root@192.168.0.9 systemctl reboot          # ~12 min on this box
+```
+
+Then run **Part 4** verification. The specific things #727 is proving on a
+clean boot (all of which failed on the by-hand path before the fix):
+
+```bash
+ls /run/secrets | wc -l                        # want ~44, not 0 (sops in initrd OK)
+stat -c '%a' /var /var/lib                      # want 755 755 (not 700)
+systemctl is-system-running                     # want: running, 0 failed
+```
+
+If all green: this is the real proof — **now** merge #727 (verify-before-merge)
+and re-pin the boot default so unattended reboots stay on the impermanent root:
+
+```bash
+ssh root@192.168.0.9 bootctl set-default nixos-generation-<new>.conf
+```
+
+Rollback is unchanged (**Part 5**): boot any pre-flip generation (gen 606 is
+still there) from the menu.
+
+**Deferred to their own fast-follow PRs (NOT in the reboot test):** provisioning
+the ed25519 host key declaratively (encrypted in-repo to the master key, laid
+on `/persist` at setup — so identity is intentional, not install-random state);
+and a VM regression guard for the `/var`-perms class.
 
 ## Troubleshooting quickies
 
