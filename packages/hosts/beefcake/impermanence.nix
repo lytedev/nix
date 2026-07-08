@@ -115,6 +115,27 @@ in
         # k3s keeps supplementary state here even with dataDir=/storage/k3s
         # (578M live per the 2026-07-01 audit)
         "/var/lib/rancher"
+        # k3s DEFAULT-path state that ignores dataDir (2026-07-08 live sweep):
+        # kubelet pod/volume state + CNI IP allocations
+        "/var/lib/kubelet"
+        "/var/lib/cni"
+        # module-created redis instances (immich/paperless enable their own;
+        # RDB dumps = the 2026-06-28 incident file class)
+        "/var/lib/redis-immich"
+        "/var/lib/redis-paperless"
+        # samba TDBs: machine SID / passdb — losing them de-identifies the
+        # file server for every client
+        "/var/lib/samba"
+        # DHCP lease + seen-network continuity
+        "/var/lib/NetworkManager"
+        # bootstrap-era age key (bitwarden of history: NOT a current sops
+        # recipient — .sops.yaml uses the ssh-host-key-derived identity —
+        # but 189 bytes of identity insurance is free)
+        "/var/lib/sops-nix"
+        # disabled bridges whose sqlite should survive a future re-enable
+        "/var/lib/mautrix-meta-facebook"
+        "/var/lib/mautrix-meta-instagram"
+        "/var/lib/mautrix-whatsapp"
         # operator surfaces
         {
           directory = "/root";

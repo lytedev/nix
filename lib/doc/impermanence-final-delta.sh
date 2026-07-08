@@ -16,6 +16,7 @@ systemctl stop \
   caddy knot headscale tailscaled home-assistant clickhouse mosquitto \
   unifi jellyfin forgejo mautrix-discord mautrix-slack mautrix-gmessages \
   heisenbridge meshtasticd jmap-matrix-notify vaultwarden kanidm k3s \
+  redis-immich redis-paperless samba-smbd samba-nmbd samba-wsdd \
   podman-music-assistant podman-mmrelay podman-hearth 2>&1 \
   | grep -v "not loaded" || true
 sync
@@ -34,7 +35,11 @@ for d in nixos systemd tailscale headscale hass clickhouse knot mosquitto \
          unifi jellyfin forgejo-db mautrix-discord mautrix-slack \
          mautrix-gmessages heisenbridge meshtasticd jmap-matrix-notify \
          forgejo-github-mirror music-assistant mmrelay hearth bitwarden_rs \
-         kanidm caddy rancher; do
+         kanidm caddy rancher kubelet cni redis-immich redis-paperless \
+         samba NetworkManager sops-nix mautrix-meta-facebook \
+         mautrix-meta-instagram mautrix-whatsapp; do
+  # (NetworkManager is deliberately NOT stopped — killing it would drop the
+  #  network mid-window; its state changes slowly and rsync is rerun anyway)
   if [ -e "/var/lib/$d" ]; then
     rsync -aHAX --delete "/var/lib/$d" /mnt/persist/var/lib/
   else

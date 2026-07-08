@@ -75,7 +75,9 @@ for d in nixos systemd tailscale headscale hass clickhouse knot mosquitto \
          unifi jellyfin forgejo-db mautrix-discord mautrix-slack \
          mautrix-gmessages heisenbridge meshtasticd jmap-matrix-notify \
          forgejo-github-mirror music-assistant mmrelay hearth bitwarden_rs \
-         kanidm caddy rancher; do
+         kanidm caddy rancher kubelet cni redis-immich redis-paperless \
+         samba NetworkManager sops-nix mautrix-meta-facebook \
+         mautrix-meta-instagram mautrix-whatsapp; do
   rsync -aHAX --info=progress2 "/var/lib/$d" /mnt/persist/var/lib/ || echo "MISSING: $d (fine if service retired)"
 done
 rsync -aHAX /root /mnt/persist/
