@@ -755,6 +755,38 @@ in
             { service = "rest_command.hearth_dismiss_fired"; }
           ];
         };
+
+        # "What can you do" spoken discovery menu (see custom_sentences/en/
+        # assist_menu.yaml for the mechanism). Each of these ONLY speaks — no
+        # action. The multi-turn trick is entirely in the punctuation: a
+        # response ending in "?" makes HA keep the satellite listening (no new
+        # wake word), so every menu/area prompt ends in a question and the
+        # closing line ends in a period. The example phrasings below MUST stay
+        # in sync with the real Hearth/Music-Assistant intents above — this is
+        # the single place to update when a command changes.
+        AssistWhatCanYouDo = {
+          speech.text = "I can help with four things. Media, like music, audiobooks, podcasts, and video. The household, like groceries, tasks, meals, and your calendar. Timers. And home control, like lights, switches, and scenes. Which would you like to hear more about?";
+        };
+        # "back" / "start over" — re-speak the top menu (same text as above).
+        AssistMenuBack = {
+          speech.text = "I can help with four things. Media, like music, audiobooks, podcasts, and video. The household, like groceries, tasks, meals, and your calendar. Timers. And home control, like lights, switches, and scenes. Which would you like to hear more about?";
+        };
+        AssistAreaMedia = {
+          speech.text = "For media, say play and then an artist, song, or playlist, and add everywhere or a room to choose where. Say play the audiobook, or play the podcast, and its name. Put something on the TV by saying play it on the TV. And while something is playing you can say pause, skip, previous, louder, quieter, or move it to another room. Want to hear about the household, timers, or home control?";
+        };
+        AssistAreaHousehold = {
+          speech.text = "Around the house, I can add things to the groceries or your tasks, and track the pantry, like we're out of milk, or do we have eggs. I can plan meals, like what's for dinner, or plan tacos for Friday, and add the ingredients for a recipe. And I manage your calendar, like what's on my schedule, or schedule the dentist for Tuesday. Want media, timers, or home control?";
+        };
+        AssistAreaTimers = {
+          speech.text = "For timers, say set a timer for ten minutes, or give it a name, like set a five minute pasta timer. When one goes off, just say stop. Anything else, like media, household, or home control?";
+        };
+        AssistAreaHome = {
+          speech.text = "For the home, say turn on or turn off, dim, lock or unlock, and then the device or room, like turn off the kitchen lights. You can also just say the name of a scene to set it. Want media, household, or timers?";
+        };
+        # Closing line ends in a period, so HA does NOT keep listening.
+        AssistMenuDone = {
+          speech.text = "Okay, happy to help.";
+        };
       };
     };
 
@@ -775,6 +807,7 @@ in
   # content so sentence edits reliably take effect on deploy.
   systemd.services.home-assistant.restartTriggers = [
     ./home-assistant/custom_sentences/en/hearth.yaml
+    ./home-assistant/custom_sentences/en/assist_menu.yaml
   ];
 
   # Wyoming voice pipeline with primary→backup failover.
@@ -888,6 +921,7 @@ in
     # Symlink (not C+ copy) so edits to hearth.yaml actually propagate on
     # redeploy — C+ refuses to overwrite an existing file.
     "L+ /var/lib/hass/custom_sentences/en/hearth.yaml - - - - ${./home-assistant/custom_sentences/en/hearth.yaml}"
+    "L+ /var/lib/hass/custom_sentences/en/assist_menu.yaml - - - - ${./home-assistant/custom_sentences/en/assist_menu.yaml}"
     "d /var/lib/hass/dashboards 0755 hass hass -"
     "C+ /var/lib/hass/dashboards/wall.yaml 0644 hass hass - ${./home-assistant/dashboards/wall.yaml}"
     "L+ /var/lib/hass/secrets.yaml - - - - ${hassSecretsPath}"

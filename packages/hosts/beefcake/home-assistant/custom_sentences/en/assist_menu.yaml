@@ -1,0 +1,112 @@
+language: en
+# Spoken "what can you do" discovery menu — an NPC-style, multi-turn help tree.
+#
+# HOW THE MULTI-TURN WORKS (no LLM, no custom agent): HA's default conversation
+# agent marks a turn as "continue listening" purely by whether the assistant's
+# spoken response ends in "?" (homeassistant/components/conversation/chat_log.py
+# `continue_conversation`). So every prompt below ends in a QUESTION → the
+# satellite re-opens the mic without a new wake word; a plain "." closes it.
+# The handlers live in home-assistant.nix `intent_script` (Assist* entries).
+#
+# The menu is intentionally FLAT + stateless: each area word (media / household /
+# timers / home) is directly reachable at any point, so "media" then "timers"
+# just works and there's no state machine to desync. Each area response teaches
+# the REAL phrasings from hearth.yaml and ends by offering the other areas.
+#
+# KEEP-UP-TO-DATE: when you add/rename a Hearth or Music-Assistant command,
+# update the matching example phrasing in the Assist* speech text in
+# home-assistant.nix. This file only needs new trigger words if you add an area.
+#
+# COLLISION NOTE (see hearth.yaml's own notes): these are single fixed sentences
+# (no wildcards) so hassil scores them as exact matches — they don't shadow the
+# wildcard Hearth intents. The area words were picked to not begin with the
+# anchors Hearth intents use (play/set/add/turn/…). "home"/"lights" are the only
+# mildly risky bare words; "home control"/"controls" are the safe primaries.
+intents:
+  # Enter the menu.
+  AssistWhatCanYouDo:
+    data:
+      - sentences:
+          - "what can you do"
+          - "what can I (say|ask|do)"
+          - "what can I ask you"
+          - "what are my options"
+          - "what can you help [me] with"
+          - "help"
+          - "help me"
+          - "[the] menu"
+          - "give me the menu"
+          - "options"
+
+  # Area: media (Music Assistant + TV video).
+  AssistAreaMedia:
+    data:
+      - sentences:
+          - "media"
+          - "music"
+          - "entertainment"
+          - "media help"
+          - "music help"
+          - "tell me about media"
+          - "what can I (listen to|play|watch)"
+
+  # Area: household (Hearth app).
+  AssistAreaHousehold:
+    data:
+      - sentences:
+          - "household"
+          - "the household"
+          - "hearth"
+          - "chores"
+          - "household help"
+          - "tell me about [the] household"
+
+  # Area: timers.
+  AssistAreaTimers:
+    data:
+      - sentences:
+          - "timers"
+          - "timer"
+          - "timer help"
+          - "tell me about timers"
+
+  # Area: home control (lights/switches/scenes via built-in HA intents).
+  AssistAreaHome:
+    data:
+      - sentences:
+          - "home control"
+          - "controls"
+          - "control the home"
+          - "home devices"
+          - "home help"
+          - "home"
+          - "lights"
+          - "tell me about (home control|the home)"
+
+  # Re-hear the top-level menu.
+  AssistMenuBack:
+    data:
+      - sentences:
+          - "back"
+          - "go back"
+          - "start over"
+          - "main menu"
+          - "what were the options"
+          - "say that again"
+
+  # Close the menu.
+  AssistMenuDone:
+    data:
+      - sentences:
+          - "no"
+          - "nope"
+          - "no thanks"
+          - "no thank you"
+          - "nothing"
+          - "nothing else"
+          - "that's all"
+          - "that's it"
+          - "never mind"
+          - "I'm good"
+          - "we're good"
+          - "we're done"
