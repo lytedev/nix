@@ -103,6 +103,15 @@ in
         "/var/lib/hearth"
         "/var/lib/vaultwarden"
         "/var/lib/kanidm"
+        # PERSISTED but deliberately NOT backed up — persistence and backup
+        # are different decisions: un-persisted means recreated EVERY BOOT.
+        # caddy: losing ACME state per-boot would re-issue ~30 certs per
+        # reboot -> Let's Encrypt rate-limit lockout. (Backup exclusion per
+        # Daniel 2026-07-01 stands: it IS re-issuable across a disaster.)
+        "/var/lib/caddy"
+        # k3s keeps supplementary state here even with dataDir=/storage/k3s
+        # (578M live per the 2026-07-01 audit)
+        "/var/lib/rancher"
         # operator surfaces
         {
           directory = "/root";

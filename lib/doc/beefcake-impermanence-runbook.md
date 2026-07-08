@@ -75,7 +75,7 @@ for d in nixos systemd tailscale headscale hass clickhouse knot mosquitto \
          unifi jellyfin forgejo-db mautrix-discord mautrix-slack \
          mautrix-gmessages heisenbridge meshtasticd jmap-matrix-notify \
          forgejo-github-mirror music-assistant mmrelay hearth vaultwarden \
-         kanidm; do
+         kanidm caddy rancher; do
   rsync -aHAX --info=progress2 "/var/lib/$d" /mnt/persist/var/lib/ || echo "MISSING: $d (fine if service retired)"
 done
 rsync -aHAX /root /mnt/persist/
@@ -100,10 +100,10 @@ Announce the window (coordinator/other agents: no deploys). Then:
 #   the candidate as a VM first either way.
 
 # 1. final state delta with services quiesced (on beefcake):
-bash /root/impermanence-final-delta.sh   # generated for you in prep review —
-                                         # stops the ~20 stateful units,
-                                         # re-runs the Part-2 rsyncs, starts
-                                         # nothing (reboot follows)
+# from dragon, in the repo:
+ssh root@192.168.0.9 'bash -s' < lib/doc/impermanence-final-delta.sh
+# (stops the persist-set writers, re-runs the Part-2 rsyncs with --delete,
+#  starts nothing — the reboot below brings everything up on the new root)
 
 # 2. deploy the flag-on closure as a BOOT entry (never live-switch a root
 #    change; the wrapper's validation gate runs first automatically):
