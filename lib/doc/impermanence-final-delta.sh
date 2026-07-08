@@ -33,7 +33,7 @@ cp -a /etc/ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key.pub \
 for d in nixos systemd tailscale headscale hass clickhouse knot mosquitto \
          unifi jellyfin forgejo-db mautrix-discord mautrix-slack \
          mautrix-gmessages heisenbridge meshtasticd jmap-matrix-notify \
-         forgejo-github-mirror music-assistant mmrelay hearth vaultwarden \
+         forgejo-github-mirror music-assistant mmrelay hearth bitwarden_rs \
          kanidm caddy rancher; do
   if [ -e "/var/lib/$d" ]; then
     rsync -aHAX --delete "/var/lib/$d" /mnt/persist/var/lib/
@@ -45,7 +45,7 @@ rsync -aHAX --delete /root  /mnt/persist/
 rsync -aHAX --delete /home  /mnt/persist/
 rsync -aHAX --delete /srv   /mnt/persist/
 rsync -aHAX /var/log /mnt/persist/var/
-rsync -aHAX --delete /var/cache/restic /mnt/persist/var/cache/
+rsync -aHAX --delete /var/cache/restic-backups-local /var/cache/restic-backups-rascal /var/cache/restic-backups-benland /mnt/persist/var/cache/
 sync
 umount /mnt/persist
 

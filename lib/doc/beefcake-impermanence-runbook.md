@@ -74,7 +74,7 @@ cp -a /etc/ssh/ssh_host_ed25519_key{,.pub} /etc/ssh/ssh_host_rsa_key{,.pub} /mnt
 for d in nixos systemd tailscale headscale hass clickhouse knot mosquitto \
          unifi jellyfin forgejo-db mautrix-discord mautrix-slack \
          mautrix-gmessages heisenbridge meshtasticd jmap-matrix-notify \
-         forgejo-github-mirror music-assistant mmrelay hearth vaultwarden \
+         forgejo-github-mirror music-assistant mmrelay hearth bitwarden_rs \
          kanidm caddy rancher; do
   rsync -aHAX --info=progress2 "/var/lib/$d" /mnt/persist/var/lib/ || echo "MISSING: $d (fine if service retired)"
 done
@@ -82,7 +82,7 @@ rsync -aHAX /root /mnt/persist/
 rsync -aHAX /home /mnt/persist/
 rsync -aHAX /srv /mnt/persist/
 rsync -aHAX /var/log /mnt/persist/var/
-rsync -aHAX /var/cache/restic /mnt/persist/var/cache/
+rsync -aHAX /var/cache/restic-backups-local /var/cache/restic-backups-rascal /var/cache/restic-backups-benland /mnt/persist/var/cache/
 umount /mnt/persist
 ```
 

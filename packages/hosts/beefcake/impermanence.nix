@@ -101,7 +101,10 @@ in
         "/var/lib/music-assistant"
         "/var/lib/mmrelay"
         "/var/lib/hearth"
-        "/var/lib/vaultwarden"
+        # vaultwarden's StateDirectory is the project's LEGACY name
+        # (bitwarden_rs) — verified live 2026-07-08; /var/lib/vaultwarden
+        # does not exist
+        "/var/lib/bitwarden_rs"
         "/var/lib/kanidm"
         # PERSISTED but deliberately NOT backed up — persistence and backup
         # are different decisions: un-persisted means recreated EVERY BOOT.
@@ -122,10 +125,13 @@ in
         # logs: journald is capped (1G) + shipped to OpenObserve; persisting
         # keeps local forensics across the crash-reboots where they matter
         "/var/log"
-        # restic metadata cache (52G): rebuildable, persisted purely so
-        # post-reboot backup runs don't re-fetch indexes from the two remote
-        # sftp repos (decision 2026-07-01)
-        "/var/cache/restic"
+        # restic metadata caches (~57G, one per repo via systemd
+        # CacheDirectory=restic-backups-<name> — verified live 2026-07-08):
+        # rebuildable, persisted purely so post-reboot backup runs don't
+        # re-fetch indexes from the two remote sftp repos
+        "/var/cache/restic-backups-local"
+        "/var/cache/restic-backups-rascal"
+        "/var/cache/restic-backups-benland"
       ];
     };
 
