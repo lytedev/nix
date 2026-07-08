@@ -30,6 +30,11 @@
   };
 
   lyte.server.enable = true;
+  # ACTIVATED 2026-07-08 per lib/doc/beefcake-impermanence-runbook.md:
+  # /persist staged + verified (68.3G + gap-review top-up), @blank pristine.
+  # Takes effect at the next boot-entry deploy + reboot (root changes are
+  # never live-switched).
+  lyte.impermanence.enable = true;
   lyte.podman.enable = true;
   lyte.headscale.usePreAuthKey = true;
 
