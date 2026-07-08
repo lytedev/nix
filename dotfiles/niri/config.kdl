@@ -648,6 +648,19 @@ binds {
     Mod+Minus { set-column-width "-10%"; }
     Mod+Equal { set-column-width "+10%"; }
 
+    // Jump the focused column to an exact width: Ctrl+Super+Alt+N -> N*10%,
+    // and 0 -> 100% (full screen width).
+    Mod+Ctrl+Alt+1 { set-column-width "10%"; }
+    Mod+Ctrl+Alt+2 { set-column-width "20%"; }
+    Mod+Ctrl+Alt+3 { set-column-width "30%"; }
+    Mod+Ctrl+Alt+4 { set-column-width "40%"; }
+    Mod+Ctrl+Alt+5 { set-column-width "50%"; }
+    Mod+Ctrl+Alt+6 { set-column-width "60%"; }
+    Mod+Ctrl+Alt+7 { set-column-width "70%"; }
+    Mod+Ctrl+Alt+8 { set-column-width "80%"; }
+    Mod+Ctrl+Alt+9 { set-column-width "90%"; }
+    Mod+Ctrl+Alt+0 { set-column-width "100%"; }
+
     // Finer height adjustments when in column with other windows.
     Mod+Shift+Minus { set-window-height "-10%"; }
     Mod+Shift+Equal { set-window-height "+10%"; }
