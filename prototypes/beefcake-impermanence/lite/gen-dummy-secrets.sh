@@ -10,6 +10,20 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 RECIPIENT=$(nix shell nixpkgs#age -c age-keygen -y ../keys/age-test-key.txt)
+
+# Derive the secret key list from the EVALUATED lite config (the exact config
+# the deploy gate builds) — never hardcode it. A hardcoded list drifted twice
+# (infra-alert-webhook-url) and false-failed the gate. extendModules matches
+# what lite/run-lite.sh builds; needs an existing dummy-secrets.yml to eval
+# against (we only read KEY NAMES here, so a stale one bootstraps fine).
+repo=$(cd ../../.. && pwd)
+KEYS_JSON=$(nix eval --impure --json --expr "
+  let f = builtins.getFlake \"path:$repo\";
+      lite = f.nixosConfigurations.beefcake.extendModules {
+        modules = [ $repo/prototypes/beefcake-impermanence/lite/beefcake-lite.nix ];
+      };
+  in map (s: s.key) (builtins.attrValues lite.config.sops.secrets)")
+export KEYS_JSON
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
@@ -69,30 +83,28 @@ secrets = {
     "dawncraft.env": env("DAWNCRAFT_SECRET"),
 }
 
-# Everything else: opaque random strings.
-plain = """
-disk-alert-webhook-url foo github-app-id github-app-installation-id
-github-mirror-failure-webhook grafana-admin-password grafana-smtp-password
-headscale-oidc-secret headscale-server-authkey jmap-matrix-notify-api-key
-jmap-matrix-notify-webhook-url k3s-token kanidm-host-beefcake-token
-matrix-oauth-client-secret matrix-registration-token-file
-meshtastic-channel-psk mosquitto-meshtasticd-password
-mosquitto-meshtastic-password netlify-ddns-password nextcloud-admin-password
-paperless-superuser-password plausible-admin-password plausible-secret-key-base
-restic-rascal-passphrase stalwart-admin-password stalwart-smtp-relay-password
-stalwart-smtp-relay-username syncthing-gui-password tsig-beefcake-h
-tsig-caddy-acme tsig-router-h tsig-secondary-1984 tsig-secondary-he
-""".split()
-for name in plain:
-    secrets[name] = rand()
-
-# webhook URLs should look like URLs (some code parses them)
-for name in [
-    "disk-alert-webhook-url",
-    "github-mirror-failure-webhook",
-    "jmap-matrix-notify-webhook-url",
-]:
-    secrets[name] = "http://127.0.0.1:9/dummy-webhook"
+# Everything else comes from the EVALUATED config (KEYS_JSON), so new
+# secrets can never again drift the fixture: slash-keys -> nested dicts;
+# url/webhook names -> URL-shaped values; .env -> a generic var; the rest ->
+# opaque random strings. Format-critical entries defined above win.
+needed = json.loads(os.environ["KEYS_JSON"])
+for key in needed:
+    parts = key.split("/")
+    if len(parts) == 1 and parts[0] in secrets:
+        continue  # format-critical special case already set
+    if len(parts) > 1:
+        node = secrets.setdefault(parts[0], {})
+        if not isinstance(node, dict):
+            continue
+        for p in parts[1:-1]:
+            node = node.setdefault(p, {})
+        node.setdefault(parts[-1], "dummy-" + rand(6))
+    elif "webhook" in key or key.endswith("-url"):
+        secrets[key] = "http://127.0.0.1:9/dummy-webhook"
+    elif key.endswith(".env"):
+        secrets[key] = "DUMMY_SECRET=dummy-" + rand(6)
+    else:
+        secrets[key] = rand()
 
 print(json.dumps(secrets))
 PYEOF
