@@ -126,6 +126,13 @@ let
     # wayland-session (niri, plus any host-specific extras like foxtrot's
     # "Gaming (gamescope)") appears in the picker.
     export XDG_DATA_DIRS=${config.services.displayManager.sessionData.desktops}/share''${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
+    # Disable the controlling tty's signal chars (ISIG) before launching niri. This
+    # greetd session leader is root and sits in tty1's foreground process group; a
+    # stray ^C on the VT reaches tty1's line discipline and the kernel SIGINTs the
+    # whole group (strace: si_code=SI_KERNEL), killing this leader and bouncing back
+    # to the greeter. niri takes input via libinput, never the tty, so clearing ISIG
+    # is transparent. Guarded so a missing ctty is a no-op, not a launch failure.
+    ${pkgs.coreutils}/bin/stty -isig < /dev/tty 2>/dev/null || true
     exec dbus-run-session niri -c ${greeterNiriConfig}
   '';
 in

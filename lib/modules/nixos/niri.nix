@@ -10,6 +10,38 @@ flakeInputs:
 let
   cfg = config.lyte.desktop.niri;
   dotfilesPath = config.lyte.dotfilesPath;
+
+  # tty SIGINT hardening for the user niri session (see programs.niri.package below).
+  # The niri wayland-session is Exec=niri-session, which greetd runs as a ROOT
+  # --session-worker in tty1's foreground process group. A stray ^C on the VT reaches
+  # tty1's line discipline and the kernel SIGINTs the whole group — including that
+  # root leader — dropping the session back to the greeter. niri itself never crashes
+  # (strace confirmed si_code=SI_KERNEL, delivered to every pid on tty1). Clearing
+  # ISIG on the controlling tty before launching neutralises it; niri reads input via
+  # libinput, never the tty line discipline, so this is transparent. The `|| true`
+  # keeps a missing controlling tty a no-op rather than a login-blocking failure.
+  niriSessionTtyHardened = pkgs.writeShellScript "niri-session-tty-hardened" ''
+    ${pkgs.coreutils}/bin/stty -isig < /dev/tty 2>/dev/null || true
+    exec ${pkgs.niri}/bin/niri-session "$@"
+  '';
+  # Wrap the niri package so ONLY its wayland-session desktop Exec points at the
+  # hardened wrapper. niri, its systemd user units, and its binaries are untouched
+  # (symlinked through). symlinkJoin drops passthru, so re-attach providedSessions —
+  # the display manager reads it to register the "niri" session.
+  niriPackageTtyHardened =
+    (pkgs.symlinkJoin {
+      name = "niri-tty-hardened";
+      paths = [ pkgs.niri ];
+      postBuild = ''
+        rm -f "$out/share/wayland-sessions/niri.desktop"
+        substitute ${pkgs.niri}/share/wayland-sessions/niri.desktop \
+          "$out/share/wayland-sessions/niri.desktop" \
+          --replace-fail 'Exec=niri-session' 'Exec=${niriSessionTtyHardened}'
+      '';
+    })
+    // {
+      providedSessions = pkgs.niri.providedSessions or [ "niri" ];
+    };
   shellBindings =
     if cfg.shell == "noctalia" then
       "${dotfilesPath}/niri/noctalia-bindings.kdl"
@@ -276,6 +308,9 @@ in
             };
           };
         programs.niri.enable = true;
+        # Harden the niri wayland-session's greetd leader against tty-generated SIGINT
+        # (see niriPackageTtyHardened above).
+        programs.niri.package = niriPackageTtyHardened;
         programs.dconf.enable = true;
 
         services.displayManager.defaultSession = lib.mkForce "niri";
