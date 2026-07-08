@@ -60,6 +60,49 @@ in
       '';
     };
 
+    # CRITICAL (flip-attempt-#1 root cause, 2026-07-08): /etc/machine-id must
+    # exist BEFORE PID1 starts. The @blank root is empty, and impermanence's
+    # activation-time symlink of /etc/machine-id only lands ~50s into stage-2
+    # — far too late. Without it, PID1 finds no machine-id, generates a random
+    # transient one, and sets ConditionFirstBoot=true; in that first-boot
+    # state dbus-broker's launcher fails its privilege-drop
+    # (launcher_run_child: Permission denied) and crash-loops every 90s,
+    # blocking NetworkManager → no network → boot never completes.
+    # Fix: copy the persisted machine-id onto the fresh root in initrd, after
+    # the rollback + /persist mount, before switch-root. Then PID1 sees it and
+    # boots normally (ConditionFirstBoot=false). machine-id is dropped from the
+    # persist `files` list below so the activation symlink doesn't fight this.
+    boot.initrd.systemd.services.persist-machine-id = {
+      description = "Seed /etc/machine-id from /persist before switch-root (impermanence)";
+      wantedBy = [ "initrd.target" ];
+      requires = [
+        "sysroot.mount"
+        "sysroot-persist.mount"
+      ];
+      after = [
+        "rollback-root.service"
+        "sysroot.mount"
+        "sysroot-persist.mount"
+      ];
+      before = [ "initrd-switch-root.target" ];
+      unitConfig.DefaultDependencies = "no";
+      serviceConfig.Type = "oneshot";
+      script = ''
+        mkdir -p /sysroot/persist/etc /sysroot/etc
+        # Self-seed if the persisted copy is missing (belt-and-suspenders:
+        # a missing machine-id must never again drop us into first-boot +
+        # dbus crash-loop). beefcake's is pre-seeded by the runbook; this
+        # also makes a from-scratch rebuild self-heal.
+        if [ ! -s /sysroot/persist/etc/machine-id ]; then
+          tr -d - < /proc/sys/kernel/random/uuid > /sysroot/persist/etc/machine-id
+          echo "impermanence: generated a new machine-id into /persist"
+        fi
+        cp /sysroot/persist/etc/machine-id /sysroot/etc/machine-id
+        chmod 0444 /sysroot/etc/machine-id
+        echo "impermanence: seeded /etc/machine-id before switch-root"
+      '';
+    };
+
     # Rides the same activation reboot: BIOS VT-d is already enabled (iDRAC
     # verified 2026-07-05); this exposes IOMMU groups for the Phase-5 HBA
     # passthrough option. Zero effect on normal operation.
@@ -71,9 +114,12 @@ in
     # anything writing outside this list.
     environment.persistence."/persist" = {
       hideMounts = true;
-      files = [
-        "/etc/machine-id"
-      ];
+      # NOTE: /etc/machine-id is deliberately NOT here — it's seeded in initrd
+      # by persist-machine-id above (must exist before PID1; the activation
+      # symlink is too late and triggers the dbus crash-loop). /persist still
+      # holds the canonical copy at /persist/etc/machine-id (seeded once during
+      # the runbook's prep rsync); the initrd copies it onto the root each boot.
+      files = [ ];
       directories = [
         # systemd/nix bookkeeping — required for a functioning system
         "/var/lib/nixos"

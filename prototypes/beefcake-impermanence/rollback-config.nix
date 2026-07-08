@@ -76,13 +76,21 @@
         };
         "safe/persist" = {
           type = "zfs_fs";
-          mountpoint = "/persist";
+          # legacy ZFS property so the fileSystems entry below drives it and
+          # systemd-initrd mounts it in STAGE-1 as sysroot-persist.mount —
+          # required for persist-machine-id to seed machine-id before
+          # switch-root. Mirrors beefcake's rpool/persist (mountpoint=legacy).
+          options.mountpoint = "legacy";
         };
       };
     };
   };
 
-  fileSystems."/persist".neededForBoot = true;
+  fileSystems."/persist" = {
+    device = "rpool/safe/persist";
+    fsType = "zfs";
+    neededForBoot = true;
+  };
 
   boot = {
     loader.systemd-boot.enable = true;
@@ -121,7 +129,47 @@
         echo "rolled back rpool/local/root to @blank"
       '';
     };
+
+    # FLIP-ATTEMPT-#1 REGRESSION GUARD (2026-07-08): reproduce + fix the
+    # machine-id-absent-at-PID1 → first-boot → dbus crash-loop that took
+    # beefcake down. Seed /etc/machine-id from /persist (self-seeding) BEFORE
+    # switch-root, so PID1 never generates a random transient id / declares
+    # ConditionFirstBoot. Mirrors packages/hosts/beefcake/impermanence.nix.
+    initrd.systemd.services.persist-machine-id = {
+      description = "Seed /etc/machine-id from /persist before switch-root";
+      wantedBy = [ "initrd.target" ];
+      requires = [
+        "sysroot.mount"
+        "sysroot-persist.mount"
+      ];
+      after = [
+        "rollback-root.service"
+        "sysroot.mount"
+        "sysroot-persist.mount"
+      ];
+      before = [ "initrd-switch-root.target" ];
+      unitConfig.DefaultDependencies = "no";
+      serviceConfig.Type = "oneshot";
+      script = ''
+        mkdir -p /sysroot/persist/etc /sysroot/etc
+        if [ ! -s /sysroot/persist/etc/machine-id ]; then
+          tr -d - < /proc/sys/kernel/random/uuid > /sysroot/persist/etc/machine-id
+          echo "generated new machine-id into /persist"
+        fi
+        cp /sysroot/persist/etc/machine-id /sysroot/etc/machine-id
+        chmod 0444 /sysroot/etc/machine-id
+        echo "seeded /etc/machine-id before switch-root"
+      '';
+    };
   };
+
+  # The failing surface from beefcake: dbus + NetworkManager + avahi. Without
+  # the machine-id fix above, PID1's first-boot state makes dbus-broker's
+  # launcher crash-loop (launcher_run_child: Permission denied) and NM never
+  # comes up. With the fix, these must reach active and the system must
+  # converge to multi-user.
+  networking.networkmanager.enable = true;
+  services.avahi.enable = true; # the netdev-group / dbus consumer from beefcake
 
   services.openssh = {
     enable = true;

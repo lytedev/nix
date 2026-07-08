@@ -73,9 +73,52 @@ pkgs.writeShellApplication {
       echo "FAIL: /persist/keep lost or wrong: $got"; exit 1
     fi
     ssh "''${SSH_OPTS[@]}" 'journalctl -b -u rollback-root --no-pager || true'
+
+    echo "== machine-id / dbus / NetworkManager regression checks (flip-#1) =="
+    # THE definitive test of the fix: the REAL root's PID1 must use the
+    # machine-id we seeded from /persist. If the fix failed, PID1 generates a
+    # random one and /etc/machine-id would DIFFER from /persist. (We do NOT
+    # grep the journal for "machine ID from random" — the INITRD's own systemd
+    # logs that harmlessly for its transient id; it's ambiguous. The
+    # root==persist comparison is unambiguous.)
+    mid_root=$(ssh "''${SSH_OPTS[@]}" 'cat /etc/machine-id')
+    mid_persist=$(ssh "''${SSH_OPTS[@]}" 'cat /persist/etc/machine-id')
+    if [ -z "$mid_root" ] || [ "$mid_root" != "$mid_persist" ]; then
+      echo "FAIL: real PID1 did NOT use the seeded machine-id"
+      echo "      /etc/machine-id=$mid_root  /persist=$mid_persist"
+      exit 1
+    fi
+    echo "machine-id stable across wipe: $mid_root (== /persist) — fix works"
+    # The actual symptom that took beefcake down: dbus/NM must be up and the
+    # system must have converged (not stuck like flip-#1).
+    sysstate=$(ssh "''${SSH_OPTS[@]}" 'systemctl is-system-running' || true)
+    echo "is-system-running: $sysstate"
+    case "$sysstate" in running|degraded) ;; *)
+      echo "FAIL: system did not converge (state=$sysstate)"
+      ssh "''${SSH_OPTS[@]}" 'systemctl list-units --state=activating,failed --no-legend | head' || true
+      exit 1 ;;
+    esac
+    for u in dbus.service NetworkManager.service; do
+      # shellcheck disable=SC2029  # $u is a local loop var; client-side
+      # expansion into the remote command is intended.
+      st=$(ssh "''${SSH_OPTS[@]}" "systemctl is-active $u" || true)
+      if [ "$st" != active ]; then
+        echo "FAIL: $u is $st (expected active) — dbus/NM regression"
+        # shellcheck disable=SC2029
+        ssh "''${SSH_OPTS[@]}" "systemctl status $u --no-pager -l | head -20" || true
+        exit 1
+      fi
+    done
+    nstart=$(ssh "''${SSH_OPTS[@]}" 'journalctl -b -u dbus.service -o cat | grep -c "Started D-Bus" || true')
+    echo "dbus start count this boot: $nstart (want ~1; crash-loop = many)"
+    if [ "''${nstart:-0}" -gt 3 ]; then
+      echo "FAIL: dbus started $nstart times — crash-loop not fixed"; exit 1
+    fi
+    echo "dbus+NM active, converged ($sysstate), no crash-loop"
+
     ssh "''${SSH_OPTS[@]}" 'poweroff' || true
 
     echo
-    echo "PASS: root wiped by initrd zfs rollback, /persist survived, host key stable"
+    echo "PASS: root wiped + /persist survived + host key stable + machine-id seeded early (no dbus loop)"
   '';
 }
