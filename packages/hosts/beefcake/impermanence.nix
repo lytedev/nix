@@ -202,10 +202,29 @@ in
       ];
     };
 
+    # CRITICAL (flip-attempt-#2 SECOND root cause, 2026-07-08): the ephemeral
+    # root's /var, /var/lib and /var/cache came up mode 0700, which blocks
+    # every non-root service user from *traversing* into /var to reach its own
+    # StateDirectory — knot/caddy/kanidm/forgejo/mosquitto/otel all died with
+    # "permission denied" on mkdir/chdir of /var/lib/<svc> (masked at first
+    # boot by the earlier sops failure; surfaced once secrets resolved).
+    # Cause: impermanence creates the bind-mount PARENTS by propagating the
+    # mode of the matching source dir under /persist, and /persist/var +
+    # /persist/var/lib had been created 0700. tmpfiles-setup runs after
+    # local-fs.target (the binds are mounted) and before the service units, so
+    # a `d` rule re-asserts 0755 on every boot regardless of the /persist
+    # source mode — self-correcting even on a from-scratch /persist. (The live
+    # /persist parents were also chmod'd 0755 for good measure.)
+    systemd.tmpfiles.rules = [
+      "d /var 0755 root root -"
+      "d /var/lib 0755 root root -"
+      "d /var/cache 0755 root root -"
+    ];
+
     # Host keys live on /persist (NOT a bind of /etc/ssh): they must exist
-    # before sshd AND they are the sops-nix age identity — sops-nix's default
-    # sshKeyPaths follows services.openssh.hostKeys, so this one change keeps
-    # every existing secret decryptable with zero re-keying.
+    # before sshd, and beefcake's ed25519 host key IS its sops age identity
+    # (it derives age1etv…=sshd-at-beefcake, a recipient on every beefcake
+    # secret — verified 2026-07-08).
     services.openssh.hostKeys = lib.mkForce [
       {
         path = "/persist/etc/ssh/ssh_host_ed25519_key";
@@ -217,5 +236,23 @@ in
         bits = 4096;
       }
     ];
+
+    # CRITICAL (flip-attempt-#2 root cause, 2026-07-08): sops-install-secrets
+    # runs in *initrd* activation, and sops-nix's key paths do NOT follow
+    # services.openssh.hostKeys — they default to hardcoded /etc/ssh/* (absent
+    # on the @blank root this early) and to age.keyFile=/var/lib/sops-nix/
+    # key.txt (a stage-2 impermanence bind, unavailable in initrd — and never
+    # actually persisted). Result: sops found no working identity, tried the
+    # RSA key as GPG (wrong; secrets are age), failed "0 successful groups",
+    # and ~14 services lost /run/secrets → knot/stalwart/kanidm/etc down.
+    # Fix: point sops at the PERSISTED ed25519 key (readable in initrd, since
+    # /persist is a stage-1 neededForBoot mount) as its age identity. Proven
+    # to decrypt the real secrets.yml (tsig-beefcake-h + 41 keys). Drop the
+    # RSA-GPG path entirely. No key.txt required.
+    # FOLLOW-UP (Daniel): provision this ed25519 key declaratively (encrypted
+    # in-repo to the master key, laid on /persist at setup) so the host
+    # identity is intentional + recoverable, not lucky install-random state.
+    sops.age.sshKeyPaths = lib.mkForce [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+    sops.gnupg.sshKeyPaths = lib.mkForce [ ];
   };
 }
