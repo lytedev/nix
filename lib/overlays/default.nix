@@ -76,6 +76,23 @@ let
         --set ORT_DYLIB_PATH "${unstable-packages.onnxruntime}/lib/libonnxruntime.so" \
         --prefix LD_LIBRARY_PATH : "${unstable-packages.onnxruntime}/lib"'';
 
+      # Streaming voice commands. Local Parakeet streaming types partial
+      # deltas the instant they decode, and upstream deliberately bypasses
+      # every hook in that path — so nothing can intercept spoken commands
+      # ("press enter") before they land as text. This patch adds native
+      # trigger interception to StreamingSession: partial deltas pass
+      # through a held-back buffer that types text as soon as it cannot be
+      # the start of a trigger phrase, and fires the mapped key (wtype,
+      # dotoolc fallback) when a phrase completes. Map is user-editable at
+      # ~/.config/voxtype/stream-commands (default: "press <key>" phrases).
+      # Enables hands-free submission of e.g. Claude Code prompts: dictate,
+      # say "press enter", never touch the keyboard.
+      patchStreamingVoiceCommands =
+        pkg:
+        pkg.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [ ./patches/voxtype-streaming-voice-commands.patch ];
+        });
+
       # Combined-feature build: upstream ships whisper-Vulkan and ONNX/Parakeet
       # as SEPARATE packages, but the cargo features are additive — this adds
       # gpu-vulkan on top of the onnx build so one binary has GPU whisper AND
@@ -185,14 +202,14 @@ let
       # ONNX engines (Parakeet incl. streaming dictation, Moonshine, ...),
       # whisper on CPU. Selected via lyte.desktop.voxtype.onnx.
       voxtype-onnx = rewrapVoxtype {
-        pkg = inputs.voxtype.packages.${final.system}.voxtype-onnx-unwrapped;
+        pkg = patchStreamingVoiceCommands inputs.voxtype.packages.${final.system}.voxtype-onnx-unwrapped;
         extraWrapperArgs = onnxWrapperArgs;
       };
 
       # GPU whisper + ONNX engines in one binary (gpu && onnx). See
       # voxtypeFullUnwrapped above.
       voxtype-full = rewrapVoxtype {
-        pkg = voxtypeFullUnwrapped;
+        pkg = patchStreamingVoiceCommands voxtypeFullUnwrapped;
         extraWrapperArgs = onnxWrapperArgs;
       };
 

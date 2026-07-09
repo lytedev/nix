@@ -1,0 +1,362 @@
+diff --git a/src/output/streaming.rs b/src/output/streaming.rs
+index 001c786..40d0c7c 100644
+--- a/src/output/streaming.rs
++++ b/src/output/streaming.rs
+@@ -67,6 +67,17 @@ pub struct StreamingSession {
+     typed_chars: usize,
+     /// Most recent partial text (for status only; never typed).
+     partial: String,
++    /// PATCHED (lyte.dev): voice-command interception. Text received from
++    /// partial deltas but not yet typed, because its tail could still be
++    /// the start of a trigger phrase ("press ent…"). Flushed as soon as
++    /// it diverges from every phrase, or on final commit.
++    held: String,
++    /// PATCHED (lyte.dev): `(phrase, keysym)` pairs, lowercase ASCII
++    /// phrases. Loaded once per session from
++    /// `$XDG_CONFIG_HOME/voxtype/stream-commands` (falls back to a
++    /// built-in "press <key>" map). Saying a phrase mid-dictation fires
++    /// the key at that point instead of typing the words.
++    commands: Vec<(String, String)>,
+ }
+ 
+ impl StreamingSession {
+@@ -76,9 +87,139 @@ impl StreamingSession {
+             finalized_text: String::new(),
+             typed_chars: 0,
+             partial: String::new(),
++            held: String::new(),
++            commands: load_stream_commands(),
+         }
+     }
+ 
++    /// PATCHED (lyte.dev): type `text` at the cursor and account for it.
++    async fn type_now(
++        &mut self,
++        chain: &[Box<dyn TextOutput>],
++        text: &str,
++        pre_output_command: Option<&str>,
++        post_output_command: Option<&str>,
++    ) -> Result<(), OutputError> {
++        if text.is_empty() {
++            return Ok(());
++        }
++        let opts = OutputOptions {
++            pre_output_command,
++            post_output_command,
++            wait_for_modifier_release: false,
++            modifier_release_timeout: std::time::Duration::from_millis(0),
++        };
++        output_with_fallback(chain, text, opts).await?;
++        self.typed_chars += text.chars().count();
++        self.partial.push_str(text);
++        Ok(())
++    }
++
++    /// PATCHED (lyte.dev): earliest complete trigger phrase in `held`.
++    /// Returns `(start, end_after_phrase_and_punct, keysym)`. A match is
++    /// complete only when preceded by start/whitespace and followed by
++    /// whitespace or consumed trailing punctuation (or `final_flush`,
++    /// where end-of-input counts as a boundary — the utterance is over,
++    /// "press enter" can no longer grow into "press entering").
++    fn find_command(&self, final_flush: bool) -> Option<(usize, usize, String)> {
++        let hay = self.held.as_bytes();
++        let mut best: Option<(usize, usize, String)> = None;
++        for (phrase, key) in &self.commands {
++            let n = phrase.as_bytes();
++            if n.is_empty() || hay.len() < n.len() {
++                continue;
++            }
++            for i in 0..=hay.len() - n.len() {
++                if !hay[i..i + n.len()].eq_ignore_ascii_case(n) {
++                    continue;
++                }
++                let before_ok = i == 0 || hay[i - 1].is_ascii_whitespace();
++                if !before_ok {
++                    continue;
++                }
++                let mut end = i + n.len();
++                // Consume one trailing punctuation mark with the phrase.
++                let punct = end < hay.len() && matches!(hay[end], b'.' | b',' | b'!' | b'?');
++                if punct {
++                    end += 1;
++                }
++                let after_ok = if end < hay.len() {
++                    hay[end].is_ascii_whitespace()
++                } else {
++                    // At end-of-held: complete only if punctuation sealed
++                    // the word or the session is flushing.
++                    punct || final_flush
++                };
++                if !after_ok {
++                    continue;
++                }
++                if best.as_ref().map_or(true, |(s, _, _)| i < *s) {
++                    best = Some((i, end, key.clone()));
++                }
++                break;
++            }
++        }
++        best
++    }
++
++    /// PATCHED (lyte.dev): longest suffix of `held` (in bytes) that could
++    /// still grow into a trigger phrase and must not be typed yet.
++    fn held_back_len(&self) -> usize {
++        let hay = self.held.as_bytes();
++        let mut keep = 0usize;
++        for (phrase, _) in &self.commands {
++            let n = phrase.as_bytes();
++            let max = n.len().min(hay.len());
++            for plen in (1..=max).rev() {
++                let start = hay.len() - plen;
++                if !hay[start..].eq_ignore_ascii_case(&n[..plen]) {
++                    continue;
++                }
++                let before_ok = start == 0 || hay[start - 1].is_ascii_whitespace();
++                if before_ok {
++                    keep = keep.max(plen);
++                    break;
++                }
++            }
++        }
++        keep
++    }
++
++    /// PATCHED (lyte.dev): drain `held` — fire any complete trigger
++    /// phrases in order, type the text around them, and (unless
++    /// `final_flush`) retain a tail that could still become a phrase.
++    async fn drain_held(
++        &mut self,
++        chain: &[Box<dyn TextOutput>],
++        pre_output_command: Option<&str>,
++        post_output_command: Option<&str>,
++        final_flush: bool,
++    ) -> Result<(), OutputError> {
++        while let Some((start, end, key)) = self.find_command(final_flush) {
++            let pre = self.held[..start].to_string();
++            self.type_now(chain, &pre, pre_output_command, post_output_command)
++                .await?;
++            if !emit_key(&key).await {
++                tracing::warn!("stream-command key '{}' failed to emit", key);
++            } else {
++                tracing::info!("stream-command fired: {}", key);
++            }
++            let mut rest = self.held[end..].to_string();
++            if rest.starts_with(' ') {
++                rest.remove(0);
++            }
++            self.held = rest;
++        }
++        let keep = if final_flush { 0 } else { self.held_back_len() };
++        if self.held.len() > keep {
++            let flush = self.held[..self.held.len() - keep].to_string();
++            self.type_now(chain, &flush, pre_output_command, post_output_command)
++                .await?;
++            self.held = self.held[self.held.len() - keep..].to_string();
++        }
++        Ok(())
++    }
++
+     /// Update the in-memory partial text. Returns the new partial for
+     /// callers that want to mirror it into status files / Waybar.
+     pub fn observe_partial(&mut self, text: String) -> &str {
+@@ -111,20 +252,13 @@ impl StreamingSession {
+             return Ok(());
+         }
+ 
+-        let opts = OutputOptions {
+-            pre_output_command,
+-            post_output_command,
+-            // Streaming output runs while the hotkey is held — modifiers
+-            // will be down throughout. The modifier-release guard
+-            // applies to one-shot (non-streaming) output only.
+-            wait_for_modifier_release: false,
+-            modifier_release_timeout: std::time::Duration::from_millis(0),
+-        };
+-        output_with_fallback(chain, &new_partial, opts).await?;
+-
+-        self.typed_chars += new_partial.chars().count();
+-        self.partial.push_str(&new_partial);
+-        Ok(())
++        // PATCHED (lyte.dev): route the delta through the voice-command
++        // interceptor. Text is typed as soon as it cannot be the start of
++        // a trigger phrase (at most a few held-back words of lag);
++        // complete phrases fire their key instead of being typed.
++        self.held.push_str(&new_partial);
++        self.drain_held(chain, pre_output_command, post_output_command, false)
++            .await
+     }
+ 
+     /// Clear the partial buffer (e.g., when a Final supersedes it).
+@@ -167,35 +301,28 @@ impl StreamingSession {
+         pre_output_command: Option<&str>,
+         post_output_command: Option<&str>,
+     ) -> Result<(), OutputError> {
+-        if text.is_empty() {
+-            self.clear_partial();
+-            return Ok(());
+-        }
+-
+         // Like `transcribe_chunk`, `ParakeetUnified::flush` returns only
+         // the newly-emitted tail buffered when the stream closed — it is
+-        // a delta, not a cumulative transcript. So type it directly,
+-        // same as a partial.
++        // a delta, not a cumulative transcript.
+         //
+-        // post_process is intentionally bypassed during streaming.
+-        // Per-segment cleanup would run only against the final tail
+-        // (not the cumulative transcript visible at the cursor) and
+-        // produce inconsistent output. Users who rely on post_process
+-        // should disable streaming for now.
+-        let opts = OutputOptions {
+-            pre_output_command,
+-            post_output_command,
+-            wait_for_modifier_release: false,
+-            modifier_release_timeout: std::time::Duration::from_millis(0),
+-        };
+-        output_with_fallback(chain, text, opts).await?;
+-
+-        self.typed_chars += text.chars().count();
+-        // Treat the partial-stream-so-far plus this final tail as the
+-        // committed text for cancel-rewind context.
+-        let finalized_tail = format!("{}{}", self.partial, text);
++        // PATCHED (lyte.dev): route the tail through the voice-command
++        // interceptor with final_flush = true — this both fires any
++        // trigger phrase completed by the tail (or already sitting fully
++        // formed in the held-back buffer, e.g. an utterance that ends
++        // with "press enter") and flushes every held-back character, so
++        // nothing dictated is ever silently dropped.
++        //
++        // post_process remains bypassed during streaming as upstream
++        // intended; voice commands are handled natively here instead.
++        self.held.push_str(text);
++        self.drain_held(chain, pre_output_command, post_output_command, true)
++            .await?;
++
++        // Treat the partial-stream-so-far (which drain_held has been
++        // accumulating as it typed) as the committed text for
++        // cancel-rewind context.
++        let finalized_tail = std::mem::take(&mut self.partial);
+         self.finalized_text.push_str(&finalized_tail);
+-        self.clear_partial();
+         Ok(())
+     }
+ 
+@@ -292,6 +419,117 @@ impl Default for StreamingSession {
+     }
+ }
+ 
++/// PATCHED (lyte.dev): default voice-command map. Overridden by
++/// `$XDG_CONFIG_HOME/voxtype/stream-commands` when present (one
++/// `phrase = Keysym` per line, `#` comments; keysyms are wtype/XKB names).
++const DEFAULT_STREAM_COMMANDS: &[(&str, &str)] = &[
++    ("press page up", "Page_Up"),
++    ("press page down", "Page_Down"),
++    ("press enter", "Return"),
++    ("press return", "Return"),
++    ("press tab", "Tab"),
++    ("press escape", "Escape"),
++    ("press backspace", "BackSpace"),
++    ("press delete", "Delete"),
++    ("press space", "space"),
++    ("press up", "Up"),
++    ("press down", "Down"),
++    ("press left", "Left"),
++    ("press right", "Right"),
++    ("press home", "Home"),
++    ("press end", "End"),
++];
++
++/// PATCHED (lyte.dev): load the voice-command map. Missing or empty file
++/// means the built-in defaults; a present file replaces them entirely.
++fn load_stream_commands() -> Vec<(String, String)> {
++    let path = std::env::var_os("XDG_CONFIG_HOME")
++        .map(std::path::PathBuf::from)
++        .or_else(|| std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".config")))
++        .map(|d| d.join("voxtype/stream-commands"));
++    if let Some(path) = path {
++        if let Ok(contents) = std::fs::read_to_string(&path) {
++            let mut out = Vec::new();
++            for line in contents.lines() {
++                let line = line.trim();
++                if line.is_empty() || line.starts_with('#') {
++                    continue;
++                }
++                if let Some((phrase, key)) = line.split_once('=') {
++                    let phrase = phrase.trim().to_ascii_lowercase();
++                    let key = key.trim().to_string();
++                    if !phrase.is_empty() && !key.is_empty() {
++                        out.push((phrase, key));
++                    }
++                }
++            }
++            if !out.is_empty() {
++                // Longest phrases first so "press page up" wins over any
++                // shorter phrase sharing a prefix.
++                out.sort_by_key(|(p, _)| std::cmp::Reverse(p.len()));
++                return out;
++            }
++        }
++    }
++    DEFAULT_STREAM_COMMANDS
++        .iter()
++        .map(|(p, k)| (p.to_string(), k.to_string()))
++        .collect()
++}
++
++/// PATCHED (lyte.dev): press a single key by XKB keysym name. Mirrors the
++/// emit_backspaces driver order below, minus ydotool (which needs raw
++/// keycodes rather than keysym names).
++async fn emit_key(keysym: &str) -> bool {
++    let mut cmd = Command::new("wtype");
++    cmd.arg("-k").arg(keysym);
++    cmd.stdout(Stdio::null()).stderr(Stdio::null());
++    if matches!(cmd.status().await, Ok(s) if s.success()) {
++        return true;
++    }
++    // dotool speaks lowercase key names ("enter", "tab", ...); map the
++    // common keysyms. Anything unmapped just fails and logs upstream.
++    let dotool_key = match keysym {
++        "Return" => "enter",
++        "Tab" => "tab",
++        "Escape" => "esc",
++        "BackSpace" => "backspace",
++        "Delete" => "delete",
++        "space" => "space",
++        "Up" => "up",
++        "Down" => "down",
++        "Left" => "left",
++        "Right" => "right",
++        "Page_Up" => "pageup",
++        "Page_Down" => "pagedown",
++        "Home" => "home",
++        "End" => "end",
++        _ => return false,
++    };
++    use tokio::io::AsyncWriteExt;
++    let (binary, env_pipe) = match crate::output::dotool::DotoolOutput::live_daemon_pipe_path() {
++        Some(p) => ("dotoolc", Some(p)),
++        None => ("dotool", None),
++    };
++    let mut cmd = Command::new(binary);
++    if let Some(p) = env_pipe {
++        cmd.env("DOTOOL_PIPE", p);
++    }
++    cmd.stdin(Stdio::piped())
++        .stdout(Stdio::null())
++        .stderr(Stdio::null());
++    let Ok(mut child) = cmd.spawn() else {
++        return false;
++    };
++    if let Some(mut stdin) = child.stdin.take() {
++        let line = format!("key {}\n", dotool_key);
++        if stdin.write_all(line.as_bytes()).await.is_err() {
++            return false;
++        }
++    }
++    matches!(child.wait().await, Ok(s) if s.success())
++}
++
+ /// Backspace `count` chars using the first available method.
+ /// Returns the actual number of backspaces emitted.
+ async fn emit_backspaces(count: usize) -> usize {
