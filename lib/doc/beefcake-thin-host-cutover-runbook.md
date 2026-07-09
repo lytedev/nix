@@ -94,9 +94,10 @@ corrupted ESP).
 
 ```bash
 # 0. Pre-flight: confirm the EFI default pin is the CURRENT known-good gen and
-#    that iDRAC power control answers:
+#    that iDRAC power control answers (key-auth from dragon — Daniel uploaded
+#    dragon's key via racadm sshpkauth 2026-07-10; NOT authorized_keys):
 ssh root@192.168.0.9 'bootctl | grep -E "Default Entry"'
-#    (on the idrac ssh session): racadm serveraction powerstatus
+ssh -o BatchMode=yes root@idrac-d3l9h02.lan 'racadm serveraction powerstatus'
 
 # 1. Deploy beefcake-host as a BOOT entry (never live-switch a root change; LAN,
 #    not VPN — headscale is in the guest, so the VPN is down during the window).
