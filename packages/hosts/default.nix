@@ -15,6 +15,18 @@ in
   beefcake = baseHost (
     stable // { extraModules = [ inputs.impermanence.nixosModules.impermanence ]; }
   ) ./beefcake.nix { };
+  # Phase-3 thin hypervisor (design doc §2). NOT YET DEPLOYED — validated on
+  # dragon via nested VM; runs beefcake as a libvirt guest. impermanence for its
+  # own ephemeral root; NixVirt for the (next-increment) declarative guest domain.
+  beefcake-host = baseHost (
+    stable
+    // {
+      extraModules = [
+        inputs.impermanence.nixosModules.impermanence
+        inputs.nixvirt.nixosModules.default
+      ];
+    }
+  ) ./beefcake-host.nix { };
   dragon = host ./dragon.nix { };
   # Like `host` (baseHost unstable) but with the standalone deckmode module for the
   # jump-in/out gamescope gaming mode. Kept out of the shared modules since it's a
