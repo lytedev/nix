@@ -30,6 +30,7 @@
       exec npx -y @openai/codex "$@"
     '';
   };
+  claude-speak = pkgs.callPackage ./claude-speak.nix { };
   fbkeyboard = pkgs.callPackage ./fbkeyboard.nix { };
   stevia = pkgs.callPackage ./stevia.nix { };
   cellbroadcastd = pkgs.callPackage ./cellbroadcastd.nix { };

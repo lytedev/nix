@@ -187,6 +187,8 @@ let
     '';
   };
 
+  claude-speak = pkgs.callPackage ../../../packages/claude-speak.nix { };
+
   danielHome = config.lyte.userHome;
 in
 {
@@ -245,11 +247,15 @@ in
       claude-matrix-send
       claude-setup
       claude-ws
+      claude-speak
       pkgs.rust-petname
     ];
 
     lyte.userSymlinks.".claude/CLAUDE.md" =
       "${config.lyte.resolvedFlakePath}/lib/modules/home/claude/CLAUDE.md";
+
+    lyte.userSymlinks.".claude/commands/speak.md" =
+      "${config.lyte.resolvedFlakePath}/lib/modules/home/claude/commands/speak.md";
 
     # Webhook symlink creation via activation script
     system.userActivationScripts.claudeWebhookLinks = lib.mkIf (cfg.matrixWebhooks != { }) {
