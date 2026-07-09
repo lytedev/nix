@@ -10,6 +10,7 @@ let
   types = lib.types;
   dotfilesPath = config.lyte.dotfilesPath;
   danielHome = config.lyte.userHome;
+  voxtypePkg = if cfg.voxtype.gpu then pkgs.voxtype-vulkan else pkgs.voxtype;
 in
 {
   options = {
@@ -101,6 +102,19 @@ in
           default = "base.en";
           description = "Whisper model for voxtype (e.g. base.en, large-v3-turbo)";
         };
+        voxtype.gpu = lib.mkOption {
+          type = types.bool;
+          default = false;
+          example = true;
+          description = ''
+            Use the Vulkan (GGML_VULKAN) whisper build of voxtype for
+            GPU-accelerated transcription. Verified on dragon (RX 6700 XT /
+            RADV): large-v3-turbo transcribes a few seconds of audio in ~2s
+            on GPU vs minutes on CPU. Needs a Vulkan-capable GPU with the
+            ICD from hardware.graphics.enable; falls back to CPU at runtime
+            if no Vulkan device is found.
+          '';
+        };
         music.enable = lib.mkEnableOption "Enable music listening applications";
         displaylink.enable = lib.mkEnableOption ''
           DisplayLink USB graphics support (evdi DKMS module + the proprietary
@@ -186,11 +200,12 @@ in
         sox
 
         # Voice-to-text
-        voxtype
+        voxtypePkg
+        voxtype-osd-gtk4
         (pkgs.makeDesktopItem {
           name = "voxtype-toggle";
           desktopName = "Voxtype Toggle Recording";
-          exec = "${pkgs.voxtype}/bin/voxtype record toggle";
+          exec = "${voxtypePkg}/bin/voxtype record toggle";
           noDisplay = true;
           extraConfig."X-KDE-GlobalAccel-CommandShortcut" = "true";
         })
@@ -245,22 +260,34 @@ in
         MOZ_ENABLE_WAYLAND = "1";
       };
 
-      # Voice-to-text daemon (push-to-talk via Super+V)
+      # Voice-to-text daemon (push-to-talk via Super+V, bound in the niri
+      # config; the KDE global shortcut in plasma/kglobalshortcutsrc covers
+      # any Plasma session). The daemon spawns its OSD launcher which picks
+      # voxtype-osd-gtk4 from PATH — without it there is no on-screen
+      # recording/transcribing indicator. `which` is required for voxtype's
+      # output-method detection (see the overlay comment).
+      #
+      # No WAYLAND_DISPLAY is set here on purpose: the compositor session
+      # imports the correct value into the systemd user manager. A hardcoded
+      # value goes stale across compositor changes (a Plasma-era wayland-0
+      # drop-in silently broke all text output under niri, which is wayland-1).
       systemd.user.services.voxtype = {
         description = "Voxtype push-to-talk voice-to-text";
         wantedBy = [ "graphical-session.target" ];
         after = [ "pipewire.service" ];
         partOf = [ "graphical-session.target" ];
         path = with pkgs; [
+          which
           wtype
           dotool
           ydotool
           wl-clipboard
           libnotify
+          voxtype-osd-gtk4
         ];
         environment.VOXTYPE_MODEL = cfg.voxtype.model;
         serviceConfig = {
-          ExecStart = "${pkgs.voxtype}/bin/voxtype --no-hotkey daemon";
+          ExecStart = "${voxtypePkg}/bin/voxtype --no-hotkey daemon";
           Restart = "on-failure";
           RestartSec = 5;
         };

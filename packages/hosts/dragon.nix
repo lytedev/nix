@@ -165,6 +165,9 @@
     headscale.usePreAuthKey = true;
     desktop.enable = true;
     desktop.voxtype.model = "large-v3-turbo";
+    # Vulkan whisper on the RX 6700 XT: ~2s to transcribe a few seconds of
+    # audio with large-v3-turbo, vs minutes on CPU.
+    desktop.voxtype.gpu = true;
     gpu = "amd";
     desktop.music-production = {
       enable = true;

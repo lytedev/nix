@@ -22,6 +22,47 @@ let
         system = final.system;
         config.allowUnfree = true;
       };
+
+      # Re-wrap a voxtype-*-unwrapped package with doCheck=false (tests
+      # require AVX2+ which beefcake's CI runner, a Xeon E5-2680 v2, lacks)
+      # and the output/notification tools on PATH.
+      #
+      # `which` must be on PATH: voxtype probes every output method via
+      # `which wtype` etc. (src/output/wtype.rs is_available), and coreutils
+      # does not provide `which` — without it every method reports
+      # "not available" and transcriptions are silently dropped.
+      rewrapVoxtype =
+        pkg:
+        let
+          unwrapped = pkg.overrideAttrs {
+            doCheck = false;
+          };
+        in
+        prev.symlinkJoin {
+          name = "${unwrapped.pname or "voxtype"}-wrapped-${unwrapped.version}";
+          paths = [ unwrapped ];
+          buildInputs = [ prev.makeWrapper ];
+          postBuild = ''
+            wrapProgram $out/bin/voxtype \
+              --prefix PATH : ${
+                prev.lib.makeBinPath (
+                  with prev;
+                  [
+                    which
+                    wtype
+                    dotool
+                    wl-clipboard
+                    ydotool
+                    xdotool
+                    xclip
+                    libnotify
+                    pciutils
+                  ]
+                )
+              }
+          '';
+          inherit (unwrapped) meta;
+        };
     in
     {
       inherit unstable-packages stable-packages;
@@ -82,38 +123,20 @@ let
         inherit (prev.stalwart-cli.meta) description mainProgram;
       });
 
-      # Re-wrap voxtype with doCheck=false on the unwrapped build.
-      # Tests require AVX2+ which beefcake's CI runner (Xeon E5-2680 v2) lacks.
-      voxtype =
-        let
-          unwrapped = (inputs.voxtype.packages.${final.system}.voxtype-unwrapped).overrideAttrs {
-            doCheck = false;
-          };
-        in
-        prev.symlinkJoin {
-          name = "voxtype-wrapped-${unwrapped.version}";
-          paths = [ unwrapped ];
-          buildInputs = [ prev.makeWrapper ];
-          postBuild = ''
-            wrapProgram $out/bin/voxtype \
-              --prefix PATH : ${
-                prev.lib.makeBinPath (
-                  with prev;
-                  [
-                    wtype
-                    dotool
-                    wl-clipboard
-                    ydotool
-                    xdotool
-                    xclip
-                    libnotify
-                    pciutils
-                  ]
-                )
-              }
-          '';
-          inherit (unwrapped) meta;
-        };
+      # CPU whisper build (see rewrapVoxtype above for the wrap details).
+      voxtype = rewrapVoxtype inputs.voxtype.packages.${final.system}.voxtype-unwrapped;
+
+      # Vulkan (GGML_VULKAN) whisper build for GPU-accelerated transcription.
+      # Selected per-host via lyte.desktop.voxtype.gpu; falls back to CPU at
+      # runtime when no Vulkan device is present. The Vulkan ICD comes from
+      # the NixOS global driver profile (hardware.graphics.enable), so no
+      # extra runtime wiring is needed here.
+      voxtype-vulkan = rewrapVoxtype inputs.voxtype.packages.${final.system}.voxtype-vulkan-unwrapped;
+
+      # The daemon's preferred OSD frontend (gtk4-layer-shell pill showing
+      # recording/transcribing/typing). The quickshell frontend the package
+      # also ships is unusable as packaged (no QML tree in $out/share).
+      voxtype-osd-gtk4 = inputs.voxtype.packages.${final.system}.osd-gtk4;
 
       # Override iamb with unreads fix PR #579
       iamb = prev.iamb.overrideAttrs (old: rec {
