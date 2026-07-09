@@ -78,18 +78,44 @@ zfs create -V 60G -o volblocksize=16k rpool/beefcake-blue
 #    data move; verify xattr=sa + acltype=posixacl on those datasets (already so).
 ```
 
-## Part 2 — the cutover window (yours; ~30–45 min incl. reboot)
+## Part 2 — the cutover window (~30–45 min incl. reboot; agent-pilotable)
 
 Announce the window (coordinator: no deploys). beefcake is DOWN during the
 reboot into the thin host.
 
+**Autonomous safety net (why this window doesn't need a console):** the EFI
+boot default stays PINNED to the known-good bare-metal generation (the
+`bootctl set-default` pin from the impermanence activation — verify it!), and
+the thin host is booted via **`bootctl set-oneshot`**. If it wedges, an iDRAC
+power cycle (`racadm serveraction powercycle`, available over the iDRAC SSH
+session — no web console needed) falls straight back to today's beefcake.
+Console/hands are only needed on a double fault (wedge + iDRAC failure, or a
+corrupted ESP).
+
 ```bash
+# 0. Pre-flight: confirm the EFI default pin is the CURRENT known-good gen and
+#    that iDRAC power control answers:
+ssh root@192.168.0.9 'bootctl | grep -E "Default Entry"'
+#    (on the idrac ssh session): racadm serveraction powerstatus
+
 # 1. Deploy beefcake-host as a BOOT entry (never live-switch a root change; LAN,
-#    not VPN — headscale is in the guest, so the VPN is down during the window):
+#    not VPN — headscale is in the guest, so the VPN is down during the window).
+#    NOTE: this adds the entry + updates loader.conf, but the EFI var pin keeps
+#    the known-good gen as the effective default — exactly what we want:
 deploy --boot -s --targets ".#beefcake-host" --hostname 192.168.0.9
 
-# 2. Reboot into the thin host (iDRAC/boot menu up FIRST — this is the moment):
+# 2. Arm a ONE-SHOT boot of the thin host (next boot only; default unchanged):
+ssh root@192.168.0.9 'bootctl set-oneshot nixos-generation-<new>.conf'
+
+# 3. Reboot:
 ssh root@192.168.0.9 systemctl reboot
+#    - thin host healthy -> it DHCPs on br0 with its own pinned MAC
+#      (0a:be:ef:b0:57:01) -> find/ssh it, start + verify the guest (Part 3),
+#      and only THEN pin the default to the thin-host generation:
+#      bootctl set-default nixos-generation-<new>.conf
+#    - thin host wedged / never reachable -> iDRAC: racadm serveraction
+#      powercycle -> the box boots the still-pinned known-good beefcake. Done;
+#      diagnose offline from the serial/persisted logs.
 ```
 
 On boot: the thin host comes up, imports zstorage, `virtiofsd` exports the
@@ -101,7 +127,8 @@ starts inside the guest exactly as before.
 ## Part 3 — verify (you, agent reading over your shoulder)
 
 ```bash
-# HOST (its own mgmt IP on eno2, or LAN):
+# HOST (DHCPs on br0 with its own pinned MAC 0a:be:ef:b0:57:01 — find it via
+# the router's leases, or reserve it an address ahead of time):
 ssh root@<host-mgmt-ip> 'virsh list; virsh domblkstat beefcake-blue; systemctl is-system-running'
 
 # GUEST (192.168.0.9, unchanged host keys → no ssh fingerprint change):

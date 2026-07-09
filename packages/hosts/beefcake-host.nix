@@ -334,17 +334,23 @@ in
 
   # ---- networking: br0 enslaves eno1; the guest's virtio NIC rides br0 with
   #      the SERVICE MAC (b8:ca:3a:6d:2d:24) to keep 192.168.0.9 + the v6 GUA.
-  #      The HOST takes its OWN management address on the free eno2. ----
+  #      The HOST takes its own DHCP address ON br0 with a PINNED, distinct MAC
+  #      — no eno2 cable required for management (autonomous-cutover req). ----
   networking = {
     useDHCP = false;
     bridges.br0.interfaces = [ "eno1" ];
-    # Host management on a separate physical port so host + guest never contend
-    # for the service MAC/IP. (eno2/3/4 are unplugged today — plug eno2 for mgmt,
-    # or the host can also take a second address on br0 with its own MAC.)
-    interfaces.eno2.useDHCP = true;
-    # br0 itself needs no host IP (the guest owns the service IP on it); give the
-    # host a link only if you want host-on-br0 access — kept off to avoid MAC/IP
-    # contention with the guest.
+    # CRITICAL (bug #6, caught in the autonomous-cutover review): a Linux bridge
+    # inherits the MAC of its (lowest) enslaved NIC — br0 would come up wearing
+    # eno1's burned-in MAC, which IS the service MAC the GUEST carries, and the
+    # two would fight over 192.168.0.9 (ARP flapping). Pin br0 a distinct,
+    # locally-administered MAC; the router sees the host as its own device and
+    # DHCPs it a separate address (reserve it in the router when known).
+    interfaces.br0 = {
+      macAddress = "0a:be:ef:b0:57:01"; # locally-administered; "beef host 1"
+      useDHCP = true;
+    };
+    # eno2/3/4 stay unplugged; plugging eno2 remains an OPTIONAL second mgmt
+    # path (interfaces.eno2.useDHCP) but is deliberately not required.
   };
 
   # ---- virtualization: libvirt + NixVirt (design open-Q#4) ----
