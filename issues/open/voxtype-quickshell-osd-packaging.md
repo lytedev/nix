@@ -40,3 +40,52 @@ Also user-level (not nix-managed, noted for context): dragon's
 `[vad] enabled = true` (Silero, discards silence-only recordings instead of
 hallucinating "Thank you."), and `voxtype setup dms --install` added a DMS
 bar widget at `~/.config/DankMaterialShell/plugins/VoxtypeWidget/`.
+
+## Upstream bugs in `voxtype setup dms` (0.7.5) — report to voxtype
+
+The generated DMS widget was broken two ways and was fixed by hand on dragon
+(`VoxtypeStatus.qml`, rewritten 2026-07-09):
+
+1. **No `plugin.json` manifest.** DMS 1.5's plugin system only discovers
+   plugins with a manifest (`id`, `name`, `components.widget`); the generator
+   writes only the QML, so DMS reports "No plugins found".
+2. **Wrong Process API + hardcoded store path.** The QML calls
+   `Process.start(...)` / `readAllStandardOutput()` (QProcess semantics) which
+   Quickshell's `Process` type doesn't have — "Process is not a type" without
+   `import Quickshell.Io`, method errors with it. It also bakes in the
+   absolute `/nix/store/.../bin/voxtype` path, stale after any rebuild.
+
+The hand fix watches `$XDG_RUNTIME_DIR/voxtype/state` with a
+`Quickshell.Io.FileView` (event-driven; the same pattern as voxtype's own
+`voxtype-shared/StateReader.qml`) and click-toggles via
+`Quickshell.execDetached(["voxtype", "record", "toggle"])` from PATH.
+
+Debugging note: after editing a broken plugin's QML, DMS's `plugin-scan
+rescan` does NOT clear Qt's component cache (stale "component error" with old
+line numbers, then "File name case mismatch" after a rename) — restart
+`dms.service` to actually reload the QML.
+
+## Streaming dictation (Parakeet) — setup notes + more upstream bugs
+
+dragon now runs `engine = "parakeet"` with `[parakeet] streaming = true`
+(type-as-you-speak at the cursor; Super+V toggles the session). This needed
+the flake's **`onnx` package** (`parakeet-load-dynamic` feature) — the
+whisper-vulkan build has no parakeet support. The daemon drop-in on dragon
+currently points at a scratch `voxtype-onnx-wrapped` store path; for the
+declarative fix the overlay needs an ONNX rewrap variant (and a decision:
+ship onnx-only, or a custom combined `gpu-vulkan`+onnx feature build so
+whisper keeps GPU accel when selected).
+
+Upstream bugs hit on the way (voxtype 0.7.5, report with the DMS ones):
+
+1. **Streaming needs `parakeet-unified-en-0.6b`, but `voxtype setup
+   --download --model` doesn't offer it** (only the tdt-v3 batch models).
+   Had to read `src/setup/model.rs` for the manifest and curl the 5 files
+   from `huggingface.co/bobNight/parakeet-unified-en-0.6b-onnx` (~2.4 GB)
+   into `~/.local/share/voxtype/models/parakeet-unified-en-0.6b/`.
+2. **voxtype's streaming timing defaults crash the daemon.** Its defaults
+   (left 1.5s / chunk 0.5s / right 0.5s) fail parakeet-rs validation —
+   each value must map to a mel-frame count divisible by 8, i.e. be a
+   multiple of 0.08s (frames = secs × 16000/160). Fixed in config with
+   parakeet-rs 0.3.5's own Default values: left 5.6 / chunk 0.56 /
+   right 0.56.
