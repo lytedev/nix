@@ -8,13 +8,16 @@ let
     baseHost
     stable
     ;
+  # bound in the let so beefcake-guest can extendModules off it (attrset keys
+  # aren't in scope within the set itself)
+  beefcakeCfg = baseHost (
+    stable // { extraModules = [ inputs.impermanence.nixosModules.impermanence ]; }
+  ) ./beefcake.nix { };
 in
 {
   # stable + the impermanence module (flag-gated in beefcake/impermanence.nix;
   # a no-op until lyte.impermanence.enable is flipped)
-  beefcake = baseHost (
-    stable // { extraModules = [ inputs.impermanence.nixosModules.impermanence ]; }
-  ) ./beefcake.nix { };
+  beefcake = beefcakeCfg;
   # Phase-3 thin hypervisor (design doc §2). NOT YET DEPLOYED — validated on
   # dragon via nested VM; runs beefcake as a libvirt guest. impermanence for its
   # own ephemeral root; NixVirt for the (next-increment) declarative guest domain.
@@ -27,6 +30,13 @@ in
       ];
     }
   ) ./beefcake-host.nix { };
+  # beefcake AS A GUEST (Phase 3): all of beefcake's services + impermanence +
+  # sops, with the bare-metal hardware swapped for the libvirt guest layer
+  # (virtio, /nix OverlayFS per overlay-boot M2, zstorage virtiofs, service-MAC
+  # NIC). Built by beefcake-host to run as its domain. NOT deployed.
+  beefcake-guest = beefcakeCfg.extendModules {
+    modules = [ ./beefcake/guest-hardware.nix ];
+  };
   dragon = host ./dragon.nix { };
   # Like `host` (baseHost unstable) but with the standalone deckmode module for the
   # jump-in/out gamescope gaming mode. Kept out of the shared modules since it's a
