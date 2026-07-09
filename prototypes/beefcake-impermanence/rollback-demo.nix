@@ -116,6 +116,33 @@ pkgs.writeShellApplication {
     fi
     echo "dbus+NM active, converged ($sysstate), no crash-loop"
 
+    echo "== /var parent-perms regression checks (flip-#2 second root cause) =="
+    # The /persist source parents were forced 0700 in initrd; the tmpfiles fix
+    # must have re-asserted 0755 on the ephemeral root's traversal parents.
+    for d in /var /var/lib /var/cache; do
+      # shellcheck disable=SC2029  # $d is a local loop var; client-side
+      # expansion into the remote command is intended.
+      mode=$(ssh "''${SSH_OPTS[@]}" "stat -c '%a' $d" || true)
+      if [ "$mode" != 755 ]; then
+        echo "FAIL: $d is mode $mode (expected 755) — /var traversal fix regressed"
+        ssh "''${SSH_OPTS[@]}" 'stat -c "%n %a" /persist/var /persist/var/lib /var /var/lib' || true
+        exit 1
+      fi
+    done
+    echo "/var, /var/lib, /var/cache all 0755 despite 0700 /persist source — fix works"
+    # The non-root service must have reached its persisted dir and left a marker.
+    vp=$(ssh "''${SSH_OPTS[@]}" 'systemctl is-active varprobe.service' || true)
+    if [ "$vp" != active ]; then
+      echo "FAIL: varprobe.service is $vp — non-root user could not traverse /var"
+      ssh "''${SSH_OPTS[@]}" 'systemctl status varprobe.service --no-pager -l | head -20' || true
+      exit 1
+    fi
+    if ! ssh "''${SSH_OPTS[@]}" 'test -f /var/lib/varprobe/marker'; then
+      echo "FAIL: varprobe marker missing — persisted state dir was unreachable"
+      exit 1
+    fi
+    echo "varprobe (non-root) wrote + kept its marker through the wipe — traversal OK"
+
     ssh "''${SSH_OPTS[@]}" 'poweroff' || true
 
     echo

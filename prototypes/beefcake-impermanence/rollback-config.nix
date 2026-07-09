@@ -159,7 +159,59 @@
         cp /sysroot/persist/etc/machine-id /sysroot/etc/machine-id
         chmod 0444 /sysroot/etc/machine-id
         echo "seeded /etc/machine-id before switch-root"
+
+        # FLIP-ATTEMPT-#2 SECOND-ROOT-CAUSE REGRESSION GUARD (2026-07-08):
+        # reproduce the /var-parent-perms bug deterministically. On beefcake the
+        # /persist source parents were mode 0700, and impermanence propagates
+        # the source mode onto the ephemeral bind-mount parents — so /var came
+        # up 0700 and every non-root service user was blocked from traversing
+        # into its own StateDirectory. Force the 0700 source here; the
+        # systemd.tmpfiles.rules fix below must still bring the ephemeral /var
+        # back to 0755 (and the varprobe service, running as a NON-root user,
+        # must be able to reach its persisted /var/lib dir).
+        mkdir -p /sysroot/persist/var/lib
+        chmod 0700 /sysroot/persist/var /sysroot/persist/var/lib
       '';
+    };
+  };
+
+  # THE FIX under test (mirrors packages/hosts/beefcake/impermanence.nix):
+  # tmpfiles-setup runs after local-fs (the binds are mounted) and before
+  # services, so `d` re-asserts 0755 on the traversal parents every boot,
+  # independent of the 0700 modes impermanence propagated from /persist.
+  systemd.tmpfiles.rules = [
+    "d /var 0755 root root -"
+    "d /var/lib 0755 root root -"
+    "d /var/cache 0755 root root -"
+  ];
+
+  # A non-root service whose persisted state dir it can only reach if /var and
+  # /var/lib are traversable (0755). This is the beefcake failure mode in
+  # miniature (knot/caddy/kanidm/… as their own users): with the fix it writes
+  # its marker; without it, `install`/write fails "permission denied".
+  users.groups.varprobe = { };
+  users.users.varprobe = {
+    isSystemUser = true;
+    group = "varprobe";
+  };
+  environment.persistence."/persist".directories = [
+    {
+      directory = "/var/lib/varprobe";
+      user = "varprobe";
+      group = "varprobe";
+      mode = "0700";
+    }
+  ];
+  systemd.services.varprobe = {
+    description = "Write a marker into a persisted /var/lib dir as a non-root user";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "varprobe";
+      Group = "varprobe";
+      # Fails outright if the varprobe user cannot traverse /var -> /var/lib.
+      ExecStart = "${pkgs.coreutils}/bin/touch /var/lib/varprobe/marker";
     };
   };
 
