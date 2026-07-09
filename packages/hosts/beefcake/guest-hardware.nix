@@ -90,20 +90,29 @@
     '';
   };
 
-  # ---- zstorage datasets via virtiofs (Model B). The host exposes each share
-  #      with a tag; the guest mounts them. xattr/acl already satisfied by the
-  #      host datasets. (Tags/paths finalized with the host NixVirt domain.) ----
-  # TODO(next): declare the virtiofs mounts once the host domain fixes the tags:
-  #   fileSystems."/storage" = { device = "zstorage"; fsType = "virtiofs"; ... };
-  #   fileSystems."/var/lib/containers" = { fsType = "virtiofs"; ... };
-  #   fileSystems."/var/lib/private"    = { fsType = "virtiofs"; ... };
-  # Kept as a marker so the guest config evaluates before the host side lands.
+  # ---- zstorage datasets via virtiofs (Model B) — mounted by the tags the host
+  #      domain exposes (beefcake-host.nix: storage / containers / varlib-private).
+  #      The host datasets carry xattr=sa + posixacl already. ----
+  fileSystems."/storage" = {
+    device = "storage";
+    fsType = "virtiofs";
+  };
+  fileSystems."/var/lib/containers" = {
+    device = "containers";
+    fsType = "virtiofs";
+  };
+  fileSystems."/var/lib/private" = {
+    device = "varlib-private";
+    fsType = "virtiofs";
+  };
 
-  # ---- networking: a plain virtio NIC. The host tap carries the service MAC,
-  #      so the guest just DHCPs and lands on 192.168.0.9 via the reservation.
-  #      beefcake/networking.nix already sets hostId 541ede55 + tailscale. ----
-  networking.useDHCP = lib.mkForce true;
-  # The bare-metal NAT/exit-node config keys off eno1; the guest's iface differs.
-  # TODO(next): reconcile networking.nix's eno1-specific nat.externalInterface
-  # with the guest's virtio iface name (or set a stable iface name via udev).
+  # ---- networking: the domain gives the guest's virtio NIC the service MAC
+  #      (b8:ca:3a:6d:2d:24). Name that NIC "eno1" by MAC so ALL of
+  #      beefcake/networking.nix (nat.externalInterface=eno1, tailscale exit
+  #      node, the 192.168.0.9 DHCP reservation, hostId 541ede55) applies
+  #      UNCHANGED — the guest is beefcake as far as the LAN is concerned. ----
+  systemd.network.links."10-eno1" = {
+    matchConfig.MACAddress = "b8:ca:3a:6d:2d:24";
+    linkConfig.Name = "eno1";
+  };
 }

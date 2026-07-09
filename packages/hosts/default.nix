@@ -27,6 +27,8 @@ in
       extraModules = [
         inputs.impermanence.nixosModules.impermanence
         inputs.nixvirt.nixosModules.default
+        # expose NixVirt's domain-building lib to beefcake-host.nix
+        { _module.args.nixvirt = inputs.nixvirt; }
       ];
     }
   ) ./beefcake-host.nix { };

@@ -16,8 +16,67 @@
   lib,
   pkgs,
   hardware,
+  nixvirt,
   ...
 }:
+let
+  # The guest domain, declared with NixVirt. storage_vol is the guest OS disk —
+  # a zvol on the host that holds the guest's rpool (root@blank + the /nix base
+  # closure + the per-slot /nix-upper + /persist). Provisioned at cutover by
+  # building beefcake-guest into an image and writing it to the zvol (runbook).
+  # The blue slot is the initial active guest; green is added in Phase 4.
+  guestBase = nixvirt.lib.domain.templates.linux {
+    name = "beefcake-blue";
+    uuid = "b1000000-beef-cafe-0000-000000000001";
+    memory = {
+      count = 200;
+      unit = "GiB";
+    };
+    vcpu = {
+      count = 36;
+    };
+    storage_vol = "/dev/zvol/rpool/beefcake-blue";
+    bridge_name = "br0";
+    net_iface_mac = "b8:ca:3a:6d:2d:24"; # the SERVICE MAC → keeps 192.168.0.9
+  };
+  # virtiofs share of a host zstorage dataset into the guest (Model B). The
+  # guest mounts it by the target `dir` tag (see guest-hardware.nix).
+  virtiofsShare = hostDir: tag: {
+    type = "mount";
+    accessmode = "passthrough";
+    driver = {
+      name = "virtiofs";
+    };
+    binary = {
+      path = "${pkgs.virtiofsd}/bin/virtiofsd";
+      xattr = true;
+    };
+    source = {
+      dir = hostDir;
+    };
+    target = {
+      dir = tag;
+    };
+  };
+  guestDomain = guestBase // {
+    # virtiofs requires guest RAM be shared (memfd + shared access).
+    memoryBacking = {
+      source = {
+        type = "memfd";
+      };
+      access = {
+        mode = "shared";
+      };
+    };
+    devices = guestBase.devices // {
+      filesystem = [
+        (virtiofsShare "/storage" "storage")
+        (virtiofsShare "/var/lib/containers" "containers")
+        (virtiofsShare "/var/lib/private" "varlib-private")
+      ];
+    };
+  };
+in
 {
   imports = [
     hardware.common-cpu-intel
@@ -125,15 +184,20 @@
   # virtiofsd for sharing host zstorage datasets into the guest (Model B).
   virtualisation.libvirtd.qemu.vhostUserPackages = [ pkgs.virtiofsd ];
 
-  # TODO(NEXT INCREMENT — the guest): declare the beefcake guest domain via
-  # NixVirt (virtualisation.libvirt.connections."qemu:///system".domains):
-  #   - OS: /nix overlay (RO host store lower via virtiofs + per-slot RW upper),
-  #     proven by prototypes/.../overlay-nix-test.nix (M1 green)
-  #   - virtiofs shares of zstorage datasets (xattr=sa, posixacl)
-  #   - tap on br0 with mac b8:ca:3a:6d:2d:24 (service MAC)
-  #   - hostId 541ede55, same host keys / sops identity as beefcake today
-  # Built from beefcake-guest.nix (= today's beefcake minus hardware.nix, plus
-  # virtio). autostart marker for the active slot lives on host /persist.
+  # The guest domain, declared (NixVirt). `active` autostarts the blue slot; its
+  # OS closure is beefcake-guest (packages/hosts/beefcake/guest-hardware.nix),
+  # written to the /dev/zvol/rpool/beefcake-blue disk at cutover. virtiofs shares
+  # feed it the host's zstorage datasets; the tap carries the service MAC.
+  # (Green slot + the cutover tool are Phase 4.)
+  virtualisation.libvirt = {
+    enable = true;
+    connections."qemu:///system".domains = [
+      {
+        active = true;
+        definition = nixvirt.lib.domain.writeXML guestDomain;
+      }
+    ];
+  };
 
   # ---- monitoring: hardware lives with the host (smartd/IPMI/node-exporter),
   #      shipped to the guest's OpenObserve (design §5). ----
