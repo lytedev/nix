@@ -22,12 +22,14 @@
   };
 
   # :8095 (admin/API) is fronted by Caddy with TLS and is NOT opened directly on
-  # the firewall (only Caddy reaches it over loopback). :8097 (audio stream) +
-  # :3483 (SlimProto) stay LAN-open so Cast players and the steamdeck's
-  # squeezelite can pull/connect.
+  # the firewall (only Caddy reaches it over loopback). :8097 (audio stream),
+  # :3483 (SlimProto) and :8927 (Sendspin) stay LAN-open so Cast players, the
+  # steamdeck's squeezelite, and the MA Companion App's native Sendspin player
+  # (the kids' tablets) can pull/connect.
   networking.firewall.allowedTCPPorts = [
     8097
     3483
+    8927
   ];
 
   services.caddy.virtualHosts."music-assistant.h.lyte.dev".extraConfig = ''

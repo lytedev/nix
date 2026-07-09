@@ -79,15 +79,16 @@ let
   #   1883: mosquitto MQTT broker (#584), allow_anonymous = false.
   authGatedLanTcp = "1883";
   # Music Assistant audio DATA plane. Cast/AirPlay/squeezelite players stream the
-  # audio MA itself serves from :8097, and squeezelite's SlimProto control is on
-  # :3483. Unlike the rest of beefcake's services these CAN'T move to the tailnet:
+  # audio MA itself serves from :8097, squeezelite's SlimProto control is on
+  # :3483, and the MA Companion App's native Sendspin player connects directly to
+  # :8927. Unlike the rest of beefcake's services these CAN'T move to the tailnet:
   # the players are consumer LAN devices (Nest speakers, kids' tablets, the
   # steamdeck) that can't be tailnet peers, and MA serves every player from one
   # publish-IP, so the stream has to be LAN-reachable. MA's admin/API (:8095)
   # deliberately stays OFF this list — it's reached only via the Caddy TLS vhost
   # (music-assistant.h.lyte.dev). Not auth-gated, so it's open LAN-wide like
   # publicTcp rather than password-gated like MQTT.
-  lanMediaTcp = "3483,8097";
+  lanMediaTcp = "3483,8097,8927";
   # beefcake is the active hidden DNS primary for lyte.dev (see ./dns-primary.nix),
   # so the 1984.is + he.net secondaries pull the zone via AXFR. Those connections
   # hit the home WAN IP, are DNAT'd by the router to beefcake:53, and arrive on
