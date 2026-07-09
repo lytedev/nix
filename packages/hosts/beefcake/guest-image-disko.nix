@@ -19,7 +19,16 @@
     disk.main = {
       device = "/dev/vda"; # the slot zvol, presented as virtio-blk vda
       type = "disk";
-      imageSize = "40G"; # root + /nix base closure + a little upper headroom
+      # Root + /nix base closure + /nix-upper headroom + the guest's /persist
+      # (the non-cache persist set, ~15G, rsynced in at the window; restic
+      # caches are deliberately NOT migrated — they rebuild). The .raw is
+      # SPARSE and streams compressed; the slot zvol is created sparse (-s).
+      # NOTE the guest pool is ALSO named "rpool" (impermanence.nix hardcodes
+      # rpool/* paths): structurally safe at boot (the host's own rpool imports
+      # in initrd BEFORE any zvol device exists), but NEVER `zpool import`/
+      # `zpool import -a` by scan on the host — use the pool GUID + `-t` for
+      # any maintenance import of a slot pool.
+      imageSize = "100G";
       content = {
         type = "gpt";
         partitions = {

@@ -24,6 +24,15 @@
   # ---- undo the bare-metal hardware.nix ----
   # The guest does NOT own zstorage (host shares datasets via virtiofs).
   boot.zfs.extraPools = lib.mkForce [ ];
+  # The guest's pool was created by the disko image-build VM under a FOREIGN
+  # hostid (the pool keeps its creation hostid forever), so every guest boot
+  # must force-import its own root pool. Safe: inside the VM only vda is
+  # visible. (Bug #7 — caught in cutover-prep review.)
+  boot.zfs.forceImportRoot = true;
+  # Serial-less virtio disks have NO /dev/disk/by-id entries, and the initrd's
+  # `zpool import` on the default by-id devNodes waits forever (the proven
+  # rollback/overlay-boot gotcha). by-path always exists. (Bug #8.)
+  boot.zfs.devNodes = "/dev/disk/by-path";
   # virtio, not the SAS HBA.
   boot.initrd.availableKernelModules = lib.mkForce [
     "virtio_pci"
