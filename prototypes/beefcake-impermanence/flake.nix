@@ -78,6 +78,15 @@
               ./rollback-config.nix
             ];
           };
+          # P-overlay M2: boots with /nix/store as an OverlayFS (RO base + RW
+          # upper) — the guest /nix strategy proven at boot (see overlay-boot-demo).
+          overlay-boot = nixpkgs.lib.nixosSystem {
+            inherit system;
+            modules = [
+              disko.nixosModules.disko
+              ./overlay-boot-config.nix
+            ];
+          };
           slot-blue = mkSlot "blue" { };
           slot-green = mkSlot "green" {
             # The candidate generation: visibly different from blue.
@@ -101,6 +110,10 @@
         rollback-demo = import ./rollback-demo.nix {
           inherit pkgs;
           rollbackSystem = self.nixosConfigurations.rollback;
+        };
+        overlay-boot-demo = import ./overlay-boot-demo.nix {
+          inherit pkgs;
+          overlaySystem = self.nixosConfigurations.overlay-boot;
         };
         demo = pkgs.writeShellApplication {
           name = "modelb-demo";
@@ -138,6 +151,10 @@
         rollback-demo = {
           type = "app";
           program = "${self.packages.${system}.rollback-demo}/bin/rollback-demo";
+        };
+        overlay-boot-demo = {
+          type = "app";
+          program = "${self.packages.${system}.overlay-boot-demo}/bin/overlay-boot-demo";
         };
         demo = {
           type = "app";
