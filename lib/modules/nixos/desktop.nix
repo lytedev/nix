@@ -10,7 +10,15 @@ let
   types = lib.types;
   dotfilesPath = config.lyte.dotfilesPath;
   danielHome = config.lyte.userHome;
-  voxtypePkg = if cfg.voxtype.gpu then pkgs.voxtype-vulkan else pkgs.voxtype;
+  voxtypePkg =
+    if cfg.voxtype.gpu && cfg.voxtype.onnx then
+      pkgs.voxtype-full
+    else if cfg.voxtype.gpu then
+      pkgs.voxtype-vulkan
+    else if cfg.voxtype.onnx then
+      pkgs.voxtype-onnx
+    else
+      pkgs.voxtype;
 in
 {
   options = {
@@ -112,7 +120,24 @@ in
             RADV): large-v3-turbo transcribes a few seconds of audio in ~2s
             on GPU vs minutes on CPU. Needs a Vulkan-capable GPU with the
             ICD from hardware.graphics.enable; falls back to CPU at runtime
-            if no Vulkan device is found.
+            if no Vulkan device is found. Combines with voxtype.onnx.
+          '';
+        };
+        voxtype.onnx = lib.mkOption {
+          type = types.bool;
+          default = false;
+          example = true;
+          description = ''
+            Include voxtype's ONNX engines (Parakeet — including streaming
+            dictation, i.e. text typed at the cursor WHILE speaking —
+            Moonshine, SenseVoice, ...). Set `engine = "parakeet"` plus
+            `[parakeet] streaming = true` in ~/.config/voxtype/config.toml
+            to use streaming; the model (parakeet-unified-en-0.6b, ~2.4 GB)
+            is downloaded user-level to ~/.local/share/voxtype/models (see
+            issues/open/voxtype-quickshell-osd-packaging.md — the setup CLI
+            cannot fetch it as of 0.7.5). With voxtype.gpu also set, the
+            combined build keeps GPU whisper available for `engine =
+            "whisper"`.
           '';
         };
         music.enable = lib.mkEnableOption "Enable music listening applications";
@@ -284,6 +309,11 @@ in
           wl-clipboard
           libnotify
           voxtype-osd-gtk4
+          # sh/bash for [output.post_process] hooks (voxtype spawns `sh -c`;
+          # the systemd user unit PATH has no shell otherwise)
+          bash
+          # the quickshell OSD frontend launcher execs `qs` from PATH
+          quickshell
         ];
         environment.VOXTYPE_MODEL = cfg.voxtype.model;
         serviceConfig = {

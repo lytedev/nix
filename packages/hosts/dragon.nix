@@ -168,6 +168,9 @@
     # Vulkan whisper on the RX 6700 XT: ~2s to transcribe a few seconds of
     # audio with large-v3-turbo, vs minutes on CPU.
     desktop.voxtype.gpu = true;
+    # Parakeet streaming dictation (type-as-you-speak); combined with gpu
+    # this selects the voxtype-full build so GPU whisper stays available.
+    desktop.voxtype.onnx = true;
     gpu = "amd";
     desktop.music-production = {
       enable = true;

@@ -32,7 +32,10 @@ let
       # does not provide `which` — without it every method reports
       # "not available" and transcriptions are silently dropped.
       rewrapVoxtype =
-        pkg:
+        {
+          pkg,
+          extraWrapperArgs ? "",
+        }:
         let
           unwrapped = pkg.overrideAttrs {
             doCheck = false;
@@ -59,10 +62,54 @@ let
                     pciutils
                   ]
                 )
-              }
+              } ${extraWrapperArgs}
           '';
           inherit (unwrapped) meta;
         };
+
+      # ONNX engines (Parakeet streaming etc.) load libonnxruntime at runtime
+      # (parakeet-load-dynamic). Point the wrapper at the same onnxruntime the
+      # build linked against: the voxtype flake builds with ITS nixpkgs, which
+      # follows our nixpkgs-unstable, so unstable-packages.onnxruntime is the
+      # matching rev.
+      onnxWrapperArgs = ''
+        --set ORT_DYLIB_PATH "${unstable-packages.onnxruntime}/lib/libonnxruntime.so" \
+        --prefix LD_LIBRARY_PATH : "${unstable-packages.onnxruntime}/lib"'';
+
+      # Combined-feature build: upstream ships whisper-Vulkan and ONNX/Parakeet
+      # as SEPARATE packages, but the cargo features are additive — this adds
+      # gpu-vulkan on top of the onnx build so one binary has GPU whisper AND
+      # streaming Parakeet, switchable via `engine` in config.toml without a
+      # rebuild. Vulkan inputs and env mirror the flake's own vulkan variant.
+      voxtypeFullUnwrapped =
+        (inputs.voxtype.packages.${final.system}.voxtype-onnx-unwrapped).overrideAttrs
+          (old: {
+            pname = "voxtype-full";
+            name = "voxtype-full-${old.version}";
+            # NOT `buildFeatures`: buildRustPackage maps that into
+            # cargoBuildFeatures at call time, so overriding buildFeatures
+            # post-hoc is silently ignored by the cargoBuildHook (the binary
+            # builds without Vulkan). Override what the hook actually reads.
+            cargoBuildFeatures = (old.cargoBuildFeatures or [ ]) ++ [ "gpu-vulkan" ];
+            nativeBuildInputs =
+              (old.nativeBuildInputs or [ ])
+              ++ (with prev; [
+                shaderc
+                vulkan-headers
+                vulkan-loader
+              ]);
+            buildInputs =
+              (old.buildInputs or [ ])
+              ++ (with prev; [
+                vulkan-headers
+                vulkan-loader
+              ]);
+            preBuild = (old.preBuild or "") + ''
+              export VULKAN_SDK="${prev.vulkan-loader}"
+              export Vulkan_INCLUDE_DIR="${prev.vulkan-headers}/include"
+              export Vulkan_LIBRARY="${prev.vulkan-loader}/lib/libvulkan.so"
+            '';
+          });
     in
     {
       inherit unstable-packages stable-packages;
@@ -124,14 +171,30 @@ let
       });
 
       # CPU whisper build (see rewrapVoxtype above for the wrap details).
-      voxtype = rewrapVoxtype inputs.voxtype.packages.${final.system}.voxtype-unwrapped;
+      voxtype = rewrapVoxtype { pkg = inputs.voxtype.packages.${final.system}.voxtype-unwrapped; };
 
       # Vulkan (GGML_VULKAN) whisper build for GPU-accelerated transcription.
       # Selected per-host via lyte.desktop.voxtype.gpu; falls back to CPU at
       # runtime when no Vulkan device is present. The Vulkan ICD comes from
       # the NixOS global driver profile (hardware.graphics.enable), so no
       # extra runtime wiring is needed here.
-      voxtype-vulkan = rewrapVoxtype inputs.voxtype.packages.${final.system}.voxtype-vulkan-unwrapped;
+      voxtype-vulkan = rewrapVoxtype {
+        pkg = inputs.voxtype.packages.${final.system}.voxtype-vulkan-unwrapped;
+      };
+
+      # ONNX engines (Parakeet incl. streaming dictation, Moonshine, ...),
+      # whisper on CPU. Selected via lyte.desktop.voxtype.onnx.
+      voxtype-onnx = rewrapVoxtype {
+        pkg = inputs.voxtype.packages.${final.system}.voxtype-onnx-unwrapped;
+        extraWrapperArgs = onnxWrapperArgs;
+      };
+
+      # GPU whisper + ONNX engines in one binary (gpu && onnx). See
+      # voxtypeFullUnwrapped above.
+      voxtype-full = rewrapVoxtype {
+        pkg = voxtypeFullUnwrapped;
+        extraWrapperArgs = onnxWrapperArgs;
+      };
 
       # The daemon's preferred OSD frontend (gtk4-layer-shell pill showing
       # recording/transcribing/typing). The quickshell frontend the package
