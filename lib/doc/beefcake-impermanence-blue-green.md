@@ -522,11 +522,23 @@ PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
    thin host (its /var/lib/libvirt lives on host /persist). Requirements
    unchanged: zvol/share exclusivity (virtlockd), NIC hotmove, serial console,
    autostart-active-slot marker on host /persist.
-   OPEN SUB-DECISION (blocks the guest config): guest `/nix` strategy is
-   internally inconsistent in this doc — §2 diagram says "/nix inside the OS
-   zvol" (per-slot), while the DD2 Model-B revision says "host store shared RO
-   into slots, /nix stays zstorage/nix". These conflict; resolve before
-   building the guest (see the three options in the Phase-3 kickoff notes).
+   GUEST /nix SUB-DECISION → **OVERLAY HYBRID (Daniel 2026-07-09), pending a
+   dragon prototype receipt.** Neither pure option was right: per-slot OS zvol
+   duplicates the multi-GB store per slot (annoying to sync); shared-RO host
+   store makes the guest unable to self-rebuild + changes the deploy flow.
+   Instead: **overlay `/nix`** — RO lower = the host store (shared ONCE via
+   virtiofs), RW upper = a small per-slot delta. The bulk is shared/deduped;
+   each slot writes only the paths its generation adds; guest stays writable
+   (`nixos-rebuild` works); blue/green differ by the tiny upper only. Feasible
+   on the pinned Nix (2.34.7 / Determinate 3.21.1, verified 2026-07-09) via
+   EITHER (a) Nix's native `local-overlay://` store type (experimental feature
+   `local-overlay-store`, recognized), or (b) manual `overlayfs` on
+   `/nix/store` + seed the guest DB with the lower store's registrations via
+   `nix-store --dump-db`/`--load-db`. The store DB (not the files) is the
+   crux — a naive overlayfs on the store dir alone desyncs Nix's validity DB.
+   NEXT: prototype `overlay-nix` on dragon proving boot-from-overlaid-/nix +
+   realize-a-delta-into-upper + `nixos-rebuild`, before the guest config
+   commits to it.
    Evaluated and rejected for the *slots* (2026-07-01): Firecracker (no
    PCI/vfio ever → kills the Phase-5 HBA path; no virtiofs; direct-kernel
    boot only), Ignite (archived), smolvm (libkrun; no raw block devices, no
