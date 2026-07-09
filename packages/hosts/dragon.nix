@@ -195,6 +195,15 @@
     };
   };
 
+  # btop is a plain systemPackage from the shared shell config (every host);
+  # override it here rather than there so the ROCm closure (rocm_smi_lib)
+  # only lands on this AMD dGPU host, not the whole fleet.
+  nixpkgs.overlays = [
+    (final: prev: {
+      btop = prev.btop.override { rocmSupport = true; };
+    })
+  ];
+
   # these are just scripts and so do not cause bloated nixos installations
   environment.systemPackages = with pkgs; [
     playwright-mcp
