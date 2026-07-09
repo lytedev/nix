@@ -510,11 +510,23 @@ PCIe NVMe adapter — hardware purchase), SR-IOV NIC slices, host-side
    of the full real state — strictly better than hand-picked fixtures. What
    remains is the per-service smoke-check registry (DD6.2, Daniel confirmed
    wanted).
-4. libvirt+NixVirt vs microvm.nix vs hand-rolled qemu units — decide after the
-   prototype. Model B tilts this toward **microvm.nix** (virtiofs shares +
-   ro-store + volumes are literally its native vocabulary); requirements:
-   zvol/share exclusivity, NIC hotmove or fast stop/start, serial console,
+4. ~~libvirt+NixVirt vs microvm.nix vs hand-rolled qemu units~~ **DECIDED
+   2026-07-09 (Daniel): libvirt + NixVirt.** Model B's vocabulary tilted the
+   doc toward microvm.nix, but beefcake's OS is a long-lived *pet* guest, not
+   cattle, and libvirt is the only option with the two operational features
+   that matter for a pet: `virsh console` (out-of-band access to an
+   un-SSH-able guest — the "drive to the LAN" replacement, §5) and live NIC
+   hotplug for cutover. microvm.nix's stop/start + thin console fit fleets.
+   NixVirt keeps the domain declarative; libvirt still does virtiofs shares +
+   zvol disks, so Model B is unaffected. Accept the stateful libvirtd on the
+   thin host (its /var/lib/libvirt lives on host /persist). Requirements
+   unchanged: zvol/share exclusivity (virtlockd), NIC hotmove, serial console,
    autostart-active-slot marker on host /persist.
+   OPEN SUB-DECISION (blocks the guest config): guest `/nix` strategy is
+   internally inconsistent in this doc — §2 diagram says "/nix inside the OS
+   zvol" (per-slot), while the DD2 Model-B revision says "host store shared RO
+   into slots, /nix stays zstorage/nix". These conflict; resolve before
+   building the guest (see the three options in the Phase-3 kickoff notes).
    Evaluated and rejected for the *slots* (2026-07-01): Firecracker (no
    PCI/vfio ever → kills the Phase-5 HBA path; no virtiofs; direct-kernel
    boot only), Ignite (archived), smolvm (libkrun; no raw block devices, no

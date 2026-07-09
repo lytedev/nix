@@ -56,6 +56,13 @@
     # lib/doc/beefcake-impermanence-blue-green.md); pure module flake
     impermanence.url = "github:nix-community/impermanence";
 
+    # NixVirt: declarative libvirt domains/networks/pools for the beefcake
+    # thin-hypervisor (Phase 3, design doc §2 + open-Q#4 = libvirt+NixVirt).
+    nixvirt = {
+      url = "github:AshleyYakeley/NixVirt";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # deckmode: standalone jump-in/out gamescope gaming-mode module (foxtrot uses
     # it via packages/hosts/default.nix extraModules). Consumed as a pure module,
     # so its nixpkgs follow is only for lock dedup.
