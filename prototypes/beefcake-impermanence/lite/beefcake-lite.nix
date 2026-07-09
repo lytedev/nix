@@ -68,6 +68,10 @@
     "d /storage/miyoo-mini/saves 0755 root root -"
     "d /srv/h.lyte.dev 0755 daniel users -"
     "d /run/gitea-runner-cache 1777 root root -"
+    # mosquitto-pre-start writes a hashed passwd file into its state dir as the
+    # mosquitto user; the stateless tier leaves /var/lib/mosquitto absent/unowned
+    # so the touch fails and it start-limit-hits. Create it owned by mosquitto.
+    "d /var/lib/mosquitto 0700 mosquitto mosquitto -"
   ];
 
   # ---- secrets: dummies encrypted to the prototype test key ----
@@ -107,6 +111,10 @@
         "forgejo-github-mirror"
         "build-lytedev-flake"
         "tailscaled-autoconnect"
+        # backup of vaultwarden data — none in the stateless tier; the unit runs
+        # at boot (independent of its also-disabled timer) and cp-fails on an
+        # empty state dir. Same class as the restic backups disabled below.
+        "backup-vaultwarden"
         # factory-fresh chicken-and-egg: the plan-apply polls the JMAP/mgmt
         # port that only the applied plan would configure; production state
         # pre-exists so this never runs from factory there
@@ -158,6 +166,16 @@
       atuin = {
         after = [ "postgresql-setup.service" ];
         wants = [ "postgresql-setup.service" ];
+      };
+      # Kanidm provisions the OAuth2 clients on its own schedule; on the slow
+      # VM that can exceed this fetcher's internal ~9min poll, so it gives up
+      # ("client not provisioned?") on the race. Retry-until-up (same pattern
+      # as plausible) so it converges once Kanidm has created the clients.
+      # Live, the clients pre-exist and it resolves on the first try.
+      kanidm-oauth2-secrets = {
+        serviceConfig.Restart = lib.mkForce "on-failure";
+        serviceConfig.RestartSec = lib.mkForce 15;
+        unitConfig.StartLimitIntervalSec = lib.mkForce 0;
       };
       kanidm-dummy-cert = {
         wantedBy = [ "multi-user.target" ];
@@ -242,6 +260,10 @@
         "copy-stalwart-certificates-from-caddy"
         "forgejo-github-mirror"
         "build-lytedev-flake"
+        # timer-triggered backup of vaultwarden data — none exists in the
+        # stateless tier, so it fires at boot and cp-fails on an empty state
+        # dir. Same class as the restic backups already disabled.
+        "backup-vaultwarden"
       ]
       (_: {
         enable = lib.mkForce false;

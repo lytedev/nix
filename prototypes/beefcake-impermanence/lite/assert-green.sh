@@ -33,10 +33,13 @@ S() {
 # lite boot. Healthy on the live host; their failure here is expected & benign.
 # Keep this list TIGHT and documented — every entry is a hole in the gate.
 ALLOW_NONCONVERGE=(
-  kanidm-oauth2-secrets.service # fetches OAuth2 client secrets from a reachable Kanidm (none in lite)
-  home-assistant.service        # needs persisted HA state/config, not present on a fresh boot
-  mosquitto.service             # needs MQTT certs/state not provisioned in the stateless tier
-  backup-vaultwarden.service    # backup oneshot; no backup target in lite (inactive between runs live)
+  # home-assistant: heavy app; its lite state dir is now writable (tmpfiles in
+  # beefcake-lite.nix), but full convergence wants real integration/component
+  # state we don't fake — and it's not load-bearing, so it's validated live,
+  # not here. The others that used to be here now genuinely CONVERGE in lite:
+  # mosquitto (state-dir tmpfiles), kanidm-oauth2-secrets (retry-until-Kanidm-
+  # provisions), backup-vaultwarden (disabled — a backup with no data in-tier).
+  home-assistant.service
 )
 # Services the lite tier IS expected to bring up. Asserted positively so a
 # regression that leaves one INACTIVE (not failed) still trips the gate. Kept
