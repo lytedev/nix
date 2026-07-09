@@ -209,6 +209,38 @@ the ed25519 host key declaratively (encrypted in-repo to the master key, laid
 on `/persist` at setup — so identity is intentional, not install-random state);
 and a VM regression guard for the `/var`-perms class.
 
+## Recovery: host identity (fresh or lost `/persist`)
+
+beefcake's identity keys are backed up, encrypted to your master key, in
+`secrets/beefcake/host-identity.yml`: the ed25519 + rsa ssh host keys. The
+**ed25519 key IS the sops age identity** (`age1etv56f…=sshd-at-beefcake`, a
+recipient on every beefcake secret), so it cannot be laid by sops-nix at
+runtime — it's the thing sops needs to decrypt everything else. It is a
+bootstrap artifact you place **off-host, before first boot**.
+
+If `/persist` is ever rebuilt (fresh SSD, disaster recovery), restore the
+identity from a machine holding the master key (dragon) **before** booting the
+impermanent root — otherwise a fresh install generates a NEW key, the derived
+age recipient changes, and sops decrypts nothing:
+
+```bash
+# from the repo, with the master age key available:
+mkdir -p /tmp/bkid && cd /tmp/bkid
+for k in ssh_host_ed25519_key ssh_host_rsa_key; do
+  sops -d secrets/beefcake/host-identity.yml | yq -r ".${k}_b64"     | base64 -d > $k
+  sops -d secrets/beefcake/host-identity.yml | yq -r ".${k}_pub_b64" | base64 -d > $k.pub
+  chmod 600 $k; chmod 644 $k.pub
+done
+# place onto the new /persist (adjust the path to how it's mounted during recovery):
+scp ssh_host_* root@192.168.0.9:/persist/etc/ssh/
+shred -u ./*        # don't leave plaintext keys lying around
+```
+
+The keys are dated at beefcake's original install (2024-09-03); keeping them
+means the ssh fingerprint never changes and sops keeps working across a
+`/persist` rebuild. To verify a restored key derives the expected recipient:
+`ssh-keygen -y -f ssh_host_ed25519_key | ssh-to-age` → `age1etv56f…`.
+
 ## Troubleshooting quickies
 
 | Symptom | First move |
