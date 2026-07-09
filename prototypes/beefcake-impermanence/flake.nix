@@ -44,6 +44,10 @@
         # snapshot+clone opened by a second instance (validation), two-way
         # isolation, clone discard, share-dataset xattr/acl semantics.
         modelb-storage = import ./modelb-storage-test.nix { inherit pkgs; };
+        # P-overlay (Phase 3): guest /nix overlay hybrid — local-overlay store
+        # composes a RO lower (shared host store) + writable per-slot upper;
+        # proves DB layering + delta isolation.
+        overlay-nix = import ./overlay-nix-test.nix { inherit pkgs; };
       };
 
       # rollback = P1b (disko image, initrd @blank rollback — see rollback-demo).
