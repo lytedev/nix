@@ -50,6 +50,20 @@ in
       # JMAP endpoints supplied by users still get the check).
       # https://github.com/bulwarkmail/webmail/blob/00b40fc48a7fcd43fa65f21b94b42bda70102546/lib/oauth/token-exchange.ts#L9-L17
       OAUTH_ALLOW_PRIVATE_ENDPOINTS = "true";
+
+      # The installed Android PWA showed white status/nav bars: they were the
+      # OS chrome painted with the PWA's theme color, which was white. Bulwark's
+      # default PWA_THEME_COLOR / PWA_BACKGROUND_COLOR are #ffffff and feed both
+      # the web app manifest (theme_color/background_color) and the
+      # <meta name="theme-color"> tag — so the system bars rendered white even
+      # though the app itself paints its dark theme (whose --color-background is
+      # #0a0a0a, see the served /_next CSS ".dark" rule). Match that dark chrome
+      # so the bars blend into the app instead of framing it in white.
+      # Docs: https://bulwarkmail.org/docs/features/pwa (PWA_THEME_COLOR example).
+      # NOTE: the installed PWA caches the manifest — after deploying, the app
+      # must be uninstalled and reinstalled on-device for this to take effect.
+      PWA_THEME_COLOR = "#0a0a0a";
+      PWA_BACKGROUND_COLOR = "#0a0a0a";
     };
   };
 
