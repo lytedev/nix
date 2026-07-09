@@ -256,10 +256,12 @@ in
   ];
 
   networking.hostName = "beefcake-host";
-  # The HOST's own hostId — DISTINCT from the guest's (541ede55). The host
-  # imports zstorage, so this is the id that pool carries; the guest never
-  # imports zstorage (it gets datasets via virtiofs), so the two never collide.
-  networking.hostId = "beef00a1";
+  # SAME hostId as bare-metal beefcake (and the guest): zstorage + rpool were
+  # last attached under 541ede55 and are NOT exported at shutdown — a different
+  # hostId would make the host's imports refuse ("in use from another system").
+  # Safe to share: host and guest never import the same pool (the guest only
+  # force-imports its own inner zvol pool). Caught in cutover pre-flight.
+  networking.hostId = "541ede55";
 
   # ---- boot / disk: same hardware as beefcake (Dell R720xd), SSD ZFS mirror
   #      root, dual ESPs, HBA + KVM. Mirrors packages/hosts/beefcake/hardware.nix
@@ -304,13 +306,22 @@ in
   # TODO(increment): factor the impermanence.nix mechanism into a shared module
   # so beefcake-host and beefcake(guest) both consume it instead of copying.
   # For now the host's persist set is intentionally tiny (identity + libvirt).
+  # The host gets its OWN root + persist datasets (rpool/local/host-root@blank,
+  # rpool/host-persist — created in cutover prep), NOT beefcake's
+  # rpool/local/root + rpool/persist: sharing persist would hand the host
+  # beefcake's machine-id (now the GUEST's identity -> DHCP-DUID collision on
+  # the same bridge) and gen-609 fallback must keep its datasets untouched.
+  # /nix reuses zstorage/nix exactly like today's beefcake (imported in
+  # initrd — proven on this machine; deploy --boot lands the host closure
+  # there, so it is populated BEFORE the first host boot; a fresh rpool
+  # dataset would be EMPTY at boot). Caught in cutover pre-flight.
   fileSystems = {
     "/" = {
-      device = "rpool/local/root";
+      device = "rpool/local/host-root";
       fsType = "zfs";
     };
     "/persist" = {
-      device = "rpool/persist";
+      device = "rpool/host-persist";
       fsType = "zfs";
       neededForBoot = true;
     };
@@ -323,10 +334,65 @@ in
       ];
     };
     "/nix" = {
-      device = "rpool/local/nix";
+      device = "zstorage/nix";
       fsType = "zfs";
+      neededForBoot = true;
     };
   };
+
+  # The proven impermanence machinery (impermanence.nix + rollback-demo),
+  # targeting the HOST's datasets. Wipe host-root to @blank each boot; seed a
+  # host-own machine-id (self-generating on first boot -> fresh host identity,
+  # distinct from the guest's) before switch-root.
+  boot.initrd.systemd.enable = true;
+  boot.initrd.systemd.services.rollback-host-root = {
+    description = "Rollback rpool/local/host-root to @blank (impermanence)";
+    wantedBy = [ "initrd.target" ];
+    requires = [ "zfs-import-rpool.service" ];
+    after = [ "zfs-import-rpool.service" ];
+    before = [ "sysroot.mount" ];
+    unitConfig.DefaultDependencies = "no";
+    serviceConfig.Type = "oneshot";
+    script = "zfs rollback -r rpool/local/host-root@blank";
+  };
+  boot.initrd.systemd.services.persist-machine-id = {
+    description = "Seed host /etc/machine-id from /persist before switch-root";
+    wantedBy = [ "initrd.target" ];
+    requires = [
+      "sysroot.mount"
+      "sysroot-persist.mount"
+    ];
+    after = [
+      "rollback-host-root.service"
+      "sysroot.mount"
+      "sysroot-persist.mount"
+    ];
+    before = [ "initrd-switch-root.target" ];
+    unitConfig.DefaultDependencies = "no";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      mkdir -p /sysroot/persist/etc /sysroot/etc
+      if [ ! -s /sysroot/persist/etc/machine-id ]; then
+        tr -d - < /proc/sys/kernel/random/uuid > /sysroot/persist/etc/machine-id
+      fi
+      cp /sysroot/persist/etc/machine-id /sysroot/etc/machine-id
+      chmod 0444 /sysroot/etc/machine-id
+    '';
+  };
+
+  # Host ssh identity persists across the root wipe (self-generates into
+  # /persist on first boot). The #727 /var-perms guard rides along.
+  services.openssh.hostKeys = [
+    {
+      path = "/persist/etc/ssh/ssh_host_ed25519_key";
+      type = "ed25519";
+    }
+  ];
+  systemd.tmpfiles.rules = [
+    "d /var 0755 root root -"
+    "d /var/lib 0755 root root -"
+    "d /var/cache 0755 root root -"
+  ];
 
   # Host owns zstorage: import it (do NOT mount its datasets on the host beyond
   # what it shares) so the host can virtiofs-share datasets into the guest.

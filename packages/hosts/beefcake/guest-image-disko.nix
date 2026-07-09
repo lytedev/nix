@@ -13,8 +13,20 @@
 #   rpool/persist     (durable state; = beefcake impermanence.nix's /persist)
 #   ESP (label ESP — guest-hardware.nix mounts /boot by-label/ESP)
 # zstorage is NOT here — the host shares it via virtiofs.
-{ ... }:
+{ lib, ... }:
 {
+  # The flake-registry/NIX_PATH pins embed the ENTIRE nixpkgs source tree
+  # (~100k tiny files) in the closure; copying that through virtiofs blows the
+  # image-build VM's system fd limit ("Too many open files in system" -> init
+  # dies -> kernel panic). The exact gotcha the prototypes encode
+  # (rollback-config.nix) — prune the pins in the IMAGE variant only. The
+  # deployed guest re-adds the registry pin on its first activation (lands in
+  # the overlay upper; a cached ~250MB fetch — harmless).
+  nixpkgs.flake.setNixPath = false;
+  nixpkgs.flake.setFlakeRegistry = false;
+  nix.registry = lib.mkForce { };
+  nix.nixPath = lib.mkForce [ ];
+
   disko.devices = {
     disk.main = {
       device = "/dev/vda"; # the slot zvol, presented as virtio-blk vda
