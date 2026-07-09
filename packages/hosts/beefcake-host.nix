@@ -33,7 +33,10 @@ let
   virtiofsShare = srcDir: tag: {
     type = "mount";
     accessmode = "passthrough";
-    driver.name = "virtiofs";
+    # driver TYPE selects virtiofs; driver *name* is silently ignored and
+    # libvirt falls back to virtio-9p (caught in the nested test's qemu args —
+    # the guest's fsType=virtiofs mounts would never match a 9p device).
+    driver.type = "virtiofs";
     binary = {
       path = "${pkgs.virtiofsd}/bin/virtiofsd";
       xattr = true;
@@ -70,16 +73,76 @@ let
     in
     base
     // {
+      # UEFI: the slot image is GPT + ESP + systemd-boot — the template's default
+      # (SeaBIOS) cannot boot it. Explicit OVMF pflash (store-pinned, no reliance
+      # on libvirt firmware auto-selection); per-domain nvram from the VARS
+      # template. Found by the nested integration test.
+      os = base.os // {
+        loader = {
+          readonly = true;
+          type = "pflash";
+          path = "${pkgs.OVMF.fd}/FV/OVMF_CODE.fd";
+        };
+        nvram = {
+          template = "${pkgs.OVMF.fd}/FV/OVMF_VARS.fd";
+          path = "/var/lib/libvirt/qemu/nvram/beefcake-${slot}.fd";
+        };
+      };
       # virtiofs requires guest RAM be shared (memfd + shared access).
       memoryBacking = {
         source.type = "memfd";
         access.mode = "shared";
       };
       devices = base.devices // {
+        # The slot zvol is a BLOCK device holding a RAW image. The template
+        # emits type=file + driver type=qcow2 — qemu refuses ('file' driver
+        # requires a regular file) and would misparse raw as qcow2. Rewrite the
+        # data disk to block/dev/raw; drop the install cdrom (never needed).
+        # All caught by the nested integration test.
+        disk = map (
+          d:
+          d
+          // {
+            type = "block";
+            source.dev = "/dev/zvol/rpool/beefcake-${slot}";
+            driver = d.driver // {
+              type = "raw";
+            };
+          }
+        ) (builtins.filter (d: d.device == "disk") base.devices.disk);
         filesystem = [
           (virtiofsShare "/storage${sharePrefix}" "storage")
           (virtiofsShare "/var/lib/containers${sharePrefix}" "containers")
           (virtiofsShare "/var/lib/private${sharePrefix}" "varlib-private")
+        ];
+        # Headless server guest (third bug caught by the nested integration
+        # test): the template's spice graphics with GL REQUIRE DRM render nodes
+        # ("No DRM render nodes available" — absent on a headless server) and
+        # the domain refuses to start. Strip spice/sound/audio; plain VGA; a
+        # pty serial console — which IS the §5 recovery path (virsh console).
+        graphics = null;
+        sound = null;
+        audio = null;
+        video.model = {
+          type = "vga";
+          primary = true;
+        };
+        channel = [
+          {
+            type = "unix";
+            target = {
+              type = "virtio";
+              name = "org.qemu.guest_agent.0";
+            };
+          }
+        ];
+        redirdev = [ ]; # the template's 4 spicevmc USB redirs — spice is gone
+        serial = [ { type = "pty"; } ];
+        console = [
+          {
+            type = "pty";
+            target.type = "serial";
+          }
         ];
       };
     };

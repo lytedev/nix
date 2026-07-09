@@ -18,6 +18,12 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # thin-host integration test (P4): same declarative-libvirt module the real
+    # beefcake-host uses
+    nixvirt = {
+      url = "github:AshleyYakeley/NixVirt";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -27,6 +33,7 @@
       impermanence,
       sops-nix,
       disko,
+      nixvirt,
     }:
     let
       system = "x86_64-linux";
@@ -87,6 +94,24 @@
               ./overlay-boot-config.nix
             ];
           };
+          # P4-integration: the mini guest (M2 image + guest-hardware mechanisms)
+          # and the outer thin host (beefcake-host's stack in miniature). See
+          # thinhost-demo.
+          mini-guest = nixpkgs.lib.nixosSystem {
+            inherit system;
+            modules = [
+              disko.nixosModules.disko
+              ./thinhost-mini-guest.nix
+            ];
+          };
+          thinhost = nixpkgs.lib.nixosSystem {
+            inherit system;
+            modules = [
+              qemuVm
+              nixvirt.nixosModules.default
+              (import ./thinhost-config.nix { inherit nixvirt; })
+            ];
+          };
           slot-blue = mkSlot "blue" { };
           slot-green = mkSlot "green" {
             # The candidate generation: visibly different from blue.
@@ -114,6 +139,11 @@
         overlay-boot-demo = import ./overlay-boot-demo.nix {
           inherit pkgs;
           overlaySystem = self.nixosConfigurations.overlay-boot;
+        };
+        thinhost-demo = import ./thinhost-demo.nix {
+          inherit pkgs;
+          thinhostSystem = self.nixosConfigurations.thinhost;
+          miniGuestSystem = self.nixosConfigurations.mini-guest;
         };
         demo = pkgs.writeShellApplication {
           name = "modelb-demo";
@@ -155,6 +185,10 @@
         overlay-boot-demo = {
           type = "app";
           program = "${self.packages.${system}.overlay-boot-demo}/bin/overlay-boot-demo";
+        };
+        thinhost-demo = {
+          type = "app";
+          program = "${self.packages.${system}.thinhost-demo}/bin/thinhost-demo";
         };
         demo = {
           type = "app";
