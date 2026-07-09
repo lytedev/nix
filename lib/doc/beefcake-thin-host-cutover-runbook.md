@@ -61,13 +61,12 @@ bash   # host shell is fish
 zfs create -V 60G -o volblocksize=16k rpool/beefcake-blue
 
 # 2. Build the guest OS image (the guest's rpool: local/root@blank, local/nix =
-#    the base closure, local/nix-upper empty, safe/persist) from beefcake-guest,
-#    and write it to the zvol. (Build on dragon — has the cache/network — then
-#    stream it in; or build here.) The image builder is the same disko path the
-#    overlay-boot prototype uses, applied to beefcake-guest.
-#    -> A `beefcake-guest-image` disko target is the remaining tooling to add
-#       (issues/open/blue-green.md); until then, provision by nixos-install to
-#       the zvol's imported rpool with beefcake-guest's toplevel.
+#    the base closure, local/nix-upper empty, persist) and write it to the zvol.
+#    The `beefcake-guest-image` disko target does exactly this:
+#      img=$(nix build --no-link --print-out-paths .#nixosConfigurations.beefcake-guest-image.config.system.build.diskoImagesScript)
+#      "$img"/bin/* --build-memory 8192        # produces main.raw
+#      dd if=main.raw of=/dev/zvol/rpool/beefcake-blue bs=4M status=progress
+#    (Build on dragon — the closure is cached there — or on the box.)
 
 # 3. Seed the guest identity onto the guest /persist (before first guest boot):
 #    the ssh host keys (= sops age identity) + machine-id, exactly as the
@@ -132,9 +131,15 @@ after diagnosing. (This is why the cutover is boot-menu-reversible.)
 
 ## Not in this phase
 
-- **Green slot + `beefcake-cutover` tool** (health gates, snapshot, NIC+disk
-  move, one-command rollback) = Phase 4.
-- **`beefcake-guest-image` disko builder** (Part 1 step 2) — the one remaining
-  bit of tooling; tracked in `issues/open/blue-green.md`.
-- A deploy-rs node for `beefcake-host` (added alongside; the guest deploys as
-  `.#beefcake` into the active slot as today).
+- **Green slot + `beefcake-cutover` tool** (validate-against-clones on an
+  isolated net, snapshot, service-MAC+disk move, one-command rollback) — BUILT
+  (Phase 4, `beefcake-host`); runtime-validated on the thin host itself (the
+  demo proved the flow end-to-end). `beefcake-cutover status|validate|
+  validate-done|cutover|rollback`.
+- **`beefcake-guest-image` disko builder** (Part 1 step 2) — BUILT; evaluates.
+- A deploy-rs node for `beefcake-host` — added; the guest deploys as
+  `.#beefcake` into the active slot as today.
+
+Everything above is config + tooling that builds; the remaining work is
+intrinsically real-hardware: the actual cutover (this runbook) and its runtime
+validation, which can't be nested at beefcake's 250G/80-service scale.

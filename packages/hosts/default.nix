@@ -39,6 +39,15 @@ in
   beefcake-guest = beefcakeCfg.extendModules {
     modules = [ ./beefcake/guest-hardware.nix ];
   };
+  # A bootable disko IMAGE of beefcake-guest, written to a slot's OS zvol at
+  # cutover (runbook Part 1 step 2). system.build.diskoImagesScript builds it.
+  beefcake-guest-image = beefcakeCfg.extendModules {
+    modules = [
+      ./beefcake/guest-hardware.nix
+      inputs.disko.nixosModules.disko
+      ./beefcake/guest-image-disko.nix
+    ];
+  };
   dragon = host ./dragon.nix { };
   # Like `host` (baseHost unstable) but with the standalone deckmode module for the
   # jump-in/out gamescope gaming mode. Kept out of the shared modules since it's a
