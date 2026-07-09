@@ -41,6 +41,16 @@ in
       confirmTimeout = 21600;
       activationTimeout = 21600;
     };
+    # Phase-3 thin hypervisor. NOT deployed until the cutover
+    # (lib/doc/beefcake-thin-host-cutover-runbook.md) — a boot+reboot over the
+    # LAN (deploy --boot --hostname <host-mgmt-ip>), like beefcake. The guest
+    # keeps deploying as `.#beefcake` (into the active slot). hostname is a
+    # placeholder until the host's eno2 mgmt address is assigned at cutover.
+    beefcake-host = deployer "beefcake-host" {
+      hostname = "beefcake-host.lan";
+      confirmTimeout = 21600;
+      activationTimeout = 21600;
+    };
     dragon = deployer "dragon" { };
     # htpc = deployer "htpc" { remoteBuild = false; }; # broken: rtl8812au marked broken upstream
     bigtower = deployer "bigtower" { hostname = "bigtower.lan"; };
