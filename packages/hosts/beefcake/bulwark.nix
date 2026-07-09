@@ -19,7 +19,7 @@ in
   # stalwart-ensure-bulwark-oauth curl service is removed.
 
   virtualisation.oci-containers.containers.bulwark = {
-    image = "ghcr.io/bulwarkmail/webmail:1.7.2";
+    image = "ghcr.io/bulwarkmail/webmail:1.7.7@sha256:8c93a6af6abf1b0e6595015dd8236ad83c4cbb2a1dce51966deaecb4d93ffeea";
     autoStart = true;
     ports = [ "127.0.0.1:${toString port}:${toString port}" ];
     # The host maps idm.h.lyte.dev -> ::1 (kanidm.nix extraHosts, for
