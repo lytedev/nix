@@ -24,57 +24,167 @@ let
   # a zvol on the host that holds the guest's rpool (root@blank + the /nix base
   # closure + the per-slot /nix-upper + /persist). Provisioned at cutover by
   # building beefcake-guest into an image and writing it to the zvol (runbook).
-  # The blue slot is the initial active guest; green is added in Phase 4.
-  guestBase = nixvirt.lib.domain.templates.linux {
-    name = "beefcake-blue";
-    uuid = "b1000000-beef-cafe-0000-000000000001";
-    memory = {
-      count = 200;
-      unit = "GiB";
-    };
-    vcpu = {
-      count = 36;
-    };
-    storage_vol = "/dev/zvol/rpool/beefcake-blue";
-    bridge_name = "br0";
-    net_iface_mac = "b8:ca:3a:6d:2d:24"; # the SERVICE MAC → keeps 192.168.0.9
-  };
-  # virtiofs share of a host zstorage dataset into the guest (Model B). The
-  # guest mounts it by the target `dir` tag (see guest-hardware.nix).
-  virtiofsShare = hostDir: tag: {
+  # The service MAC — whichever slot holds it answers as beefcake (192.168.0.9).
+  serviceMac = "b8:ca:3a:6d:2d:24";
+
+  # virtiofs share of a host dir into the guest (Model B). The guest mounts it
+  # by the target `dir` tag (see guest-hardware.nix). `srcDir` is the host path
+  # (the live dataset for the active slot, a CLONE for a validation slot).
+  virtiofsShare = srcDir: tag: {
     type = "mount";
     accessmode = "passthrough";
-    driver = {
-      name = "virtiofs";
-    };
+    driver.name = "virtiofs";
     binary = {
       path = "${pkgs.virtiofsd}/bin/virtiofsd";
       xattr = true;
     };
-    source = {
-      dir = hostDir;
-    };
-    target = {
-      dir = tag;
-    };
+    source.dir = srcDir;
+    target.dir = tag;
   };
-  guestDomain = guestBase // {
-    # virtiofs requires guest RAM be shared (memfd + shared access).
-    memoryBacking = {
-      source = {
-        type = "memfd";
+
+  # A slot domain. `slot` = blue|green. `mac`/`bridge` differ for the isolated
+  # validation boot (a non-service MAC on a validation bridge, egress-cut) vs
+  # the production boot (the service MAC on br0). `sharePrefix` lets a validation
+  # slot mount CLONES (…-validate) instead of the live datasets.
+  mkSlotDomain =
+    {
+      slot,
+      uuid,
+      mac,
+      bridge,
+      sharePrefix ? "",
+    }:
+    let
+      base = nixvirt.lib.domain.templates.linux {
+        name = "beefcake-${slot}";
+        inherit uuid;
+        memory = {
+          count = 200;
+          unit = "GiB";
+        };
+        vcpu.count = 36;
+        storage_vol = "/dev/zvol/rpool/beefcake-${slot}";
+        bridge_name = bridge;
+        net_iface_mac = mac;
       };
-      access = {
-        mode = "shared";
+    in
+    base
+    // {
+      # virtiofs requires guest RAM be shared (memfd + shared access).
+      memoryBacking = {
+        source.type = "memfd";
+        access.mode = "shared";
+      };
+      devices = base.devices // {
+        filesystem = [
+          (virtiofsShare "/storage${sharePrefix}" "storage")
+          (virtiofsShare "/var/lib/containers${sharePrefix}" "containers")
+          (virtiofsShare "/var/lib/private${sharePrefix}" "varlib-private")
+        ];
       };
     };
-    devices = guestBase.devices // {
-      filesystem = [
-        (virtiofsShare "/storage" "storage")
-        (virtiofsShare "/var/lib/containers" "containers")
-        (virtiofsShare "/var/lib/private" "varlib-private")
-      ];
-    };
+
+  # blue = the initial ACTIVE slot (service MAC on br0, live shares).
+  blueDomain = mkSlotDomain {
+    slot = "blue";
+    uuid = "b1000000-beef-cafe-0000-000000000001";
+    mac = serviceMac;
+    bridge = "br0";
+  };
+
+  # The green production + validation domain XMLs are generated for the cutover
+  # tool to `virsh define` on demand (green is NOT autostarted).
+  greenProdXML = nixvirt.lib.domain.writeXML (mkSlotDomain {
+    slot = "green";
+    uuid = "b1000000-beef-cafe-0000-000000000002";
+    mac = serviceMac; # takes the service MAC AT CUTOVER (blue is stopped first)
+    bridge = "br0";
+  });
+  greenValidateXML = nixvirt.lib.domain.writeXML (mkSlotDomain {
+    slot = "green";
+    uuid = "b1000000-beef-cafe-0000-000000000002";
+    mac = "b8:ca:3a:6d:2d:99"; # NON-service MAC — never collides on the LAN
+    bridge = "virbr-validate"; # isolated, egress-cut validation network
+    sharePrefix = "-validate"; # mount the ZFS CLONES, not the live datasets
+  });
+
+  # beefcake-cutover: the blue/green tool (ports the proven demo logic —
+  # prototypes/.../demo — to the real host: libvirt/NixVirt domains + real
+  # zstorage clones + the service-MAC move). Runtime-validated on the thin host
+  # itself (the demo already proved the validate/cutover/rollback flow).
+  beefcake-cutover = pkgs.writeShellApplication {
+    name = "beefcake-cutover";
+    runtimeInputs = [
+      pkgs.libvirt
+      pkgs.zfs
+      pkgs.gnugrep
+      pkgs.coreutils
+    ];
+    text = ''
+      set -euo pipefail
+      MARKER=/persist/beefcake-active-slot
+      DS=(storage var/lib/containers var/lib/private)   # zstorage share datasets
+      active() { cat "$MARKER" 2>/dev/null || echo blue; }
+      other() { [ "$(active)" = blue ] && echo green || echo blue; }
+
+      cmd="''${1:-status}"
+      case "$cmd" in
+        status)
+          echo "active slot: $(active)"
+          virsh list --all || true
+          ;;
+        validate)
+          # Validate the candidate (green) against CLONES of the live state on an
+          # isolated network — never touches production. QUIESCE the active slot
+          # first (sqlite WAL / fsync — see DD6) so the clone is consistent.
+          echo "== quiescing $(active) + snapshotting zstorage =="
+          virsh domfsfreeze "beefcake-$(active)" || true
+          for d in "''${DS[@]}"; do
+            zfs destroy -r "zstorage/$d-validate" 2>/dev/null || true
+            zfs destroy "zstorage/$d@validate" 2>/dev/null || true
+            zfs snapshot "zstorage/$d@validate"
+            zfs clone "zstorage/$d@validate" "zstorage/$d-validate"
+          done
+          virsh domfsthaw "beefcake-$(active)" || true
+          echo "== booting green against clones (isolated net) =="
+          virsh define ${greenValidateXML}
+          virsh start beefcake-green
+          echo "green booting for validation; run per-service checks, then: beefcake-cutover validate-done"
+          ;;
+        validate-done)
+          virsh destroy beefcake-green 2>/dev/null || true
+          virsh undefine beefcake-green 2>/dev/null || true
+          for d in "''${DS[@]}"; do
+            zfs destroy -r "zstorage/$d-validate" 2>/dev/null || true
+            zfs destroy "zstorage/$d@validate" 2>/dev/null || true
+          done
+          echo "validation clones discarded; production untouched"
+          ;;
+        cutover)
+          target=green
+          [ "$(active)" = green ] && target=blue
+          echo "== pre-cutover zstorage snapshot (rollback bound) =="
+          zfs snapshot -r "zstorage@pre-cutover-$target" || true
+          echo "== stop $(active), start $target with the service MAC + live shares =="
+          virsh shutdown "beefcake-$(active)" || true
+          for _ in $(seq 60); do virsh domstate "beefcake-$(active)" 2>/dev/null | grep -qx "shut off" && break; sleep 2; done
+          if [ "$target" = green ]; then virsh define ${greenProdXML}; fi
+          virsh start "beefcake-$target"
+          echo "$target" > "$MARKER"
+          echo "cutover to $target done; verify, then 'beefcake-cutover rollback' if needed"
+          ;;
+        rollback)
+          # symmetric: bring the other slot back up as active
+          prev=$(other)
+          virsh shutdown "beefcake-$(active)" || true
+          for _ in $(seq 60); do virsh domstate "beefcake-$(active)" 2>/dev/null | grep -qx "shut off" && break; sleep 2; done
+          virsh start "beefcake-$prev"
+          echo "$prev" > "$MARKER"
+          echo "rolled back to $prev"
+          ;;
+        *) echo "usage: beefcake-cutover status|validate|validate-done|cutover|rollback"; exit 1 ;;
+      esac
+    '';
   };
 in
 {
@@ -191,13 +301,34 @@ in
   # (Green slot + the cutover tool are Phase 4.)
   virtualisation.libvirt = {
     enable = true;
-    connections."qemu:///system".domains = [
-      {
-        active = true;
-        definition = nixvirt.lib.domain.writeXML guestDomain;
-      }
-    ];
+    connections."qemu:///system" = {
+      domains = [
+        {
+          active = true; # blue autostarts as the active slot
+          definition = nixvirt.lib.domain.writeXML blueDomain;
+        }
+      ];
+      # Isolated, egress-cut network for green validation (no service MAC ever
+      # reaches the LAN here). green-production uses br0 directly (not a libvirt
+      # network), so this exists only for the validation boot.
+      networks = [
+        {
+          active = true;
+          definition = nixvirt.lib.network.writeXML {
+            name = "validate";
+            uuid = "c0000000-beef-cafe-0000-0000000000aa";
+            bridge.name = "virbr-validate";
+            # no <forward> → isolated (no NAT/egress); guests talk only to each
+            # other + the host. Matches the demo's egress-cut validation slot.
+          };
+        }
+      ];
+    };
   };
+
+  # The cutover tool + the active-slot marker (persisted across the host's
+  # ephemeral root so an unattended host reboot restarts the right slot).
+  environment.systemPackages = [ beefcake-cutover ];
 
   # ---- monitoring: hardware lives with the host (smartd/IPMI/node-exporter),
   #      shipped to the guest's OpenObserve (design §5). ----
