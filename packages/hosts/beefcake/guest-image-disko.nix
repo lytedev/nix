@@ -15,6 +15,12 @@
 # zstorage is NOT here — the host shares it via virtiofs.
 { lib, ... }:
 {
+  # Bug #13 (found live at cutover): disko's config generation MERGES its own
+  # fileSystems entries (with options=[zfsutil]) into the guest's non-mkForce'd
+  # ones (/nix-upper, /persist) — and zfsutil mounts FAIL on legacy datasets
+  # (while the mkForce'd plain-mount entries fail on NATIVE datasets). One
+  # source of truth: the guest config's fileSystems; disko only partitions.
+  disko.enableConfig = false;
   # The flake-registry/NIX_PATH pins embed the ENTIRE nixpkgs source tree
   # (~100k tiny files) in the closure; copying that through virtiofs blows the
   # image-build VM's system fd limit ("Too many open files in system" -> init
@@ -76,24 +82,27 @@
         mountpoint = "none";
       };
       datasets = {
+        # ALL datasets legacy-at-creation: matches live beefcake's proven layout
+        # and the guest's plain-mount fileSystems (bug #13's other half; the
+        # disko-native mountpoints + property flipping was the live workaround).
         "local/root" = {
           type = "zfs_fs";
-          mountpoint = "/";
+          options.mountpoint = "legacy";
           postCreateHook = "zfs snapshot rpool/local/root@blank";
         };
         "local/nix" = {
           type = "zfs_fs";
-          mountpoint = "/nix";
+          options.mountpoint = "legacy";
           options.atime = "off";
         };
         "local/nix-upper" = {
           type = "zfs_fs";
-          mountpoint = "/nix-upper";
+          options.mountpoint = "legacy";
           options.atime = "off";
         };
         "persist" = {
           type = "zfs_fs";
-          mountpoint = "/persist";
+          options.mountpoint = "legacy";
         };
       };
     };

@@ -415,6 +415,13 @@ in
       macAddress = "0a:be:ef:b0:57:01"; # locally-administered; "beef host 1"
       useDHCP = true;
     };
+    # Bug #14 (found live at cutover): pinning br0 is NOT enough — the enslaved
+    # eno1 PORT still owns its burned-in MAC, which IS the service MAC the
+    # guest carries. The bridge FDB then treats service-MAC frames as local to
+    # the port and never forwards them to the guest tap (guest DHCP/ARP die
+    # silently). The PHYSICAL port must be re-MAC'd too; the guest is the sole
+    # owner of b8:ca:3a:6d:2d:24 on the bridge.
+    interfaces.eno1.macAddress = "0a:be:ef:b0:57:0e";
     # eno2/3/4 stay unplugged; plugging eno2 remains an OPTIONAL second mgmt
     # path (interfaces.eno2.useDHCP) but is deliberately not required.
   };
