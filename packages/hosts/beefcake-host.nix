@@ -295,6 +295,15 @@ in
     qemu.runAsRoot = false;
     qemu.swtpm.enable = true;
     onShutdown = "shutdown"; # clean guest poweroff (DD6: never SIGTERM the VMM)
+    # DATA-SAFETY (adversarial suite, two-writer scenario): make qemu take
+    # virtlockd disk locks. The shared persist zvol must never be opened rw by
+    # two slots at once — with lockd, the SECOND domain that references a disk
+    # already held by a running domain fails to start. Belt to the cutover
+    # tool's single-writer logic (defense in depth: a manual `virsh start` of
+    # both slots is refused at the qemu layer, not just by our script).
+    qemu.verbatimConfig = ''
+      lock_manager = "lockd"
+    '';
   };
   # virtiofsd for sharing host zstorage datasets into the guest (Model B).
   virtualisation.libvirtd.qemu.vhostUserPackages = [ pkgs.virtiofsd ];

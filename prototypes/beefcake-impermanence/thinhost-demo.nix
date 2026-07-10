@@ -60,6 +60,8 @@ pkgs.writeShellApplication {
       zpool create -f rpool /dev/vdb
       zfs create -s -V 12G rpool/mini-blue
       zfs create -s -V 12G rpool/mini-green
+      udevadm settle
+      for s in blue green; do for _ in $(seq 50); do [ -b /dev/zvol/rpool/mini-$s ] && break; sleep 0.2; done; done
       dd if=/guest-img/guest.raw of=/dev/zvol/rpool/mini-blue bs=4M conv=sparse,fsync status=none
       dd if=/guest-img/guest.raw of=/dev/zvol/rpool/mini-green bs=4M conv=sparse,fsync status=none
       # THE PERSIST MIGRATION RECIPE (same on the real box):

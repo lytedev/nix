@@ -103,7 +103,7 @@ in
     graphics = false;
     diskImage = "./thinhost.qcow2";
     # /dev/vdb: becomes the outer rpool (slot OS zvols + persist zvol + share ds)
-    emptyDiskImages = [ 40960 ];
+    emptyDiskImages = [ 65536 ];
     qemu.options = [ "-cpu host" ]; # nested KVM
     sharedDirectories.guestimg = {
       source = "/tmp/thinhost-guest-img";
@@ -120,6 +120,9 @@ in
     qemu.swtpm.enable = true;
     onShutdown = "shutdown";
     qemu.vhostUserPackages = [ pkgs.virtiofsd ];
+    qemu.verbatimConfig = ''
+      lock_manager = "lockd"
+    ''; # two-writer defense (mirrors beefcake-host.nix)
   };
   virtualisation.libvirt = {
     enable = true;
@@ -130,6 +133,14 @@ in
           active = null;
           definition = nixvirt.lib.domain.writeXML blueDomain;
         }
+        {
+          # green PROD defined (off) so the safety suite can attempt a
+          # two-writer start against the shared persist and prove virtlockd
+          # refuses it. The cutover tool redefines green (validate/prod) as
+          # needed; this initial definition just has to exist.
+          active = null;
+          definition = greenProdXML;
+        }
       ];
       networks = [
         {
@@ -138,7 +149,18 @@ in
             name = "validate";
             uuid = "c0000000-beef-cafe-0000-0000000000aa";
             bridge.name = "virbr-validate";
-            # no <forward> -> isolated/egress-cut (mirrors production)
+            # NO <forward> -> isolated: guests on this net can reach each other +
+            # this host IP, but NOT the service net (10.99) or the internet.
+            # A host IP + DHCP lets the suite ssh in to abuse the validation
+            # guest; egress stays cut (that's the property S3 asserts).
+            ip = {
+              address = "10.98.0.1";
+              netmask = "255.255.255.0";
+              dhcp.range = {
+                start = "10.98.0.50";
+                end = "10.98.0.150";
+              };
+            };
           };
         }
       ];

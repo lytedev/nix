@@ -145,6 +145,11 @@
           thinhostSystem = self.nixosConfigurations.thinhost;
           miniGuestSystem = self.nixosConfigurations.mini-guest;
         };
+        thinhost-safety = import ./thinhost-safety.nix {
+          inherit pkgs;
+          thinhostSystem = self.nixosConfigurations.thinhost;
+          miniGuestSystem = self.nixosConfigurations.mini-guest;
+        };
         demo = pkgs.writeShellApplication {
           name = "modelb-demo";
           text = ''
@@ -189,6 +194,10 @@
         thinhost-demo = {
           type = "app";
           program = "${self.packages.${system}.thinhost-demo}/bin/thinhost-demo";
+        };
+        thinhost-safety = {
+          type = "app";
+          program = "${self.packages.${system}.thinhost-safety}/bin/thinhost-safety";
         };
         demo = {
           type = "app";
