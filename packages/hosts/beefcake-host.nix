@@ -73,6 +73,10 @@ let
     in
     base
     // {
+      # A guest kernel panic must not leave beefcake down until a human starts
+      # it (design §5: on_crash=restart). Template default was destroy — found
+      # in the burn-in review.
+      on_crash = "restart";
       # UEFI: the slot image is GPT + ESP + systemd-boot — the template's default
       # (SeaBIOS) cannot boot it. Explicit OVMF pflash (store-pinned, no reliance
       # on libvirt firmware auto-selection); per-domain nvram from the VARS

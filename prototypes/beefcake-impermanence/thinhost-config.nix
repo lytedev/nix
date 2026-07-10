@@ -36,6 +36,7 @@ let
     net_iface_mac = serviceMac;
   };
   miniDomain = base // {
+    on_crash = "restart"; # mirrors beefcake-host.nix
     os = base.os // {
       loader = {
         readonly = true;

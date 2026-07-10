@@ -33,6 +33,13 @@
   # `zpool import` on the default by-id devNodes waits forever (the proven
   # rollback/overlay-boot gotcha). by-path always exists. (Bug #8.)
   boot.zfs.devNodes = "/dev/disk/by-path";
+  # Boot/kernel logs to the domain's serial console so `virsh console
+  # beefcake-<slot>` on the host is a LIVE boot view (the 2am recovery path).
+  # tty0 listed last stays the primary console (VGA screenshots keep working).
+  boot.kernelParams = [
+    "console=ttyS0,115200"
+    "console=tty0"
+  ];
   # virtio, not the SAS HBA.
   boot.initrd.availableKernelModules = lib.mkForce [
     "virtio_pci"
@@ -114,6 +121,13 @@
     device = "varlib-private";
     fsType = "virtiofs";
   };
+
+  # ---- k3s on virtiofs (bug #15, found live): containerd's overlayfs
+  #      snapshotter needs multi-lowerdir overlay mounts, which virtiofs can't
+  #      do (single-lower works — podman is fine). Native snapshotter works on
+  #      virtiofs; the lost layer-dedup is irrelevant on 21T zstorage. Phase-4
+  #      polish: a zvol-backed containerd dir restores real overlayfs. ----
+  services.k3s.extraFlags = lib.mkAfter [ "--snapshotter=native" ];
 
   # ---- networking: the domain gives the guest's virtio NIC the service MAC
   #      (b8:ca:3a:6d:2d:24). Name that NIC "eno1" by MAC so ALL of
