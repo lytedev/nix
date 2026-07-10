@@ -200,6 +200,14 @@
       "flakes"
     ];
 
+    # Graceful degradation when a substituter is offline (e.g. nix.h.lyte.dev
+    # while beefcake/caddy is down): build from source instead of hard-failing,
+    # and don't stall every narinfo query on a dead cache. In nixConfig (not
+    # just the hosts' nix.settings) so it applies to ANY use of this flake
+    # immediately — including a dragon rebuild while the cache is still down.
+    fallback = true;
+    connect-timeout = 5;
+
     extra-substituters = [
       "https://cache.nixos.org/"
       "https://nix-community.cachix.org"

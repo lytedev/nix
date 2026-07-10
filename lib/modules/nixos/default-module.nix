@@ -217,6 +217,13 @@
           "nix-command"
           "flakes"
         ];
+        # GRACEFUL DEGRADATION when a substituter is offline (e.g. nix.h.lyte.dev
+        # while beefcake/caddy is down during a reboot, cutover, or outage): if a
+        # binary substitute can't be fetched, BUILD FROM SOURCE instead of
+        # hard-failing the whole operation. A dead cache is a slowdown, never a
+        # blocker. connect-timeout keeps a down cache from stalling every query.
+        fallback = lib.mkDefault true;
+        connect-timeout = lib.mkDefault 5;
       }
       // ((import ../../../flake.nix).nixConfig);
     };
