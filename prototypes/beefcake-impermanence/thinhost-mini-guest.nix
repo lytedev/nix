@@ -9,7 +9,10 @@
 # of the thin-host integration.
 { lib, ... }:
 {
-  imports = [ ./overlay-boot-config.nix ];
+  imports = [
+    ./overlay-boot-config.nix
+    ./validation.nix
+  ];
 
   services.qemuGuest.enable = true; # domfsfreeze (mirrors guest-hardware.nix)
 
@@ -36,6 +39,28 @@
   disko.devices.zpool.rpool.datasets."safe/persist" = {
     mountpoint = lib.mkForce null;
     options.mountpoint = lib.mkForce "legacy";
+  };
+
+  # Health-gate checks (mirror beefcake's infra invariants) — the cutover tool
+  # runs lyte-validation-run in the validation slot via the guest agent and
+  # gates on the result. This is what proves the GATE mechanism in the test.
+  lyte.validation.checks = {
+    system-running = {
+      description = "systemd converged";
+      command = "systemctl is-system-running | grep -qE 'running|degraded'";
+    };
+    persist-shared-pool = {
+      description = "/persist on the shared bpersist pool";
+      command = "findmnt -n -o SOURCE /persist | grep -qx bpersist/persist";
+    };
+    storage-virtiofs = {
+      description = "/storage via virtiofs + readable";
+      command = "findmnt -n -o FSTYPE /storage | grep -qx virtiofs && ls /storage >/dev/null";
+    };
+    nix-overlay = {
+      description = "/nix/store is the overlay";
+      command = "findmnt -n -o FSTYPE /nix/store | tail -n1 | grep -qx overlay";
+    };
   };
 
   # Model B: the thin host exposes a share with tag "storage"; mount it.

@@ -9,6 +9,7 @@ inputs: {
   shell-defaults-and-applications = import ../shared/shell-config.nix;
   deno-netlify-ddns-client = import ./deno-netlify-ddns-client.nix;
   dns-zones = import ./dns-zones.nix inputs;
+  validation = import ./validation.nix;
   dns-server = import ./dns-server.nix;
   dns-updater = import ./dns-updater.nix;
   gnome = import ./gnome.nix;

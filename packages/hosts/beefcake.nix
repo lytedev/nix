@@ -186,6 +186,7 @@
     ./beefcake/stalwart.nix
     ./beefcake/bulwark.nix
     ./beefcake/jmap-matrix-notify
+    ./beefcake/validation-checks.nix
     ./beefcake/disk-alerts.nix
     ./beefcake/matrix-alerts.nix # host-direct OnFailure + disk-full → Matrix (see lib/doc/alerting.md)
     ./beefcake/openobserve-alerts # capture OpenObserve alerts into the repo (export + opt-in reconcile)

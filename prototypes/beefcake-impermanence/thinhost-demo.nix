@@ -93,11 +93,12 @@ pkgs.writeShellApplication {
     echo "  blue /persist source: $fst"
     [ "$fst" = bpersist/persist ] || { echo "FAIL: blue /persist not on the shared pool"; exit 1; }
 
-    echo "== VALIDATE: green vs clones on the isolated net =="
-    ssh "''${SSH_OPTS[@]}" 'mini-cutover validate'
-    sleep 45
+    echo "== VALIDATE: green vs clones on the isolated net + HEALTH GATE =="
+    vout=$(ssh "''${SSH_OPTS[@]}" 'mini-cutover validate' 2>&1 || true)
+    echo "$vout" | sed 's/^/    /' | tail -25
+    echo "$vout" | grep -q 'GATE PASS' || { echo "FAIL: health gate did not PASS in validation"; exit 1; }
+    echo "  ✅ health gate ran in the validation slot and PASSED"
     st=$(ssh "''${SSH_OPTS[@]}" 'virsh domstate mini-green' || true)
-    echo "  green(validate) state after 45s: $st"
     [ "$st" = running ] || { echo "FAIL: validation green not running"; exit 1; }
     ssh "''${SSH_OPTS[@]}" 'zfs list -H -o name | grep -c "validate"' | grep -q '[1-9]' || { echo "FAIL: no validate clones"; exit 1; }
     blu=$(ssh "''${SSH_OPTS[@]}" '/root/g "systemctl is-system-running" 2>/dev/null' || echo x)

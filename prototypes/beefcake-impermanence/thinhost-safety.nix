@@ -140,8 +140,14 @@ pkgs.writeShellApplication {
       # home / fire real mail+bridges). It can reach its own isolated gw (10.98).
       egress=$(ssh "''${S[@]}" "$vp root@$vip 'ping -c1 -W2 10.99.0.1 >/dev/null 2>&1 && echo REACHED || echo blocked' " 2>/dev/null || echo unknown)
       if [ "$egress" = blocked ]; then ok "S3 validation CANNOT reach the service net (egress cut)"; else bad "S3 validation reached the service net ($egress) — isolation breach"; fi
+      # S6 (reuse this booted validation guest): a BROKEN candidate must be
+      # rejected. Break a check precondition (unmount /storage) + run the gate
+      # runner directly -> it MUST exit non-zero.
+      ssh "''${S[@]}" "$vp root@$vip 'umount -l /storage 2>/dev/null || true'" || true
+      grc=$(ssh "''${S[@]}" "$vp root@$vip 'lyte-validation-run >/dev/null 2>&1; echo \$?'" 2>/dev/null | tail -1 || echo 0)
+      if [ "$grc" != 0 ]; then ok "S6 gate REJECTS a broken candidate (rc=$grc; a red check blocks cutover)"; else bad "S6 gate PASSED a broken candidate — it does not actually gate"; fi
     else
-      bad "S4/S2/S3 could not reach the validation guest to abuse it"
+      bad "S4/S2/S3/S6 could not reach the validation guest to abuse it"
     fi
     ssh "''${S[@]}" 'mini-cutover validate-done'
 

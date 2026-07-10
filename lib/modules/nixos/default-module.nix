@@ -23,6 +23,7 @@
     deno-netlify-ddns-client
     dns-zones
     dns-server
+    validation
     dns-updater
     shell-defaults-and-applications
     desktop
