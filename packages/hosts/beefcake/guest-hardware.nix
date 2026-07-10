@@ -21,6 +21,10 @@
 {
   imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
 
+  # qemu guest agent: the cutover tool's domfsfreeze/thaw (quiesce before
+  # validation snapshots — the DD6 sqlite-WAL lesson) needs it in the guest.
+  services.qemuGuest.enable = true;
+
   # ---- undo the bare-metal hardware.nix ----
   # The guest does NOT own zstorage (host shares datasets via virtiofs).
   boot.zfs.extraPools = lib.mkForce [ ];
@@ -76,8 +80,46 @@
     neededForBoot = true;
   };
 
-  # ---- /nix/store OverlayFS (proven by overlay-boot M2): early stage-2, after
-  #      the ZFS mounts, before nix-daemon. ----
+  # ---- /nix/store OverlayFS ----
+  # Bug #16 (found in the burn-in, THE architectural one): the overlay MUST be
+  # assembled in the INITRD, not stage-2. Any generation deployed after the
+  # image build lands its closure in the UPPER — and initrd-find-nixos-closure
+  # resolves init= against /sysroot/nix/store BEFORE stage-2 exists, so an
+  # upper-resident generation is unfindable and the guest drops to emergency.
+  # (M2 missed it: the test added store paths but never BOOTED a generation
+  # from the upper.) /nix and /nix-upper are stage-1 mounts (neededForBoot),
+  # so assemble the overlay right after them, before Find-NixOS-closure.
+  boot.initrd.kernelModules = [ "overlay" ];
+  boot.initrd.systemd.services.overlay-nix-store = {
+    description = "Assemble the /sysroot/nix/store overlay (RO base + RW upper) before closure lookup";
+    wantedBy = [ "initrd.target" ];
+    requires = [
+      "sysroot-nix.mount"
+      "sysroot-nix\\x2dupper.mount"
+    ];
+    after = [
+      "sysroot-nix.mount"
+      "sysroot-nix\\x2dupper.mount"
+    ];
+    before = [
+      "initrd-find-nixos-closure.service"
+      "initrd-fs.target"
+    ];
+    unitConfig.DefaultDependencies = "no";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      mkdir -p /sysroot/nix/.store-lower /sysroot/nix-upper/store /sysroot/nix-upper/work
+      mount --bind /sysroot/nix/store /sysroot/nix/.store-lower
+      mount -t overlay overlay \
+        -o lowerdir=/sysroot/nix/.store-lower,upperdir=/sysroot/nix-upper/store,workdir=/sysroot/nix-upper/work \
+        /sysroot/nix/store
+      echo "overlaid /sysroot/nix/store (lower=base, upper=slot delta)"
+    '';
+  };
+
+  # Stage-2 assembly kept as an idempotent SAFETY NET (no-ops when the initrd
+  # already did it — the findmnt guard) for generations whose initrd predates
+  # the initrd unit.
   boot.kernelModules = [ "overlay" ];
   systemd.services.overlay-nix-store = {
     description = "Overlay /nix/store (RO base lower + RW per-slot upper)";
@@ -128,6 +170,17 @@
   #      virtiofs; the lost layer-dedup is irrelevant on 21T zstorage. Phase-4
   #      polish: a zvol-backed containerd dir restores real overlayfs. ----
   services.k3s.extraFlags = lib.mkAfter [ "--snapshotter=native" ];
+
+  # ---- Phase 4: /persist lives on the SHARED persist zvol (pool "bpersist"
+  #      on vdb), attached to exactly one slot (or a clone, for validation).
+  #      Slot OS zvols are disposable pure-OS; identity+state travel with the
+  #      persist pool. Created on the host under hostId 541ede55 = the guest's
+  #      own, so the initrd import needs no force. ----
+  fileSystems."/persist" = lib.mkForce {
+    device = "bpersist/persist";
+    fsType = "zfs";
+    neededForBoot = true;
+  };
 
   # ---- hardware-coupled daemons belong to the HOST now: the guest has only
   #      virtio disks (no SMART), so smartd fails by design in the VM. The

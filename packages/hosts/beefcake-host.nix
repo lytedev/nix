@@ -20,238 +20,97 @@
   ...
 }:
 let
-  # The guest domain, declared with NixVirt. storage_vol is the guest OS disk —
-  # a zvol on the host that holds the guest's rpool (root@blank + the /nix base
-  # closure + the per-slot /nix-upper + /persist). Provisioned at cutover by
-  # building beefcake-guest into an image and writing it to the zvol (runbook).
-  # The service MAC — whichever slot holds it answers as beefcake (192.168.0.9).
+  # Slot domains + the cutover tool come from the SHARED builders (also used
+  # by the nested integration test — test-what-you-ship):
+  #   packages/hosts/beefcake/slot-domain.nix   (every domain lesson encoded)
+  #   packages/hosts/beefcake/cutover-tool.nix  (validate/cutover/rollback)
+  # Phase-4 persist architecture: /persist lives on the SHARED zvol
+  # rpool/beefcake-persist (pool "bpersist"), attached as vdb to exactly one
+  # slot; validation gets a CLONE. Slot OS zvols are disposable pure-OS.
   serviceMac = "b8:ca:3a:6d:2d:24";
-
-  # virtiofs share of a host dir into the guest (Model B). The guest mounts it
-  # by the target `dir` tag (see guest-hardware.nix). `srcDir` is the host path
-  # (the live dataset for the active slot, a CLONE for a validation slot).
-  virtiofsShare = srcDir: tag: {
-    type = "mount";
-    accessmode = "passthrough";
-    # driver TYPE selects virtiofs; driver *name* is silently ignored and
-    # libvirt falls back to virtio-9p (caught in the nested test's qemu args —
-    # the guest's fsType=virtiofs mounts would never match a 9p device).
-    driver.type = "virtiofs";
-    binary = {
-      path = "${pkgs.virtiofsd}/bin/virtiofsd";
-      xattr = true;
-    };
-    source.dir = srcDir;
-    target.dir = tag;
-  };
-
-  # A slot domain. `slot` = blue|green. `mac`/`bridge` differ for the isolated
-  # validation boot (a non-service MAC on a validation bridge, egress-cut) vs
-  # the production boot (the service MAC on br0). `sharePrefix` lets a validation
-  # slot mount CLONES (…-validate) instead of the live datasets.
-  mkSlotDomain =
+  persistVol = "/dev/zvol/rpool/beefcake-persist";
+  mkSlotDomain = import ./beefcake/slot-domain.nix { inherit nixvirt pkgs; };
+  prodShares = [
+    {
+      srcDir = "/storage";
+      tag = "storage";
+    }
+    {
+      srcDir = "/var/lib/containers";
+      tag = "containers";
+    }
+    {
+      srcDir = "/var/lib/private";
+      tag = "varlib-private";
+    }
+  ];
+  validateShares = map (s: s // { srcDir = s.srcDir + "-validate"; }) prodShares;
+  mkBeefcakeSlot =
     {
       slot,
       uuid,
       mac,
       bridge,
-      sharePrefix ? "",
+      shares,
+      persist,
     }:
-    let
-      base = nixvirt.lib.domain.templates.linux {
-        name = "beefcake-${slot}";
-        inherit uuid;
-        memory = {
-          count = 200;
-          unit = "GiB";
-        };
-        vcpu.count = 36;
-        storage_vol = "/dev/zvol/rpool/beefcake-${slot}";
-        bridge_name = bridge;
-        net_iface_mac = mac;
-      };
-    in
-    base
-    // {
-      # A guest kernel panic must not leave beefcake down until a human starts
-      # it (design §5: on_crash=restart). Template default was destroy — found
-      # in the burn-in review.
-      on_crash = "restart";
-      # UEFI: the slot image is GPT + ESP + systemd-boot — the template's default
-      # (SeaBIOS) cannot boot it. Explicit OVMF pflash (store-pinned, no reliance
-      # on libvirt firmware auto-selection); per-domain nvram from the VARS
-      # template. Found by the nested integration test.
-      os = base.os // {
-        loader = {
-          readonly = true;
-          type = "pflash";
-          path = "${pkgs.OVMF.fd}/FV/OVMF_CODE.fd";
-        };
-        nvram = {
-          template = "${pkgs.OVMF.fd}/FV/OVMF_VARS.fd";
-          path = "/var/lib/libvirt/qemu/nvram/beefcake-${slot}.fd";
-        };
-      };
-      # virtiofs requires guest RAM be shared (memfd + shared access).
-      memoryBacking = {
-        source.type = "memfd";
-        access.mode = "shared";
-      };
-      devices = base.devices // {
-        # The slot zvol is a BLOCK device holding a RAW image. The template
-        # emits type=file + driver type=qcow2 — qemu refuses ('file' driver
-        # requires a regular file) and would misparse raw as qcow2. Rewrite the
-        # data disk to block/dev/raw; drop the install cdrom (never needed).
-        # All caught by the nested integration test.
-        disk = map (
-          d:
-          d
-          // {
-            type = "block";
-            source.dev = "/dev/zvol/rpool/beefcake-${slot}";
-            driver = d.driver // {
-              type = "raw";
-            };
-          }
-        ) (builtins.filter (d: d.device == "disk") base.devices.disk);
-        filesystem = [
-          (virtiofsShare "/storage${sharePrefix}" "storage")
-          (virtiofsShare "/var/lib/containers${sharePrefix}" "containers")
-          (virtiofsShare "/var/lib/private${sharePrefix}" "varlib-private")
-        ];
-        # Headless server guest (third bug caught by the nested integration
-        # test): the template's spice graphics with GL REQUIRE DRM render nodes
-        # ("No DRM render nodes available" — absent on a headless server) and
-        # the domain refuses to start. Strip spice/sound/audio; plain VGA; a
-        # pty serial console — which IS the §5 recovery path (virsh console).
-        graphics = null;
-        sound = null;
-        audio = null;
-        video.model = {
-          type = "vga";
-          primary = true;
-        };
-        channel = [
-          {
-            type = "unix";
-            target = {
-              type = "virtio";
-              name = "org.qemu.guest_agent.0";
-            };
-          }
-        ];
-        redirdev = [ ]; # the template's 4 spicevmc USB redirs — spice is gone
-        serial = [ { type = "pty"; } ];
-        console = [
-          {
-            type = "pty";
-            target.type = "serial";
-          }
-        ];
-      };
+    mkSlotDomain {
+      name = "beefcake-${slot}";
+      inherit
+        uuid
+        mac
+        bridge
+        shares
+        ;
+      memoryGiB = 200;
+      vcpus = 36;
+      osVol = "/dev/zvol/rpool/beefcake-${slot}";
+      persistVol = persist;
     };
-
-  # blue = the initial ACTIVE slot (service MAC on br0, live shares).
-  blueDomain = mkSlotDomain {
+  blueDomain = mkBeefcakeSlot {
     slot = "blue";
     uuid = "b1000000-beef-cafe-0000-000000000001";
     mac = serviceMac;
     bridge = "br0";
+    shares = prodShares;
+    persist = persistVol;
   };
-
-  # The green production + validation domain XMLs are generated for the cutover
-  # tool to `virsh define` on demand (green is NOT autostarted).
-  greenProdXML = nixvirt.lib.domain.writeXML (mkSlotDomain {
+  greenProdXML = nixvirt.lib.domain.writeXML (mkBeefcakeSlot {
     slot = "green";
     uuid = "b1000000-beef-cafe-0000-000000000002";
-    mac = serviceMac; # takes the service MAC AT CUTOVER (blue is stopped first)
+    mac = serviceMac; # only ever started with blue stopped (tool enforces)
     bridge = "br0";
+    shares = prodShares;
+    persist = persistVol;
   });
-  greenValidateXML = nixvirt.lib.domain.writeXML (mkSlotDomain {
+  greenValidateXML = nixvirt.lib.domain.writeXML (mkBeefcakeSlot {
     slot = "green";
     uuid = "b1000000-beef-cafe-0000-000000000002";
-    mac = "b8:ca:3a:6d:2d:99"; # NON-service MAC — never collides on the LAN
-    bridge = "virbr-validate"; # isolated, egress-cut validation network
-    sharePrefix = "-validate"; # mount the ZFS CLONES, not the live datasets
+    mac = "b8:ca:3a:6d:2d:99"; # NON-service MAC
+    bridge = "virbr-validate"; # isolated, egress-cut
+    shares = validateShares; # ZFS clones
+    persist = "${persistVol}-validate"; # persist CLONE — full identity, discarded
   });
-
-  # beefcake-cutover: the blue/green tool (ports the proven demo logic —
-  # prototypes/.../demo — to the real host: libvirt/NixVirt domains + real
-  # zstorage clones + the service-MAC move). Runtime-validated on the thin host
-  # itself (the demo already proved the validate/cutover/rollback flow).
-  beefcake-cutover = pkgs.writeShellApplication {
-    name = "beefcake-cutover";
-    runtimeInputs = [
-      pkgs.libvirt
-      pkgs.zfs
-      pkgs.gnugrep
-      pkgs.coreutils
+  beefcake-cutover = import ./beefcake/cutover-tool.nix {
+    inherit pkgs greenProdXML greenValidateXML;
+    slotPrefix = "beefcake";
+    # REAL dataset names (created imperatively 2026-06; verified live) + the
+    # explicit mountpoints their validation clones get.
+    shareDatasets = [
+      {
+        dataset = "zstorage/storage";
+        validateMountpoint = "/storage-validate";
+      }
+      {
+        dataset = "zstorage/containers";
+        validateMountpoint = "/var/lib/containers-validate";
+      }
+      {
+        dataset = "zstorage/varlib-private";
+        validateMountpoint = "/var/lib/private-validate";
+      }
     ];
-    text = ''
-      set -euo pipefail
-      MARKER=/persist/beefcake-active-slot
-      DS=(storage var/lib/containers var/lib/private)   # zstorage share datasets
-      active() { cat "$MARKER" 2>/dev/null || echo blue; }
-      other() { [ "$(active)" = blue ] && echo green || echo blue; }
-
-      cmd="''${1:-status}"
-      case "$cmd" in
-        status)
-          echo "active slot: $(active)"
-          virsh list --all || true
-          ;;
-        validate)
-          # Validate the candidate (green) against CLONES of the live state on an
-          # isolated network — never touches production. QUIESCE the active slot
-          # first (sqlite WAL / fsync — see DD6) so the clone is consistent.
-          echo "== quiescing $(active) + snapshotting zstorage =="
-          virsh domfsfreeze "beefcake-$(active)" || true
-          for d in "''${DS[@]}"; do
-            zfs destroy -r "zstorage/$d-validate" 2>/dev/null || true
-            zfs destroy "zstorage/$d@validate" 2>/dev/null || true
-            zfs snapshot "zstorage/$d@validate"
-            zfs clone "zstorage/$d@validate" "zstorage/$d-validate"
-          done
-          virsh domfsthaw "beefcake-$(active)" || true
-          echo "== booting green against clones (isolated net) =="
-          virsh define ${greenValidateXML}
-          virsh start beefcake-green
-          echo "green booting for validation; run per-service checks, then: beefcake-cutover validate-done"
-          ;;
-        validate-done)
-          virsh destroy beefcake-green 2>/dev/null || true
-          virsh undefine beefcake-green 2>/dev/null || true
-          for d in "''${DS[@]}"; do
-            zfs destroy -r "zstorage/$d-validate" 2>/dev/null || true
-            zfs destroy "zstorage/$d@validate" 2>/dev/null || true
-          done
-          echo "validation clones discarded; production untouched"
-          ;;
-        cutover)
-          target=green
-          [ "$(active)" = green ] && target=blue
-          echo "== pre-cutover zstorage snapshot (rollback bound) =="
-          zfs snapshot -r "zstorage@pre-cutover-$target" || true
-          echo "== stop $(active), start $target with the service MAC + live shares =="
-          virsh shutdown "beefcake-$(active)" || true
-          for _ in $(seq 60); do virsh domstate "beefcake-$(active)" 2>/dev/null | grep -qx "shut off" && break; sleep 2; done
-          if [ "$target" = green ]; then virsh define ${greenProdXML}; fi
-          virsh start "beefcake-$target"
-          echo "$target" > "$MARKER"
-          echo "cutover to $target done; verify, then 'beefcake-cutover rollback' if needed"
-          ;;
-        rollback)
-          # symmetric: bring the other slot back up as active
-          prev=$(other)
-          virsh shutdown "beefcake-$(active)" || true
-          for _ in $(seq 60); do virsh domstate "beefcake-$(active)" 2>/dev/null | grep -qx "shut off" && break; sleep 2; done
-          virsh start "beefcake-$prev"
-          echo "$prev" > "$MARKER"
-          echo "rolled back to $prev"
-          ;;
-        *) echo "usage: beefcake-cutover status|validate|validate-done|cutover|rollback"; exit 1 ;;
-      esac
-    '';
+    persistZvolDataset = "rpool/beefcake-persist";
   };
 in
 {

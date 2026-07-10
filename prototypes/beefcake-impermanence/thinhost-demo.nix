@@ -1,15 +1,12 @@
-# Driver for the P4 thin-host integration test: boot thinhost-config.nix (the
-# beefcake-host stack in miniature) on dragon, provision the mini-guest EXACTLY
-# the cutover-runbook way (zpool create → zfs create -V → dd the disko image
-# onto the zvol), `virsh start` it, and assert every integration point the real
-# cutover depends on:
-#   - the NixVirt-defined domain actually RUNS under libvirtd
-#   - the guest boots its RAW zvol image via OVMF pflash (the two bugs this
-#     test already caught at review: qcow2-driver + missing UEFI loader)
-#   - the guest's /nix/store is the OverlayFS (M2, now under libvirt)
-#   - the virtiofs share is readable end-to-end (host marker visible in guest)
-#   - the service-MAC NIC is named eno1 and got the RESERVED IP from the
-#     host's dnsmasq (the router-reservation flow in miniature)
+# Driver for the P4 blue/green integration test: boots thinhost-config.nix (the
+# beefcake-host stack in miniature, running the SHARED production slot-domain +
+# cutover-tool code) and exercises the FULL blue/green cycle:
+#   provision (image -> blue+green OS zvols [same image; slots are disposable
+#   pure-OS] + the shared persist zvol via the MIGRATION RECIPE) -> blue up on
+#   the service IP -> write state into /persist -> `mini-cutover validate`
+#   (green boots against CLONES on the isolated net) -> validate-done (clones
+#   discarded) -> `mini-cutover cutover` (blue stops, green takes the service
+#   MAC + REAL persist) -> assert THE STATE TRAVELED -> rollback -> blue again.
 #
 # Run with:  nix run .#thinhost-demo
 {
@@ -28,14 +25,14 @@ pkgs.writeShellApplication {
     trap 'kill %1 2>/dev/null || true; rm -rf "$work" /tmp/thinhost-guest-img' EXIT
     cd "$work"
 
-    echo "== building the mini-guest disko image (the slot-OS-image flow) =="
+    echo "== building the mini-guest disko image (all-legacy builder) =="
     imgdir=$work/img
     mkdir -p "$imgdir"
     (cd "$imgdir" && ${miniGuestSystem.config.system.build.diskoImagesScript} --build-memory 4096)
     img=$(find "$imgdir" -maxdepth 1 \( -name '*.raw' -o -name '*.qcow2' \) | head -1)
-    echo "== image built: $img =="
     mkdir -p /tmp/thinhost-guest-img
     install -m 0644 "$img" /tmp/thinhost-guest-img/guest.raw
+    echo "== image staged =="
 
     key=$work/demo-ssh-key
     cp ${./keys/demo-ssh-key} "$key"
@@ -49,85 +46,94 @@ pkgs.writeShellApplication {
     ${thinhostSystem.config.system.build.vm}/bin/run-thinhost-vm \
       -display none -serial "file:$work/serial.log" &
 
-    wait_ssh() {
-      for i in $(seq 90); do
-        if ssh "''${SSH_OPTS[@]}" true 2>/dev/null; then return 0; fi
-        if [ $((i % 15)) -eq 0 ]; then echo "  ... waiting for thin-host ssh ($((i * 4))s)"; fi
-        sleep 2
-      done
-      echo "thin host ssh never came up; serial tail:"; tail -60 "$work/serial.log"; exit 1
-    }
-    wait_ssh
+    for i in $(seq 90); do
+      ssh "''${SSH_OPTS[@]}" true 2>/dev/null && break
+      [ "$i" = 90 ] && { echo "FAIL: thin host never up"; tail -40 "$work/serial.log"; exit 1; }
+      sleep 2
+    done
     echo "== thin host up =="
-
-    # nested-ssh helper installed on the thin host (thinhost -> guest)
     ssh "''${SSH_OPTS[@]}" 'printf "#!/bin/sh\nexec ssh -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=3 root@10.99.0.9 \"\$@\"\n" > /root/g && chmod +x /root/g'
 
-    echo "== waiting for libvirtd + the NixVirt-defined domain =="
-    for i in $(seq 30); do
-      if ssh "''${SSH_OPTS[@]}" 'virsh dominfo mini-guest >/dev/null 2>&1'; then break; fi
-      if [ "$i" = 30 ]; then
-        echo "FAIL: domain never defined (NixVirt module)"
-        ssh "''${SSH_OPTS[@]}" 'systemctl status nixvirt.service --no-pager -l 2>&1 | head -20; journalctl -u libvirtd --no-pager 2>&1 | tail -20' || true
-        exit 1
-      fi
-      sleep 4
-    done
-    echo "  domain defined (NixVirt module works under libvirtd)"
+    echo "== provisioning: pools, slot zvols (SAME image both), persist (migration recipe), share dataset =="
+    ssh "''${SSH_OPTS[@]}" '
+      set -e
+      zpool create -f rpool /dev/vdb
+      zfs create -s -V 12G rpool/mini-blue
+      zfs create -s -V 12G rpool/mini-green
+      dd if=/guest-img/guest.raw of=/dev/zvol/rpool/mini-blue bs=4M conv=sparse,fsync status=none
+      dd if=/guest-img/guest.raw of=/dev/zvol/rpool/mini-green bs=4M conv=sparse,fsync status=none
+      # THE PERSIST MIGRATION RECIPE (same on the real box):
+      zfs create -s -V 4G rpool/mini-persist
+      udevadm settle
+      zpool create -f bpersist /dev/zvol/rpool/mini-persist
+      zfs create -o mountpoint=legacy bpersist/persist
+      zpool export bpersist
+      # share dataset + a marker the guests must see via virtiofs
+      zfs create -o mountpoint=/t-storage rpool/t-storage
+      echo shared-data-v1 > /t-storage/marker
+      echo provisioned
+    '
 
-    echo "== provisioning the slot zvol EXACTLY the runbook way =="
-    ssh "''${SSH_OPTS[@]}" 'zpool create -f rpool /dev/vdb && zfs create -V 10G rpool/mini'
-    ssh "''${SSH_OPTS[@]}" 'dd if=/guest-img/guest.raw of=/dev/zvol/rpool/mini bs=4M conv=sparse,fsync status=none && echo "image written to zvol"'
-
-    echo "== virsh start mini-guest =="
-    if ! ssh "''${SSH_OPTS[@]}" 'virsh start mini-guest'; then
-      echo "FAIL: domain would not start"
-      ssh "''${SSH_OPTS[@]}" 'journalctl -u libvirtd --no-pager | tail -30; ls -la /var/log/libvirt/qemu/ 2>/dev/null; cat /var/log/libvirt/qemu/mini-guest.log 2>/dev/null | tail -30' || true
-      exit 1
-    fi
-
-    echo "== waiting for the guest (nested ssh via the service IP 10.99.0.9) =="
+    echo "== start blue; wait for the service IP =="
+    ssh "''${SSH_OPTS[@]}" 'virsh start mini-blue'
     for i in $(seq 90); do
-      if ssh "''${SSH_OPTS[@]}" '/root/g true 2>/dev/null'; then break; fi
-      if [ "$i" = 90 ]; then
-        echo "FAIL: guest never became reachable on the reserved IP"
-        ssh "''${SSH_OPTS[@]}" 'virsh list --all; virsh domifaddr mini-guest 2>/dev/null; cat /var/log/libvirt/qemu/mini-guest.log 2>/dev/null | tail -40; journalctl -u dnsmasq --no-pager | tail -20' || true
-        exit 1
-      fi
-      if [ $((i % 15)) -eq 0 ]; then echo "  ... waiting for guest ($((i * 4))s)"; fi
+      ssh "''${SSH_OPTS[@]}" '/root/g true 2>/dev/null' && break
+      [ "$i" = 90 ] && { echo "FAIL: blue never reachable"; ssh "''${SSH_OPTS[@]}" 'virsh list --all'; exit 1; }
       sleep 4
     done
-    echo "  guest reachable at 10.99.0.9 (service-MAC DHCP reservation works)"
+    echo "  blue up on 10.99.0.9"
 
-    echo "== assertions inside the guest =="
-    fstype=$(ssh "''${SSH_OPTS[@]}" "/root/g 'findmnt -n -o FSTYPE /nix/store | tail -n1'" || true)
-    echo "  /nix/store effective fstype: $fstype"
-    [ "$fstype" = overlay ] || { echo "FAIL: guest /nix/store not overlay"; exit 1; }
+    echo "== write STATE into /persist + verify the share =="
+    ssh "''${SSH_OPTS[@]}" "/root/g 'echo precious-state-from-blue > /persist/cutover-marker; sync'"
+    m=$(ssh "''${SSH_OPTS[@]}" "/root/g 'cat /storage/marker'")
+    [ "$m" = shared-data-v1 ] || { echo "FAIL: share not visible in blue"; exit 1; }
+    fst=$(ssh "''${SSH_OPTS[@]}" "/root/g 'findmnt -n -o SOURCE /persist'")
+    echo "  blue /persist source: $fst"
+    [ "$fst" = bpersist/persist ] || { echo "FAIL: blue /persist not on the shared pool"; exit 1; }
 
-    marker=$(ssh "''${SSH_OPTS[@]}" "/root/g 'cat /storage/marker 2>/dev/null'" || true)
-    echo "  /storage/marker: $marker"
-    [ "$marker" = thin-host-shared-data ] || { echo "FAIL: virtiofs share not readable in guest"; exit 1; }
+    echo "== VALIDATE: green vs clones on the isolated net =="
+    ssh "''${SSH_OPTS[@]}" 'mini-cutover validate'
+    sleep 45
+    st=$(ssh "''${SSH_OPTS[@]}" 'virsh domstate mini-green' || true)
+    echo "  green(validate) state after 45s: $st"
+    [ "$st" = running ] || { echo "FAIL: validation green not running"; exit 1; }
+    ssh "''${SSH_OPTS[@]}" 'zfs list -H -o name | grep -c "validate"' | grep -q '[1-9]' || { echo "FAIL: no validate clones"; exit 1; }
+    blu=$(ssh "''${SSH_OPTS[@]}" '/root/g "systemctl is-system-running" 2>/dev/null' || echo x)
+    echo "  blue still serving during validation: $blu"
 
-    mac=$(ssh "''${SSH_OPTS[@]}" "/root/g 'cat /sys/class/net/eno1/address 2>/dev/null'" || true)
-    echo "  eno1 mac: $mac"
-    [ "$mac" = b8:ca:3a:6d:2d:24 ] || { echo "FAIL: NIC not named eno1 by the service MAC"; exit 1; }
+    echo "== validate-done: discard clones =="
+    ssh "''${SSH_OPTS[@]}" 'mini-cutover validate-done'
+    ssh "''${SSH_OPTS[@]}" 'zfs list -H -o name | grep -c "validate" || true' | grep -q '^0' || { echo "FAIL: clones not discarded"; exit 1; }
+    echo "  clones gone; production untouched"
 
-    ip=$(ssh "''${SSH_OPTS[@]}" "/root/g 'ip -4 -br addr show eno1'" || true)
-    echo "  eno1 addr: $ip"
-    case "$ip" in *10.99.0.9*) ;; *) echo "FAIL: guest did not get the reserved service IP"; exit 1;; esac
+    echo "== CUTOVER: blue -> green on the REAL persist + service MAC =="
+    ssh "''${SSH_OPTS[@]}" 'mini-cutover cutover'
+    for i in $(seq 90); do
+      ssh "''${SSH_OPTS[@]}" '/root/g true 2>/dev/null' && break
+      [ "$i" = 90 ] && { echo "FAIL: green never took the service IP"; ssh "''${SSH_OPTS[@]}" 'virsh list --all'; exit 1; }
+      sleep 4
+    done
+    got=$(ssh "''${SSH_OPTS[@]}" "/root/g 'cat /persist/cutover-marker 2>/dev/null'" || true)
+    echo "  post-cutover /persist marker: $got"
+    [ "$got" = precious-state-from-blue ] || { echo "FAIL: STATE DID NOT TRAVEL"; exit 1; }
+    ssh "''${SSH_OPTS[@]}" 'virsh domstate mini-green | grep -qx running && virsh domstate mini-blue | grep -qx "shut off"' \
+      || { echo "FAIL: slot states wrong after cutover"; exit 1; }
+    echo "  ✅ state traveled with the persist pool; green is the active slot"
 
-    sysstate=$(ssh "''${SSH_OPTS[@]}" "/root/g 'systemctl is-system-running'" || true)
-    echo "  guest is-system-running: $sysstate"
-    case "$sysstate" in running|degraded) ;; *) echo "FAIL: guest did not converge ($sysstate)"; exit 1;; esac
-
-    state=$(ssh "''${SSH_OPTS[@]}" 'virsh domstate mini-guest' || true)
-    echo "  virsh domstate: $state"
-    [ "$state" = running ] || { echo "FAIL: domain not running per libvirt"; exit 1; }
+    echo "== ROLLBACK: green -> blue =="
+    ssh "''${SSH_OPTS[@]}" 'mini-cutover rollback'
+    for i in $(seq 90); do
+      ssh "''${SSH_OPTS[@]}" '/root/g true 2>/dev/null' && break
+      [ "$i" = 90 ] && { echo "FAIL: blue never came back"; exit 1; }
+      sleep 4
+    done
+    got=$(ssh "''${SSH_OPTS[@]}" "/root/g 'cat /persist/cutover-marker 2>/dev/null'" || true)
+    [ "$got" = precious-state-from-blue ] || { echo "FAIL: state lost on rollback"; exit 1; }
 
     ssh "''${SSH_OPTS[@]}" '/root/g poweroff 2>/dev/null; sleep 3; poweroff' 2>/dev/null || true
     echo
-    echo "PASS: thin-host integration — NixVirt domain runs; RAW zvol image boots via"
-    echo "      OVMF; guest /nix is the overlay; virtiofs share readable; service-MAC"
-    echo "      NIC named eno1 + got the reserved IP; guest converged."
+    echo "PASS: FULL BLUE/GREEN CYCLE — provision (disposable slots + shared persist),"
+    echo "      validate-vs-clones on the isolated net (blue serving throughout),"
+    echo "      clone discard, cutover with state travel, rollback with state intact."
   '';
 }

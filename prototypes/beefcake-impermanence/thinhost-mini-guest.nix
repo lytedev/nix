@@ -11,7 +11,32 @@
 {
   imports = [ ./overlay-boot-config.nix ];
 
+  services.qemuGuest.enable = true; # domfsfreeze (mirrors guest-hardware.nix)
+
   networking.hostName = lib.mkForce "mini-guest";
+
+  # Phase-4 persist architecture (mirrors packages/hosts/beefcake/
+  # guest-hardware.nix): /persist comes from the SHARED persist pool on vdb —
+  # NOT the in-image rpool/safe/persist. Identity/state travel with the pool;
+  # slot OS zvols are disposable. The pool is created by the thin host
+  # (matching hostid), so no force-import needed.
+  fileSystems."/persist" = lib.mkForce {
+    device = "bpersist/persist";
+    fsType = "zfs";
+    neededForBoot = true;
+  };
+
+  # The in-image safe/persist (from overlay-boot-config's disko) has a
+  # disko-native mountpoint=/persist -> its ZFS property is /persist, so
+  # `zfs mount -a` remounts it OVER the shared bpersist mount (found live:
+  # /persist stacked bpersist THEN safe/persist). Neutralize it to legacy so
+  # only the bpersist mount stands — mirrors the real guest-image-disko, whose
+  # persist dataset is legacy-at-creation. (Production guest is already immune;
+  # this keeps the mini test faithful.)
+  disko.devices.zpool.rpool.datasets."safe/persist" = {
+    mountpoint = lib.mkForce null;
+    options.mountpoint = lib.mkForce "legacy";
+  };
 
   # Model B: the thin host exposes a share with tag "storage"; mount it.
   fileSystems."/storage" = {
