@@ -37,10 +37,26 @@ let
 in
 {
   nodes = {
-    beefcake = deployer "beefcake" {
-      confirmTimeout = 21600;
-      activationTimeout = 21600;
-    };
+    # POST-CUTOVER (2026-07-09): 192.168.0.9 / beefcake-on-the-tailnet is the
+    # beefcake-blue GUEST on the thin hypervisor. `deploy .#beefcake` therefore
+    # ships the GUEST closure (beefcake-guest = all services + the virtio
+    # hardware layer; new paths land in the guest's /nix overlay upper). The
+    # bare-metal nixosConfigurations.beefcake remains ONLY as the pre-cutover
+    # fallback generation — deploying it to the box would push bare-metal
+    # config into the VM. Deploy over the LAN as always (headscale lives in the
+    # guest); systemd-touching changes = guest reboot (virsh console = safety
+    # net), not live switch.
+    beefcake =
+      deployer "beefcake" {
+        confirmTimeout = 21600;
+        activationTimeout = 21600;
+      }
+      // {
+        profiles.system = {
+          sshUser = "root";
+          path = (deployPkgs "x86_64-linux").deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.beefcake-guest;
+        };
+      };
     # Phase-3 thin hypervisor. NOT deployed until the cutover
     # (lib/doc/beefcake-thin-host-cutover-runbook.md) — a boot+reboot over the
     # LAN (deploy --boot --hostname <host-mgmt-ip>), like beefcake. The guest
