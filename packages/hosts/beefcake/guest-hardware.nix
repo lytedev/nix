@@ -129,6 +129,11 @@
   #      polish: a zvol-backed containerd dir restores real overlayfs. ----
   services.k3s.extraFlags = lib.mkAfter [ "--snapshotter=native" ];
 
+  # ---- hardware-coupled daemons belong to the HOST now: the guest has only
+  #      virtio disks (no SMART), so smartd fails by design in the VM. The
+  #      host runs smartd against the real disks (beefcake-host.nix). ----
+  services.smartd.enable = lib.mkForce false;
+
   # ---- networking: the domain gives the guest's virtio NIC the service MAC
   #      (b8:ca:3a:6d:2d:24). Name that NIC "eno1" by MAC so ALL of
   #      beefcake/networking.nix (nat.externalInterface=eno1, tailscale exit
