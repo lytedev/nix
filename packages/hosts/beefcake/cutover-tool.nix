@@ -103,10 +103,25 @@ pkgs.writeShellApplication {
             virsh domfsfreeze "$PREFIX-$(active)" || true
             for i in "''${!DS[@]}"; do
               d="''${DS[$i]}"; m="''${DSMNT[$i]}"
-              zfs destroy -r "$d-validate" 2>/dev/null || true
-              zfs destroy "$d@validate" 2>/dev/null || true
-              zfs snapshot "$d@validate"
-              zfs clone -o mountpoint="$m" "$d@validate" "$d-validate"
+              # tear down any stale validate clones for this tree (leaf-first)
+              for c in $(zfs list -H -o name -r "$d" 2>/dev/null | tac); do
+                zfs destroy "$c-validate" 2>/dev/null || true
+              done
+              zfs destroy -r "$d@validate" 2>/dev/null || true
+              # RECURSIVE snapshot captures CHILD datasets (e.g. the sync=disabled
+              # forgejo-repositories under zstorage/storage) — a non-recursive
+              # snapshot+clone would boot green with those children EMPTY. Clone
+              # the dataset AND every descendant, preserving each one's mountpoint
+              # RELATIVE to $d under $m so the tree nests correctly in the share.
+              zfs snapshot -r "$d@validate"
+              base=$(zfs get -H -o value mountpoint "$d")
+              for sub in $(zfs list -H -o name -r "$d"); do
+                smnt=$(zfs get -H -o value mountpoint "$sub")
+                case "$smnt" in
+                  "$base"*) rel="''${smnt#"$base"}"; zfs clone -o mountpoint="$m$rel" "$sub@validate" "$sub-validate" ;;
+                  *) echo "WARN: $sub mountpoint '$smnt' not under $base — skipping (validation slot will lack it)" ;;
+                esac
+              done
             done
             zfs destroy -r "$PERSIST-validate" 2>/dev/null || true
             zfs destroy "$PERSIST@validate" 2>/dev/null || true
@@ -127,8 +142,11 @@ pkgs.writeShellApplication {
             virsh destroy "$PREFIX-green" 2>/dev/null || true
             virsh undefine "$PREFIX-green" --nvram 2>/dev/null || true
             for d in "''${DS[@]}"; do
-              zfs destroy -r "$d-validate" 2>/dev/null || true
-              zfs destroy "$d@validate" 2>/dev/null || true
+              # destroy every descendant clone leaf-first, then the recursive snap
+              for c in $(zfs list -H -o name -r "$d" 2>/dev/null | tac); do
+                zfs destroy "$c-validate" 2>/dev/null || true
+              done
+              zfs destroy -r "$d@validate" 2>/dev/null || true
             done
             zfs destroy -r "$PERSIST-validate" 2>/dev/null || true
             zfs destroy "$PERSIST@validate" 2>/dev/null || true
@@ -138,7 +156,8 @@ pkgs.writeShellApplication {
             target=green
             [ "$(active)" = green ] && target=blue
             echo "== pre-cutover snapshots (rollback bound) =="
-            for d in "''${DS[@]}"; do zfs snapshot "$d@pre-cutover-$target" 2>/dev/null || true; done
+            # -r so the rollback bound also captures child datasets (repos etc.)
+            for d in "''${DS[@]}"; do zfs snapshot -r "$d@pre-cutover-$target" 2>/dev/null || true; done
             zfs snapshot "$PERSIST@pre-cutover-$target" 2>/dev/null || true
             echo "== stop $(active); start $target on the REAL persist + shares + service MAC =="
             virsh shutdown "$PREFIX-$(active)" || true

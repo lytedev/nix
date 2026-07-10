@@ -81,6 +81,9 @@ pkgs.writeShellApplication {
       zpool create -f bpersist /dev/zvol/rpool/mini-persist
       zfs create -o mountpoint=legacy bpersist/persist; zpool export bpersist
       zfs create -o mountpoint=/t-storage rpool/t-storage; echo origin-share-v1 > /t-storage/marker
+      # child dataset under the share: exercises the recursive snapshot/clone
+      # (a non-recursive clone would leave it EMPTY in the green validation slot)
+      zfs create rpool/t-storage/child; echo child-dataset-marker-v1 > /t-storage/child/cmarker
       echo provisioned'
     ssh "''${S[@]}" 'virsh start mini-blue'
     for i in $(seq 90); do ssh "''${S[@]}" '/root/g true 2>/dev/null' && break; [ "$i" = 90 ] && { echo "blue never up"; exit 1; }; sleep 4; done
@@ -133,6 +136,9 @@ pkgs.writeShellApplication {
       # S4: the just-synced write is present in the clone the validation slot booted
       vdata=$(ssh "''${S[@]}" "$vp root@$vip 'cat /persist/data 2>/dev/null' " || true)
       if echo "$vdata" | grep -q synced-just-before-snapshot; then ok "S4 quiesce/snapshot caught the synced write (clone has it)"; else bad "S4 clone missing the synced write"; fi
+      # S7: the child dataset must be present in the validation clone (recursive clone)
+      cmark=$(ssh "''${S[@]}" "$vp root@$vip 'cat /storage/child/cmarker 2>/dev/null'" || true)
+      if echo "$cmark" | grep -q child-dataset-marker-v1; then ok "S7 child dataset present in validation clone (recursive clone works)"; else bad "S7 child dataset EMPTY in validation clone (non-recursive clone bug: $cmark)"; fi
       # S2: validation writes to its /persist + /storage
       ssh "''${S[@]}" "$vp root@$vip 'echo VALIDATION-WAS-HERE > /persist/data; echo tampered > /storage/marker; sync' " || true
       # S3: the SERVICE net (10.99.0.1, where the real service IP lives) must be
