@@ -66,6 +66,15 @@ in
       hostname = "beefcake-host.lan";
       confirmTimeout = 21600;
       activationTimeout = 21600;
+      # the THIN host should never evaluate the whole flake itself — build on
+      # the deployer (dragon, everything cached) and push the small closure
+      remoteBuild = false;
+      # dragon builds + already holds the whole (tiny) host closure, and the box
+      # is LAN-local: stream it directly instead of --substitute-on-destination,
+      # which made the host re-resolve every path against nix.h.lyte.dev — a
+      # cache now served BY the guest, so it 404s dragon-built host paths and
+      # crawls the caddy cascade (cache-story analysis, 2026-07-10).
+      fastConnection = true;
     };
     dragon = deployer "dragon" { };
     # htpc = deployer "htpc" { remoteBuild = false; }; # broken: rtl8812au marked broken upstream
